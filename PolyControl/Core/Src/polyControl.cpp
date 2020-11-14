@@ -1,7 +1,4 @@
 #include "polyControl.hpp"
-#include "debughelper/debughelper.hpp"
-#include "spi.h"
-#include "tim.h"
 
 // Buffer for InterChip Com
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
@@ -37,6 +34,9 @@ void initMidi();
 // poly control init
 void PolyControlInit() {
 
+    // enable display
+    HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
+
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
@@ -55,12 +55,12 @@ void PolyControlInit() {
 
     // init communication to render chips
     layerCom[0].initOutTransmission(
-        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerA, 0);
 
-    // layerCom[1].initOutTransmission(
-    //     std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi2, std::placeholders::_1, std::placeholders::_2),
-    //     (uint8_t *)interChipDMABufferLayerB, 1);
+    layerCom[1].initOutTransmission(
+        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
+        (uint8_t *)interChipDMABufferLayerB, 1);
 
     // init midi
     initMidi();
@@ -73,7 +73,7 @@ void PolyControlRun() { // Here the party starts
 
     while (1) {
 
-        HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+        // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
         HAL_Delay(250);
         actionHandler.callActionEncoder_1_CW();
         actionHandler.callActionEncoder_2_CW();

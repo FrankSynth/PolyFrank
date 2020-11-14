@@ -74,11 +74,11 @@ void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc) {
 }
 
 void TransferError(DMA2D_HandleTypeDef *hdma2d) {
-    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    // HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
 }
 
 void TransferComplete(DMA2D_HandleTypeDef *hdma2d) {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     callNextTask();
 }
 

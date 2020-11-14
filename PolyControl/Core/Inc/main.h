@@ -33,7 +33,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define ARM_MATH_CM7
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -79,22 +79,28 @@ void Error_Handler(void);
 #define Layer_2_CS_1_GPIO_Port GPIOA
 #define Layer_2_READY_1_Pin GPIO_PIN_3
 #define Layer_2_READY_1_GPIO_Port GPIOH
+#define Layer_2_READY_1_EXTI_IRQn EXTI3_IRQn
 #define EEPROM_CS_Pin GPIO_PIN_4
 #define EEPROM_CS_GPIO_Port GPIOA
 #define Layer_2_READY_2_Pin GPIO_PIN_4
 #define Layer_2_READY_2_GPIO_Port GPIOC
+#define Layer_2_READY_2_EXTI_IRQn EXTI4_IRQn
 #define Panel_2_Change_Pin GPIO_PIN_5
 #define Panel_2_Change_GPIO_Port GPIOC
 #define Panel_1_Change_Pin GPIO_PIN_2
 #define Panel_1_Change_GPIO_Port GPIOB
+#define Panel_1_Change_EXTI_IRQn EXTI2_IRQn
 #define Sync_OUT_Pin GPIO_PIN_12
 #define Sync_OUT_GPIO_Port GPIOB
 #define Panel_1_EOC_Pin GPIO_PIN_11
 #define Panel_1_EOC_GPIO_Port GPIOD
+#define Panel_1_EOC_EXTI_IRQn EXTI15_10_IRQn
 #define Encoder_Interrupt_Pin GPIO_PIN_12
 #define Encoder_Interrupt_GPIO_Port GPIOD
+#define Encoder_Interrupt_EXTI_IRQn EXTI15_10_IRQn
 #define Panel_2_EOC_Pin GPIO_PIN_13
 #define Panel_2_EOC_GPIO_Port GPIOD
+#define Panel_2_EOC_EXTI_IRQn EXTI15_10_IRQn
 #define Panel_ADC_Mult_A_Pin GPIO_PIN_2
 #define Panel_ADC_Mult_A_GPIO_Port GPIOG
 #define Panel_ADC_Mult_B_Pin GPIO_PIN_3
@@ -111,6 +117,7 @@ void Error_Handler(void);
 #define Control_Reset_GPIO_Port GPIOG
 #define Control_Touch_Change_Pin GPIO_PIN_14
 #define Control_Touch_Change_GPIO_Port GPIOG
+#define Control_Touch_Change_EXTI_IRQn EXTI15_10_IRQn
 #define Panel_Reset_Pin GPIO_PIN_4
 #define Panel_Reset_GPIO_Port GPIOB
 #define Layer_1_CS_1_Pin GPIO_PIN_4

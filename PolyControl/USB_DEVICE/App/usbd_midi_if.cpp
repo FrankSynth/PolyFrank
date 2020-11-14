@@ -234,7 +234,7 @@ static int8_t MIDI_Receive_FS(uint8_t *Buf, uint32_t *Len) {
     /* USER CODE BEGIN 6 */
     USBD_MIDI_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
     USBD_MIDI_ReceivePacket(&hUsbDeviceFS);
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     MIDIComRead.push(Buf, *Len);
     // MIDI_Transmit_FS(Buf, *Len);
     return (USBD_OK);

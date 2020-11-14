@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : USB_OTG.h
-  * Description        : This file provides code for the configuration
-  *                      of the USB_OTG instances.
+  * File Name          : mdma.h
+  * Description        : This file contains all the function prototypes for
+  *                      the mdma.c file
   ******************************************************************************
   * @attention
   *
@@ -17,8 +17,9 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __usb_otg_H
-#define __usb_otg_H
+#ifndef __mdma_H
+#define __mdma_H
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -26,19 +27,18 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+/* MDMA transfer handles -----------------------------------------------------*/
+extern MDMA_HandleTypeDef hmdma_mdma_channel40_sw_0;
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-
-extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void MX_USB_OTG_FS_PCD_Init(void);
-void MX_USB_OTG_HS_PCD_Init(void);
+void MX_MDMA_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
@@ -47,11 +47,8 @@ void MX_USB_OTG_HS_PCD_Init(void);
 #ifdef __cplusplus
 }
 #endif
-#endif /*__ usb_otg_H */
 
-/**
-  * @}
-  */
+#endif /* __mdma_H */
 
 /**
   * @}
