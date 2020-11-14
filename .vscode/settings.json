@@ -1,0 +1,23 @@
+{
+    "stm32-for-vscode.openOCDPath": "openocd",
+    "stm32-for-vscode.makePath": "make",
+    "stm32-for-vscode.armToolchainPath": "",
+    "cortex-debug.armToolchainPath": "",
+    "files.associations": {
+        "*.make": "makefile",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "bit": "cpp",
+        "cstddef": "cpp",
+        "list": "cpp",
+        "optional": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "new": "cpp",
+        "functional": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "vector": "cpp"
+    }
+}
