@@ -3,7 +3,7 @@
         {
             "showDevDebugOutput": true,
             "cwd": "${workspaceRoot}",
-            "executable": "./PolyControl/build/PolyControl.elf",
+            "executable": "PolyControl/build/PolyControl.elf",
             "name": "Debug PolyControl",
             "request": "launch",
             "type": "cortex-debug",

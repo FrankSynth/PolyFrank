@@ -9,8 +9,8 @@
 #include <stdint.h>
 #include <string>
 
-#define LCDWIDTH 620u
-#define LCDHEIGHT 400u
+#define LCDWIDTH 800u
+#define LCDHEIGHT 480u
 #define LCDDATASIZE 2u
 #define MAXDRAWCALLS 256u
 

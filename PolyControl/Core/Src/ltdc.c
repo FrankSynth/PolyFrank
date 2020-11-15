@@ -49,6 +49,25 @@ void MX_LTDC_Init(void) {
     if (HAL_LTDC_Init(&hltdc) != HAL_OK) {
         Error_Handler();
     }
+    // pLayerCfg.WindowX0 = 90;
+    // pLayerCfg.WindowX1 = 710;
+    // pLayerCfg.WindowY0 = 40;
+    // pLayerCfg.WindowY1 = 440;
+    // pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB4444;
+    // pLayerCfg.Alpha = 0xff;
+    // pLayerCfg.Alpha0 = 0;
+    // pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+    // pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
+    // pLayerCfg.FBStartAdress = 0x24000000;
+    // pLayerCfg.ImageWidth = 620;
+    // pLayerCfg.ImageHeight = 400;
+    // pLayerCfg.Backcolor.Blue = 0;
+    // pLayerCfg.Backcolor.Green = 0;
+    // pLayerCfg.Backcolor.Red = 0;
+    // if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0) != HAL_OK) {
+    //     Error_Handler();
+    // }
+
     pLayerCfg.WindowX0 = 0;
     pLayerCfg.WindowX1 = 800;
     pLayerCfg.WindowY0 = 0;
@@ -58,7 +77,7 @@ void MX_LTDC_Init(void) {
     pLayerCfg.Alpha0 = 0;
     pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
     pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
-    pLayerCfg.FBStartAdress = 0;
+    pLayerCfg.FBStartAdress = 0xC0000000;
     pLayerCfg.ImageWidth = 800;
     pLayerCfg.ImageHeight = 480;
     pLayerCfg.Backcolor.Blue = 0;
@@ -120,91 +139,91 @@ void HAL_LTDC_MspInit(LTDC_HandleTypeDef *ltdcHandle) {
         GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_2;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_11;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
         HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_10;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_9;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_10;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_4;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
         HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_8 | GPIO_PIN_9;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_1;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF14_LTDC;
         HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_8;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF13_LTDC;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
         GPIO_InitStruct.Pin = GPIO_PIN_12;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF9_LTDC;
         HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 

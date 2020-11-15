@@ -3,7 +3,7 @@
 #include "debughelper/debughelper.hpp"
 #include "tim.h"
 
-volatile RAM1 ALIGN_32BYTES(uint8_t FrameBuffer[FRAMEBUFFERSIZE]);
+volatile FRAMEBUFFER ALIGN_32BYTES(uint8_t FrameBuffer[FRAMEBUFFERSIZE]);
 volatile RAM1 ALIGN_32BYTES(uint32_t color_1);
 volatile RAM1 ALIGN_32BYTES(uint32_t color_2);
 volatile RAM1 ALIGN_32BYTES(uint32_t color_3);
@@ -39,7 +39,7 @@ void GFX_Init() {
     DMA2D_DefaultConfig(DMA2D_OUTPUT_ARGB4444);
 
     // clean
-    drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT);
 }
 
 void DMA2D_DefaultConfig(int colorMode) {

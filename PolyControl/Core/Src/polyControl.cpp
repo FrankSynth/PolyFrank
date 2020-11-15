@@ -34,9 +34,6 @@ void initMidi();
 // poly control init
 void PolyControlInit() {
 
-    // enable display
-    HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
-
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
@@ -50,6 +47,8 @@ void PolyControlInit() {
 
     initPoly();
 
+    // enable display
+    HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_RESET);
     // init UI, Display
     ui.Init(allLayers);
 
@@ -66,36 +65,39 @@ void PolyControlInit() {
     initMidi();
 }
 
+// FRAMEBUFFER volatile uint32_t testbuffer = 0;
+
 void PolyControlRun() { // Here the party starts
 
     // actionHandler.callActionHeader3();
-    ui.Draw();
+    // ui.Draw();
 
     while (1) {
 
-        // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-        HAL_Delay(250);
-        actionHandler.callActionEncoder_1_CW();
-        actionHandler.callActionEncoder_2_CW();
+        HAL_Delay(500);
+        // print("test");
+        HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
+        // HAL_Delay(500);
+        // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
+        // testbuffer++;
 
-        uint32_t time = __HAL_TIM_GetCounter(&htim2);
-        // println(__HAL_TIM_GetCounter(&htim2));
+        // actionHandler.callActionEncoder_1_CW();
+        // actionHandler.callActionEncoder_2_CW();
 
-        ui.Draw();
+        // uint32_t time = __HAL_TIM_GetCounter(&htim2);
+        // // println(__HAL_TIM_GetCounter(&htim2));
 
-        println(__HAL_TIM_GetCounter(&htim2) - time);
+        // ui.Draw();
 
-        HAL_Delay(250);
-        actionHandler.callActionEncoder_1_CCW();
-        actionHandler.callActionEncoder_2_CW();
-        actionHandler.callActionLeft3();
-        drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+        // println(__HAL_TIM_GetCounter(&htim2) - time);
 
-        ui.Draw();
+        // HAL_Delay(250);
+        // actionHandler.callActionEncoder_1_CCW();
+        // actionHandler.callActionEncoder_2_CW();
+        // actionHandler.callActionLeft3();
+        // drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 
-        // println("x = ", ((int16_t *)&test)[0], ", y = ", ((int16_t *)&test)[1]);
-
-        // actionHandler.callActionHeader1();
+        // ui.Draw();
     };
 }
 
