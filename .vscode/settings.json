@@ -18,6 +18,7 @@
         "functional": "cpp",
         "*.tcc": "cpp",
         "deque": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "cstdio": "cpp"
     }
 }

@@ -107,8 +107,8 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
-    // MX_DMA2D_Init();
-    // MX_FMC_Init();
+    MX_DMA2D_Init();
+    MX_FMC_Init();
     MX_I2C1_Init();
     MX_I2C2_Init();
     MX_I2C3_Init();
@@ -125,10 +125,11 @@ int main(void) {
     MX_TIM3_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
-    MX_USB_DEVICE_Init();
+    // MX_USB_DEVICE_Init();
     /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim3);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
 
     PolyControlInit();
@@ -139,7 +140,9 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
-        // printf("test");
+        // ITM_SendChar('a');
+        // HAL_Delay(10);
+
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
@@ -263,19 +266,19 @@ void MPU_Config(void) {
 
     HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-    // MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-    // MPU_InitStruct.Number = MPU_REGION_NUMBER8;
-    // MPU_InitStruct.BaseAddress = 0xC0000000;
-    // MPU_InitStruct.Size = MPU_REGION_SIZE_1MB;
-    // MPU_InitStruct.SubRegionDisable = 0x0;
-    // MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-    // MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
-    // MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-    // MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
-    // MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-    // MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER8;
+    MPU_InitStruct.BaseAddress = 0xC0000000;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_1MB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
-    // HAL_MPU_ConfigRegion(&MPU_InitStruct);
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
     /* Enables the MPU */
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
