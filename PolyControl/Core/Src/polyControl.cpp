@@ -65,26 +65,49 @@ void PolyControlInit() {
     initMidi();
 }
 
-FRAMEBUFFER volatile uint32_t testbuffer;
+// FRAMEBUFFER volatile uint16_t testbuffer[10000];
+
+uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
     // actionHandler.callActionHeader3();
     // ui.Draw();
-    HAL_Delay(1000);
+    // HAL_Delay(1000);
 
-    uint32_t test = 0;
-    println("ich lebe");
-    testbuffer = 0;
-    println("ich lebe nicht");
+    // uint32_t test = 0;
+    // println("ich lebe");
+    // for (int x = 40000; x < 100000; x++) {
+    //    testbuffer[x] = x;
+    //    println(x);
+    //   HAL_Delay(0);
+
+    //} // println("ich lebe nicht");
+    // println("Start");
+    // println((uint32_t)pFrameBuffer);
+
+    // uint16_t *sdram = ((uint16_t *)(0xD0000000));
+
+    // for (int x = 0; x < 400; x++) {
+    //     for (int y = 0; y < 800; y++) {
+    //         sdram[x * 800 + y] = 0xFFFF;
+
+    //         // println(testbuffer[x]);
+    //     }
+    //     println("ROW");
+    // }
+
+    // println("Done");
 
     while (1) {
 
-        HAL_Delay(300);
         // println("test ", testbuffer++);
-        println("Hello Jakob ", testbuffer++);
+        // println("Hello Jakob ", testbuffer++);
+        // println("SDRam Status ", HAL_SDRAM_GetState(&hsdram1));
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // HAL_Delay(500);
+        ui.Draw();
+        // HAL_SDRAM_SendCommand
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // testbuffer++;
 
@@ -93,8 +116,14 @@ void PolyControlRun() { // Here the party starts
 
         // uint32_t time = __HAL_TIM_GetCounter(&htim2);
         // // println(__HAL_TIM_GetCounter(&htim2));
+        // drawRectangleFill(0xFFFFFF00, 0, 0, LCDWIDTH, LCDHEIGHT);
+        // HAL_Delay(500);
+        // drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
+        //  HAL_Delay(500);
 
-        ui.Draw();
+        HAL_Delay(50);
+
+        //  drawRectangleFill(0xFFFFFFFF, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
 
         // println(__HAL_TIM_GetCounter(&htim2) - time);
 
@@ -108,7 +137,8 @@ void PolyControlRun() { // Here the party starts
     };
 }
 
-///////////////////////////////////////////////// LAYER SPECIFIC HANDLING /////////////////////////////////////////////
+///////////////////////////////////////////////// LAYER SPECIFIC HANDLING
+////////////////////////////////////////////////
 
 // void sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
 //     layerCom[layerId].sendSetting(moduleId, settingsId, amount);

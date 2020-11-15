@@ -25,6 +25,7 @@ typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4 } DRAWTYPE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
 
+extern uint8_t *pFrameBuffer;
 // rendertask struct
 typedef struct {
     uint32_t pSource;

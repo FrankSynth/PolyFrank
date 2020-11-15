@@ -107,12 +107,15 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
-    MX_DMA2D_Init();
+    // MX_DMA2D_Init();
     MX_FMC_Init();
+
+    BSP_SDRAM_Initialization_sequence(REFRESH_COUNT);
+
     MX_I2C1_Init();
     MX_I2C2_Init();
     MX_I2C3_Init();
-    MX_LTDC_Init();
+    // MX_LTDC_Init();
     MX_SPI1_Init();
     MX_SPI2_Init();
     MX_SPI4_Init();
@@ -268,8 +271,8 @@ void MPU_Config(void) {
 
     MPU_InitStruct.Enable = MPU_REGION_ENABLE;
     MPU_InitStruct.Number = MPU_REGION_NUMBER8;
-    MPU_InitStruct.BaseAddress = 0xC0000000;
-    MPU_InitStruct.Size = MPU_REGION_SIZE_1MB;
+    MPU_InitStruct.BaseAddress = 0xD0000000;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_2MB;
     MPU_InitStruct.SubRegionDisable = 0x0;
     MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
     MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
@@ -290,7 +293,7 @@ void MPU_Config(void) {
 void Error_Handler(void) {
     /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
-
+    println("--------ERROR HANDLER OCCURED---------");
     /* USER CODE END Error_Handler_Debug */
 }
 

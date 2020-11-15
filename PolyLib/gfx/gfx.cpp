@@ -32,6 +32,8 @@ void GFX_Init() {
     hltdc.Init.Backcolor.Red = 0;
     hltdc.Init.Backcolor.Green = 24;
     hltdc.Init.Backcolor.Blue = 30;
+
+    //__HAL_LTDC_RELOAD_CONFIG(&hltdc);
     HAL_LTDC_Init(&hltdc); // update config
 
     // init DMA2D //
@@ -39,7 +41,7 @@ void GFX_Init() {
     DMA2D_DefaultConfig(DMA2D_OUTPUT_ARGB4444);
 
     // clean
-    drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 }
 
 void DMA2D_DefaultConfig(int colorMode) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "debughelper/debughelper.hpp"
+#include "fmc.h"
 #include "gfx/gui.hpp"
 #include "livedata/liveData.hpp"
 #include "mdma.h"
@@ -10,6 +11,7 @@
 #include "tim.h"
 #include "usbd_midi_if.hpp"
 #include <functional>
+
 
 extern GUI ui;
 

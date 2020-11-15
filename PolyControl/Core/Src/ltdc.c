@@ -49,34 +49,16 @@ void MX_LTDC_Init(void) {
     if (HAL_LTDC_Init(&hltdc) != HAL_OK) {
         Error_Handler();
     }
-    // pLayerCfg.WindowX0 = 90;
-    // pLayerCfg.WindowX1 = 710;
-    // pLayerCfg.WindowY0 = 40;
-    // pLayerCfg.WindowY1 = 440;
-    // pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB4444;
-    // pLayerCfg.Alpha = 0xff;
-    // pLayerCfg.Alpha0 = 0;
-    // pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
-    // pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
-    // pLayerCfg.FBStartAdress = 0x24000000;
-    // pLayerCfg.ImageWidth = 620;
-    // pLayerCfg.ImageHeight = 400;
-    // pLayerCfg.Backcolor.Blue = 0;
-    // pLayerCfg.Backcolor.Green = 0;
-    // pLayerCfg.Backcolor.Red = 0;
-    // if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0) != HAL_OK) {
-    //     Error_Handler();
-    // }
 
     pLayerCfg.WindowX0 = 0;
     pLayerCfg.WindowX1 = 800;
     pLayerCfg.WindowY0 = 0;
     pLayerCfg.WindowY1 = 480;
-    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_AL44;
-    pLayerCfg.Alpha = 0;
+    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB4444;
+    pLayerCfg.Alpha = 0xFF;
     pLayerCfg.Alpha0 = 0;
-    pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
-    pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
+    pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+    pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
     pLayerCfg.FBStartAdress = 0xD0000000;
     pLayerCfg.ImageWidth = 800;
     pLayerCfg.ImageHeight = 480;
