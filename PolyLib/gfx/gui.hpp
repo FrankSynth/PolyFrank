@@ -24,11 +24,11 @@ extern uint32_t cWhiteLight;
 #define HEADERHEIGHT 50
 #define FOOTERHEIGHT 50
 #define FOCUSHEIGHT 35
-#define SPACER 12
+#define SPACER 20
 
-#define BOARDERWIDTH 120
+#define BOARDERWIDTH 150
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
-#define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER
+#define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER - SPACER
 
 typedef struct {
     uint8_t layer = 0xff;
@@ -303,7 +303,7 @@ class GUIPanelFocus : public GUIPanelBase {
 
   private:
     // Boxes
-    uint16_t elementsNb = 4;
+    uint16_t elementsNb = 5;
 
     FOCUSMODE mode;
 
