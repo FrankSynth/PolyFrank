@@ -22,6 +22,7 @@
 
 //      if first start :
 //      updateI2CAddress();  //update the I2C addresses of the MCP4728 DACs
+
 //}
 // void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 

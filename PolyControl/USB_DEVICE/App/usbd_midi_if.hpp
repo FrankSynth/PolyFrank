@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_MIDI.h"
+#include "usbd_midi.h"
 
 /* USER CODE BEGIN INCLUDE */
 /* USER CODE END INCLUDE */

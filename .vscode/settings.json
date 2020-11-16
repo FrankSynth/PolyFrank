@@ -20,5 +20,6 @@
         "deque": "cpp",
         "vector": "cpp",
         "cstdio": "cpp"
-    }
+    },
+    "todo-tree.tree.showBadges": true
 }

@@ -107,7 +107,7 @@ int main(void) {
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
-    // MX_DMA2D_Init();
+    // MX_DMA2D_Init(); // in gfx Lib
     MX_FMC_Init();
 
     BSP_SDRAM_Initialization_sequence(REFRESH_COUNT);
@@ -115,7 +115,7 @@ int main(void) {
     MX_I2C1_Init();
     MX_I2C2_Init();
     MX_I2C3_Init();
-    // MX_LTDC_Init();
+    // MX_LTDC_Init(); // in gfx Lib
     MX_SPI1_Init();
     MX_SPI2_Init();
     MX_SPI4_Init();
@@ -128,7 +128,7 @@ int main(void) {
     MX_TIM3_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
-    // MX_USB_DEVICE_Init();
+    MX_USB_DEVICE_Init();
     /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim3);
