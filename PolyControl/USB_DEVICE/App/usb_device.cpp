@@ -29,7 +29,6 @@
 #include "usbd_midi.h"
 #include "usbd_midi_if.hpp"
 
-
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
