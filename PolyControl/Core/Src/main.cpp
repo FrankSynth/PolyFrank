@@ -79,7 +79,7 @@ int main(void) {
     /* USER CODE BEGIN 1 */
 
     /* USER CODE END 1 */
-    /* MPU Configuration--------------------------------------------------------*/
+    /* MPU  Configuration--------------------------------------------------------*/
     MPU_Config();
     /* Enable I-Cache---------------------------------------------------------*/
     SCB_EnableICache();
@@ -129,6 +129,7 @@ int main(void) {
     MX_RNG_Init();
     MX_TIM2_Init();
     MX_USB_DEVICE_Init();
+
     /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim3);
@@ -143,7 +144,7 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
-        // ITM_SendChar('a');
+        ITM_SendChar('a');
         // HAL_Delay(10);
 
         /* USER CODE BEGIN 3 */

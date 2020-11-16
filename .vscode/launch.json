@@ -14,6 +14,36 @@
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg"
             ]
+        },
+        {
+            "showDevDebugOutput": true,
+            "cwd": "${workspaceRoot}",
+            "executable": "PolyControl/build/PolyControl.elf",
+            "name": "Test",
+            "request": "launch",
+            "type": "cortex-debug",
+            "interface": "swd",
+            "servertype": "openocd",
+            "device": "stlink",
+            "preLaunchTask": "Build PolyControl",
+            "svdFile": "STM32H7x3.svd",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32h7x.cfg"
+            ],
+            "swoConfig": {
+                "enabled": true,
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM",
+                        "port": 0
+                    }
+                ],
+                "cpuFrequency": 480000000,
+                "swoFrequency": 8000000,
+                "source": "probe"
+            }
         }
     ]
 }
