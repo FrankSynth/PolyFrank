@@ -26,6 +26,9 @@ extern bool interChipB_DMA_Started[2];
 extern bool interChipB_DMA_Finished[2];
 extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
+// Display
+extern bool renderingDoneSwitchBuffer;
+
 void handleFlags();
 void initFlagHandler();
 

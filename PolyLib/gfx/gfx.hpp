@@ -3,9 +3,12 @@
 #include "circularbuffer/circularbuffer.hpp"
 #include "datacore/dataHelperFunctions.hpp"
 #include "datacore/datalocation.hpp"
+#include "debughelper/debughelper.hpp"
 #include "dma2d.h"
+#include "flagHandler/flagHandler.hpp"
 #include "fonts/polyfonts.h"
 #include "ltdc.h"
+#include "tim.h"
 #include <stdint.h>
 #include <string>
 
@@ -45,6 +48,8 @@ extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 // extern uint8_t FrameBuffer[BUFFERSIZE];
 
 void GFX_Init();
+void SwitchFrameBuffer();
+
 void DMA2D_DefaultConfig(int colorMode);
 void IRQHandler(void);
 

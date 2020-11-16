@@ -66,7 +66,8 @@ RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 512K
 RAM_D2_DMA (xrw)      : ORIGIN = 0x30000000, LENGTH = 8K
 RAM_D2 (xrw)      : ORIGIN = 0x30002000, LENGTH = 280K
 RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K
-FRAMEBUFFER (xrw)      : ORIGIN = 0xD0000000, LENGTH = 1024K
+FRAMEBUFFER_A (xrw)      : ORIGIN = 0xD0000000, LENGTH = 1024K
+FRAMEBUFFER_B (xrw)      : ORIGIN = 0xD0100000, LENGTH = 1024K
 ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K
 }
@@ -212,10 +213,15 @@ SECTIONS
     *(.ram_D3_buffer)
   } >RAM_D3
 
-  .frame_buffer : /* Space before ':' is critical */
+  .frame_buffer_a : /* Space before ':' is critical */
   {
-    *(.frame_buffer)
-  } >FRAMEBUFFER
+    *(.frame_buffer_a)
+  } >FRAMEBUFFER_A
+
+    .frame_buffer_b : /* Space before ':' is critical */
+  {
+    *(.frame_buffer_b)
+  } >FRAMEBUFFER_B
   
 }
 

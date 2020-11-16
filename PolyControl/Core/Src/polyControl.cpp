@@ -61,6 +61,8 @@ void PolyControlInit() {
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerB, 1);
 
+    // HAL_LTDC_ProgramLineEvent(&hltdc, 0);
+    // halltdcline
     // init midi
     initMidi();
 }
@@ -96,9 +98,8 @@ void PolyControlRun() { // Here the party starts
     //     }
     //     println("ROW");
     // }
-
+    FlagHandler::renderingDoneSwitchBuffer = false;
     // println("Done");
-
     while (1) {
 
         // println("test ", testbuffer++);
@@ -106,7 +107,6 @@ void PolyControlRun() { // Here the party starts
         // println("SDRam Status ", HAL_SDRAM_GetState(&hsdram1));
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // HAL_Delay(500);
-        ui.Draw();
         // HAL_SDRAM_SendCommand
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // testbuffer++;
@@ -121,7 +121,18 @@ void PolyControlRun() { // Here the party starts
         // drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
         //  HAL_Delay(500);
 
-        HAL_Delay(50);
+        //  if (!FlagHandler::renderingDoneSwitchBuffer) {
+        //     FlagHandler::renderingDoneSwitchBuffer = true;
+
+        ui.Draw();
+        // HAL_Delay(20);
+        HAL_LTDC_ProgramLineEvent(&hltdc, 0);
+        // }
+
+        HAL_Delay(20);
+        // println("Framebuffer Adress ", (uint32_t)pFrameBuffer);
+        // SwitchFrameBuffer();
+        // }
 
         //  drawRectangleFill(0xFFFFFFFF, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
 
@@ -129,7 +140,7 @@ void PolyControlRun() { // Here the party starts
 
         // HAL_Delay(250);
         // actionHandler.callActionEncoder_1_CCW();
-        // actionHandler.callActionEncoder_2_CW();
+        //  actionHandler.callActionEncoder_2_CW();
         // actionHandler.callActionLeft3();
         // drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 

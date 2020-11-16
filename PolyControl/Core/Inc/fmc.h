@@ -34,6 +34,8 @@ extern "C" {
 extern SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN Private defines */
+// 32ms / 2048 = 15,62uS -> 15,62uS* 200MHz - 20
+// 32ms / 2048 = 15,62uS -> 15,62uS* 120MHz - 20
 
 #define REFRESH_COUNT ((uint32_t)0x073E) /* SDRAM refresh counter (100Mhz SD clock) */
 

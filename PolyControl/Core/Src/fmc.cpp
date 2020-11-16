@@ -46,13 +46,13 @@ void MX_FMC_Init(void) {
     hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
     hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
     /* SdramTiming */
-    SdramTiming.LoadToActiveDelay = 2;    // 3
-    SdramTiming.ExitSelfRefreshDelay = 8; // 9
-    SdramTiming.SelfRefreshTime = 4;      // 5
-    SdramTiming.RowCycleDelay = 6;        // 8
-    SdramTiming.WriteRecoveryTime = 2;    // 2
-    SdramTiming.RPDelay = 2;              // 3
-    SdramTiming.RCDDelay = 2;             // 3
+    SdramTiming.LoadToActiveDelay = 5;    // 3  TMRD
+    SdramTiming.ExitSelfRefreshDelay = 8; // 9  TXSR
+    SdramTiming.SelfRefreshTime = 5;      // 5  TRAS
+    SdramTiming.RowCycleDelay = 7;        // 8  TRC
+    SdramTiming.WriteRecoveryTime = 3;    // 2  > TRAS - RCDelay
+    SdramTiming.RPDelay = 2;              // 3  TRPD
+    SdramTiming.RCDDelay = 3;             // 3  TRCD
 
     if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK) {
         Error_Handler();
@@ -310,7 +310,7 @@ void BSP_SDRAM_Initialization_sequence(uint32_t RefreshCount) {
     HAL_SDRAM_SendCommand(&hsdram1, &Command, SDRAM_TIMEOUT);
 
     /* Step 5: Program the external memory mode register */
-    tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_8 | SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL |
+    tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_4 | SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL |
              SDRAM_MODEREG_CAS_LATENCY_2 | SDRAM_MODEREG_OPERATING_MODE_STANDARD | SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
 
     Command.CommandMode = FMC_SDRAM_CMD_LOAD_MODE;

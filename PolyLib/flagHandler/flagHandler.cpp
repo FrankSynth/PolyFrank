@@ -10,6 +10,7 @@ void initFlagHandler() {
     interChipReceive_MDMA_Finished = false;
     interChipReceive_DMA_FinishedFunc = nullptr;
     interChipReceive_MDMA_FinishedFunc = nullptr;
+    renderingDoneSwitchBuffer = false;
 
     for (uint8_t i = 0; i < 2; i++) {
 
@@ -49,6 +50,9 @@ std::function<uint8_t()> interChipB_MDMA_FinishedFunc[2];
 bool interChipB_DMA_Started[2];
 bool interChipB_DMA_Finished[2];
 std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
+
+// Display
+bool renderingDoneSwitchBuffer;
 
 // handle all interrupts
 void handleFlags() {

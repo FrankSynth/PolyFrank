@@ -1,9 +1,8 @@
 #include "gfx.hpp"
-#include "datacore/dataHelperFunctions.hpp"
-#include "debughelper/debughelper.hpp"
-#include "tim.h"
 
-volatile FRAMEBUFFER ALIGN_32BYTES(uint8_t FrameBuffer[FRAMEBUFFERSIZE]);
+volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
+volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
+
 volatile RAM1 ALIGN_32BYTES(uint32_t color_1);
 volatile RAM1 ALIGN_32BYTES(uint32_t color_2);
 volatile RAM1 ALIGN_32BYTES(uint32_t color_3);
@@ -21,12 +20,9 @@ CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 void GFX_Init() {
     // IRQHandler();
     // set handles
-    pFrameBuffer = (uint8_t *)FrameBuffer;
-
     // init LTDC //
     MX_LTDC_Init();
-    hltdc.LayerCfg[0].FBStartAdress = (uint32_t)&FrameBuffer;
-    HAL_LTDC_ConfigLayer(&hltdc, hltdc.LayerCfg, 0); // update layer config
+    SwitchFrameBuffer();
 
     // set BG Color;
     hltdc.Init.Backcolor.Red = 0;
@@ -42,6 +38,28 @@ void GFX_Init() {
 
     // clean
     drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    SwitchFrameBuffer();
+}
+
+void SwitchFrameBuffer() {
+    static uint32_t toggle = 0;
+    LTDC_LAYER(&hltdc, 0)->CFBAR &= ~(LTDC_LxCFBAR_CFBADD);
+
+    if (toggle) {
+        pFrameBuffer = (uint8_t *)FrameBufferA;
+        LTDC_LAYER(&hltdc, 0)->CFBAR = (uint32_t)FrameBufferB;
+    }
+    else {
+        pFrameBuffer = (uint8_t *)FrameBufferB;
+        LTDC_LAYER(&hltdc, 0)->CFBAR = (uint32_t)FrameBufferA;
+    }
+
+    //__HAL_LTDC_RELOAD_CONFIG(&hltdc, hltdc.LayerCfg, 0); // update layer config
+
+    // __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&hltdc);
+    __HAL_LTDC_VERTICAL_BLANKING_RELOAD_CONFIG(&hltdc);
+
+    toggle = !toggle;
 }
 
 void DMA2D_DefaultConfig(int colorMode) {
@@ -66,10 +84,10 @@ void IRQHandler(void) {
 }
 
 void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc) {
-    // __HAL_RCC_LTDC_CLK_ENABLE();
-    // __HAL_RCC_LTDC_CLK_SLEEP_ENABLE();
-    // HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-    // HAL_LTDC_DeInit(hltdc);
+    // if (FlagHandler::renderingDoneSwitchBuffer) {
+    SwitchFrameBuffer();
+    FlagHandler::renderingDoneSwitchBuffer = false;
+    // }
 }
 void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc) {
     // HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
