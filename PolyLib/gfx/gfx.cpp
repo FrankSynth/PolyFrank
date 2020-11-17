@@ -1,3 +1,5 @@
+#ifdef POLYCONTROL
+
 #include "gfx.hpp"
 
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
@@ -353,3 +355,5 @@ void callNextTask() {
                            task.height);        /* height of buffer in lines */
     }
 }
+
+#endif // ifdef POLYCONTROL

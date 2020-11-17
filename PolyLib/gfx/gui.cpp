@@ -1,3 +1,5 @@
+#ifdef POLYCONTROL
+
 #include "gui.hpp"
 #include "polyControl.hpp"
 #include "tim.h"
@@ -676,3 +678,5 @@ void GUI::setPanelFocusActive() {
 void GUI::setActivePanel(uint8_t id) {
     activePanel = panels[id];
 }
+
+#endif // ifdef POLYCONTROL

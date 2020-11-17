@@ -118,6 +118,124 @@
                 "Clean PolyControl",
                 "Build PolyControl"
             ]
+        },
+        {
+            "label": "Build PolyRender",
+            "type": "shell",
+            "command": "make -j18 -f PolyRender/Makefile",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build PolyRender single core",
+            "type": "shell",
+            "command": "make -f PolyRender/Makefile",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build clean PolyRender",
+            "type": "shell",
+            "command": "make -j18 -f PolyRender/Makefile",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean PolyRender"
+            ]
+        },
+        {
+            "label": "Clean PolyRender",
+            "type": "shell",
+            "command": "make -f PolyRender/Makefile clean",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Flash PolyRender",
+            "type": "shell",
+            "command": "make -f PolyRender/Makefile flash",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build and Flash PolyRender",
+            "type": "shell",
+            "command": "make -f PolyRender/Makefile flash flash",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build PolyRender"
+            ]
+        },
+        {
+            "label": "Build clean and Flash PolyRender",
+            "type": "shell",
+            "command": "make -f PolyRender/Makefile flash flash",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean PolyRender",
+                "Build PolyRender"
+            ]
         }
     ]
 }

@@ -5,10 +5,10 @@ void printViaSTLink(const char *arg) {
     std::string str;
     str.append(arg);
 
-#ifdef POLYRENDER
+#ifdef POLYCONTROL
     while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
     }
-#else
+#elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
         ITM_SendChar(str.data()[i]);
     }
@@ -17,10 +17,10 @@ void printViaSTLink(const char *arg) {
 
 void printViaSTLink(const std::string &arg) {
 
-#ifdef POLYRENDER
+#ifdef POLYCONTROL
     while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
     }
-#else
+#elif POLYRENDER
     for (uint32_t i = 0; i < arg.size(); i++) {
         ITM_SendChar(arg.data()[i]);
     }
@@ -29,10 +29,10 @@ void printViaSTLink(const std::string &arg) {
 
 void printViaSTLink(std::string &arg) {
 
-#ifdef POLYRENDER
+#ifdef POLYCONTROL
     while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
     }
-#else
+#elif POLYRENDER
     for (uint32_t i = 0; i < arg.size(); i++) {
         ITM_SendChar(arg.data()[i]);
     }

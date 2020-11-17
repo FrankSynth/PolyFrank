@@ -1,3 +1,4 @@
+#ifdef POLYCONTROL
 /*!
  *  @file       MIDI.cpp
  *  Project     Arduino MIDI Library
@@ -100,3 +101,5 @@ unsigned decodeSysEx(const byte *inSysEx, byte *outData, unsigned inLength, bool
 }
 
 END_MIDI_NAMESPACE
+
+#endif // ifdef POLYCONTROL

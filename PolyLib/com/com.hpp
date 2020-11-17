@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../circularbuffer/circularbuffer.hpp"
-#include "../datacore/datalocation.hpp"
-#include "../debughelper/debughelper.hpp"
-#include "../flagHandler/flagHandler.hpp"
+#include "circularbuffer/circularbuffer.hpp"
 #include "comCommands.h"
+#include "datacore/datalocation.hpp"
+#include "debughelper/debughelper.hpp"
+#include "flagHandler/flagHandler.hpp"
 #include "mdma.h"
 #include "poly.hpp"
 #include "spi.h"
