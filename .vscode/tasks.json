@@ -98,6 +98,26 @@
             "dependsOn": [
                 "Build PolyControl"
             ]
+        },
+        {
+            "label": "Build clean and Flash PolyControl",
+            "type": "shell",
+            "command": "make -f PolyControl/Makefile flash flash",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean PolyControl",
+                "Build PolyControl"
+            ]
         }
     ]
 }

@@ -77,7 +77,7 @@ void PolyControlRun() { // Here the party starts
     // ui.Draw();
     // HAL_Delay(1000);
 
-    // uint32_t test = 0;
+    uint32_t test = 0;
     // println("ich lebe");
     // for (int x = 40000; x < 100000; x++) {
     //    testbuffer[x] = x;
@@ -125,11 +125,13 @@ void PolyControlRun() { // Here the party starts
         //     FlagHandler::renderingDoneSwitchBuffer = true;
 
         ui.Draw();
-        // HAL_Delay(20);
+        println("I am still Frank, and I am ", test++, " years old.");
+        HAL_Delay(20);
         HAL_LTDC_ProgramLineEvent(&hltdc, 0);
         // }
 
-        HAL_Delay(20);
+        // HAL_Delay(100);
+
         // println("Framebuffer Adress ", (uint32_t)pFrameBuffer);
         // SwitchFrameBuffer();
         // }

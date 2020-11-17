@@ -98,7 +98,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-
+    HAL_Delay(100); // !!
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
@@ -129,12 +129,15 @@ int main(void) {
     MX_RNG_Init();
     MX_TIM2_Init();
     MX_USB_DEVICE_Init();
+    HAL_Delay(100); // !!
 
     /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
+
+    // println("Hi, this is Frank!");
 
     PolyControlInit();
     PolyControlRun();
@@ -144,7 +147,6 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
-        ITM_SendChar('a');
         // HAL_Delay(10);
 
         /* USER CODE BEGIN 3 */

@@ -20,9 +20,9 @@ TARGET = PolyControl
 # building variables
 ######################################
 # debug build?
-DEBUG = 1
+DEBUG = 0
 # optimization
-OPT = -Og
+OPT = -O3
 
 
 #######################################
@@ -133,7 +133,8 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DSTM32H743xx \
--DUSE_HAL_DRIVER
+-DUSE_HAL_DRIVER \
+-DPOLYRENDER
 
 
 # AS includes

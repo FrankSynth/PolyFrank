@@ -444,6 +444,11 @@ static int8_t CDC_Receive_HS(uint8_t *Buf, uint32_t *Len) {
 uint8_t CDC_Transmit_HS(uint8_t *Buf, uint16_t Len) {
     uint8_t result = USBD_OK;
     /* USER CODE BEGIN 12 */
+    // return USBD_FAIL;
+    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED) {
+        return USBD_FAIL;
+    }
+
     USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)hUsbDeviceHS.pClassData;
     if (hcdc->TxState != 0) {
         return USBD_BUSY;
