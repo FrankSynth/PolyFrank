@@ -18,6 +18,21 @@
         {
             "showDevDebugOutput": true,
             "cwd": "${workspaceRoot}",
+            "executable": "PolyRender/build/PolyRender.elf",
+            "name": "Debug PolyRender",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "preLaunchTask": "Build PolyRender",
+            "device": "stlink",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32h7x.cfg"
+            ]
+        },
+        {
+            "showDevDebugOutput": true,
+            "cwd": "${workspaceRoot}",
             "executable": "PolyControl/build/PolyControl.elf",
             "name": "Test",
             "request": "launch",

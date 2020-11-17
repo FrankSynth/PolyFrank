@@ -1,3 +1,5 @@
+#ifdef POLYCONTROL
+
 #include "MCP4728.hpp"
 
 bool started = false; // global data
@@ -320,3 +322,5 @@ void microsecondsDelay(uint32_t delay) {
         ;
     }
 }
+
+#endif // ifdef POLYCONTROL

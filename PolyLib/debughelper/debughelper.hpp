@@ -4,10 +4,17 @@
 
 #if DEBUG
 
-#ifdef POLYRENDER
-#include "usbd_cdc_if.h"
+#include <stdint.h>
 
+#ifdef POLYCONTROL
+#include "usbd_cdc_if.h"
+#elif POLYRENDER
+#include "main.h"
+// extern "C" {
+// extern uint32_t ITM_SendChar(uint32_t ch);
+// }
 #endif
+
 #include <string>
 
 #define print(...) printViaSTLink(__VA_ARGS__)
@@ -17,10 +24,10 @@ template <typename T> void printViaSTLink(T &&arg) {
     std::string str;
     str.append(std::to_string(arg));
 
-#ifdef POLYRENDER
+#ifdef POLYCONTROL
     while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) != USBD_OK) {
     }
-#else
+#elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
         ITM_SendChar(str.data()[i]);
     }

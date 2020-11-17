@@ -98,7 +98,7 @@ void MX_SPI4_Init(void) {
     hspi4.Instance = SPI4;
     hspi4.Init.Mode = SPI_MODE_MASTER;
     hspi4.Init.Direction = SPI_DIRECTION_1LINE;
-    hspi4.Init.DataSize = SPI_DATASIZE_4BIT;
+    hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
     hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi4.Init.NSS = SPI_NSS_SOFT;
@@ -127,7 +127,7 @@ void MX_SPI5_Init(void) {
     hspi5.Instance = SPI5;
     hspi5.Init.Mode = SPI_MODE_MASTER;
     hspi5.Init.Direction = SPI_DIRECTION_1LINE;
-    hspi5.Init.DataSize = SPI_DATASIZE_4BIT;
+    hspi5.Init.DataSize = SPI_DATASIZE_8BIT;
     hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi5.Init.NSS = SPI_NSS_SOFT;
