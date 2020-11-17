@@ -12,6 +12,8 @@ volatile uint32_t dma2d_TransferComplete_Flag = 0;
 
 uint8_t *pFrameBuffer;
 
+RENDERSTATE renderState = RENDER_DONE;
+
 // renderQueue
 // std::list<renderTask> renderQueueList;
 
@@ -38,7 +40,8 @@ void GFX_Init() {
 
     // clean
     drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
-    SwitchFrameBuffer();
+
+    HAL_LTDC_ProgramLineEvent(&hltdc, 0);
 }
 
 void SwitchFrameBuffer() {
@@ -57,7 +60,7 @@ void SwitchFrameBuffer() {
     //__HAL_LTDC_RELOAD_CONFIG(&hltdc, hltdc.LayerCfg, 0); // update layer config
 
     // __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&hltdc);
-    __HAL_LTDC_VERTICAL_BLANKING_RELOAD_CONFIG(&hltdc);
+    __HAL_LTDC_RELOAD_CONFIG(&hltdc);
 
     toggle = !toggle;
 }
@@ -86,7 +89,9 @@ void IRQHandler(void) {
 void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc) {
     // if (FlagHandler::renderingDoneSwitchBuffer) {
     SwitchFrameBuffer();
-    FlagHandler::renderingDoneSwitchBuffer = false;
+    setRenderState(RENDER_DONE);
+
+    // FlagHandler::renderingDoneSwitchBuffer = false;
     // }
 }
 void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc) {
@@ -287,10 +292,20 @@ void addToRenderQueue(renderTask &task) {
     }
 }
 
+void setRenderState(RENDERSTATE state) {
+    renderState = state;
+}
+RENDERSTATE getRenderState() {
+    return renderState;
+}
+
 void callNextTask() {
 
     // Task//
     if (renderQueue.empty()) {
+        if (renderState == RENDER_WAIT) { // last render task done -> switch Buffer
+            HAL_LTDC_ProgramLineEvent(&hltdc, 0);
+        }
         return;
     }
 

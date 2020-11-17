@@ -61,10 +61,17 @@ void PolyControlInit() {
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerB, 1);
 
+    // init EEPROM
+    EEPROM_SPI_INIT(&hspi6);
+
     // HAL_LTDC_ProgramLineEvent(&hltdc, 0);
     // halltdcline
     // init midi
     initMidi();
+
+    HAL_Delay(512);
+
+    println("Hi, Frank here!");
 }
 
 // FRAMEBUFFER volatile uint16_t testbuffer[10000];
@@ -73,35 +80,26 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    // actionHandler.callActionHeader3();
-    // ui.Draw();
-    // HAL_Delay(1000);
+    // EEPROM_SPI_WriteBuffer(dataW, 0x00, 1);
+    // EEPROM_SPI_ReadBuffer(dataR, 0x00, 1);
 
-    uint32_t test = 0;
-    // println("ich lebe");
-    // for (int x = 40000; x < 100000; x++) {
-    //    testbuffer[x] = x;
-    //    println(x);
-    //   HAL_Delay(0);
+    // HAL_Delay(20);
+    // uint32_t time;
 
-    //} // println("ich lebe nicht");
-    // println("Start");
-    // println((uint32_t)pFrameBuffer);
-
-    // uint16_t *sdram = ((uint16_t *)(0xD0000000));
-
-    // for (int x = 0; x < 400; x++) {
-    //     for (int y = 0; y < 800; y++) {
-    //         sdram[x * 800 + y] = 0xFFFF;
-
-    //         // println(testbuffer[x]);
-    //     }
-    //     println("ROW");
-    // }
-    FlagHandler::renderingDoneSwitchBuffer = false;
-    // println("Done");
     while (1) {
 
+        // println("\n\nread");
+
+        // // display update 50Hz
+
+        // if (getRenderState() == RENDER_DONE) {
+        //     ui.Draw();
+
+        //     // println(__HAL_TIM_GetCounter(&htim2) - time);
+        //     // time = __HAL_TIM_GetCounter(&htim2);
+        // }
+
+        HAL_Delay(100000);
         // println("test ", testbuffer++);
         // println("Hello Jakob ", testbuffer++);
         // println("SDRam Status ", HAL_SDRAM_GetState(&hsdram1));
@@ -124,13 +122,9 @@ void PolyControlRun() { // Here the party starts
         //  if (!FlagHandler::renderingDoneSwitchBuffer) {
         //     FlagHandler::renderingDoneSwitchBuffer = true;
 
-        ui.Draw();
-        println("I am still Frank, and I am ", test++, " years old.");
-        HAL_Delay(20);
-        HAL_LTDC_ProgramLineEvent(&hltdc, 0);
-        // }
+        // HAL_Delay(25);
 
-        // HAL_Delay(100);
+        // }
 
         // println("Framebuffer Adress ", (uint32_t)pFrameBuffer);
         // SwitchFrameBuffer();

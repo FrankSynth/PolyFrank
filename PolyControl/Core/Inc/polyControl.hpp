@@ -3,6 +3,7 @@
 #include "debughelper/debughelper.hpp"
 #include "fmc.h"
 #include "gfx/gui.hpp"
+#include "hardware/M95M01.hpp"
 #include "livedata/liveData.hpp"
 #include "ltdc.h"
 #include "mdma.h"

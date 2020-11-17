@@ -105,6 +105,10 @@ int main(void) {
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
+
+    MX_USB_DEVICE_Init();
+    HAL_Delay(200); // !!
+
     MX_DMA_Init();
     MX_MDMA_Init();
     // MX_DMA2D_Init(); // in gfx Lib
@@ -128,8 +132,6 @@ int main(void) {
     MX_TIM3_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
-    MX_USB_DEVICE_Init();
-    HAL_Delay(100); // !!
 
     /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start(&htim2);
@@ -138,6 +140,7 @@ int main(void) {
     HAL_TIM_Base_Start(&htim13);
 
     // println("Hi, this is Frank!");
+    HAL_Delay(200); // !!
 
     PolyControlInit();
     PolyControlRun();
@@ -242,7 +245,7 @@ void SystemClock_Config(void) {
     }
     /** Enable USB Voltage detector
      */
-    HAL_PWREx_EnableUSBVoltageDetector();
+    // HAL_PWREx_EnableUSBVoltageDetector();
 }
 
 /* USER CODE BEGIN 4 */

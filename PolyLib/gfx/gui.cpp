@@ -575,6 +575,7 @@ void GUI::Clear() {
 }
 
 void GUI::Draw() {
+    setRenderState(RENDER_PROGRESS);
 
     // clear
 
@@ -596,6 +597,8 @@ void GUI::Draw() {
     if (activePanel != nullptr) {
         activePanel->Draw();
     }
+
+    setRenderState(RENDER_WAIT);
 }
 void GUI::setFocus(location newFocus) {
 

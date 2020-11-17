@@ -88,18 +88,18 @@ void MX_USB_DEVICE_Init(void) {
     /* USER CODE END USB_DEVICE_Init_PreTreatment */
 
     /* Init Device Library, add supported class and start the library. */
-    if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK) {
-        Error_Handler();
-    }
-    if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_MIDI) != USBD_OK) {
-        Error_Handler();
-    }
-    if (USBD_MIDI_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_MIDI_fops_FS) != USBD_OK) {
-        Error_Handler();
-    }
-    if (USBD_Start(&hUsbDeviceFS) != USBD_OK) {
-        Error_Handler();
-    }
+    // if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK) {
+    //     Error_Handler();
+    // }
+    // if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_MIDI) != USBD_OK) {
+    //     Error_Handler();
+    // }
+    // if (USBD_MIDI_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_MIDI_fops_FS) != USBD_OK) {
+    //     Error_Handler();
+    // }
+    // if (USBD_Start(&hUsbDeviceFS) != USBD_OK) {
+    //     Error_Handler();
+    // }
 
     /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
     HAL_PWREx_EnableUSBVoltageDetector();

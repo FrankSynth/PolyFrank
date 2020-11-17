@@ -25,6 +25,7 @@
 
 typedef enum { LEFT, CENTER, RIGHT } FONTALIGN;
 typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4 } DRAWTYPE;
+typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
 
@@ -46,6 +47,9 @@ typedef struct {
 extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 
 // extern uint8_t FrameBuffer[BUFFERSIZE];
+
+void setRenderState(RENDERSTATE state);
+RENDERSTATE getRenderState();
 
 void GFX_Init();
 void SwitchFrameBuffer();
