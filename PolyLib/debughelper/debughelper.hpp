@@ -35,17 +35,18 @@ template <typename T> void printViaSTLink(T &&arg) {
 }
 
 void printViaSTLink(const char *arg);
+void printViaSTLink(char *arg);
 
 void printViaSTLink(const std::string &arg);
 
 void printViaSTLink(std::string &arg);
 
-template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
+template <typename T, typename... A> void printViaSTLink(T &&arg, A &&... args) {
     printViaSTLink(arg);
     printViaSTLink(args...);
 }
 
-template <typename... T> void printlnViaSTLink(T &&...args) {
+template <typename... T> void printlnViaSTLink(T &&... args) {
     printViaSTLink(args...);
     printViaSTLink("\r\n");
 }

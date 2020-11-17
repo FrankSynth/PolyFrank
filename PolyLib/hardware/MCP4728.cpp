@@ -34,10 +34,10 @@ void updateI2CAddress() {
 
     // update all MCPs on one I2C Lane
 
-    sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_0);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin);
 
     // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
     // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);

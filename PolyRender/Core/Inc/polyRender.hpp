@@ -6,6 +6,9 @@
 
 #include "poly.hpp"
 
+void PolyRenderInit();
+void PolyRenderRun();
+
 // extern Layer layer;
 
 // void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
