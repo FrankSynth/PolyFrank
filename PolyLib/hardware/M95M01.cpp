@@ -1,3 +1,5 @@
+#ifdef POLYCONTROL
+
 /**
  * Copyright Nikita Bulaev 2017-2019
  *
@@ -422,3 +424,5 @@ void EEPROM_SPI_SendInstruction(uint8_t *instruction, uint8_t size) {
         Error_Handler();
     }
 }
+
+#endif
