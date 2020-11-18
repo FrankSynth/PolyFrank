@@ -69,15 +69,10 @@ class COMusb {
 class COMinterChip {
   public:
     COMinterChip() {}
-
+#ifdef POLYCONTROL
     // init as Output Com
     void initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaTransmitFunc, uint8_t *dmaBuffer,
                              uint8_t layer);
-
-    // init as Input Com
-    void initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
-                            std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
-
     // Append to out buffer
     uint8_t sendCreatePatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
     uint8_t sendUpdatePatchInOut(uint8_t outputId, uint8_t inputId, float amount);
@@ -93,16 +88,6 @@ class COMinterChip {
     uint8_t sendRetrigger(uint8_t modulID, uint8_t voiceID);
     uint8_t sendResetAll();
 
-    // send out current out buffer, used by master chip
-    uint8_t beginSendTransmission();
-
-    // start DMA reception, user by render chip
-    uint8_t beginReceiveTransmission();
-
-  private:
-    // decode received Buffer
-    uint8_t decodeCurrentInBuffer();
-
     // after first MDMA finished, start DMA transfer to render chip A
     uint8_t startFirstDMA();
 
@@ -115,8 +100,20 @@ class COMinterChip {
     // second DMA was successfull
     uint8_t sendTransmissionSuccessfull();
 
-    // received new Data, copy from DMA buffer to RAM
-    uint8_t copyReceivedInBuffer();
+    // send out current out buffer, used by master chip
+    uint8_t beginSendTransmission();
+
+#elif POLYRENDER
+    // init as Input Com
+    void initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
+                            std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
+
+    // start DMA reception, user by render chip
+    uint8_t beginReceiveTransmission();
+#endif
+
+  private:
+#ifdef POLYCONTROL
 
     // wrap up send buffers with closing bytes
     uint8_t appendLastByte();
@@ -124,17 +121,11 @@ class COMinterChip {
     // start new send buffers with a 2-byte placeholder for size
     void pushDummySizePlaceHolder();
 
-    // setup MDMA for DMA to RAM transfers and vice versa
-    void prepareMDMAHandle();
-
     // buffer full, send now
     uint8_t invokeBufferFullSend();
 
     std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA;
-    std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA;
-    std::function<uint8_t()> stopReceiveViaDMA;
 
-    uint8_t *dmaInBuffer[2];
     uint8_t *dmaOutBuffer[2];
 
     uint16_t dmaOutCurrentBufferASize;
@@ -148,9 +139,26 @@ class COMinterChip {
     uint8_t pushOutBufferChipB(uint8_t data);
     uint8_t pushOutBufferChipB(uint8_t *data, uint32_t size);
 
-    std::vector<uint8_t> inBuffer[2];
     std::vector<uint8_t> outBufferChipA[2];
     std::vector<uint8_t> outBufferChipB[2];
+
+#elif POLYRENDER
+
+    // decode received Buffer
+    uint8_t decodeCurrentInBuffer();
+
+    // received new Data, copy from DMA buffer to RAM
+    uint8_t copyReceivedInBuffer();
+
+    std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA;
+    std::function<uint8_t()> stopReceiveViaDMA;
+    uint8_t *dmaInBuffer[2];
+    std::vector<uint8_t> inBuffer[2];
+
+#endif
+
+    // setup MDMA for DMA to RAM transfers and vice versa
+    void prepareMDMAHandle();
 
     uint8_t currentBufferSelect = 0;
 

@@ -4,7 +4,6 @@
 
 // std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> PatchElementInOut::sendUpdatePatchInOut = nullptr;
 
-bool DataElement::sendData = false;
 // PatchElementInOut::sendData = false;
 
 void Setting::setValue(int32_t newValue) {
@@ -12,10 +11,11 @@ void Setting::setValue(int32_t newValue) {
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
 
+#ifdef POLYCONTROL
     if (sendOutViaCom) {
-        if (sendData)
-            sendSetting(layerId, moduleId, id, (uint8_t *)&value);
+        sendSetting(layerId, moduleId, id, (uint8_t *)&value);
     }
+#endif
 }
 
 const std::string &Setting::getValueAsString() {
@@ -47,10 +47,11 @@ void Analog::setValue(int32_t newValue) {
 
     valueName = std::to_string(valueMapped);
 
+#ifdef POLYCONTROL
     if (sendOutViaCom) {
-        if (sendData)
-            sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
+        sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
     }
+#endif
 }
 
 const std::string &Digital::getValueAsString() {
@@ -72,10 +73,11 @@ void Digital::setValue(int32_t newValue) {
     valueMapped = round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_16BIT));
     valueName = std::to_string(valueMapped);
 
+#ifdef POLYCONTROL
     if (sendOutViaCom) {
-        if (sendData)
-            sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
+        sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
     }
+#endif
 }
 
 void BasePatch::removePatchInOut(PatchElementInOut &patch) {

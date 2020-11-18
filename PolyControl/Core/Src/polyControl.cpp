@@ -37,9 +37,6 @@ void PolyControlInit() {
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
-    Layer::sendData = true;
-    DataElement::sendData = true;
-
     // DataElement::sendSetting  = sendSetting;
     // Layer::sendCreatePatchInOut = sendCreatePatchInOut;
     // PatchElementInOut::sendUpdatePatchInOut = sendUpdatePatchInOut;

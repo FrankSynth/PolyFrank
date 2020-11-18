@@ -121,6 +121,8 @@ int main(void) {
     MX_TIM16_Init();
     /* USER CODE BEGIN 2 */
 
+    HAL_TIM_Base_Start(&htim2);
+
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
@@ -128,6 +130,9 @@ int main(void) {
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 
+    HAL_Delay(200);
+
+    println("PolyRender Init");
     PolyRenderInit();
 
     println("Init done");

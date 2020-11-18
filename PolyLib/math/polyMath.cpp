@@ -89,7 +89,14 @@ inline void fast_copy_f32(float *pSrc, float *pDst, __uint32_t blockSize) {
     }
 }
 
+// TODO precompute lin2log table
 void precomputeLin2LogTable() {
     for (uint16_t i = 0; i < FAST_LIN2LOG_TABLE_SIZE + 1; i++) {
     }
 }
+
+// TODO fast lin2log for LED Range 0-1000
+
+// TODO fast lin2log return functions fast_sin_f32 style
+
+// TODO Lerps for LED Brightness

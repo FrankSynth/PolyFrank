@@ -1,10 +1,10 @@
 #pragma once
 
-// #include "mdma.h"
-// #include "spi.h"
-// #include <functional>
-
+#include "hardware/MCP4728.hpp"
+#include "i2c.h"
+#include "math/polyMath.hpp"
 #include "poly.hpp"
+#include "tim.h"
 
 void PolyRenderInit();
 void PolyRenderRun();
