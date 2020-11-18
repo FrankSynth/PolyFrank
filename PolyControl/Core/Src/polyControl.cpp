@@ -31,8 +31,19 @@ void initMidi();
 // uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
 // uint8_t sendDeleteAllPatches(uint8_t layerId);
 
+uint8_t test = 0;
+
 // poly control init
 void PolyControlInit() {
+
+    ////////Hardware init////////
+
+    initHID();
+
+    // enable Layer
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
+
+    ////////Sofware init////////
 
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
@@ -66,8 +77,6 @@ void PolyControlInit() {
     initMidi();
 
     HAL_Delay(512);
-
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
 
     println("Hi, Frank here!");
 }
@@ -234,4 +243,11 @@ void initMidi() {
     mididevice.setHandleNoteOn(midiNoteOn);
     mididevice.setHandleNoteOff(midiNoteOff);
     mididevice.setHandleControlChange(midiControlChange);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+
+    updateEncoder();
+
+    // ioExpander Interrupt
 }
