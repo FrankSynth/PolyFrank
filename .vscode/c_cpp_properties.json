@@ -33,6 +33,7 @@
         "PolyLib/flagHandler",
         "PolyLib/modules",
         "PolyLib/debughelper",
+        "PolyLib/humanInterface",
         "PolyLib/hardware"
       ],
       "defines": [

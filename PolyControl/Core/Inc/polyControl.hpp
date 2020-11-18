@@ -4,6 +4,7 @@
 #include "fmc.h"
 #include "gfx/gui.hpp"
 #include "globalsettings/globalSettings.hpp"
+#include "humanInterface/hid.hpp"
 #include "livedata/liveData.hpp"
 #include "ltdc.h"
 #include "mdma.h"
