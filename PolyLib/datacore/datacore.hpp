@@ -34,8 +34,6 @@ class DataElement {
 
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, uint8_t *)> sendSetting;
 
-    static bool sendData;
-
   protected:
     typeDisplayValue type;
 
@@ -193,8 +191,8 @@ class BasePatch {
     void removePatchOutOut(PatchElementOutOut &patch);
 
     const std::string &getName();
-    std::vector<PatchElementInOut *> &getPatchesInOut();
-    std::vector<PatchElementOutOut *> &getPatchesOutOut();
+    std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
+    std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
@@ -256,8 +254,6 @@ class PatchElementInOut {
     Output *sourceOut;
     Input *targetIn;
 
-    // static bool sendData;
-
   private:
     float value;
     float defaultValue;
@@ -285,8 +281,6 @@ class PatchElementOutOut {
     bool remove = false;
     Output *sourceOut;
     Output *targetOut;
-
-    // static bool sendData;
 
   private:
     float value;

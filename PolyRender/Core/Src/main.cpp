@@ -121,15 +121,37 @@ int main(void) {
     MX_TIM16_Init();
     /* USER CODE BEGIN 2 */
 
-    /* USER CODE END 2 */
-    ITM_SendChar('a');
+    HAL_TIM_Base_Start(&htim2);
 
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
+    HAL_Delay(200);
+
+    println("PolyRender Init");
     PolyRenderInit();
+
+    println("Init done");
+
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 2);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 4);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 6);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 8);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 10);
+
+    PolyRenderRun();
+
+    /* USER CODE END 2 */
+
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
-        PolyRenderRun();
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
