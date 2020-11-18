@@ -101,7 +101,7 @@ void precomputeLin2LogTable();
  * @param output_end out range end
  * @return float mapped input value
  */
-inline float fastMap(float input, float input_start, float input_end, float output_start, float output_end) {
+inline float fastMapCached(float input, float input_start, float input_end, float output_start, float output_end) {
 
     static float input_start_store, input_end_store, output_start_store, output_end_store, slope_store = 0;
 
@@ -114,6 +114,23 @@ inline float fastMap(float input, float input_start, float input_end, float outp
         output_end_store = output_end;
     }
 
+    float output = output_start + slope_store * (input - input_start);
+    return output;
+}
+
+/**
+ * @brief map value without caching the slope
+ *
+ * @param input input value to be mapped in range
+ * @param input_start in range start
+ * @param input_end in range end
+ * @param output_start out range start
+ * @param output_end out range end
+ * @return float mapped input value
+ */
+inline float fastMap(float input, float input_start, float input_end, float output_start, float output_end) {
+
+    float slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
     float output = output_start + slope_store * (input - input_start);
     return output;
 }

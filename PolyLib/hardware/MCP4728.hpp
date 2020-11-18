@@ -71,7 +71,7 @@ class MCP4728 {
 
         // timeout 50us
 
-        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, initData, 2, 50) != HAL_OK) {
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, initData, 1, 50) != HAL_OK) {
             Error_Handler();
             println("I2C Dac Transmit Error");
         }

@@ -67,6 +67,8 @@ void PolyControlInit() {
 
     HAL_Delay(512);
 
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
+
     println("Hi, Frank here!");
 }
 
