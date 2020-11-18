@@ -1,7 +1,5 @@
 #include "poly.hpp"
 
-GlobalSettings polySettings;
-
 std::vector<Layer *> allLayers;
 
 void initPoly() {

@@ -419,8 +419,8 @@ void GUIPanelFocus::registerModuleSettings() {
             if (scroll == i) {
                 elements[i].selected = 1;
                 actionHandler.registerActionEncoder2(
-                    {std::bind(&Analog::changeValue, elements[i].pSource, 5000), "AMOUNT"},
-                    {std::bind(&Analog::changeValue, elements[i].pSource, 5000), "AMOUNT"}, {nullptr, ""});
+                    {std::bind(&Analog::changeValue, elements[i].pSource, 1000), "AMOUNT"},
+                    {std::bind(&Analog::changeValue, elements[i].pSource, -1000), "AMOUNT"}, {nullptr, ""});
             }
             else {
                 elements[i].selected = 0;

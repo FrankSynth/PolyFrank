@@ -4,23 +4,19 @@
 
 #if DEBUG
 
-#include <stdint.h>
-
 #ifdef POLYCONTROL
 #include "usbd_cdc_if.h"
 #elif POLYRENDER
 #include "main.h"
-// extern "C" {
-// extern uint32_t ITM_SendChar(uint32_t ch);
-// }
 #endif
 
+#include <stdint.h>
 #include <string>
 
 #define print(...) printViaSTLink(__VA_ARGS__)
 #define println(...) printlnViaSTLink(__VA_ARGS__)
 
-std::string printString;
+// std::string printString;
 
 template <typename T> void printViaSTLink(T &&arg) {
     std::string str;

@@ -126,7 +126,7 @@ void PolyControlRun() { // Here the party starts
         // actionHandler.callActionEncoder_2_CW();
 
         // uint32_t time = __HAL_TIM_GetCounter(&htim2);
-        // // println(__HAL_TIM_GetCounter(&htim2));
+        // println(__HAL_TIM_GetCounter(&htim2));
         // drawRectangleFill(0xFFFFFF00, 0, 0, LCDWIDTH, LCDHEIGHT);
         // HAL_Delay(500);
         // drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT / 2);

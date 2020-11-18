@@ -1,4 +1,3 @@
-#ifdef POLYCONTROL
 #pragma once
 
 #include "gfx/gui.hpp"
@@ -36,5 +35,3 @@ class rotary {
     unsigned char pin1;
     unsigned char pin2;
 };
-
-#endif

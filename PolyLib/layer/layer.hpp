@@ -1,12 +1,12 @@
 #pragma once
 
+#include "datacore/datacore.hpp"
+#include "modules/layersettings.hpp"
+#include "modules/modules.hpp"
 #include <list>
 #include <string>
 #include <vector>
 
-#include "datacore/datacore.hpp"
-#include "modules/layersettings.hpp"
-#include "modules/modules.hpp"
 
 extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
 extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);

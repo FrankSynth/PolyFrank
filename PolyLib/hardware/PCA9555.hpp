@@ -1,8 +1,7 @@
-#ifdef POLYCONTROL
 
 #pragma once
 
-#include "../debughelper/debughelper.hpp"
+#include "debughelper/debughelper.hpp"
 #include "i2c.h"
 #include "tim.h"
 
@@ -81,5 +80,3 @@ class PCA9555 {
     uint8_t i2cDeviceCode = 0x40; // default Code
     uint8_t i2cDeviceAddressing = 0;
 };
-
-#endif

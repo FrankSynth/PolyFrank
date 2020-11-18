@@ -1,5 +1,6 @@
+#ifdef POLYCONTROL
+
 #include "hid.hpp"
-#include "gfx/gui.hpp"
 
 // PCA9555 -> Bus expander for the Encoder
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
@@ -49,3 +50,5 @@ void updateEncoder() {
         }
     }
 }
+
+#endif

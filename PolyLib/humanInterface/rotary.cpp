@@ -1,3 +1,5 @@
+#ifdef POLYCONTROL
+
 /* Rotary encoder handler for arduino.
  *
  * Copyright 2011 Ben Buxton. Licenced under the GNU GPL Version 3.
@@ -62,3 +64,5 @@ void rotary::process(uint16_t pinState) {
         }
     }
 }
+
+#endif
