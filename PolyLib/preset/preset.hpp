@@ -1,6 +1,8 @@
 #pragma once
 
 #include "hardware/M95M01.hpp"
+#include "spi.h"
+#include <string>
 #include <vector>
 
 const static uint32_t CONFIG_BLOCKSIZE = 1024;
@@ -22,18 +24,20 @@ typedef struct {
     uint8_t ID;
     uint8_t isFree;
 
-} preset;
+} presetStruct;
 
-std::vector<preset> presets;
+extern std::vector<presetStruct> presets;
+extern uint8_t blockBuffer[PRESET_BLOCKSIZE];
 
-uint8_t blockBuffer[PRESET_BLOCKSIZE];
-
-std::vector<preset> *getPresetList();
+std::vector<presetStruct> *getPresetList();
 
 void updatePresetList();
 
-void writePresetBlock(uint16_t blockID);
+void writePresetBlock(uint16_t blockID, std::string name);
 void writeConfigBlock(uint16_t blockID);
 
 uint8_t *readConfig();
 uint8_t *readPreset(uint16_t blockID);
+
+void initPreset();
+void removePreset(uint16_t blockID);

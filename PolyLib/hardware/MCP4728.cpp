@@ -1,4 +1,4 @@
-#ifdef POLYCONTROL
+#ifdef POLYRENDER
 
 #include "MCP4728.hpp"
 
@@ -34,10 +34,10 @@ void updateI2CAddress() {
 
     // update all MCPs on one I2C Lane
 
-    sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_0);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c1Pins, GPIOF, GPIO_PIN_x);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x01);
+    sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x02);
+    // sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin, 0x03);
 
     // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
     // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
@@ -56,7 +56,7 @@ void updateI2CAddress() {
 }
 
 // send I2C Command
-void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin) {
+void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t address) {
     uint8_t nack = 0;
 
     // set I2C pins to standard gpio
@@ -97,9 +97,9 @@ void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latc
 
     nack |= i2c_read_bit(i2cPins); // ack bit
 
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100001); //
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100110); // new address 001
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100111); // repeat new address
+    // nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100001);               //
+    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100010 | (address << 2)); // new address 001
+    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100011 | (address << 2)); // repeat new address
 
     i2c_stop_cond(i2cPins);
 

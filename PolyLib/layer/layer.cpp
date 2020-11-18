@@ -4,8 +4,6 @@
 // std::function<uint8_t(uint8_t, uint8_t, uint8_t)> Layer::sendDeletePatchInOut = nullptr;
 // std::function<uint8_t(uint8_t)> Layer::sendDeleteAllPatches = nullptr;
 
-bool Layer::sendData = false;
-
 void Layer::initID() {
     ID modID;
     ID outputID;
@@ -62,9 +60,9 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
 
-    if (sendData) {
-        sendCreatePatchInOut(id, patchesInOut.back().sourceOut->id, patchesInOut.back().targetIn->id, amount);
-    }
+#ifdef POLYCONTROL
+    sendCreatePatchInOut(id, patchesInOut.back().sourceOut->id, patchesInOut.back().targetIn->id, amount);
+#endif
 }
 
 void Layer::addPatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
@@ -73,25 +71,28 @@ void Layer::addPatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
 
 void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {
     patch.setAmount(amount);
-    if (sendData)
-        sendUpdatePatchInOut(id, patch.sourceOut->id, patch.targetIn->id, amount);
+#ifdef POLYCONTROL
+    sendUpdatePatchInOut(id, patch.sourceOut->id, patch.targetIn->id, amount);
+#endif
 }
 
 void Layer::updatePatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
     for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             p->setAmount(amount);
-            if (sendData)
-                sendUpdatePatchInOut(id, p->sourceOut->id, p->targetIn->id, amount);
+#ifdef POLYCONTROL
+
+            sendUpdatePatchInOut(id, p->sourceOut->id, p->targetIn->id, amount);
+#endif
             return;
         }
     }
 }
 
 void Layer::removePatchInOut(PatchElementInOut &patch) {
-    if (sendData) {
-        sendDeletePatchInOut(id, patch.sourceOut->id, patch.targetIn->id);
-    }
+#ifdef POLYCONTROL
+    sendDeletePatchInOut(id, patch.sourceOut->id, patch.targetIn->id);
+#endif
 
     patch.sourceOut->removePatchInOut(patch); // remove sourceOut entry
     patch.targetIn->removePatchInOut(patch);  // remove targetIn entry
@@ -121,10 +122,9 @@ void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, f
     sourceOut.addPatchOutOut(patchesOutOut.back());
     targetOut.addPatchOutOut(patchesOutOut.back());
 
-    if (sendData) {
-        sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->id, patchesOutOut.back().targetOut->id, amount,
-                              offset);
-    }
+#ifdef POLYCONTROL
+    sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->id, patchesOutOut.back().targetOut->id, amount, offset);
+#endif
 }
 
 void Layer::addPatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
@@ -134,8 +134,10 @@ void Layer::addPatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount
 void Layer::updatePatchOutOut(PatchElementOutOut &patch, float amount, float offset) {
     patch.setAmount(amount);
     patch.setOffset(offset);
-    if (sendData)
-        sendUpdatePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id, amount, offset);
+
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id, amount, offset);
+#endif
 }
 
 void Layer::updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
@@ -143,17 +145,18 @@ void Layer::updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amo
         if (p->targetOut == outputs[outputInId]) {
             p->setAmount(amount);
             p->setOffset(offset);
-            if (sendData)
-                sendUpdatePatchOutOut(id, p->sourceOut->id, p->targetOut->id, amount, offset);
+#ifdef POLYCONTROL
+            sendUpdatePatchOutOut(id, p->sourceOut->id, p->targetOut->id, amount, offset);
+#endif
             return;
         }
     }
 }
 
 void Layer::removePatchOutOut(PatchElementOutOut &patch) {
-    if (sendData) {
-        sendDeletePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id);
-    }
+#ifdef POLYCONTROL
+    sendDeletePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id);
+#endif
 
     patch.sourceOut->removePatchOutOut(patch); // remove sourceOut entry
     patch.targetOut->removePatchOutOut(patch); // remove targetIn entry
@@ -183,7 +186,7 @@ void Layer::clearPatches() {
     patchesInOut.clear();
     patchesOutOut.clear();
 
-    if (sendData) {
-        sendDeleteAllPatches(id);
-    }
+#ifdef POLYCONTROL
+    sendDeleteAllPatches(id);
+#endif
 }

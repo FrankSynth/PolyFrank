@@ -16,7 +16,7 @@ typedef struct {
 } i2cpin;
 
 void updateI2CAddress();
-void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin);
+void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t address);
 
 void microsecondsDelay(uint32_t delay);
 void writeBit(uint32_t delay, uint8_t data);
@@ -72,19 +72,25 @@ class MCP4728 {
         // timeout 50us
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, initData, 2, 50) != HAL_OK) {
+            Error_Handler();
             println("I2C Dac Transmit Error");
         }
     }
 
     // transmit data in fastMode
-    void fastUpdate() {
-        pData[0] |= 0b01000000; // enable FastMode
+    inline void fastUpdate() {
+        // pData[0] |= 0b01000000; // enable FastMode
 
-        HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, pData, 8);
+        // each half word needs to be swapped, because of reasons
+        uint8_t sendOut[8];
+        ((uint32_t *)sendOut)[0] = __REV16(((uint32_t *)pData)[0]);
+        ((uint32_t *)sendOut)[1] = __REV16(((uint32_t *)pData)[1]);
+
+        HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
     }
 
     // set the pointer to the data
-    void setDataPointer(uint8_t *pData) { this->pData = pData; }
+    inline void setDataPointer(uint8_t *pData) { this->pData = pData; }
 
     I2C_HandleTypeDef *i2cHandle;
     uint8_t i2cAddress = 0;       // default address

@@ -90,3 +90,30 @@ inline float fastLin2Exp(float x, float max) {
 }
 
 void precomputeLin2LogTable();
+
+/**
+ * @brief caches the calculated slope for similar consecutive map calls
+ *
+ * @param input input value to be mapped in range
+ * @param input_start in range start
+ * @param input_end in range end
+ * @param output_start out range start
+ * @param output_end out range end
+ * @return float mapped input value
+ */
+inline float fastMap(float input, float input_start, float input_end, float output_start, float output_end) {
+
+    static float input_start_store, input_end_store, output_start_store, output_end_store, slope_store = 0;
+
+    if (input_start != input_start_store && input_end != input_end_store && output_start != output_start_store &&
+        output_end != output_end_store) {
+        float slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
+        input_start_store = input_start;
+        input_end_store = input_end;
+        output_start_store = output_start;
+        output_end_store = output_end;
+    }
+
+    float output = output_start + slope_store * (input - input_start);
+    return output;
+}

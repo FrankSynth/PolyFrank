@@ -65,7 +65,6 @@ class Layer {
 
     uint8_t id;
 
-    static bool sendData;
 
   private:
     std::vector<BaseModule *> modules; //  vector of all modules

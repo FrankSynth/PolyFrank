@@ -37,9 +37,6 @@ void PolyControlInit() {
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
-    Layer::sendData = true;
-    DataElement::sendData = true;
-
     // DataElement::sendSetting  = sendSetting;
     // Layer::sendCreatePatchInOut = sendCreatePatchInOut;
     // PatchElementInOut::sendUpdatePatchInOut = sendUpdatePatchInOut;
@@ -62,8 +59,7 @@ void PolyControlInit() {
         (uint8_t *)interChipDMABufferLayerB, 1);
 
     // init EEPROM
-    EEPROM_SPI_INIT(&hspi6);
-
+    initPreset();
     // HAL_LTDC_ProgramLineEvent(&hltdc, 0);
     // halltdcline
     // init midi
@@ -88,18 +84,11 @@ void PolyControlRun() { // Here the party starts
 
     while (1) {
 
-        // println("\n\nread");
+        if (getRenderState() == RENDER_DONE) {
+            ui.Draw();
+        }
 
-        // // display update 50Hz
-
-        // if (getRenderState() == RENDER_DONE) {
-        //     ui.Draw();
-
-        //     // println(__HAL_TIM_GetCounter(&htim2) - time);
-        //     // time = __HAL_TIM_GetCounter(&htim2);
-        // }
-
-        HAL_Delay(100000);
+        // HAL_Delay(100000);
         // println("test ", testbuffer++);
         // println("Hello Jakob ", testbuffer++);
         // println("SDRam Status ", HAL_SDRAM_GetState(&hsdram1));
