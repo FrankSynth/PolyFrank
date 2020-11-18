@@ -1,28 +1,34 @@
 #include "polyRender.hpp"
 #include "hardware/MCP4728.hpp"
 #include "i2c.h"
+#include "tim.h"
 
 // Buffer for InterChip Com
-// RAM2_DMA uint8_t interChipDMABufferLayerA[2][INTERCHIPBUFFERSIZE];
+RAM2_DMA volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE];
 
 /// Layer
-// ID layerid;
-
-// Layer layer(layerid.getNewId());
+ID layerId;
+// Layer layerA(layerId.getNewId());
 
 // layerACom.initOutTransmission(std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1,
 //  std::placeholders::_2));
 
 // InterChip Com
+// COMinterChip layerCom;
 
 MCP4728 cvDacA = MCP4728(&hi2c1, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin);
 MCP4728 cvDacB = MCP4728(&hi2c1, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin);
 MCP4728 cvDacC = MCP4728(&hi2c1, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin);
 
 void hardwareInit() {
-    cvDacA.init();
+
     updateI2CAddress(); // update the I2C addresses of the MCP4728 DACs
+
+    cvDacA.init();
+    cvDacB.init();
+    cvDacC.init();
 }
+
 // void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
 //     // InterChip Com SPI 1
@@ -39,7 +45,7 @@ uint16_t cvDacBbuffer[4];
 uint16_t cvDacCbuffer[4];
 
 void PolyRenderInit() {
-    void hardwareInit();
+    hardwareInit();
 
     cvDacA.setDataPointer((uint8_t *)cvDacAbuffer);
     cvDacB.setDataPointer((uint8_t *)cvDacBbuffer);
@@ -59,12 +65,26 @@ void PolyRenderInit() {
     cvDacCbuffer[1] = 2000;
     cvDacCbuffer[2] = 3000;
     cvDacCbuffer[3] = 4000;
+
+    // allLayers.push_back(&layerA);
+
+    // layerCom.initInTransmission(
+    //     std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+    //     std::bind<uint8_t>(HAL_SPI_DMAStop, &hspi1), (uint8_t *)interChipDMABuffer);
+
+    // layerCom.beginReceiveTransmission();
 }
 
 void PolyRenderRun() {
-    cvDacA.fastUpdate();
-    cvDacB.fastUpdate();
-    cvDacC.fastUpdate();
+    while (1) {
+        cvDacA.fastUpdate();
+        cvDacB.fastUpdate();
+        cvDacC.fastUpdate();
 
-    HAL_Delay(1000);
+        HAL_Delay(100);
+
+        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 100);
+        HAL_Delay(1000);
+        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1);
+    }
 }

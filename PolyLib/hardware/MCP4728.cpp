@@ -1,4 +1,4 @@
-#ifdef POLYCONTROL
+#ifdef POLYRENDER
 
 #include "MCP4728.hpp"
 
