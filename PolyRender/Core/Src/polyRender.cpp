@@ -39,6 +39,10 @@ uint16_t cvDacBbuffer[4];
 uint16_t cvDacCbuffer[4];
 
 void PolyRenderInit() {
+
+    // disable reception line
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
+
     hardwareInit();
 
     cvDacA.setDataPointer((uint8_t *)cvDacAbuffer);
@@ -118,6 +122,9 @@ void PolyRenderRun() {
     }
 }
 
-void HAL_GPIO_EXTI_Callback(GPIO_PIN_8) {
-    FlagHandler::interChipReceive_DMA_Finished = true;
+// EXTI Callbacks
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    // reception Line from Control
+    if (pin == GPIO_PIN_8)
+        FlagHandler::interChipReceive_DMA_Finished = true;
 }

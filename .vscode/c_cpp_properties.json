@@ -40,7 +40,7 @@
         "USE_HAL_DRIVER",
         "__ARM_FEATURE_DSP = 1",
         "POLYCONTROL"
-        //"POLYRENDER"
+        // "POLYRENDER"
       ],
       "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\9 2020-Q2-UPDATE\\BIN\\ARM-NONE-EABI-G++.EXE",
       "cStandard": "c17",

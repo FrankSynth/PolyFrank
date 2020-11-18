@@ -17,9 +17,16 @@
 #define INTERCHIPBUFFERSIZE 1024
 
 #define ERRORCODE_SENDBLOCK 20
+#define ERRORCODE_RECEPTORNOTREADY 21
 
 // callback for MDMA operations
-void comMDMACallback(MDMA_HandleTypeDef *_hmdma);
+// void comMDMACallback(MDMA_HandleTypeDef *_hmdma);
+
+//  global settings
+#ifdef POLYCONTROL
+#include "globalsettings/globalSettings.hpp"
+extern GlobalSettings globalSettings;
+#endif
 
 // class for USB communication
 // beginUSBTransmission has to be executed to send Buffers via USB

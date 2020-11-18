@@ -3,15 +3,7 @@
 namespace FlagHandler {
 
 void initFlagHandler() {
-
-    interChipReceive_DMA_Started = false;
-    interChipReceive_DMA_Finished = false;
-    interChipReceive_MDMA_Started = false;
-    interChipReceive_MDMA_Finished = false;
-    interChipReceive_DMA_FinishedFunc = nullptr;
-    interChipReceive_MDMA_FinishedFunc = nullptr;
-    // interChipReceive_newDataAvailable = false;
-    // interChipReceive_newDataAvailableFunc = nullptr;
+#ifdef POLYCONTROL
 
     renderingDoneSwitchBuffer = false;
 
@@ -30,17 +22,21 @@ void initFlagHandler() {
         interChipB_DMA_Finished[i] = false;
         interChipB_DMA_FinishedFunc[i] = nullptr;
     }
+
+#elif POLYRENDER
+
+    interChipReceive_DMA_Started = false;
+    interChipReceive_DMA_Finished = false;
+    interChipReceive_MDMA_Started = false;
+    interChipReceive_MDMA_Finished = false;
+    interChipReceive_DMA_FinishedFunc = nullptr;
+    interChipReceive_MDMA_FinishedFunc = nullptr;
+// interChipReceive_newDataAvailable = false;
+// interChipReceive_newDataAvailableFunc = nullptr;
+#endif
 }
 
-// InterChip receive flags
-bool interChipReceive_DMA_Started;
-bool interChipReceive_DMA_Finished;
-std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
-bool interChipReceive_MDMA_Started;
-bool interChipReceive_MDMA_Finished;
-std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
-bool interChipReceive_newDataAvailable;
-std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
+#ifdef POLYCONTROL
 
 // InterChip send flags
 bool interChipA_MDMA_Started[2];
@@ -59,8 +55,23 @@ std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 // Display
 bool renderingDoneSwitchBuffer;
 
+#elif POLYRENDER
+
+// InterChip receive flags
+bool interChipReceive_DMA_Started;
+bool interChipReceive_DMA_Finished;
+std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
+bool interChipReceive_MDMA_Started;
+bool interChipReceive_MDMA_Finished;
+std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
+bool interChipReceive_newDataAvailable;
+std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
+#endif
+
 // handle all interrupts
 void handleFlags() {
+
+#ifdef POLYCONTROL
 
     for (uint8_t i = 0; i < 2; i++) {
 
@@ -111,7 +122,9 @@ void handleFlags() {
         }
     }
 
-    // InterChip send flags
+#elif POLYRENDER
+
+    // InterChip receive flags
     if (interChipReceive_DMA_Finished) {
         if (interChipReceive_DMA_FinishedFunc != nullptr) {
             if (interChipReceive_DMA_FinishedFunc() == 0) {
@@ -134,6 +147,8 @@ void handleFlags() {
             interChipReceive_MDMA_Finished = 0;
         }
     }
+
+#endif
 }
 
 }; // namespace FlagHandler

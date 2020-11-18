@@ -1,11 +1,5 @@
 #include "datacore.hpp"
 
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t, uint8_t *)> DataElement::sendSetting = nullptr;
-
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> PatchElementInOut::sendUpdatePatchInOut = nullptr;
-
-// PatchElementInOut::sendData = false;
-
 void Setting::setValue(int32_t newValue) {
     value = testInt(newValue, min, max);
     if (valueNameList == nullptr)

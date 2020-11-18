@@ -16,6 +16,9 @@ ID layerId;
 Layer layerA(layerId.getNewId());
 Layer layerB(layerId.getNewId());
 
+// global settings
+GlobalSettings globalSettings;
+
 // InterChip Com
 COMinterChip layerCom[2];
 
@@ -88,6 +91,8 @@ void PolyControlRun() { // Here the party starts
 
     while (1) {
 
+        elapsedMillis millitimer = 0;
+
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
         }
@@ -101,6 +106,12 @@ void PolyControlRun() { // Here the party starts
         // HAL_SDRAM_SendCommand
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // testbuffer++;
+
+        if (millitimer >= 1000) {
+            millitimer = 0;
+            layerA.adsrA.aAttack.setValue(0.4);
+            layerA.lfoA.aFreq.setValue(500);
+        }
 
         // actionHandler.callActionEncoder_1_CW();
         // actionHandler.callActionEncoder_2_CW();
@@ -140,10 +151,6 @@ void PolyControlRun() { // Here the party starts
 ///////////////////////////////////////////////// LAYER SPECIFIC HANDLING
 ////////////////////////////////////////////////
 
-// void sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
-//     layerCom[layerId].sendSetting(moduleId, settingsId, amount);
-// }
-
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount) {
     return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
 }
@@ -172,14 +179,15 @@ uint8_t sendDeleteAllPatches(uint8_t layerId) {
 // SPI Callbacks
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-    // InterChip Com SPI 1
-    if (hspi == &hspi1) {
+    // InterChip Com Layer 1
+    if (hspi == &hspi4) {
 
         if (FlagHandler::interChipA_DMA_Started[0] == 1) {
             FlagHandler::interChipA_DMA_Started[0] = 0;
             FlagHandler::interChipA_DMA_Finished[0] = 1;
 
             // close ChipSelectLine
+            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
         }
 
         if (FlagHandler::interChipB_DMA_Started[0] == 1) {
@@ -187,39 +195,33 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
             FlagHandler::interChipB_DMA_Finished[0] = 1;
 
             // close ChipSelectLine
-
-            // close both send lines here to start recipient evaluation?
-        }
-
-        if (FlagHandler::interChipReceive_DMA_Started == 1) {
-            FlagHandler::interChipReceive_DMA_Started = 0;
-            FlagHandler::interChipReceive_DMA_Finished = 1;
+            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
         }
     }
-    // layer2 spi
-    // if (hspi == &hspi2) {
 
-    //     if (FlagHandler::interChipA_DMA_Started[1] == 1) {
-    //         FlagHandler::interChipA_DMA_Started[1] = 0;
-    //         FlagHandler::interChipA_DMA_Finished[1] = 1;
+    // second Layer active?
+    if (globalSettings.amountLayers.value) {
 
-    //         // close ChipSelectLine
-    //     }
+        // layer2 spi
+        if (hspi == &hspi5) {
 
-    //     if (FlagHandler::interChipB_DMA_Started[1] == 1) {
-    //         FlagHandler::interChipB_DMA_Started[1] = 0;
-    //         FlagHandler::interChipB_DMA_Finished[1] = 1;
+            if (FlagHandler::interChipA_DMA_Started[1] == 1) {
+                FlagHandler::interChipA_DMA_Started[1] = 0;
+                FlagHandler::interChipA_DMA_Finished[1] = 1;
 
-    //         // close ChipSelectLine
+                // close ChipSelectLine
+                HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
+            }
 
-    //         // close both send lines here to start recipient evaluation?
-    //     }
+            if (FlagHandler::interChipB_DMA_Started[1] == 1) {
+                FlagHandler::interChipB_DMA_Started[1] = 0;
+                FlagHandler::interChipB_DMA_Finished[1] = 1;
 
-    //     if (FlagHandler::interChipReceive_DMA_Started[1] == 1) {
-    //         FlagHandler::interChipReceive_DMA_Started[1] = 0;
-    //         FlagHandler::interChipReceive_DMA_Finished[1] = 1;
-    //     }
-    // }
+                // close ChipSelectLine
+                HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
+            }
+        }
+    }
 }
 
 // Midi Handling

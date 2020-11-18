@@ -55,6 +55,8 @@ uint8_t COMusb::push(uint8_t data) {
 ///////////////////////////////// COMinterChip //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
+void comMDMACallback(MDMA_HandleTypeDef *_hmdma);
+
 #ifdef POLYCONTROL
 
 uint8_t COMinterChip::beginSendTransmission() {
@@ -62,6 +64,24 @@ uint8_t COMinterChip::beginSendTransmission() {
     if (blockNewSendBeginCommand) {
         return ERRORCODE_SENDBLOCK;
     }
+    if (!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin)
+          // TODO enable other layers when ready, or Pull Ups on not used pins
+          //   && HAL_GPIO_ReadPin(Layer_1_READY_2_GPIO_Port, Layer_1_READY_2_Pin) &&
+          //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
+          //   HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin)
+          )) {
+        return ERRORCODE_RECEPTORNOTREADY;
+    }
+
+    // TODO enable later
+    // second Layer active?
+    // if (globalSettings.amountLayers.value) {
+    //     if (!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
+    //           HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin))) {
+    //         return ERRORCODE_RECEPTORNOTREADY;
+    //     }
+    // }
+
     // close both buffers
     appendLastByte();
 
@@ -118,7 +138,11 @@ uint8_t COMinterChip::startFirstDMA() {
     // enable NSS to Render Chip A
 
     FlagHandler::interChipA_DMA_Started[layer] = 1;
-    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
+
+    // TODO remove single chip temp setting, switch following lines
+    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
+    // FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
+
     uint8_t ret = sendViaDMA(dmaOutBuffer[!currentBufferSelect], dmaOutCurrentBufferASize);
     if (ret) {
         FlagHandler::interChipA_DMA_Started[layer] = 0;
@@ -322,18 +346,6 @@ uint8_t COMinterChip::sendSetting(uint8_t modulID, uint8_t settingID, uint8_t *a
     return 0;
 }
 
-// OBSOLETE
-// uint8_t COMinterChip::sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount) {
-//     uint8_t comCommand[SETTINGCMDSIZE];
-//     comCommand[0] = SETTINGTYPE & (modulID << 3);
-//     comCommand[1] = UPDATESETTINGINT & settingID;
-//     *(int32_t *)(&comCommand[2]) = amount;
-
-//     pushOutBufferChipA(comCommand, SETTINGCMDSIZE);
-//     pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
-//     return 0;
-// }
-
 uint8_t COMinterChip::sendNewNote(uint8_t modulID, uint8_t voiceID, uint8_t settingID, int32_t amount) {
     uint8_t comCommand[NEWNOTECMDSIZE];
     uint8_t voiceIDsend = voiceID;
@@ -454,8 +466,6 @@ void COMinterChip::initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)
     dmaInBuffer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
     inBuffer[0].reserve(INTERCHIPBUFFERSIZE);
     inBuffer[1].reserve(INTERCHIPBUFFERSIZE);
-
-    // FlagHandler::interChipReceive_newDataAvailableFunc = std::bind()
 }
 
 uint8_t COMinterChip::beginReceiveTransmission() {
@@ -501,8 +511,6 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
 
 uint8_t COMinterChip::decodeCurrentInBuffer() {
     switchBuffer();
-
-    beginReceiveTransmission();
 
     // necessary decoding vars
     uint8_t outputID;
@@ -612,10 +620,12 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     case LASTBYTE:
                         // transmission complete
+                        beginReceiveTransmission();
                         return 0;
 
                     default:
                         // seomething went wrong here
+                        Error_Handler();
                         return 1;
                 }
                 break;
@@ -639,6 +649,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         allLayers[0]->getModules()[modul]->getSettings()[setting]->setValueWithoutMapping(amount);
 
+                        println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amount);
+
                         break;
                     case RETRIGGER:
 
@@ -647,11 +659,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     default:
                         // something went wrong here
+                        Error_Handler();
                         return 1;
                 }
                 break;
             default:
                 // seomething went wrong here
+                Error_Handler();
                 return 1;
         }
     }
@@ -666,6 +680,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     UNUSED(inputID);
 
     // we should always exit with LASTBYTE
+    Error_Handler();
     return 1;
 }
 
@@ -692,6 +707,7 @@ void COMinterChip::prepareMDMAHandle() {
 }
 
 void COMinterChip::switchBuffer() {
+    println("com buffer switched");
     currentBufferSelect = !currentBufferSelect;
 
 #ifdef POLYCONTROL
@@ -705,6 +721,7 @@ void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
 
     HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
 
+#ifdef POLYCONTROL
     for (uint8_t i = 0; i < 2; i++) {
 
         if (FlagHandler::interChipA_MDMA_Started[i] == 1) {
@@ -717,8 +734,11 @@ void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
         }
     }
 
+#elif POLYRENDER
+
     if (FlagHandler::interChipReceive_MDMA_Started == 1) {
         FlagHandler::interChipReceive_MDMA_Started = 0;
         FlagHandler::interChipReceive_MDMA_Finished = 1;
     }
+#endif
 }

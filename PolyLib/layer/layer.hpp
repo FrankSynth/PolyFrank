@@ -65,6 +65,10 @@ class Layer {
 
     uint8_t id;
 
+    ADSR adsrA = ADSR("ADSR A");
+    ADSR adsrB = ADSR("ADSR B");
+    LFO lfoA = LFO("LFO A");
+    Midi midi = Midi("MIDI");
 
   private:
     std::vector<BaseModule *> modules; //  vector of all modules
@@ -78,7 +82,4 @@ class Layer {
     // modules, don't forget them to push into modules vector in constructor
     // LFO lfo_1 = LFO("LFO1");
     // LFO lfo_2 = LFO("LFO2");
-    ADSR adsrA = ADSR("ADSR A");
-    ADSR adsrB = ADSR("ADSR B");
-    Midi midi = Midi("MIDI");
 };

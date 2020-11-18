@@ -4,15 +4,7 @@
 
 namespace FlagHandler {
 
-// InterChip receive flags
-extern bool interChipReceive_DMA_Started;
-extern bool interChipReceive_DMA_Finished;
-extern std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
-extern bool interChipReceive_MDMA_Started;
-extern bool interChipReceive_MDMA_Finished;
-extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
-// extern bool interChipReceive_newDataAvailable;
-// extern std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
+#ifdef POLYCONTROL
 
 // InterChip send flags
 extern bool interChipA_MDMA_Started[2];
@@ -30,6 +22,18 @@ extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
 // Display
 extern bool renderingDoneSwitchBuffer;
+
+#elif POLYRENDER
+
+// InterChip receive flags
+extern bool interChipReceive_DMA_Started;
+extern bool interChipReceive_DMA_Finished;
+extern std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
+extern bool interChipReceive_MDMA_Started;
+extern bool interChipReceive_MDMA_Finished;
+extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
+
+#endif
 
 void handleFlags();
 void initFlagHandler();

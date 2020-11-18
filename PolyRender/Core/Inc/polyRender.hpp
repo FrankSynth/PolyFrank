@@ -7,8 +7,5 @@
 #include "poly.hpp"
 #include "tim.h"
 
-
 void PolyRenderInit();
 void PolyRenderRun();
-
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi);
