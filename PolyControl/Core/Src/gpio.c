@@ -137,9 +137,14 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PDPin PDPin PDPin */
-    GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Encoder_Interrupt_Pin | Panel_2_EOC_Pin;
+    GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Panel_2_EOC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = Encoder_Interrupt_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PGPin PGPin PGPin PGPin
