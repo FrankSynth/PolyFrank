@@ -76,6 +76,8 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
+    FlagHandler::handleFlags();
+
     // EEPROM_SPI_WriteBuffer(dataW, 0x00, 1);
     // EEPROM_SPI_ReadBuffer(dataR, 0x00, 1);
 

@@ -107,7 +107,7 @@ inline float fastMap(float input, float input_start, float input_end, float outp
 
     if (input_start != input_start_store && input_end != input_end_store && output_start != output_start_store &&
         output_end != output_end_store) {
-        float slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
+        slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
         input_start_store = input_start;
         input_end_store = input_end;
         output_start_store = output_start;

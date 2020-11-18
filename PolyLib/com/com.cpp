@@ -454,11 +454,14 @@ void COMinterChip::initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)
     dmaInBuffer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
     inBuffer[0].reserve(INTERCHIPBUFFERSIZE);
     inBuffer[1].reserve(INTERCHIPBUFFERSIZE);
+
+    // FlagHandler::interChipReceive_newDataAvailableFunc = std::bind()
 }
 
 uint8_t COMinterChip::beginReceiveTransmission() {
 
-    // enable reception line to Sender here
+    // enable reception line
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
     uint8_t ret = receiveViaDMA(dmaInBuffer[!currentBufferSelect], INTERCHIPBUFFERSIZE);
     FlagHandler::interChipReceive_DMA_Started = 1;
@@ -468,7 +471,8 @@ uint8_t COMinterChip::beginReceiveTransmission() {
 
 uint8_t COMinterChip::copyReceivedInBuffer() {
 
-    // disable reception line to Sender here
+    // disable reception line
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
 
     // as receive DMA is probably still running, disable it here
     stopReceiveViaDMA();

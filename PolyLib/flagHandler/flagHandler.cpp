@@ -10,6 +10,9 @@ void initFlagHandler() {
     interChipReceive_MDMA_Finished = false;
     interChipReceive_DMA_FinishedFunc = nullptr;
     interChipReceive_MDMA_FinishedFunc = nullptr;
+    // interChipReceive_newDataAvailable = false;
+    // interChipReceive_newDataAvailableFunc = nullptr;
+
     renderingDoneSwitchBuffer = false;
 
     for (uint8_t i = 0; i < 2; i++) {
@@ -36,6 +39,8 @@ std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
 bool interChipReceive_MDMA_Started;
 bool interChipReceive_MDMA_Finished;
 std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
+bool interChipReceive_newDataAvailable;
+std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 
 // InterChip send flags
 bool interChipA_MDMA_Started[2];

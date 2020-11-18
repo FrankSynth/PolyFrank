@@ -63,15 +63,17 @@ void PolyRenderInit() {
     // init allLayers
     allLayers.push_back(&layerA);
 
-    // layerCom.initInTransmission(
-    //     std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
-    //     std::bind<uint8_t>(HAL_SPI_DMAStop, &hspi1), (uint8_t *)interChipDMABuffer);
+    layerCom.initInTransmission(
+        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+        std::bind<uint8_t>(HAL_SPI_DMAStop, &hspi1), (uint8_t *)interChipDMABuffer);
 
-    // layerCom.beginReceiveTransmission();
+    layerCom.beginReceiveTransmission();
 }
 
 void PolyRenderRun() {
     while (1) {
+
+        FlagHandler::handleFlags();
 
         static uint32_t timer = __HAL_TIM_GetCounter(&htim2);
 
@@ -114,4 +116,8 @@ void PolyRenderRun() {
         // HAL_Delay(50);
         // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1);
     }
+}
+
+void HAL_GPIO_EXTI_Callback(GPIO_PIN_8) {
+    FlagHandler::interChipReceive_DMA_Finished = true;
 }
