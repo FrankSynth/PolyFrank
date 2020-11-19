@@ -18,7 +18,8 @@ enum typeDisplayValue { continuous, binary };
 enum typeLinLog { linMap, logMap, antilogMap };
 
 #ifdef POLYCONTROL
-extern uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount);
+extern uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
+extern uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
 #endif
 
 class DataElement {

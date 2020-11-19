@@ -6,9 +6,9 @@ void Setting::setValue(int32_t newValue) {
         valueName = std::to_string(value);
 
 #ifdef POLYCONTROL
-    if (sendOutViaCom) {
-        sendSetting(layerId, moduleId, id, (uint8_t *)&value);
-    }
+        // if (sendOutViaCom) {
+        //     sendSetting(layerId, moduleId, id, value);
+        // }
 #endif
 }
 
@@ -43,7 +43,7 @@ void Analog::setValue(int32_t newValue) {
 
 #ifdef POLYCONTROL
     if (sendOutViaCom) {
-        sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
+        sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
 }
@@ -69,7 +69,7 @@ void Digital::setValue(int32_t newValue) {
 
 #ifdef POLYCONTROL
     if (sendOutViaCom) {
-        sendSetting(layerId, moduleId, id, (uint8_t *)&valueMapped);
+        sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
 }

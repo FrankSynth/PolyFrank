@@ -1,11 +1,11 @@
 #include "polyRender.hpp"
 
 // Buffer for InterChip Com
-RAM2_DMA volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE];
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE]);
 
 /// Layer
 ID layerId;
-Layer layerA(layerId.getNewId());
+Layer layerA = Layer(layerId.getNewId());
 
 // InterChip Com
 COMinterChip layerCom;
@@ -41,6 +41,7 @@ uint16_t cvDacCbuffer[4];
 void PolyRenderInit() {
 
     // disable reception line
+    // TODO to gpio.c
     HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
 
     hardwareInit();
@@ -67,52 +68,59 @@ void PolyRenderInit() {
     // init allLayers
     allLayers.push_back(&layerA);
 
+    initPoly();
+
     layerCom.initInTransmission(
-        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
-        std::bind<uint8_t>(HAL_SPI_DMAStop, &hspi1), (uint8_t *)interChipDMABuffer);
+        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+        std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
 
     layerCom.beginReceiveTransmission();
 }
 
 void PolyRenderRun() {
+
     while (1) {
 
         FlagHandler::handleFlags();
+        cvDacAbuffer[0] = layerA.adsrA.aDecay.valueMapped * 400;
+        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, layerA.adsrA.aDecay.valueMapped * 100);
+
+        cvDacA.fastUpdate();
 
         static uint32_t timer = __HAL_TIM_GetCounter(&htim2);
 
-        if (__HAL_TIM_GetCounter(&htim2) - timer > 100) {
-            timer = __HAL_TIM_GetCounter(&htim2);
-            cvDacA.fastUpdate();
-            cvDacB.fastUpdate();
-            cvDacC.fastUpdate();
+        // if (__HAL_TIM_GetCounter(&htim2) - timer > 100) {
+        //     timer = __HAL_TIM_GetCounter(&htim2);
+        //     cvDacA.fastUpdate();
+        //     cvDacB.fastUpdate();
+        //     cvDacC.fastUpdate();
 
-            cvDacAbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, powf(2, (float)cvDacAbuffer[0] / (float)409));
-            __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, cvDacAbuffer[0] / 4);
-            cvDacAbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 300000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
-            // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
+        // cvDacAbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, powf(2, (float)cvDacAbuffer[0] / (float)409));
+        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, cvDacAbuffer[0] / 4);
+        // cvDacAbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 300000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
+        // // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
 
-            cvDacAbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 500000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, powf(2, (float)cvDacAbuffer[2] / (float)409));
-            cvDacAbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 700000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, powf(2, (float)cvDacAbuffer[3] / (float)409));
+        // cvDacAbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 500000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, powf(2, (float)cvDacAbuffer[2] / (float)409));
+        // cvDacAbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 700000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, powf(2, (float)cvDacAbuffer[3] / (float)409));
 
-            cvDacBbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, powf(2, (float)cvDacBbuffer[0] / (float)409));
-            cvDacBbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, powf(2, (float)cvDacBbuffer[1] / (float)409));
-            __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, powf(2, (float)cvDacBbuffer[1] / (float)409));
+        // cvDacBbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, powf(2, (float)cvDacBbuffer[0] / (float)409));
+        // cvDacBbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, powf(2, (float)cvDacBbuffer[1] / (float)409));
+        // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, powf(2, (float)cvDacBbuffer[1] / (float)409));
 
-            cvDacBbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            cvDacBbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // cvDacBbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // cvDacBbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
 
-            cvDacCbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            cvDacCbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            cvDacCbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-            cvDacCbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
-        }
+        // cvDacCbuffer[0] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // cvDacCbuffer[1] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // cvDacCbuffer[2] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // cvDacCbuffer[3] = fast_sin_f32((float)__HAL_TIM_GetCounter(&htim2) / 1000000.0f) * 2048 + 2047;
+        // }
 
         // HAL_Delay(1);
 

@@ -56,17 +56,19 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOI, Layer_1_Boot_2_Pin | Panel_2_CS_Pin | Layer_1_CS_1_Pin | Layer_1_CS_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOI, Panel_2_CS_Pin | Layer_1_Boot_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOI, Layer_1_CS_1_Pin | Layer_1_CS_2_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, Layer_1_Boot_1_Pin | Layer_2_Boot_1_Pin | Layer_2_Boot_2_Pin | Layer_2_CS_2_Pin,
-                      GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, Layer_1_Boot_1_Pin | Layer_2_Boot_1_Pin | Layer_2_Boot_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, Layer_2_CS_2_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, Layer_2_CS_1_Pin | EEPROM_CS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, EEPROM_CS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, Layer_2_CS_1_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOB, Sync_OUT_Pin | Panel_Reset_Pin, GPIO_PIN_RESET);
@@ -112,14 +114,14 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pin : PtPin */
-    GPIO_InitStruct.Pin = Layer_2_READY_1_Pin; // FIXME Layer 2 ready pins as standard inputs
+    GPIO_InitStruct.Pin = Layer_2_READY_1_Pin; // FIXME Layer 2 ready pins as standard inputs, not IT
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(Layer_2_READY_1_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PCPin PCPin PCPin */
     GPIO_InitStruct.Pin =
-        Layer_2_READY_2_Pin | Panel_2_Change_Pin | Sync_IN_Pin; // FIXME Layer 2 ready pins as standard inputs
+        Layer_2_READY_2_Pin | Panel_2_Change_Pin | Sync_IN_Pin; // FIXME Layer 2 ready pins as standard inputs, not IT
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);

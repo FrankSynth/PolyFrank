@@ -23,6 +23,7 @@
 #define __STM32H7xx_IT_H
 
 #ifdef __cplusplus
+#include "debughelper/debughelper.hpp"
 extern "C" {
 #endif
 

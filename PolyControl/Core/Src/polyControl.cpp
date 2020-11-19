@@ -63,14 +63,16 @@ void PolyControlInit() {
     // init UI, Display
     ui.Init(allLayers);
 
-    // init communication to render chips
+    // init communication to render chip
     layerCom[0].initOutTransmission(
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerA, 0);
 
-    layerCom[1].initOutTransmission(
-        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
-        (uint8_t *)interChipDMABufferLayerB, 1);
+    if (globalSettings.amountLayers.value) {
+        layerCom[1].initOutTransmission(
+            std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
+            (uint8_t *)interChipDMABufferLayerB, 1);
+    }
 
     // init EEPROM
     initPreset();
@@ -90,17 +92,17 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    FlagHandler::handleFlags();
-
     // EEPROM_SPI_WriteBuffer(dataW, 0x00, 1);
     // EEPROM_SPI_ReadBuffer(dataR, 0x00, 1);
 
     // HAL_Delay(20);
     // uint32_t time;
+    elapsedMillis millitimer = 0;
+    elapsedMillis millitimer2 = 0;
+    elapsedMicros microtimer = 0;
 
     while (1) {
-
-        elapsedMillis millitimer = 0;
+        FlagHandler::handleFlags();
 
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
@@ -116,11 +118,18 @@ void PolyControlRun() { // Here the party starts
         // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
         // testbuffer++;
 
-        if (millitimer >= 1000) {
-            millitimer = 0;
-            layerA.adsrA.aAttack.setValue(0.4);
-            layerA.lfoA.aFreq.setValue(500);
-        }
+        // if (millitimer >= 1000) {
+        //     millitimer = 0;
+        //     println("set values");
+
+        //     layerA.adsrA.aSustain.setValue(0.4);
+        //     layerA.lfoA.aFreq.setValue(500);
+        // }
+
+        // if (microtimer >= 200) {
+        // microtimer = 0;
+        layerCom[0].beginSendTransmission();
+        // }
 
         // actionHandler.callActionEncoder_1_CW();
         // actionHandler.callActionEncoder_2_CW();
@@ -160,7 +169,10 @@ void PolyControlRun() { // Here the party starts
 ///////////////////////////////////////////////// LAYER SPECIFIC HANDLING
 ////////////////////////////////////////////////
 
-uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount) {
+uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
+    return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
+}
+uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount) {
     return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
 }
 uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
@@ -190,10 +202,10 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com Layer 1
     if (hspi == &hspi4) {
-
         if (FlagHandler::interChipA_DMA_Started[0] == 1) {
             FlagHandler::interChipA_DMA_Started[0] = 0;
             FlagHandler::interChipA_DMA_Finished[0] = 1;
+            println("HAL_SPI_TxCpltCallback: close SPI Line spi4");
 
             // close ChipSelectLine
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);

@@ -88,7 +88,8 @@ class COMinterChip {
     uint8_t sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
     uint8_t sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId);
     uint8_t sendDeleteAllPatches();
-    uint8_t sendSetting(uint8_t modulID, uint8_t settingID, uint8_t *amount);
+    uint8_t sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount);
+    uint8_t sendSetting(uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendNewNote(uint8_t modulID, uint8_t voiceID, uint8_t settingID, int32_t amount);
     uint8_t sendOpenGate(uint8_t voiceID);
     uint8_t sendCloseGate(uint8_t voiceID);
@@ -133,7 +134,7 @@ class COMinterChip {
 
     std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA;
 
-    uint8_t *dmaOutBuffer[2];
+    uint8_t *dmaOutBufferPointer[2];
 
     uint16_t dmaOutCurrentBufferASize;
     uint16_t dmaOutCurrentBufferBSize;
@@ -159,8 +160,9 @@ class COMinterChip {
 
     std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA;
     std::function<uint8_t()> stopReceiveViaDMA;
-    uint8_t *dmaInBuffer[2];
-    std::vector<uint8_t> inBuffer[2];
+    uint8_t *dmaInBufferPointer[2];
+    ALIGN_32BYTES(uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2]);
+    uint8_t *inBufferPointer[2];
 
 #endif
 

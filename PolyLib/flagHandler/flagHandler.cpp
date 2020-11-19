@@ -76,8 +76,8 @@ void handleFlags() {
     for (uint8_t i = 0; i < 2; i++) {
 
         // InterChip send flags
-        if (interChipA_MDMA_Finished) {
-            if (interChipA_MDMA_FinishedFunc != nullptr) {
+        if (interChipA_MDMA_Finished[i]) {
+            if (interChipA_MDMA_FinishedFunc[i] != nullptr) {
                 if (interChipA_MDMA_FinishedFunc[i]() == 0) {
                     interChipA_MDMA_FinishedFunc[i] = nullptr;
                     interChipA_MDMA_Finished[i] = 0;
@@ -87,8 +87,8 @@ void handleFlags() {
                 interChipA_MDMA_Finished[i] = 0;
             }
         }
-        if (interChipA_DMA_Finished) {
-            if (interChipA_DMA_FinishedFunc != nullptr) {
+        if (interChipA_DMA_Finished[i]) {
+            if (interChipA_DMA_FinishedFunc[i] != nullptr) {
                 if (interChipA_DMA_FinishedFunc[i]() == 0) {
                     interChipA_DMA_FinishedFunc[i] = nullptr;
                     interChipA_DMA_Finished[i] = 0;
@@ -98,8 +98,8 @@ void handleFlags() {
                 interChipA_DMA_Finished[i] = 0;
             }
         }
-        if (interChipB_MDMA_Finished) {
-            if (interChipB_MDMA_FinishedFunc != nullptr) {
+        if (interChipB_MDMA_Finished[i]) {
+            if (interChipB_MDMA_FinishedFunc[i] != nullptr) {
                 if (interChipB_MDMA_FinishedFunc[i]() == 0) {
                     interChipB_MDMA_FinishedFunc[i] = nullptr;
                     interChipB_MDMA_Finished[i] = 0;
@@ -109,8 +109,8 @@ void handleFlags() {
                 interChipB_MDMA_Finished[i] = 0;
             }
         }
-        if (interChipB_DMA_Finished) {
-            if (interChipB_DMA_FinishedFunc != nullptr) {
+        if (interChipB_DMA_Finished[i]) {
+            if (interChipB_DMA_FinishedFunc[i] != nullptr) {
                 if (interChipB_DMA_FinishedFunc[i]() == 0) {
                     interChipB_DMA_FinishedFunc[i] = nullptr;
                     interChipB_DMA_Finished[i] = 0;
