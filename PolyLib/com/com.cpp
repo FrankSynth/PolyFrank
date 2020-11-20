@@ -79,7 +79,7 @@ uint8_t COMinterChip::beginSendTransmission() {
           //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
           //   HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin)
           )) {
-        println("ERRORCODE_RECEPTORNOTREADY");
+        // println("ERRORCODE_RECEPTORNOTREADY");
 
         return ERRORCODE_RECEPTORNOTREADY;
     }
@@ -278,7 +278,7 @@ uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
 
 uint8_t COMinterChip::invokeBufferFullSend() {
     uint8_t ret = beginSendTransmission();
-    while (ret == ERRORCODE_SENDBLOCK) {
+    while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
         ret = beginSendTransmission();
     }
     return ret;

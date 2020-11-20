@@ -56,8 +56,8 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOI, Panel_2_CS_Pin | Layer_1_Boot_2_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOI, Layer_1_CS_1_Pin | Layer_1_CS_2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOI, Layer_1_Boot_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOI, Panel_2_CS_Pin | Layer_1_CS_1_Pin | Layer_1_CS_2_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOC, Layer_1_Boot_1_Pin | Layer_2_Boot_1_Pin | Layer_2_Boot_2_Pin, GPIO_PIN_RESET);
@@ -71,7 +71,8 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(GPIOA, Layer_2_CS_1_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, Sync_OUT_Pin | Panel_Reset_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, Sync_OUT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB, Panel_Reset_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(
@@ -141,7 +142,7 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pins : PDPin PDPin PDPin */
     GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Panel_2_EOC_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 

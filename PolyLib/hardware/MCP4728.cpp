@@ -313,14 +313,4 @@ unsigned char i2c_read_byte(i2cpin pins, bool nack, bool send_stop) {
     return byte;
 }
 
-// helper function microsecondsDelay ---> muss noch verschoben werden
-
-void microsecondsDelay(uint32_t delay) {
-    uint32_t time = __HAL_TIM_GetCounter(&htim2);
-
-    while (__HAL_TIM_GetCounter(&htim2) - time < delay) {
-        ;
-    }
-}
-
 #endif // ifdef POLYCONTROL

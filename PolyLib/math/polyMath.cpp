@@ -47,56 +47,81 @@ float fast_sin_f32(float x) {
     return (sinVal);
 }
 
-inline void fast_copy_f32(float *pSrc, float *pDst, __uint32_t blockSize) {
-    uint32_t blkCnt; /* loop counter */
-
-    /* Run the below code for Cortex-M4 and Cortex-M3 */
-    float in1, in2, in3, in4;
-
-    /*loop Unrolling */
-    blkCnt = blockSize >> 2U;
-
-    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
-     ** a second loop below computes the remaining 1 to 3 samples. */
-    while (blkCnt > 0U) {
-        /* C = A */
-        /* Copy and then store the results in the destination buffer */
-        in1 = *pSrc++;
-        in2 = *pSrc++;
-        in3 = *pSrc++;
-        in4 = *pSrc++;
-
-        *pDst++ = in1;
-        *pDst++ = in2;
-        *pDst++ = in3;
-        *pDst++ = in4;
-
-        /* Decrement the loop counter */
-        blkCnt--;
-    }
-
-    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
-     ** No loop unrolling is used. */
-    blkCnt = blockSize % 0x4U;
-
-    while (blkCnt > 0U) {
-        /* C = A */
-        /* Copy and then store the results in the destination buffer */
-        *pDst++ = *pSrc++;
-
-        /* Decrement the loop counter */
-        blkCnt--;
+float lin2logTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
+void precomputeNoteLin2LogTable() {
+    for (uint32_t i = 0; i < FAST_NOTELIN2LOG_TABLE_SIZE + 1; i++) {
+        lin2logTable_f32[i] =
+            powf(2.0, fastMapCached(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
     }
 }
 
-// TODO precompute lin2log table
-void precomputeLin2LogTable() {
-    for (uint16_t i = 0; i < FAST_LIN2LOG_TABLE_SIZE + 1; i++) {
+float fastNoteLin2Log_f32(float x) {
+    float ret, fract; /* Temporary variables for input, output */
+    uint16_t index;   /* Index variable */
+    float a, b;       /* Two nearest output values */
+    // int32_t n;
+    float findex;
+
+    x = fastMap(testFloat(x, noteLin2logMIN, noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
+
+    /* Calculation of index of the table */
+    findex = (float)FAST_MATH_TABLE_SIZE * x;
+
+    index = ((uint16_t)findex) & 0x1ff;
+
+    /* fractional value calculation */
+    fract = findex - (float)index;
+
+    /* Read two nearest values of input value from the sin table */
+    a = sinTable_f32[index];
+    b = sinTable_f32[index + 1];
+
+    /* Linear interpolation process */
+    // ret = (1.0f - fract) * a + fract * b;
+    ret = fast_lerp_f32(a, b, fract);
+
+    /* Return the output value */
+    return (ret);
+}
+
+void LogCurve::precomputeTable() {
+    float b = powf((1 / curve) - 1, 2);
+    float a = 1 / (b - 1);
+
+    for (uint16_t i = 0; i < size + 1; i++) {
+        logTable[i] = a * powf(b, fastMapCached(i, 0, size, 0, 1)) - a;
     }
 }
 
-// TODO fast lin2log for LED Range 0-1000
+float LogCurve::mapValue(float value) {
+    float ret, fract; /* Temporary variables for input, output */
+    uint16_t index;   /* Index variable */
+    float a, b;       /* Two nearest output values */
+    // int32_t n;
+    float findex;
 
-// TODO fast lin2log return functions fast_sin_f32 style
+    /* Calculation of index of the table */
+    findex = (float)size * testFloat(value, 0, 1);
 
-// TODO Lerps for LED Brightness
+    index = ((uint16_t)findex) & 0x1ff;
+
+    /* fractional value calculation */
+    fract = findex - (float)index;
+
+    /* Read two nearest values of input value from the sin table */
+    a = logTable[index];
+    b = logTable[index + 1];
+
+    /* Linear interpolation process */
+    ret = fast_lerp_f32(a, b, fract);
+
+    /* Return the output value */
+    return (ret);
+}
+
+// audio poti Log style
+LogCurve audioCurve = LogCurve(16, 0.1);
+
+float fastMapAudioToLog(float value) {
+    return audioCurve.mapValue(value);
+}

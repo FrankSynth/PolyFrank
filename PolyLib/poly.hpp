@@ -5,6 +5,8 @@
 #include "flagHandler/flagHandler.hpp"
 #include "layer/layer.hpp"
 
+#define LEDMAXBRIGHTNESSCOUNT 1024 // match pwm counter value
+
 extern std::vector<Layer *> allLayers;
 
 void initPoly();

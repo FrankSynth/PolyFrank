@@ -40,10 +40,6 @@ uint16_t cvDacCbuffer[4];
 
 void PolyRenderInit() {
 
-    // disable reception line
-    // TODO to gpio.c
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
-
     hardwareInit();
 
     cvDacA.setDataPointer((uint8_t *)cvDacAbuffer);
@@ -83,11 +79,10 @@ void PolyRenderRun() {
 
         FlagHandler::handleFlags();
         cvDacAbuffer[0] = layerA.adsrA.aDecay.valueMapped * 400;
-        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, layerA.adsrA.aDecay.valueMapped * 100);
+        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
+                             fastMapLEDBrightness(layerA.adsrA.aDecay.valueMapped * 0.1) * LEDMAXBRIGHTNESSCOUNT);
 
         cvDacA.fastUpdate();
-
-        static uint32_t timer = __HAL_TIM_GetCounter(&htim2);
 
         // if (__HAL_TIM_GetCounter(&htim2) - timer > 100) {
         //     timer = __HAL_TIM_GetCounter(&htim2);

@@ -14,7 +14,8 @@
 
 #define INPUTBUFFERSIZE 512
 #define OUTPUTBUFFERSIZE 512
-#define INTERCHIPBUFFERSIZE 1024
+// TODO smaller buffersize test
+#define INTERCHIPBUFFERSIZE 128
 
 #define ERRORCODE_SENDBLOCK 20
 #define ERRORCODE_RECEPTORNOTREADY 21
@@ -147,6 +148,7 @@ class COMinterChip {
     uint8_t pushOutBufferChipB(uint8_t data);
     uint8_t pushOutBufferChipB(uint8_t *data, uint32_t size);
 
+    // TODO optimize speed with non-vector buffer
     std::vector<uint8_t> outBufferChipA[2];
     std::vector<uint8_t> outBufferChipB[2];
 

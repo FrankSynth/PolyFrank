@@ -1,8 +1,10 @@
 #pragma once
 
-#include "../debughelper/debughelper.hpp"
+#include "datacore/dataHelperFunctions.hpp"
+#include "debughelper/debughelper.hpp"
 #include "i2c.h"
 #include "tim.h"
+
 
 // implementation i2C bit-banging : https://en.wikipedia.org/wiki/I%C2%B2C
 
@@ -18,7 +20,6 @@ typedef struct {
 void updateI2CAddress();
 void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t address);
 
-void microsecondsDelay(uint32_t delay);
 void writeBit(uint32_t delay, uint8_t data);
 void I2C_delay(void);
 bool read_SCL(i2cpin pins);  // Return current level of SCL line, 0 or 1

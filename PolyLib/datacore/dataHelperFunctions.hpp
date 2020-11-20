@@ -291,3 +291,59 @@ class elapsedSeconds {
         return r;
     }
 };
+
+/**
+ * @brief Copies the elements of a floating-point vector.
+ * @param[in]       *pSrc points to input vector
+ * @param[out]      *pDst points to output vector
+ * @param[in]       length of the input vector
+ * @return none.
+ *
+ */
+ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t blockSize) {
+    uint32_t blkCnt; /* loop counter */
+
+    uint32_t in1, in2, in3, in4;
+
+    /*loop Unrolling */
+    blkCnt = blockSize >> 2U;
+
+    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
+     ** a second loop below computes the remaining 1 to 3 samples. */
+    while (blkCnt > 0U) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+        in1 = *pSrc++;
+        in2 = *pSrc++;
+        in3 = *pSrc++;
+        in4 = *pSrc++;
+
+        *pDst++ = in1;
+        *pDst++ = in2;
+        *pDst++ = in3;
+        *pDst++ = in4;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+
+    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
+     ** No loop unrolling is used. */
+    blkCnt = blockSize % 0x4U;
+
+    while (blkCnt > 0U) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+        *pDst++ = *pSrc++;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+}
+
+inline void microsecondsDelay(uint32_t delay) {
+    uint32_t time = __HAL_TIM_GetCounter(&htim2);
+    while (__HAL_TIM_GetCounter(&htim2) - time < delay) {
+        ;
+    }
+}

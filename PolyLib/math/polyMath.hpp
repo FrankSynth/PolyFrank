@@ -1,14 +1,24 @@
 #pragma once
 
-#include "math.h"
+#include "datacore/dataHelperFunctions.hpp"
 #include "stdint.h"
-#include "string.h"
+#include <cmath>
+#include <vector>
+
+// #include "string.h"
 
 #define FAST_MATH_TABLE_SIZE 512
 #define FAST_MATH_TABLE_SIZE 512
-#define FAST_LIN2LOG_TABLE_SIZE 8192
-#define lin2logMIN -1
-#define lin2logMAX 9
+#define noteLin2logMIN -2
+#define noteLin2logMAX 9
+#define FAST_NOTELIN2LOG_TABLE_SIZE (noteLin2logMAX - noteLin2logMIN) * 12 // 12 notes per octave
+
+#define LEDCURVEPOINTSTART 0.0f // lowest brightness
+#define LEDCURVEPOINT1IN 0.5f
+#define LEDCURVEPOINT1OUT 0.2f // tune this
+#define LEDCURVEPOINT2IN 0.85f
+#define LEDCURVEPOINT2OUT 0.5f // tune this
+#define LEDCURVEPOINTEND 1.0f  // max brightness
 
 #ifndef ALWAYS_INLINE
 #define ALWAYS_INLINE __attribute__((always_inline))
@@ -21,7 +31,6 @@
  * @return y processed output sample.
  *
  */
-
 typedef struct {
     uint32_t nValues; /**< nValues */
     float x1;         /**< x1 */
@@ -33,7 +42,7 @@ typedef struct {
 extern const float sinTable_f32[FAST_MATH_TABLE_SIZE + 1];
 
 // table for fast lin2log
-extern const float lin2logTable_f32[FAST_LIN2LOG_TABLE_SIZE + 1];
+extern float lin2logTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 
 /**
  * @brief  Floating-point sin_cos function.
@@ -41,18 +50,7 @@ extern const float lin2logTable_f32[FAST_LIN2LOG_TABLE_SIZE + 1];
  * @param[out] pSinVal  points to the processed sine output.
  * @param[out] pCosVal  points to the processed cos output.
  */
-
 float fast_sin_f32(float x);
-
-/**
- * @brief Copies the elements of a floating-point vector.
- * @param[in]       *pSrc points to input vector
- * @param[out]      *pDst points to output vector
- * @param[in]       blockSize length of the input vector
- * @return none.
- *
- */
-inline void fast_copy_f32(float *pSrc, float *pDst, __uint32_t blockSize);
 
 /**
  * @brief fast lerp with float
@@ -74,7 +72,7 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
  * @param max
  * @return float
  */
-inline float fastLin2Exp(float x, float min, float max) {
+inline float fastPowLin2Exp(float x, float min, float max) {
     return min + (powf(max + 1., x / max) - 1) * (max - min) / max;
 }
 
@@ -85,11 +83,9 @@ inline float fastLin2Exp(float x, float min, float max) {
  * @param max
  * @return float
  */
-inline float fastLin2Exp(float x, float max) {
+inline float fastPowLin2Exp(float x, float max) {
     return powf(max + 1, x / max) - 1;
 }
-
-void precomputeLin2LogTable();
 
 /**
  * @brief caches the calculated slope for similar consecutive map calls
@@ -130,7 +126,79 @@ inline float fastMapCached(float input, float input_start, float input_end, floa
  */
 inline float fastMap(float input, float input_start, float input_end, float output_start, float output_end) {
 
-    float slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
-    float output = output_start + slope_store * (input - input_start);
+    float output = output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
     return output;
 }
+
+/**
+ * @brief precompute lin2log tasble based on noteLin2logMIN, noteLin2logMAX
+ *
+ */
+void precomputeNoteLin2LogTable();
+
+/**
+ * @brief convert Note values to pow(2,x)
+ *
+ * @param x range from noteLin2logMIN, lognoteLin2logMAX
+ * @return float
+ */
+float fastNoteLin2Log_f32(float x);
+
+/**
+ * @brief custom led brightness curve
+ *
+ * @param value between 0 and 1
+ * @return float mapped value between 0 and 1
+ */
+inline float fastMapLEDBrightness(float value) {
+    if (value < LEDCURVEPOINT1IN) {
+        value = fastMap(value, LEDCURVEPOINTSTART, LEDCURVEPOINT1IN, LEDCURVEPOINTSTART, LEDCURVEPOINT1OUT);
+    }
+    else {
+        if (value < LEDCURVEPOINT2IN) {
+            value = fastMap(value, LEDCURVEPOINT1IN, LEDCURVEPOINT2IN, LEDCURVEPOINT1OUT, LEDCURVEPOINT2OUT);
+        }
+        else {
+            value = fastMap(value, LEDCURVEPOINT2IN, LEDCURVEPOINTEND, LEDCURVEPOINT2OUT, LEDCURVEPOINTEND);
+        }
+    }
+    return value;
+}
+
+/**
+ * @brief map Audio log
+ *
+ * @param value between 0 and 1
+ * @return float mapped value between 0 and 1
+ */
+float fastMapAudioToLog(float value);
+
+/**
+ * @brief custom log table between 0 and 1 with curve param
+ *
+ */
+class LogCurve {
+  public:
+    /**
+     * @brief Construct a new Log Curve object
+     *
+     * @param size
+     * @param curve midpoint, between 0 and 1, 0.5 = linear
+     */
+    LogCurve(uint16_t size, float curve) {
+        this->size = size;
+        this->curve = testFloat(curve == 0.5f ? 0.4999f : curve, 0.0001f, 0.9999f);
+        this->logTable.reserve(size + 1);
+
+        precomputeTable();
+    }
+
+    float mapValue(float value);
+
+  private:
+    float curve;
+    uint16_t size;
+    std::vector<float> logTable;
+
+    void precomputeTable();
+};

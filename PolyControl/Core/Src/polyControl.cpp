@@ -25,6 +25,9 @@ COMinterChip layerCom[2];
 // live Data
 LiveData liveData;
 
+// hardware
+MAX11128 max(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+
 // function pointers
 void initMidi();
 // uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount);
@@ -41,10 +44,17 @@ void PolyControlInit() {
 
     ////////Hardware init////////
 
+    max.init();
+
     initHID();
 
     // enable Layer
     HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
+
+    // mult tmp
+    HAL_GPIO_WritePin(Panel_ADC_Mult_A_GPIO_Port, Panel_ADC_Mult_A_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, GPIO_PIN_RESET);
 
     ////////Sofware init////////
 
@@ -97,9 +107,10 @@ void PolyControlRun() { // Here the party starts
 
     // HAL_Delay(20);
     // uint32_t time;
-    elapsedMillis millitimer = 0;
-    elapsedMillis millitimer2 = 0;
+    // elapsedMillis millitimer = 0;
+    // elapsedMillis millitimer2 = 0;
     elapsedMicros microtimer = 0;
+    elapsedMicros microtimer2 = 1000000 - 5;
 
     while (1) {
         FlagHandler::handleFlags();
@@ -127,9 +138,21 @@ void PolyControlRun() { // Here the party starts
         // }
 
         // if (microtimer >= 200) {
-        // microtimer = 0;
-        layerCom[0].beginSendTransmission();
+        //     microtimer = 0;
+        //     layerCom[0].beginSendTransmission();
         // }
+
+        static uint32_t count = 0;
+        if (microtimer2 >= 1000000) {
+            microtimer2 = 0;
+            if (HAL_GPIO_ReadPin(Panel_1_EOC_GPIO_Port, Panel_1_EOC_Pin) == 0) {
+                max.fetchNewData();
+                println("-----------new Data------------", count++);
+                for (uint16_t i = 0; i < 16; i++) {
+                    println("Data ", i, ": ", max.data[i]);
+                }
+            }
+        }
 
         // actionHandler.callActionEncoder_1_CW();
         // actionHandler.callActionEncoder_2_CW();
