@@ -532,6 +532,7 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
 
     // flush fifo buffer necessary?
     HAL_SPIEx_FlushRxFifo(&hspi1);
+
     // println("start in MDMA");
     // copy via MDMA into ITC Memory
     prepareMDMAHandle();

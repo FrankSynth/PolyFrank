@@ -43,16 +43,17 @@ ALWAYS_INLINE inline int32_t changeInt(const int32_t value, const int32_t change
  */
 ALWAYS_INLINE inline int32_t changeIntLoop(const int32_t value, const int32_t change, const int32_t minimum,
                                            const int32_t maximum) {
+    int32_t changed = value + change;
 
-    if (value + change > maximum) { // test max
+    if (changed > maximum) { // test max
 
         return minimum;
     }
-    else if (value + change < minimum) { // test min
+    else if (changed < minimum) { // test min
         return maximum;
     }
     else {
-        return (value + change); // return new value
+        return changed; // return new value
     }
 }
 
@@ -88,15 +89,17 @@ ALWAYS_INLINE inline int32_t testInt(const int32_t value, const int32_t minimum,
 ALWAYS_INLINE inline float changeFloat(const float value, const float change, const float minimum,
                                        const float maximum) {
 
-    if (value + change > maximum) { // test max
+    float changed = value + change;
+
+    if (changed > maximum) { // test max
 
         return maximum;
     }
-    else if (value + change < minimum) { // test min
+    else if (changed < minimum) { // test min
         return minimum;
     }
     else {
-        return (value + change); // return new value
+        return changed; // return new value
     }
 }
 
@@ -335,6 +338,41 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
         /* C = A */
         /* Copy and then store the results in the destination buffer */
         *pDst++ = *pSrc++;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+}
+
+ALWAYS_INLINE inline void fastMemset(uint32_t *data, uint32_t *pDst, uint32_t blockSize) {
+    uint32_t blkCnt; /* loop counter */
+
+    /*loop Unrolling */
+    blkCnt = blockSize >> 2U;
+
+    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
+     ** a second loop below computes the remaining 1 to 3 samples. */
+    while (blkCnt > 0U) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+
+        *pDst++ = *data;
+        *pDst++ = *data;
+        *pDst++ = *data;
+        *pDst++ = *data;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+
+    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
+     ** No loop unrolling is used. */
+    blkCnt = blockSize % 0x4U;
+
+    while (blkCnt > 0U) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+        *pDst++ = *data;
 
         /* Decrement the loop counter */
         blkCnt--;

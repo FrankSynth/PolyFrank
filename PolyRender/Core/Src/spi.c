@@ -62,7 +62,7 @@ void MX_SPI4_Init(void) {
     hspi4.Instance = SPI4;
     hspi4.Init.Mode = SPI_MODE_MASTER;
     hspi4.Init.Direction = SPI_DIRECTION_1LINE;
-    hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
     hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi4.Init.NSS = SPI_NSS_HARD_OUTPUT;
@@ -120,7 +120,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_spi1_rx.Init.Mode = DMA_NORMAL;
         hdma_spi1_rx.Init.Priority = DMA_PRIORITY_HIGH;
-        hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+        hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_spi1_rx) != HAL_OK) {
             Error_Handler();
         }

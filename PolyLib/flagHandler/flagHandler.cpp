@@ -31,8 +31,11 @@ void initFlagHandler() {
     interChipReceive_MDMA_Finished = false;
     interChipReceive_DMA_FinishedFunc = nullptr;
     interChipReceive_MDMA_FinishedFunc = nullptr;
-// interChipReceive_newDataAvailable = false;
-// interChipReceive_newDataAvailableFunc = nullptr;
+
+    saiHalfCptl = false;
+    saiHalfCptlFunc = nullptr;
+    saiCptl = false;
+    saiCptlFunc = nullptr;
 #endif
 }
 
@@ -66,6 +69,11 @@ bool interChipReceive_MDMA_Finished;
 std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 bool interChipReceive_newDataAvailable;
 std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
+
+bool saiHalfCptl;
+std::function<uint8_t()> saiHalfCptlFunc;
+bool saiCptl;
+std::function<uint8_t()> saiCptlFunc;
 #endif
 
 // handle all interrupts
@@ -145,6 +153,30 @@ void handleFlags() {
         }
         else {
             interChipReceive_MDMA_Finished = 0;
+        }
+    }
+
+    if (saiHalfCptl) {
+        if (saiHalfCptlFunc != nullptr) {
+            if (saiHalfCptlFunc() == 0) {
+                saiHalfCptlFunc = nullptr;
+                saiHalfCptl = 0;
+            }
+        }
+        else {
+            saiHalfCptl = 0;
+        }
+    }
+
+    if (saiCptl) {
+        if (saiCptlFunc != nullptr) {
+            if (saiCptlFunc() == 0) {
+                saiCptlFunc = nullptr;
+                saiCptl = 0;
+            }
+        }
+        else {
+            saiCptl = 0;
         }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+// FIXME move all includes to cpp files when possible
 #include "com/com.hpp"
 #include "debughelper/debughelper.hpp"
 #include "flagHandler/flagHandler.hpp"

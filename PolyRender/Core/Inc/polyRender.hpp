@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hardware/MCP4728.hpp"
+#include "hardware/PCM1690.hpp"
 #include "i2c.h"
 #include "main.h"
 #include "math/polyMath.hpp"

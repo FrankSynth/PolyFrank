@@ -33,6 +33,11 @@ extern bool interChipReceive_MDMA_Started;
 extern bool interChipReceive_MDMA_Finished;
 extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 
+extern bool saiHalfCptl;
+extern std::function<uint8_t()> saiHalfCptlFunc;
+extern bool saiCptl;
+extern std::function<uint8_t()> saiCptlFunc;
+
 #endif
 
 void handleFlags();
