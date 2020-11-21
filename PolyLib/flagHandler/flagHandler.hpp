@@ -20,6 +20,18 @@ extern bool interChipB_DMA_Started[2];
 extern bool interChipB_DMA_Finished[2];
 extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
+extern bool Control_Encoder_Interrupt;
+extern std::function<void()> Control_Encoder_ISR;
+
+extern bool Control_Touch_Interrupt;
+extern std::function<void()> Control_Touch_ISR;
+
+extern bool Panel_0_Touch_Interrupt;
+extern std::function<void()> Panel_0_Touch_ISR;
+
+extern bool Panel_1_Touch_Interrupt;
+extern std::function<void()> Panel_1_Touch_ISR;
+
 // Display
 extern bool renderingDoneSwitchBuffer;
 

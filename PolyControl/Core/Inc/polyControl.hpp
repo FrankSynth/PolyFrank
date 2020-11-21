@@ -17,8 +17,6 @@
 #include "usbd_midi_if.hpp"
 #include <functional>
 
-extern GUI ui;
-
 extern midi::MidiInterface<COMusb> mididevice;
 
 extern GlobalSettings globalSettings;

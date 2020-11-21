@@ -76,6 +76,8 @@ class Setting : public DataElement {
 
     int32_t getValue();
     void setValue(int32_t newValue);
+    void resetValue() { setValue(defaultValue); }
+
     void setValueWithoutMapping(int32_t newValue) { value = newValue; }
     void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
     void increase(int32_t amount = 1);
@@ -91,7 +93,8 @@ class Setting : public DataElement {
 // derived class Poti
 class Analog : public DataElement {
   public:
-    Analog(const char *name, float min = 0, float max = 1, bool sendOutViaCom = true, typeLinLog mapping = linMap) {
+    Analog(const char *name, float min = 0, float max = 1, bool sendOutViaCom = true, typeLinLog mapping = linMap,
+           uint8_t displayVis = 1) {
 
         this->value = 0;
         this->min = min;
@@ -103,9 +106,11 @@ class Analog : public DataElement {
         this->name = name;
 
         this->sendOutViaCom = sendOutViaCom;
+        this->displayVis = displayVis;
     }
 
     void setValue(int32_t newValue);
+    void resetValue() { setValue(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
 
@@ -116,11 +121,14 @@ class Analog : public DataElement {
     const std::string &getValueAsString();
 
     std::string valueName;
+    int32_t defaultValue = 0;
+
     int32_t value;
     float valueMapped;
     float min;
     float max;
     float minMaxDifference;
+    uint8_t displayVis;
 
   protected:
     typeLinLog mapping;
@@ -130,7 +138,7 @@ class Analog : public DataElement {
 class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
-            const std::vector<std::string> *valueNameList = nullptr) {
+            const std::vector<std::string> *valueNameList = nullptr, uint8_t displayVis = 1) {
 
         this->value = 0;
         this->min = min;
@@ -140,11 +148,15 @@ class Digital : public DataElement {
         this->name = name;
         this->sendOutViaCom = sendOutViaCom;
 
+        this->displayVis = displayVis;
+
         this->valueNameList = valueNameList;
     }
 
     // Inputs range must be from 0 -> MAX_VALUE_16BIT
     void setValue(int32_t newValue);
+    void nextValue();
+    void resetValue() { setValue(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
@@ -154,6 +166,8 @@ class Digital : public DataElement {
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values
 
+    int32_t defaultValue = 0;
+
     int32_t value;
     int32_t valueMapped;
     std::string valueName;
@@ -161,6 +175,8 @@ class Digital : public DataElement {
     int32_t min;
     int32_t max;
     int32_t minMaxDifference;
+
+    uint8_t displayVis;
 
   protected:
     typeLinLog mapping;
@@ -193,13 +209,15 @@ class BasePatch {
     void removePatchInOut(PatchElementInOut &patch);
     void removePatchOutOut(PatchElementOutOut &patch);
 
-    const std::string &getName();
+    const std::string &getName() { return name; };
     std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
     std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
     uint8_t layerId;
+
+    uint8_t idGlobal;
 
   protected:
     std::vector<PatchElementInOut *> patchesInOut;
@@ -238,7 +256,24 @@ class Output : public BasePatch {
     float nextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
-class PatchElementInOut {
+class PatchElement {
+  public:
+    inline float getAmount() { return value; }
+    inline float getOffset() { return offset; }
+
+    void setAmount(float value);
+    void resetAmount() { value = defaultValue; }
+    void changeAmount(float change);
+
+    void setOffset(float offset);
+    void changeOffset(float change);
+
+    float value;
+    float offset;
+    float defaultValue = 0.5;
+};
+
+class PatchElementInOut : public PatchElement {
   public:
     PatchElementInOut(Output &source, Input &targetIn, float value = 0) {
         this->sourceOut = &source;
@@ -252,6 +287,7 @@ class PatchElementInOut {
     void setAmount(float value);
 
     void changeAmount(float change);
+    void resetAmount() { value = defaultValue; }
 
     bool remove = false;
     Output *sourceOut;
@@ -259,10 +295,10 @@ class PatchElementInOut {
 
   private:
     float value;
-    float defaultValue;
+    float defaultValue = 0.5;
 };
 
-class PatchElementOutOut {
+class PatchElementOutOut : public PatchElement {
   public:
     PatchElementOutOut(Output &source, Output &targetOut, float value = 0, float offset = 0) {
         this->sourceOut = &source;
@@ -273,22 +309,11 @@ class PatchElementOutOut {
 
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
 
-    inline float getAmount() { return value; }
-    inline float getOffset() { return offset; }
-    void setAmount(float value);
-    void setOffset(float offset);
-
-    void changeAmount(float change);
-    void changeOffset(float change);
-
     bool remove = false;
     Output *sourceOut;
     Output *targetOut;
 
   private:
-    float value;
-    float offset;
-    float defaultValue;
 };
 
 class ID {
@@ -301,22 +326,16 @@ class ID {
 
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
-inline void PatchElementInOut::changeAmount(float change) {
+inline void PatchElement::changeAmount(float change) {
     value = changeFloat(value, change, -1, 1);
 }
-inline void PatchElementInOut::setAmount(float value) {
+inline void PatchElement::setAmount(float value) {
     value = testFloat(value, -1, 1);
 }
-inline void PatchElementOutOut::changeAmount(float change) {
-    value = changeFloat(value, change, -1, 1);
-}
-inline void PatchElementOutOut::changeOffset(float change) {
+inline void PatchElement::changeOffset(float change) {
     offset = changeFloat(offset, change, -1, 1);
 }
-inline void PatchElementOutOut::setAmount(float value) {
-    value = testFloat(value, -1, 1);
-}
-inline void PatchElementOutOut::setOffset(float offset) {
+inline void PatchElement::setOffset(float offset) {
     offset = testFloat(offset, -1, 1);
 }
 inline void BasePatch::clearPatches() {

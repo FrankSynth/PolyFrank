@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-
 extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
 extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
 extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
@@ -25,6 +24,8 @@ class Layer {
         // add Modules
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
+        modules.push_back(&lfoA);
+
         modules.push_back(&midi);
         // skip layer settings?
 
