@@ -15,8 +15,8 @@
 
 #define LEDCURVEPOINTSTART 0.0f // lowest brightness
 #define LEDCURVEPOINT1IN 0.5f
-#define LEDCURVEPOINT1OUT 0.2f // tune this
-#define LEDCURVEPOINT2IN 0.85f
+#define LEDCURVEPOINT1OUT 0.25f // tune this
+#define LEDCURVEPOINT2IN 0.9f
 #define LEDCURVEPOINT2OUT 0.5f // tune this
 #define LEDCURVEPOINTEND 1.0f  // max brightness
 

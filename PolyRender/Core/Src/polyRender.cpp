@@ -19,24 +19,30 @@ MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin);
 MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin);
 
 // AUDIO DAC
-RAM2_DMA ALIGN_32BYTES(volatile uint32_t saiBuffer[SAIDMABUFFERSIZE]);
-PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (uint32_t *)saiBuffer);
+RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]);
+PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void hardwareInit() {
+    // Audio Render Chips
+    __HAL_SAI_ENABLE(&hsai_BlockA1);
 
+    HAL_Delay(200);
+    HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
+    HAL_Delay(200);
+    // HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_RESET);
+    // HAL_Delay(200);
+    // HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
     // updateI2CAddress(); // update the I2C addresses of the MCP4728 DACs
-
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
-
-    // Audio Render Chips
-    HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
 }
 
 void PolyRenderInit() {
 
     hardwareInit();
+
+    audioDacA.init();
 
     // empty buffers
     uint32_t emptyData = 0;
@@ -59,14 +65,15 @@ void PolyRenderInit() {
         std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
 
     layerCom.beginReceiveTransmission();
-
-    // init Sai, first fill buffer
-    renderAudio((uint32_t *)saiBuffer, SAIDMABUFFERSIZE);
-    audioDacA.startSAI();
 }
 
 void PolyRenderRun() {
 
+    // init Sai, first fill buffer
+    // renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * AUDIOCHANNELS, AUDIOCHANNELS);
+    audioDacA.startSAI();
+
+    elapsedMillis millitimer = 0;
     while (1) {
 
         FlagHandler::handleFlags();
@@ -78,13 +85,41 @@ void PolyRenderRun() {
 
         // cvDacAbuffer[0] = fast_sin_f32((float)micros() / 1000000.0f) * 2048 + 2047;
         __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
-                             fastMapLEDBrightness(fast_sin_f32((float)micros() / 1000000.0f)) * LEDMAXBRIGHTNESSCOUNT);
+                             fastMapLEDBrightness((fast_sin_f32((float)micros() / 1000000.0f) + 1) / 2) *
+                                 LEDMAXBRIGHTNESSCOUNT);
         __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2,
-                             fastMapLEDBrightness(fast_sin_f32((float)micros() / 300000.0f)) * LEDMAXBRIGHTNESSCOUNT);
+                             fastMapLEDBrightness((fast_sin_f32((float)micros() / 5000000.0f) + 1) / 2) *
+                                 LEDMAXBRIGHTNESSCOUNT);
         // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, cvDacAbuffer[0] / 4);
         // cvDacAbuffer[1] = fast_sin_f32((float)micros() / 300000.0f) * 2048 + 2047;
-        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
-        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, powf(2, (float)cvDacAbuffer[1] / (float)409));
+        __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 1);
+        __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 1);
+
+        // if (millitimer > 10000) {
+        //     millitimer = 0;
+        //     //     uint8_t answer;
+        //     uint8_t commandZeros[2];
+        //     commandZeros[0] = 0x44;
+        //     commandZeros[1] = 0xFF;
+        //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+
+        //     if (HAL_SPI_Transmit(&hspi4, commandZeros, 2, 50) != HAL_OK) {
+        //         Error_Handler();
+        //         println("transmit error");
+        //     }
+        //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
+        //     println("shotdown sent");
+        //     microsecondsDelay(1);
+        //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+        //     if (HAL_SPI_Receive(&hspi4, &answer, 1, 50) != HAL_OK) {
+        //         Error_Handler();
+        //         println("receive error");
+        //     }
+        //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
+
+        //     println("answer zeros: ", answer);
+        // }
+        // HAL_SAI_Transmit(&hsai_BlockA1, (uint8_t *)saiBuffer, 32, 50);
     }
 }
 
@@ -96,11 +131,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((uint32_t *)saiBuffer, SAIDMABUFFERSIZE >> 1);
+    renderAudio((int32_t *)&(saiBuffer[(SAIDMABUFFERSIZE * AUDIOCHANNELS) / 2]), SAIDMABUFFERSIZE / 2, AUDIOCHANNELS);
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((uint32_t *)&(saiBuffer[SAIDMABUFFERSIZE >> 1]), SAIDMABUFFERSIZE >> 1);
+    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE / 2, AUDIOCHANNELS);
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {

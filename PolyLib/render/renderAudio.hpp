@@ -1,4 +1,4 @@
 #pragma once
 #include <stdint.h>
 
-void renderAudio(uint32_t *renderDest, uint32_t samples);
+void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels = 8);

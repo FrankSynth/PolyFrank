@@ -61,17 +61,17 @@ void MX_SPI4_Init(void) {
 
     hspi4.Instance = SPI4;
     hspi4.Init.Mode = SPI_MODE_MASTER;
-    hspi4.Init.Direction = SPI_DIRECTION_1LINE;
-    hspi4.Init.DataSize = SPI_DATASIZE_16BIT;
+    hspi4.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+    hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
     hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi4.Init.NSS = SPI_NSS_HARD_OUTPUT;
-    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi4.Init.NSS = SPI_NSS_SOFT;
+    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
     hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
     hspi4.Init.CRCPolynomial = 0x0;
-    hspi4.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+    hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
     hspi4.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
     hspi4.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
     hspi4.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
@@ -147,11 +147,18 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         PE12     ------> SPI4_SCK
         PE14     ------> SPI4_MOSI
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_14;
+        GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_14;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
         GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
+        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_11;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        // GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
         HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
         /* SPI4 interrupt Init */
