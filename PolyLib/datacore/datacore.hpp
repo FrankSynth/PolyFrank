@@ -283,11 +283,11 @@ class PatchElementInOut : public PatchElement {
 
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
 
-    inline float getAmount() { return value; }
-    void setAmount(float value);
+    // inline float getAmount() { return value; }
+    // void setAmount(float value);
 
-    void changeAmount(float change);
-    void resetAmount() { value = defaultValue; }
+    // void changeAmount(float change);
+    // void resetAmount() { value = defaultValue; }
 
     bool remove = false;
     Output *sourceOut;
