@@ -30,18 +30,21 @@ extern uint32_t cWhiteLight;
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
 #define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER - SPACER
 
+typedef enum {
+    FOCUSLAYER,
+    FOCUSMODULE,
+    FOCUSINPUT,
+    FOCUSOUTPUT,
+    FOCUSSETTING
+
+} FOCUSMODE;
 typedef struct {
     uint8_t layer = 0xff;
     uint8_t modul = 0xff;
-    uint8_t setting = 0xff;
+    uint8_t id = 0xff;
+    FOCUSMODE type;
+
 } location;
-
-typedef enum {
-    LAYER,
-    MODULE,
-    SETTING
-
-} FOCUSMODE;
 
 typedef struct {
     std::function<void()> functionPointer = nullptr;
@@ -280,7 +283,7 @@ class GUIPanelPath {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
-    location *pPath = nullptr;
+    location *pLocation = nullptr;
     std::vector<Layer *> *layers;
     const GUI_FONTINFO *font = &GUI_FontBahnschriftSemiBold28_FontInfo;
 };
@@ -295,11 +298,14 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t updateEntrys();
 
     void registerModuleSettings();
+    void registerModuleOutputs();
+    void registerModuleInputs();
 
     void registerPanelSettings();
 
     void changeScroll(int16_t change);
-    void checkScroll(int16_t scroll = 0);
+    void checkScroll();
+    void resetScroll();
 
   private:
     // Boxes
@@ -316,9 +322,13 @@ class GUIPanelFocus : public GUIPanelBase {
     location *pLocation = nullptr;
     location oldLocation;
     uint16_t scroll = 0;
+    uint8_t scrollOffset = 0;
+
     std::vector<Layer *> *layers;
 
-    std::vector<Focus_PanelDataElement> elements;
+    std::vector<Focus_PanelDataElement> elementsModule;
+    std::vector<Focus_PanelDataElement> elementsOutput;
+    std::vector<Focus_PanelDataElement> elementsInput;
 };
 
 // PANEL Config Type
@@ -428,3 +438,6 @@ class GUI {
 
     location focus;
 };
+
+// GUI
+extern GUI ui;

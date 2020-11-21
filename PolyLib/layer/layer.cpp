@@ -13,6 +13,9 @@ void Layer::initID() {
         m->id = modID.getNewId();
         m->layerId = this->id;
         ID settID;
+        ID inputLocalID;
+        ID outputLocalID;
+
         for (Analog *i : m->getPotis()) { // for all Knobs
             i->id = settID.getNewId();
             i->moduleId = m->id;
@@ -27,14 +30,16 @@ void Layer::initID() {
         // collect Inputs
         for (Input *i : m->getInputs()) { // for all Output
             inputs.push_back(i);
-            i->id = inputID.getNewId();
+            i->id = inputLocalID.getNewId();
+            i->idGlobal = inputID.getNewId();
             i->moduleId = m->id;
             i->layerId = this->id;
         }
         // collect Outputs
         for (Output *o : m->getOutputs()) { // for all Output
             outputs.push_back(o);
-            o->id = outputID.getNewId();
+            o->id = outputLocalID.getNewId();
+            o->idGlobal = outputID.getNewId();
             o->moduleId = m->id;
             o->layerId = this->id;
         }
@@ -61,7 +66,7 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     targetIn.addPatchInOut(patchesInOut.back());
 
 #ifdef POLYCONTROL
-    sendCreatePatchInOut(id, patchesInOut.back().sourceOut->id, patchesInOut.back().targetIn->id, amount);
+    sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, amount);
 #endif
 }
 
@@ -72,7 +77,7 @@ void Layer::addPatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
 void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {
     patch.setAmount(amount);
 #ifdef POLYCONTROL
-    sendUpdatePatchInOut(id, patch.sourceOut->id, patch.targetIn->id, amount);
+    sendUpdatePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal, amount);
 #endif
 }
 
@@ -82,7 +87,7 @@ void Layer::updatePatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
             p->setAmount(amount);
 #ifdef POLYCONTROL
 
-            sendUpdatePatchInOut(id, p->sourceOut->id, p->targetIn->id, amount);
+            sendUpdatePatchInOut(id, p->sourceOut->idGlobal, p->targetIn->idGlobal, amount);
 #endif
             return;
         }
@@ -91,7 +96,7 @@ void Layer::updatePatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
 
 void Layer::removePatchInOut(PatchElementInOut &patch) {
 #ifdef POLYCONTROL
-    sendDeletePatchInOut(id, patch.sourceOut->id, patch.targetIn->id);
+    sendDeletePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal);
 #endif
 
     patch.sourceOut->removePatchInOut(patch); // remove sourceOut entry
@@ -123,7 +128,8 @@ void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, f
     targetOut.addPatchOutOut(patchesOutOut.back());
 
 #ifdef POLYCONTROL
-    sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->id, patchesOutOut.back().targetOut->id, amount, offset);
+    sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->idGlobal, patchesOutOut.back().targetOut->idGlobal,
+                          amount, offset);
 #endif
 }
 
@@ -136,7 +142,7 @@ void Layer::updatePatchOutOut(PatchElementOutOut &patch, float amount, float off
     patch.setOffset(offset);
 
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id, amount, offset);
+    sendUpdatePatchOutOut(id, patch.sourceOut->idGlobal, patch.targetOut->idGlobal, amount, offset);
 #endif
 }
 
@@ -146,7 +152,7 @@ void Layer::updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amo
             p->setAmount(amount);
             p->setOffset(offset);
 #ifdef POLYCONTROL
-            sendUpdatePatchOutOut(id, p->sourceOut->id, p->targetOut->id, amount, offset);
+            sendUpdatePatchOutOut(id, p->sourceOut->idGlobal, p->targetOut->idGlobal, amount, offset);
 #endif
             return;
         }
@@ -155,7 +161,7 @@ void Layer::updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amo
 
 void Layer::removePatchOutOut(PatchElementOutOut &patch) {
 #ifdef POLYCONTROL
-    sendDeletePatchOutOut(id, patch.sourceOut->id, patch.targetOut->id);
+    sendDeletePatchOutOut(id, patch.sourceOut->idGlobal, patch.targetOut->idGlobal);
 #endif
 
     patch.sourceOut->removePatchOutOut(patch); // remove sourceOut entry

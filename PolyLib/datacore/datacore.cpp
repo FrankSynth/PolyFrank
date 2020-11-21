@@ -74,6 +74,17 @@ void Digital::setValue(int32_t newValue) {
 #endif
 }
 
+void Digital::nextValue() {
+    changeIntLoop(valueMapped, 1, min, max);
+    valueName = std::to_string(valueMapped);
+
+#ifdef POLYCONTROL
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
 void BasePatch::removePatchInOut(PatchElementInOut &patch) {
     for (uint32_t i = 0; i < patchesInOut.size(); i++) {
         if (patchesInOut[i] == &patch) {

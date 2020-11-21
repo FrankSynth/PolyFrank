@@ -35,3 +35,40 @@ class rotary {
     unsigned char pin1;
     unsigned char pin2;
 };
+
+class tactileSwitch {
+  public:
+    tactileSwitch(uint16_t pin) { this->pin = pin; }
+
+    void process(uint16_t pinStatus) {
+
+        uint8_t newState = pinStatus & (1 << pin);
+        if (newState != state) { // switch state changed?
+            if (!newState) {     // push
+                if (functionPush != nullptr) {
+                    functionPush();
+                }
+            }
+            else { // release
+
+                if (functionRelease != nullptr) {
+                    functionRelease();
+                }
+            }
+        }
+        state = newState;
+    }
+
+    void registerEventFunctions(std::function<void()> functionPush, std::function<void()> functionRelease) {
+        this->functionPush = functionPush;
+        this->functionRelease = functionRelease;
+    }
+
+    uint8_t state;
+
+    uint16_t pin;
+
+  private:
+    std::function<void()> functionPush = nullptr;
+    std::function<void()> functionRelease = nullptr;
+};

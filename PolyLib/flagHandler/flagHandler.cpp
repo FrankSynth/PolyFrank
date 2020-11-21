@@ -23,6 +23,11 @@ void initFlagHandler() {
         interChipB_DMA_FinishedFunc[i] = nullptr;
     }
 
+    Control_Encoder_Interrupt = false;
+    Control_Touch_Interrupt = false;
+    Panel_0_Touch_Interrupt = false;
+    Panel_1_Touch_Interrupt = false;
+
 #elif POLYRENDER
 
     interChipReceive_DMA_Started = false;
@@ -51,6 +56,18 @@ std::function<uint8_t()> interChipB_MDMA_FinishedFunc[2];
 bool interChipB_DMA_Started[2];
 bool interChipB_DMA_Finished[2];
 std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
+
+bool Control_Encoder_Interrupt;
+std::function<void()> Control_Encoder_ISR;
+
+bool Control_Touch_Interrupt;
+std::function<void()> Control_Touch_ISR;
+
+bool Panel_0_Touch_Interrupt;
+std::function<void()> Panel_0_Touch_ISR;
+
+bool Panel_1_Touch_Interrupt;
+std::function<void()> Panel_1_Touch_ISR;
 
 // Display
 bool renderingDoneSwitchBuffer;
@@ -119,6 +136,33 @@ void handleFlags() {
             else {
                 interChipB_DMA_Finished[i] = 0;
             }
+        }
+
+        if (Control_Encoder_Interrupt) {
+            if (Control_Encoder_ISR != nullptr) {
+                Control_Encoder_ISR();
+            }
+            Control_Encoder_Interrupt = 0;
+        }
+        if (Control_Touch_Interrupt) {
+            if (Control_Touch_ISR != nullptr) {
+                Control_Touch_ISR();
+                Panel_0_Touch_ISR(); // TODO rausnehmen nur temporär
+            }
+            Control_Touch_Interrupt = 0;
+        }
+
+        if (Panel_0_Touch_Interrupt) {
+            if (Panel_0_Touch_ISR != nullptr) {
+                Panel_0_Touch_ISR();
+            }
+            Panel_0_Touch_Interrupt = 0;
+        }
+        if (Panel_1_Touch_Interrupt) {
+            if (Panel_1_Touch_ISR != nullptr) {
+                Panel_1_Touch_ISR();
+            }
+            Panel_1_Touch_Interrupt = 0;
         }
     }
 

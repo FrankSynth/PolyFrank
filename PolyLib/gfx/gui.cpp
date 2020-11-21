@@ -4,6 +4,8 @@
 #include "polyControl.hpp"
 #include "tim.h"
 
+GUI ui;
+
 // colors
 uint32_t cSelect = 0xD0FFFFFF;
 uint32_t cDeselect = 0x00000000;
@@ -283,7 +285,7 @@ void GUIPanelPath::init(std::vector<Layer *> *layers, location *path, uint16_t w
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
-    pPath = path;
+    pLocation = path;
     this->layers = layers;
 }
 
@@ -294,34 +296,58 @@ void GUIPanelPath::Draw() {
 
     uint16_t spacer = 20;
 
-    if (pPath->layer != 0xff) {
-        uint8_t layerID = (*layers)[pPath->layer]->id;         // get ID
-        std::string text = "LAYER " + std::to_string(layerID); // Layer name
+    //// Draw Layer Field////
+
+    uint8_t layerID = (*layers)[pLocation->layer]->id;     // get ID
+    std::string text = "LAYER " + std::to_string(layerID); // Layer name
+
+    relX +=
+        drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1, CENTER);
+    relX += 1;
+
+    //// Draw Module Field////
+    if (pLocation->type >= FOCUSMODULE) {
+        if (!(*layers)[pLocation->layer]->getModules().size()) { //  empty
+            return;
+        }
+        std::string text = (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getName(); // Modul name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
         relX += 1;
+    }
 
-        if (pPath->modul != 0xff) {
-            std::string text = (*layers)[pPath->layer]->getModules()[pPath->modul]->getName(); // Modul name
+    //// Draw Focus Field////
 
-            relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer,
-                                    1, CENTER);
-            relX += 1;
-
-            if (pPath->setting != 0xff) {
-                std::string text = (*layers)[pPath->layer]
-                                       ->getModules()[pPath->modul]
-                                       ->getPotis()[pPath->setting]
-                                       ->getName(); // Knob name
-
-                relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight,
-                                        spacer, 1, CENTER);
-                relX += 1;
-            }
+    if (pLocation->type == FOCUSOUTPUT) {
+        if (!(*layers)[pLocation->layer]->getModules()[pLocation->modul]->getOutputs().size()) { //  empty
+            return;
         }
+        std::string text = (*layers)[pLocation->layer]
+                               ->getModules()[pLocation->modul]
+                               ->getOutputs()[pLocation->id]
+                               ->getName(); // Output name
+
+        relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
+                                CENTER);
+        relX += 1;
+    }
+    else if (pLocation->type == FOCUSINPUT) {
+        if (!(*layers)[pLocation->layer]->getModules()[pLocation->modul]->getInputs().size()) { //  empty
+            return;
+        }
+
+        std::string text = (*layers)[pLocation->layer]
+                               ->getModules()[pLocation->modul]
+                               ->getInputs()[pLocation->id]
+                               ->getName(); // Input name
+
+        relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
+                                CENTER);
+        relX += 1;
     }
 }
+
 // PANEL Path Type
 
 void GUIPanelFocus::init(std::vector<Layer *> *layers, location *path, uint16_t width, uint16_t height, uint16_t x,
@@ -341,8 +367,8 @@ void GUIPanelFocus::init(std::vector<Layer *> *layers, location *path, uint16_t 
 
     // init Elements
     for (int i = 0; i < elementsNb; i++) {
-        elements.push_back(Focus_PanelDataElement(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i,
-                                                  elementWidth, elementHeight));
+        elementsModule.push_back(Focus_PanelDataElement(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i,
+                                                        elementWidth, elementHeight));
     }
 
     registerPanelSettings();
@@ -352,7 +378,7 @@ void GUIPanelFocus::registerPanelSettings() {
     // register Scroll
     actionHandler.registerActionEncoder1({std::bind(&GUIPanelFocus::changeScroll, this, 1), "SCROLL"},
                                          {std::bind(&GUIPanelFocus::changeScroll, this, -1), "SCROLL"},
-                                         {std::bind(&GUIPanelFocus::checkScroll, this, 0), "RESET"});
+                                         {std::bind(&GUIPanelFocus::resetScroll, this), "RESET"});
 
     // register Panel Seetings Left
     actionHandler.registerActionLeft({nullptr, ""}, {std::bind(Todo), "UP"},      // focus Up
@@ -367,81 +393,165 @@ void GUIPanelFocus::Draw() {
     // register Panel Seetings
     registerPanelSettings();
 
+    // update number ob entrys
     updateEntrys();
 
-    if (mode == LAYER) {
-        registerModuleSettings();
-    }
-    else if (mode == MODULE) {
-        registerModuleSettings();
-    }
-    else if (mode == SETTING) {
-        registerModuleSettings();
-    }
+    // check Scroll position
+    checkScroll();
 
-    for (Focus_PanelDataElement i : elements) {
-        i.Draw();
+    if (pLocation->type == FOCUSMODULE) {
+        registerModuleSettings();
+
+        for (Focus_PanelDataElement i : elementsModule) {
+            i.Draw();
+        }
+    }
+    else if (pLocation->type == FOCUSOUTPUT) {
+        // registerModuleOutputs();
+
+        for (Focus_PanelDataElement i : elementsModule) {
+            i.Draw();
+        }
+        //  registerModuleSettings();
+    }
+    else if (pLocation->type == FOCUSINPUT) {
+        //   registerModuleSettings();
     }
 }
 
 uint16_t GUIPanelFocus::updateEntrys() {
     entrys = 0;
-    if (pLocation->layer != 0xff) {
-        if (pLocation->modul != 0xff) {
-            if (pLocation->setting != 0xff) {
-                entrys = 1;                                                                                // BaseValue
-                entrys += (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getInputs().size(); // all Inputs
-                entrys +=
-                    (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getOutputs().size(); // all Outputs
-                mode = SETTING;
-                return entrys;
-            }
-            entrys = (*layers)[pLocation->layer]
-                         ->getModules()[pLocation->modul]
-                         ->getPotis()
-                         .size(); // als settings   //fehlen noch die Switches
-            mode = MODULE;
 
-            return entrys;
-        }
-        entrys = (*layers)[pLocation->layer]->getModules().size(); // all Modules
-        mode = LAYER;
+    if (pLocation->type == FOCUSINPUT) {
+        entrys = 1;                                                                                 // BaseValue
+        entrys += (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getOutputs().size(); // all Outputs
         return entrys;
-    };
+    }
+    else if (pLocation->type == FOCUSOUTPUT) {
+        entrys = 1;                                                                                // BaseValue
+        entrys += (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getInputs().size(); // all Inputs
+        return entrys;
+    }
+    else if (pLocation->type == FOCUSSETTING) {
+    }
+    else if (pLocation->type == FOCUSMODULE) {
+
+        // TODO Switches
+        for (Analog *a : (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getPotis())
+            if (a->displayVis) { // filter Display Visibility
+                entrys++;
+            }
+
+        return entrys;
+    }
+    else if (pLocation->type == FOCUSLAYER) {
+        return entrys = (*layers)[pLocation->layer]->getModules().size(); // all Modules
+    }
 
     return 0;
 }
 
 void GUIPanelFocus::registerModuleSettings() {
-    for (unsigned int i = 0; i < elements.size(); i++) {
-        if (entrys > i) {
-            elements[i].pSource = (*layers)[pLocation->layer]->getModules()[pLocation->modul]->getPotis()[i];
-            if (scroll == i) {
-                elements[i].selected = 1;
-                actionHandler.registerActionEncoder2(
-                    {std::bind(&Analog::changeValue, elements[i].pSource, 1000), "AMOUNT"},
-                    {std::bind(&Analog::changeValue, elements[i].pSource, -1000), "AMOUNT"}, {nullptr, ""});
+
+    // TODO Switches
+
+    std::vector<Analog *> *analogSetting = &(*layers)[pLocation->layer]->getModules()[pLocation->modul]->getPotis();
+
+    unsigned int skipped = 0;
+    for (unsigned int i = 0; i < elementsModule.size(); i++) {
+        while (true) {
+            if ((i + skipped) < analogSetting->size()) {
+
+                if ((*analogSetting)[i + skipped + scrollOffset]->displayVis) { // element Visible
+
+                    elementsModule[i].pSource = (*analogSetting)[i + skipped + scrollOffset];
+                    break;
+                }
+                else {
+                    skipped++;
+                }
             }
+
             else {
-                elements[i].selected = 0;
+                elementsModule[i].pSource = nullptr;
+                break;
             }
+        }
+
+        if (scroll == i + skipped + scrollOffset) {
+            elementsModule[i].selected = 1;
+            actionHandler.registerActionEncoder2(
+                {std::bind(&Analog::changeValue, elementsModule[i].pSource, 1000), "AMOUNT"},
+                {std::bind(&Analog::changeValue, elementsModule[i].pSource, -1000), "AMOUNT"},
+                {std::bind(&Analog::resetValue, elementsModule[i].pSource), "RESET"});
         }
         else {
-            elements[i].pSource = nullptr;
+            elementsModule[i].selected = 0;
         }
     }
+}
+
+void GUIPanelFocus::registerModuleOutputs() {
+
+    // std::vector<Output *> *outputs = &(*layers)[pLocation->layer]->getModules()[pLocation->modul]->getOutputs();
+
+    // unsigned int skipped = 0;
+    // for (unsigned int i = 0; i < elementsModule.size(); i++) {
+    //     if (i < outputs->size()) {
+
+    //         elementsModule[i].pSource = (*outputs)[i + scrollOffset];
+    //     }
+    //     else {
+    //         elementsModule[i].pSource = nullptr;
+    //         break;
+    //     }
+    //     if (scroll == i + scrollOffset) {
+    //         elementsModule[i].selected = 1;
+    //         actionHandler.registerActionEncoder2(
+    //             {std::bind(&PatchElement::changeAmount, elementsModule[i].pSource, 0.02), "AMOUNT"},
+    //             {std::bind(&PatchElement::changeAmount, elementsModule[i].pSource, -0.02), "AMOUNT"},
+    //             {std::bind(&PatchElement::resetAmount, elementsModule[i].pSource), "RESET"});
+    //     }
+    //     else {
+    //         elementsModule[i].selected = 0;
+    //     }
+    // }
 }
 
 void GUIPanelFocus::changeScroll(int16_t change) {
-    checkScroll(scroll + change);
-}
 
-void GUIPanelFocus::checkScroll(int16_t scroll) {
-    if (scroll != 0) {
-        this->scroll = testInt(scroll, 0, entrys - 1);
+    if (scroll + change != 0) {
+        this->scroll = testInt(scroll + change, 0, entrys - 1);
     }
     else
         this->scroll = 0;
+
+    if (scroll >= entrys) {
+        scroll = 0;
+    }
+
+    if (scroll == entrys - 1) {
+        scrollOffset = entrys - elementsNb;
+    }
+    else if (scroll == 0) {
+        scrollOffset = 0;
+    }
+
+    else if (scroll >= (elementsNb + scrollOffset - 1)) {
+        scrollOffset++;
+    }
+    else if (scroll < (scrollOffset + 1)) {
+        scrollOffset--;
+    }
+}
+
+void GUIPanelFocus::checkScroll() {
+    changeScroll(0);
+}
+
+void GUIPanelFocus::resetScroll() {
+    scroll = 0;
+    scrollOffset = 0;
 }
 
 // Header
@@ -567,7 +677,7 @@ void GUI::Init(std::vector<Layer *> &layers) { // add settings pointer
     setPanelFocusActive();
 
     // Set Focus for test
-    setFocus({0, 0, 0xff});
+    setFocus({0, 0, 0xff, FOCUSMODULE});
 }
 
 void GUI::Clear() {
@@ -604,33 +714,7 @@ void GUI::Draw() {
 }
 void GUI::setFocus(location newFocus) {
 
-    if (newFocus.layer < layers.size()) {
-        focus.layer = newFocus.layer;
-    }
-    else {
-
-        focus.layer = 0xff;
-        focus.modul = 0xff;
-        focus.setting = 0xff;
-        return;
-    }
-
-    if (newFocus.modul < layers[focus.layer]->getModules().size()) {
-        focus.modul = newFocus.modul;
-    }
-    else {
-        focus.modul = 0xff;
-        focus.setting = 0xff;
-        return;
-    }
-
-    if (newFocus.setting < layers[focus.layer]->getModules()[focus.modul]->getPotis().size()) {
-
-        focus.setting = newFocus.setting;
-    }
-    else {
-        focus.setting = 0xff;
-    }
+    focus = newFocus;
 
     setPanelFocusActive(); // activate Focus Panel
 }
@@ -642,7 +726,7 @@ void GUI::setPanel1Active() {
     guiPanel_3.active = 0;
     guiPanel_4.active = 0;
 
-    setActivePanel(1);
+    setActivePanel(0);
 }
 void GUI::setPanel2Active() {
     guiPanel_1.active = 0;
@@ -650,7 +734,7 @@ void GUI::setPanel2Active() {
     guiPanel_3.active = 0;
     guiPanel_4.active = 0;
 
-    setActivePanel(2);
+    setActivePanel(1);
 }
 void GUI::setPanel3Active() {
     guiPanel_1.active = 0;
@@ -658,15 +742,16 @@ void GUI::setPanel3Active() {
     guiPanel_3.active = 1;
     guiPanel_4.active = 0;
 
-    setActivePanel(3);
+    setActivePanel(2);
 }
+
 void GUI::setPanel4Active() {
     guiPanel_1.active = 0;
     guiPanel_2.active = 0;
     guiPanel_3.active = 0;
     guiPanel_4.active = 1;
 
-    setActivePanel(4);
+    setActivePanel(3);
 }
 
 void GUI::setPanelFocusActive() {

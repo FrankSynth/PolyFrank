@@ -4,9 +4,6 @@
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
 RAM2_DMA volatile uint8_t interChipDMABufferLayerB[2 * INTERCHIPBUFFERSIZE];
 
-// GUI
-GUI ui;
-
 // USB
 midi::MidiInterface<COMusb> mididevice(MIDIComRead);
 // CDC USB DEVICE missing
@@ -38,30 +35,33 @@ uint8_t test = 0;
 
 // poly control init
 void PolyControlInit() {
-
-    ////////Hardware init////////
-
-    initHID();
-
-    // enable Layer
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
-
-    ////////Sofware init////////
+    ////////Layer init////////
+    initPoly();
 
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
-    // DataElement::sendSetting  = sendSetting;
-    // Layer::sendCreatePatchInOut = sendCreatePatchInOut;
-    // PatchElementInOut::sendUpdatePatchInOut = sendUpdatePatchInOut;
-    // Layer::sendDeletePatchInOut = sendDeletePatchInOut;
+    ////////Hardware init////////
 
-    initPoly();
+    // enable Layer
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
+
+    // enable Panel
+    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET); // Enable Panel Board
+
+    // Init Encoder, Touchbuttons,..
+    initHID();
+
+    // init EEPROM
+    initPreset();
+
+    // init UI, Display
+    ui.Init(allLayers);
 
     // enable display
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
-    // init UI, Display
-    ui.Init(allLayers);
+
+    ////////Sofware init////////
 
     // init communication to render chip
     layerCom[0].initOutTransmission(
@@ -74,32 +74,19 @@ void PolyControlInit() {
             (uint8_t *)interChipDMABufferLayerB, 1);
     }
 
-    // init EEPROM
-    initPreset();
-    // HAL_LTDC_ProgramLineEvent(&hltdc, 0);
-    // halltdcline
     // init midi
     initMidi();
 
-    HAL_Delay(512);
-
     println("Hi, Frank here!");
 }
-
-// FRAMEBUFFER volatile uint16_t testbuffer[10000];
 
 uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    // EEPROM_SPI_WriteBuffer(dataW, 0x00, 1);
-    // EEPROM_SPI_ReadBuffer(dataR, 0x00, 1);
-
-    // HAL_Delay(20);
-    // uint32_t time;
-    elapsedMillis millitimer = 0;
-    elapsedMillis millitimer2 = 0;
-    elapsedMicros microtimer = 0;
+    // elapsedMillis millitimer = 0;
+    // elapsedMillis millitimer2 = 0;
+    // elapsedMicros microtimer = 0;
 
     while (1) {
         FlagHandler::handleFlags();
@@ -108,61 +95,7 @@ void PolyControlRun() { // Here the party starts
             ui.Draw();
         }
 
-        // HAL_Delay(100000);
-        // println("test ", testbuffer++);
-        // println("Hello Jakob ", testbuffer++);
-        // println("SDRam Status ", HAL_SDRAM_GetState(&hsdram1));
-        // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
-        // HAL_Delay(500);
-        // HAL_SDRAM_SendCommand
-        // HAL_GPIO_TogglePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin);
-        // testbuffer++;
-
-        // if (millitimer >= 1000) {
-        //     millitimer = 0;
-        //     println("set values");
-
-        //     layerA.adsrA.aSustain.setValue(0.4);
-        //     layerA.lfoA.aFreq.setValue(500);
-        // }
-
-        // if (microtimer >= 200) {
-        // microtimer = 0;
         layerCom[0].beginSendTransmission();
-        // }
-
-        // actionHandler.callActionEncoder_1_CW();
-        // actionHandler.callActionEncoder_2_CW();
-
-        // uint32_t time = __HAL_TIM_GetCounter(&htim2);
-        // println(__HAL_TIM_GetCounter(&htim2));
-        // drawRectangleFill(0xFFFFFF00, 0, 0, LCDWIDTH, LCDHEIGHT);
-        // HAL_Delay(500);
-        // drawRectangleFill(0xFFFF0000, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
-        //  HAL_Delay(500);
-
-        //  if (!FlagHandler::renderingDoneSwitchBuffer) {
-        //     FlagHandler::renderingDoneSwitchBuffer = true;
-
-        // HAL_Delay(25);
-
-        // }
-
-        // println("Framebuffer Adress ", (uint32_t)pFrameBuffer);
-        // SwitchFrameBuffer();
-        // }
-
-        //  drawRectangleFill(0xFFFFFFFF, 0, 0, LCDWIDTH, LCDHEIGHT / 2);
-
-        // println(__HAL_TIM_GetCounter(&htim2) - time);
-
-        // HAL_Delay(250);
-        // actionHandler.callActionEncoder_1_CCW();
-        //  actionHandler.callActionEncoder_2_CW();
-        // actionHandler.callActionLeft3();
-        // drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
-
-        // ui.Draw();
     };
 }
 
@@ -261,9 +194,21 @@ void initMidi() {
     mididevice.setHandleControlChange(midiControlChange);
 }
 
+// EXTI Callback
+
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
-    updateEncoder();
+    // println(pin);
 
-    // ioExpander Interrupt
+    switch (pin) {
+        case GPIO_PIN_12: FlagHandler::Control_Encoder_Interrupt = true; break; // ioExpander -> encoder
+        case GPIO_PIN_2:
+            FlagHandler::Control_Touch_Interrupt = true;
+            break; // touch
+            // case GPIO_PIN_2: FlagHandler::Panel_2_Touch_Interrupt = true; break;    // touch     //TODO pin
+            // raussuchen und interrupts eintragen case GPIO_PIN_2: FlagHandler::Panel_1_Touch_Interrupt = true; break;
+            // // touch
+
+        default: break;
+    }
 }

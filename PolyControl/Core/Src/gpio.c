@@ -128,21 +128,28 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pin : PtPin */
     GPIO_InitStruct.Pin = Panel_1_Change_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(Panel_1_Change_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PBPin PBPin */
-    GPIO_InitStruct.Pin = Sync_OUT_Pin | Panel_Reset_Pin;
+    GPIO_InitStruct.Pin = Sync_OUT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : PBPin PBPin */
+    GPIO_InitStruct.Pin = Panel_Reset_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PDPin PDPin PDPin */
     GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Panel_2_EOC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = Encoder_Interrupt_Pin;
@@ -161,7 +168,7 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pin : PtPin */
     GPIO_InitStruct.Pin = Control_Touch_Change_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(Control_Touch_Change_GPIO_Port, &GPIO_InitStruct);
 
