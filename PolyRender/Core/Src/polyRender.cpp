@@ -19,7 +19,7 @@ MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin);
 MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin);
 
 // AUDIO DAC
-RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]);
+RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS]);
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void hardwareInit() {
@@ -47,7 +47,7 @@ void PolyRenderInit() {
     // empty buffers
     uint32_t emptyData = 0;
     fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
-    fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE);
+    fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
 
     cvDacA.setDataPointer((uint8_t *)cvDacAbuffer);
     cvDacB.setDataPointer((uint8_t *)cvDacBbuffer);
@@ -70,7 +70,7 @@ void PolyRenderInit() {
 void PolyRenderRun() {
 
     // init Sai, first fill buffer
-    // renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * AUDIOCHANNELS, AUDIOCHANNELS);
+    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS, AUDIOCHANNELS);
     audioDacA.startSAI();
 
     elapsedMillis millitimer = 0;
@@ -131,11 +131,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 }
 
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)&(saiBuffer[(SAIDMABUFFERSIZE * AUDIOCHANNELS) / 2]), SAIDMABUFFERSIZE / 2, AUDIOCHANNELS);
+    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]), SAIDMABUFFERSIZE, AUDIOCHANNELS);
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE / 2, AUDIOCHANNELS);
+    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE, AUDIOCHANNELS);
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {

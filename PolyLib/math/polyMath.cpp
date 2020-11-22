@@ -47,10 +47,10 @@ float fast_sin_f32(float x) {
     return (sinVal);
 }
 
-float lin2logTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
+float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 void precomputeNoteLin2LogTable() {
     for (uint32_t i = 0; i < FAST_NOTELIN2LOG_TABLE_SIZE + 1; i++) {
-        lin2logTable_f32[i] =
+        noteLin2LogTable_f32[i] =
             powf(2.0, fastMapCached(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
     }
 }
@@ -65,16 +65,16 @@ float fastNoteLin2Log_f32(float x) {
     x = fastMap(testFloat(x, noteLin2logMIN, noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
 
     /* Calculation of index of the table */
-    findex = (float)FAST_MATH_TABLE_SIZE * x;
+    findex = (float)FAST_NOTELIN2LOG_TABLE_SIZE * x;
 
-    index = ((uint16_t)findex) & 0x1ff;
+    index = ((uint16_t)findex);
 
     /* fractional value calculation */
     fract = findex - (float)index;
 
     /* Read two nearest values of input value from the sin table */
-    a = sinTable_f32[index];
-    b = sinTable_f32[index + 1];
+    a = noteLin2LogTable_f32[index];
+    b = noteLin2LogTable_f32[index + 1];
 
     /* Linear interpolation process */
     // ret = (1.0f - fract) * a + fract * b;
@@ -103,7 +103,7 @@ float LogCurve::mapValue(float value) {
     /* Calculation of index of the table */
     findex = (float)size * testFloat(value, 0, 1);
 
-    index = ((uint16_t)findex) & 0x1ff;
+    index = ((uint16_t)findex);
 
     /* fractional value calculation */
     fract = findex - (float)index;
