@@ -59,6 +59,9 @@ void PolyRenderInit() {
     // general inits
     initPoly();
 
+    // TODO copy wavetables
+    initAudioRendering();
+
     // interChipCom
     layerCom.initInTransmission(
         std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
