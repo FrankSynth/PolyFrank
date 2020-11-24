@@ -147,10 +147,10 @@ void handleFlags() {
         }
 
         if (Control_Encoder_Interrupt) {
+            Control_Encoder_Interrupt = 0;
             if (Control_Encoder_ISR != nullptr) {
                 Control_Encoder_ISR();
             }
-            Control_Encoder_Interrupt = 0;
         }
         if (Control_Touch_Interrupt) {
             if (Control_Touch_ISR != nullptr) {

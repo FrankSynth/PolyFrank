@@ -24,6 +24,9 @@ LiveData liveData;
 
 // hardware
 MAX11128 max(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+//
+TS3A5017D multiplexer = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
+                                  Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
 
 // function pointers
 void initMidi();
@@ -45,6 +48,7 @@ void PolyControlInit() {
     allLayers.push_back(&layerB);
 
     max.init();
+    multiplexer.enableChannels();
 
     initHID();
     ////////Hardware init////////
@@ -68,7 +72,7 @@ void PolyControlInit() {
     initPreset();
 
     // init UI, Display
-    ui.Init(allLayers);
+    ui.Init();
 
     // enable display
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
@@ -96,11 +100,20 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    // elapsedMillis millitimer = 0;
-    // elapsedMillis millitimer2 = 0;
-    // elapsedMicros microtimer = 0;
-
     while (1) {
+        //   max.fetchNewData();
+        //  multiplexer.nextChannel();
+
+        // for (int x = 0; x < 16; x++) {
+
+        //  println("DATA: ", x, "   ", max.adcData[x]);
+        //}
+        // HAL_Delay(100);
+
+        // elapsedMillis millitimer = 0;
+        // elapsedMillis millitimer2 = 0;
+        // elapsedMicros microtimer = 0;
+
         FlagHandler::handleFlags();
 
         if (getRenderState() == RENDER_DONE) {

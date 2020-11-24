@@ -19,13 +19,9 @@ class PCA9555 {
 
         uint8_t initData[3];
 
-        // gain 2x  -> output = gain * internal reference (2048mV)
-
         initData[0] = 0x07;       // COMMANDBYTE //write Pin Configuration
         initData[1] = 0b11111111; // MODE PORT 1             1-> Input
         initData[2] = 0b11111111; // MODE PORT 0
-
-        // timeout 50us
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, initData, 3, 50) != HAL_OK) {
             Error_Handler();

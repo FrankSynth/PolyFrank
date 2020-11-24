@@ -17,7 +17,7 @@ const std::string &Setting::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min)
+        if ((int32_t)valueNameList->size() == max - min + 1)
             return (*valueNameList)[value - min];
         else {
             // wrong amount of custom names defined error
@@ -53,8 +53,9 @@ const std::string &Digital::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min)
-            return (*valueNameList)[value - min];
+        if ((int32_t)valueNameList->size() == max - min + 1) {
+            return (*valueNameList)[valueMapped - min];
+        }
         else {
             // wrong amount of custom names defined error
             return valueName;
@@ -75,7 +76,18 @@ void Digital::setValue(int32_t newValue) {
 }
 
 void Digital::nextValue() {
-    changeIntLoop(valueMapped, 1, min, max);
+    valueMapped = changeInt(valueMapped, 1, min, max);
+    valueName = std::to_string(valueMapped);
+
+#ifdef POLYCONTROL
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
+void Digital::previousValue() {
+    valueMapped = changeInt(valueMapped, -1, min, max);
     valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL
