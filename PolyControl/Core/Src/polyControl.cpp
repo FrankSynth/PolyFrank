@@ -101,14 +101,34 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 void PolyControlRun() { // Here the party starts
 
     while (1) {
-        //   max.fetchNewData();
-        //  multiplexer.nextChannel();
+        // if (!) {
+        // for (int y = 0; y < 4; y++) {
+        //   HAL_Delay(100);
 
-        // for (int x = 0; x < 16; x++) {
+        for (int x = 0; x < 1; x++) {
 
-        //  println("DATA: ", x, "   ", max.adcData[x]);
-        //}
-        // HAL_Delay(100);
+            multiplexer.setChannel(x);
+            max.fetchNewData();
+            print("ch: ", max.adcData[0] >> 13, "  value: ", (max.adcData[0] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[1] >> 13, "  value: ", (max.adcData[1] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[2] >> 13, "  value: ", (max.adcData[2] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[3] >> 13, "  value: ", (max.adcData[3] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[4] >> 13, "  value: ", (max.adcData[4] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[5] >> 13, "  value: ", (max.adcData[5] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[6] >> 13, "  value: ", (max.adcData[6] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[7] >> 13, "  value: ", (max.adcData[7] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[8] >> 13, "  value: ", (max.adcData[8] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[9] >> 13, "  value: ", (max.adcData[9] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[10] >> 13, "  value: ", (max.adcData[10] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[11] >> 13, "  value: ", (max.adcData[11] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[12] >> 13, "  value: ", (max.adcData[12] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[13] >> 13, "  value: ", (max.adcData[13] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[14] >> 13, "  value: ", (max.adcData[14] >> 1) & 0x0FFF, " | ",
+                  "ch: ", max.adcData[15] >> 13, "  value: ", (max.adcData[15] >> 1) & 0x0FFF);
+        }
+        println(" ");
+        // }
+        // }
 
         // elapsedMillis millitimer = 0;
         // elapsedMillis millitimer2 = 0;
@@ -231,7 +251,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             FlagHandler::Control_Touch_Interrupt = true;
             break; // touch
             // case GPIO_PIN_2: FlagHandler::Panel_2_Touch_Interrupt = true; break;    // touch     //TODO pin
-            // raussuchen und interrupts eintragen case GPIO_PIN_2: FlagHandler::Panel_1_Touch_Interrupt = true; break;
+            // raussuchen und interrupts eintragen case GPIO_PIN_2: FlagHandler::Panel_1_Touch_Interrupt = true;
+            // break;
             // // touch
 
         default: break;
