@@ -25,6 +25,14 @@ IS31FL3216 ledDriverA = IS31FL3216(&hi2c4, 0, 7);
 PanelTouch touchEvaluteLayer0(0);
 PanelTouch touchEvaluteLayer1(1);
 
+// Potentiomer ADC
+
+MAX11128 maxA(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+
+//
+TS3A5017D multiplexerA = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
+                                   Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
+
 void initHID() {
 
     // register flagHandler functions
@@ -32,6 +40,9 @@ void initHID() {
     FlagHandler::Panel_0_Touch_ISR = std::bind(processPanelTouch, 0);
     FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
     FlagHandler::Control_Encoder_ISR = std::bind(processEncoder);
+
+    FlagHandler::Panel_0_EOC_ISR = std::bind(processPotentiometer, 0);
+    FlagHandler::Panel_1_EOC_ISR = std::bind(processPotentiometer, 1);
 
     ioExpander.init();
 
@@ -69,6 +80,11 @@ void initHID() {
     touchControl.init();
 
     // ledDriverB.init();
+
+    // init ADC, Multiplexer
+    maxA.init();
+
+    multiplexerA.enableChannels();
 }
 
 void processEncoder() {
@@ -109,6 +125,16 @@ void processPanelTouch(uint8_t layerID) { // TODO split event with layerID
             }
         }
     }
+}
+
+void processPotentiometer(uint8_t layerID) { // TODO split event with layerID
+
+    // multiplexerA.nextChannel();
+    multiplexerA.setChannel(0);
+
+    maxA.fetchNewData();
+
+    println((maxA.adcData[0] >> 3) & 0x0FFF);
 }
 
 void processControlTouch() {

@@ -23,7 +23,7 @@ class MAX11128 {
         uint16_t crConfigRegAdr = 0b10000 << 11;
         uint16_t crRefSel = 0b0 << 10;
         uint16_t crAvgOn = 0b1 << 9;      // enable avg
-        uint16_t crAvgAmount = 0b11 << 7; // avg 32 times
+        uint16_t crAvgAmount = 0b11 << 7; // avg  16 times
         uint16_t crAvgScans = 0b00 << 3;  // not used, only for repeat mode
         uint16_t crEcho = 0b0 << 2;       // echo commands
 
@@ -52,7 +52,7 @@ class MAX11128 {
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        microsecondsDelay(50);
+        microsecondsDelay(500);
 
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&commandConfigRegister32, 1, 50) != HAL_OK) {
@@ -70,34 +70,11 @@ class MAX11128 {
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        microsecondsDelay(50);
-
-        // HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-        // if (HAL_SPI_Transmit(spi, (uint8_t *)&commandUniPolar, 1, 50) != HAL_OK) {
-        //     HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        //     println("Error MAX11128 SPI Transmit ");
-        //     Error_Handler();
-        // }
-        // HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-
-        // microsecondsDelay(50);
-
-        // HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-        // if (HAL_SPI_Transmit(spi, (uint8_t *)&commandBiPolar, 1, 50) != HAL_OK) {
-        //     HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        //     println("Error MAX11128 SPI Transmit ");
-        //     Error_Handler();
-        // }
-        // HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-
-        // microsecondsDelay(50);
 
         println("MAX: init Done");
     }
 
     void fetchNewData() {
-
-        uint32_t command = standardSampleCommand;
 
         for (uint16_t x = 0; x < nChannels; x++) {
             adcData[x] = 0;

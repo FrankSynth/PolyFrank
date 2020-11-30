@@ -19,7 +19,7 @@ class TS3A5017D {
         this->maxChannel = maxChannel;
     }
 
-    void enableChannels() { HAL_GPIO_WritePin(enablePinPort, enablePin, GPIO_PIN_SET); }
+    void enableChannels() { HAL_GPIO_WritePin(enablePinPort, enablePin, GPIO_PIN_RESET); }
     void nextChannel() {
         currentChannel = changeIntLoop(currentChannel, 1, 0, maxChannel);
         HAL_GPIO_WritePin(adrAPinPort, adrAPin, 0x1 & currentChannel ? GPIO_PIN_SET : GPIO_PIN_RESET);

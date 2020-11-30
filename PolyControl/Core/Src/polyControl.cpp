@@ -22,12 +22,6 @@ COMinterChip layerCom[2];
 // live Data
 LiveData liveData;
 
-// hardware
-MAX11128 max(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-//
-TS3A5017D multiplexer = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
-                                  Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
-
 // function pointers
 void initMidi();
 // uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount);
@@ -46,9 +40,6 @@ void PolyControlInit() {
 
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
-
-    max.init();
-    multiplexer.enableChannels();
 
     initHID();
     ////////Hardware init////////
@@ -101,38 +92,6 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 void PolyControlRun() { // Here the party starts
 
     while (1) {
-        // if (!) {
-        // for (int y = 0; y < 4; y++) {
-        //   HAL_Delay(100);
-
-        for (int x = 0; x < 1; x++) {
-
-            multiplexer.setChannel(x);
-            max.fetchNewData();
-            print("ch: ", max.adcData[0] >> 13, "  value: ", (max.adcData[0] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[1] >> 13, "  value: ", (max.adcData[1] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[2] >> 13, "  value: ", (max.adcData[2] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[3] >> 13, "  value: ", (max.adcData[3] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[4] >> 13, "  value: ", (max.adcData[4] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[5] >> 13, "  value: ", (max.adcData[5] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[6] >> 13, "  value: ", (max.adcData[6] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[7] >> 13, "  value: ", (max.adcData[7] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[8] >> 13, "  value: ", (max.adcData[8] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[9] >> 13, "  value: ", (max.adcData[9] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[10] >> 13, "  value: ", (max.adcData[10] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[11] >> 13, "  value: ", (max.adcData[11] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[12] >> 13, "  value: ", (max.adcData[12] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[13] >> 13, "  value: ", (max.adcData[13] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[14] >> 13, "  value: ", (max.adcData[14] >> 1) & 0x0FFF, " | ",
-                  "ch: ", max.adcData[15] >> 13, "  value: ", (max.adcData[15] >> 1) & 0x0FFF);
-        }
-        println(" ");
-        // }
-        // }
-
-        // elapsedMillis millitimer = 0;
-        // elapsedMillis millitimer2 = 0;
-        // elapsedMicros microtimer = 0;
 
         FlagHandler::handleFlags();
 
@@ -247,13 +206,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
     switch (pin) {
         case GPIO_PIN_12: FlagHandler::Control_Encoder_Interrupt = true; break; // ioExpander -> encoder
-        case GPIO_PIN_2:
-            FlagHandler::Control_Touch_Interrupt = true;
-            break; // touch
-            // case GPIO_PIN_2: FlagHandler::Panel_2_Touch_Interrupt = true; break;    // touch     //TODO pin
-            // raussuchen und interrupts eintragen case GPIO_PIN_2: FlagHandler::Panel_1_Touch_Interrupt = true;
-            // break;
-            // // touch
+        case GPIO_PIN_11: FlagHandler::Panel_0_EOC_Interrupt = true; break;     // Panel 1 -> EOC
+
+        case GPIO_PIN_2: FlagHandler::Control_Touch_Interrupt = true; break; // touch
 
         default: break;
     }

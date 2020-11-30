@@ -3,7 +3,9 @@
 #include "gfx/gui.hpp"
 #include "hardware/AT42QT2120.hpp"
 #include "hardware/IS31FL3216.hpp"
+#include "hardware/MAX11128.hpp"
 #include "hardware/PCA9555.hpp"
+#include "hardware/TS3A5017D.hpp"
 #include "poly.hpp"
 
 typedef enum {
@@ -29,6 +31,7 @@ void processEncoder();
 void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
+void processPotentiometer(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
 void eventControlTouch(uint16_t touchState);
 
