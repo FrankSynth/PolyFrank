@@ -9,7 +9,9 @@
 #include <string>
 #include <vector>
 
-#define MAX_VALUE_16BIT 65535
+#define MAX_VALUE_12BIT 3340 // todo andere rail to rail Opamp.. dann auf größere range setzen
+#define MIN_VALUE_12BIT 66   // todo andere rail to rail Opamp.. dann auf größere range setzen
+
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
 
@@ -139,8 +141,8 @@ class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
             const std::vector<std::string> *valueNameList = nullptr, uint8_t displayVis = 1) {
+        setValue(value);
 
-        this->value = 0;
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
@@ -153,9 +155,10 @@ class Digital : public DataElement {
         this->valueNameList = valueNameList;
     }
 
-    // Inputs range must be from 0 -> MAX_VALUE_16BIT
+    // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
     void nextValue();
+    void previousValue();
     void resetValue() { setValue(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;

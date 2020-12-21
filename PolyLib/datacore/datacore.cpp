@@ -17,7 +17,7 @@ const std::string &Setting::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min)
+        if ((int32_t)valueNameList->size() == max - min + 1)
             return (*valueNameList)[value - min];
         else {
             // wrong amount of custom names defined error
@@ -27,16 +27,16 @@ const std::string &Setting::getValueAsString() {
 }
 
 void Analog::setValue(int32_t newValue) {
-    value = testInt(newValue, 0, MAX_VALUE_16BIT);
+    value = testInt(newValue, 0, MAX_VALUE_12BIT);
 
     // if (mapping == linMap) {
-    valueMapped = fast_lerp_f32(min, max, (float)value / MAX_VALUE_16BIT);
+    valueMapped = fast_lerp_f32(min, max, ((float)value - MIN_VALUE_12BIT) / (MAX_VALUE_12BIT - MIN_VALUE_12BIT));
     // }
     // else if (mapping == logMap) {
-    //     valueMapped = (powf(1.5, value) - 1) / powf(1.5, MAX_VALUE_16BIT) * (max - min) + min; // Log with mapping
+    //     valueMapped = (powf(1.5, value) - 1) / powf(1.5, MAX_VALUE_12BIT) * (max - min) + min; // Log with mapping
     // }
     // else if (mapping == antilogMap) {
-    //     valueMapped = (logf(value + 1) * (max - min)) / logf(MAX_VALUE_16BIT + 1) + min; // Antilog with mapping
+    //     valueMapped = (logf(value + 1) * (max - min)) / logf(MAX_VALUE_12BIT + 1) + min; // Antilog with mapping
     // }
 
     valueName = std::to_string(valueMapped);
@@ -53,8 +53,9 @@ const std::string &Digital::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min)
-            return (*valueNameList)[value - min];
+        if ((int32_t)valueNameList->size() == max - min + 1) {
+            return (*valueNameList)[valueMapped - min];
+        }
         else {
             // wrong amount of custom names defined error
             return valueName;
@@ -64,7 +65,7 @@ const std::string &Digital::getValueAsString() {
 
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
-    valueMapped = round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_16BIT));
+    valueMapped = round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
     valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL
@@ -75,7 +76,18 @@ void Digital::setValue(int32_t newValue) {
 }
 
 void Digital::nextValue() {
-    changeIntLoop(valueMapped, 1, min, max);
+    valueMapped = changeInt(valueMapped, 1, min, max);
+    valueName = std::to_string(valueMapped);
+
+#ifdef POLYCONTROL
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
+void Digital::previousValue() {
+    valueMapped = changeInt(valueMapped, -1, min, max);
     valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL

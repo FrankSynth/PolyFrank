@@ -22,9 +22,6 @@ COMinterChip layerCom[2];
 // live Data
 LiveData liveData;
 
-// hardware
-MAX11128 max(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-
 // function pointers
 void initMidi();
 // uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount);
@@ -43,8 +40,6 @@ void PolyControlInit() {
 
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
-
-    max.init();
 
     initHID();
     ////////Hardware init////////
@@ -68,7 +63,7 @@ void PolyControlInit() {
     initPreset();
 
     // init UI, Display
-    ui.Init(allLayers);
+    ui.Init();
 
     // enable display
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
@@ -96,11 +91,8 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    // elapsedMillis millitimer = 0;
-    // elapsedMillis millitimer2 = 0;
-    // elapsedMicros microtimer = 0;
-
     while (1) {
+
         FlagHandler::handleFlags();
 
         if (getRenderState() == RENDER_DONE) {
@@ -150,7 +142,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         if (FlagHandler::interChipA_DMA_Started[0] == 1) {
             FlagHandler::interChipA_DMA_Started[0] = 0;
             FlagHandler::interChipA_DMA_Finished[0] = 1;
-            println("HAL_SPI_TxCpltCallback: close SPI Line spi4");
+            //println("HAL_SPI_TxCpltCallback: close SPI Line spi4");
 
             // close ChipSelectLine
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
@@ -214,12 +206,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
     switch (pin) {
         case GPIO_PIN_12: FlagHandler::Control_Encoder_Interrupt = true; break; // ioExpander -> encoder
-        case GPIO_PIN_2:
-            FlagHandler::Control_Touch_Interrupt = true;
-            break; // touch
-            // case GPIO_PIN_2: FlagHandler::Panel_2_Touch_Interrupt = true; break;    // touch     //TODO pin
-            // raussuchen und interrupts eintragen case GPIO_PIN_2: FlagHandler::Panel_1_Touch_Interrupt = true; break;
-            // // touch
+        case GPIO_PIN_11: FlagHandler::Panel_0_EOC_Interrupt = true; break;     // Panel 1 -> EOC
+
+        case GPIO_PIN_2: FlagHandler::Control_Touch_Interrupt = true; break; // touch
 
         default: break;
     }

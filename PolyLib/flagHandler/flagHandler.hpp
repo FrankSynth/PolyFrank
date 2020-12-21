@@ -32,6 +32,12 @@ extern std::function<void()> Panel_0_Touch_ISR;
 extern bool Panel_1_Touch_Interrupt;
 extern std::function<void()> Panel_1_Touch_ISR;
 
+extern bool Panel_0_EOC_Interrupt;
+extern std::function<void()> Panel_0_EOC_ISR;
+
+extern bool Panel_1_EOC_Interrupt;
+extern std::function<void()> Panel_1_EOC_ISR;
+
 // Display
 extern bool renderingDoneSwitchBuffer;
 

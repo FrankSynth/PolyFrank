@@ -77,11 +77,17 @@ void PolyRenderRun() {
     while (1) {
 
         FlagHandler::handleFlags();
-        // cvDacAbuffer[0] = layerA.adsrA.aDecay.valueMapped * 400;
+        cvDacAbuffer[0] = layerA.test.aCutoff.valueMapped * 4096;
+        cvDacAbuffer[1] = layerA.test.aResonance.valueMapped * 4096;
+        cvDacAbuffer[2] = layerA.test.aFreq.valueMapped * 4096;
+        cvDacAbuffer[3] = layerA.test.aDistort.valueMapped * 4096;
+
         // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
         //                      fastMapLEDBrightness(layerA.adsrA.aDecay.valueMapped * 0.1) * LEDMAXBRIGHTNESSCOUNT);
 
-        // cvDacA.fastUpdate();
+        cvDacA.fastUpdate();
+        cvDacB.fastUpdate();
+        cvDacC.fastUpdate();
 
         // cvDacAbuffer[0] = fast_sin_f32((float)micros() / 1000000.0f) * 2048 + 2047;
         __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
