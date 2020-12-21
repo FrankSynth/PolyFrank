@@ -9,7 +9,9 @@
 #include <string>
 #include <vector>
 
-#define MAX_VALUE_16BIT 65535
+#define MAX_VALUE_12BIT 3340 // todo andere rail to rail Opamp.. dann auf größere range setzen
+#define MIN_VALUE_12BIT 66   // todo andere rail to rail Opamp.. dann auf größere range setzen
+
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
 
@@ -153,7 +155,7 @@ class Digital : public DataElement {
         this->valueNameList = valueNameList;
     }
 
-    // Inputs range must be from 0 -> MAX_VALUE_16BIT
+    // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
     void nextValue();
     void previousValue();

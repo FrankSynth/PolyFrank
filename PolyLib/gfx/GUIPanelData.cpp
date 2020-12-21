@@ -365,8 +365,9 @@ void GUIPanelData::registerModuleSettings() {
             if (analogElement->displayVis) { // element Visible
 
                 panelElements[elementIndex].addAnalogEntry(
-                    analogElement, {std::bind(&Analog::changeValue, analogElement, 1000), "AMOUNT"},
-                    {std::bind(&Analog::changeValue, analogElement, -1000), "AMOUNT"},
+                    
+                    analogElement, {std::bind(&Analog::changeValue, analogElement, 100), "AMOUNT"},
+                    {std::bind(&Analog::changeValue, analogElement, -100), "AMOUNT"},
                     {std::bind(&Analog::resetValue, analogElement), "RESET"});
 
                 dataIndex++;

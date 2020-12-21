@@ -204,6 +204,28 @@ class LFO : public BaseModule {
     Digital dLockPhase = Digital("PHASE", 0, 1, false);
 };
 
+class TEST : public BaseModule {
+  public:
+    TEST(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aDistort);
+        knobs.push_back(&aFreq);
+
+        switches.push_back(&dSelectFilter);
+    }
+    Output out = Output("OUT");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 1, true, logMap);
+    Analog aResonance = Analog("RES", 0, 1, true, linMap);
+    Analog aDistort = Analog("DIST", 0, 1, true, linMap);
+    Analog aFreq = Analog("FREQ", 0, 1, true, linMap);
+
+    Digital dSelectFilter = Digital("dB", 0, 3, true);
+};
+
 // class VCFSteiner : public BaseModule {
 //   public:
 //     VCFSteiner(const char *name) : BaseModule(name) { // call subclass

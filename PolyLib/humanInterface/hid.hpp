@@ -31,10 +31,12 @@ void processEncoder();
 void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
-void processPotentiometer(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
 void eventControlTouch(uint16_t touchState);
 
+void initPotiMapping();
+void processPanelPotis(uint8_t layerID);
+void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 class PanelTouch {
 
   public:

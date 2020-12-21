@@ -27,13 +27,21 @@ PanelTouch touchEvaluteLayer1(1);
 
 // Potentiomer ADC
 
-MAX11128 maxA(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+MAX11128 adcA(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
 
 //
 TS3A5017D multiplexerA = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
                                    Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
 
+// array for functionPoint for Poti mapping
+std::function<void(uint16_t amount)> potiFunctionPointerA0[16];
+std::function<void(uint16_t amount)> potiFunctionPointerA1[16];
+std::function<void(uint16_t amount)> potiFunctionPointerA2[16];
+std::function<void(uint16_t amount)> potiFunctionPointerA3[16];
+
 void initHID() {
+
+    //
 
     // register flagHandler functions
     FlagHandler::Control_Touch_ISR = std::bind(processControlTouch);
@@ -41,8 +49,8 @@ void initHID() {
     FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
     FlagHandler::Control_Encoder_ISR = std::bind(processEncoder);
 
-    FlagHandler::Panel_0_EOC_ISR = std::bind(processPotentiometer, 0);
-    FlagHandler::Panel_1_EOC_ISR = std::bind(processPotentiometer, 1);
+    FlagHandler::Panel_0_EOC_ISR = std::bind(processPanelPotis, 0);
+    FlagHandler::Panel_1_EOC_ISR = std::bind(processPanelPotis, 1);
 
     ioExpander.init();
 
@@ -82,8 +90,10 @@ void initHID() {
     // ledDriverB.init();
 
     // init ADC, Multiplexer
-    maxA.init();
 
+    initPotiMapping();
+
+    adcA.init();
     multiplexerA.enableChannels();
 }
 
@@ -127,14 +137,33 @@ void processPanelTouch(uint8_t layerID) { // TODO split event with layerID
     }
 }
 
-void processPotentiometer(uint8_t layerID) { // TODO split event with layerID
+void processPanelPotis(uint8_t layerID) { // TODO split event with layerID
 
-    // multiplexerA.nextChannel();
-    multiplexerA.setChannel(0);
+    // threshold for jitter reduction
+    static uint16_t treshold = 3;
 
-    maxA.fetchNewData();
+    // store for current sample data for the 4x16 Multiplexed ADC Values
+    static int16_t sampleDataStateA0[16];
+    static int16_t sampleDataStateA1[16];
+    static int16_t sampleDataStateA2[16];
+    static int16_t sampleDataStateA3[16];
 
-    println((maxA.adcData[0] >> 3) & 0x0FFF);
+    static int16_t *sampleDataStates[] = {sampleDataStateA0, sampleDataStateA1, sampleDataStateA2, sampleDataStateA3};
+
+    uint16_t activeChannel = multiplexerA.currentChannel;
+    int16_t *activeSampleDataState = sampleDataStates[activeChannel];
+
+    multiplexerA.nextChannel();
+    adcA.fetchNewData();
+
+    // TODO umbau auf SIMD instuction
+    for (uint16_t i = 0; i < 1; i++) { // TODO increase to 16
+        if (abs((activeSampleDataState[i] - (int16_t)((adcA.adcData[i] >> 1) & 0xFFF))) >= treshold) {
+            activeSampleDataState[i] = (int16_t)(adcA.adcData[i] >> 1) & 0xFFF;
+
+            mapPanelPotis(activeChannel, i, activeSampleDataState[i]);
+        }
+    }
 }
 
 void processControlTouch() {
@@ -194,6 +223,52 @@ void eventControlTouch(uint16_t touchState) {
     }
 
     oldTouchState = touchState;
+}
+
+void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TODO interpolation
+
+    // println("value : ", value);
+
+    if (activeChannel == 0) {
+        if (potiFunctionPointerA0[ID] != nullptr) {
+            potiFunctionPointerA0[ID](value);
+        }
+        return;
+    }
+
+    if (activeChannel == 1) {
+        if (potiFunctionPointerA1[ID] != nullptr) {
+            potiFunctionPointerA1[ID](value);
+        }
+        return;
+    }
+
+    if (activeChannel == 2) {
+        if (potiFunctionPointerA2[ID] != nullptr) {
+            potiFunctionPointerA2[ID](value);
+        }
+        return;
+    }
+
+    if (activeChannel == 3) {
+        if (potiFunctionPointerA3[ID] != nullptr) {
+            potiFunctionPointerA3[ID](value);
+        }
+        return;
+    }
+}
+
+void initPotiMapping() { // TODO fill mapping
+
+    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aFreq), std::placeholders::_1);
+    potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aResonance), std::placeholders::_1);
+    potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aCutoff), std::placeholders::_1);
+    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aDistort), std::placeholders::_1);
+
+    // potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aAttack), std::placeholders::_1);
+    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aDecay), std::placeholders::_1);
+    // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aSustain), std::placeholders::_1);
+    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aRelease), std::placeholders::_1);
 }
 
 #endif

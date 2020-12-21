@@ -23,7 +23,7 @@ class MAX11128 {
         uint16_t crConfigRegAdr = 0b10000 << 11;
         uint16_t crRefSel = 0b0 << 10;
         uint16_t crAvgOn = 0b1 << 9;      // enable avg
-        uint16_t crAvgAmount = 0b11 << 7; // avg  16 times
+        uint16_t crAvgAmount = 0b11 << 7; // avg  32 times
         uint16_t crAvgScans = 0b00 << 3;  // not used, only for repeat mode
         uint16_t crEcho = 0b0 << 2;       // echo commands
 
@@ -43,8 +43,11 @@ class MAX11128 {
         uint32_t commandConfigRegister32 = (uint32_t)commandConfigRegister << 1;
         standardSampleCommand = commandScanControl << 1;
 
-        uint32_t resetCommand = 0b00000000001000000; // reset all
+        command[nChannels - 1] = standardSampleCommand;
 
+        uint32_t resetCommand = 0x40; // reset command
+
+        // Reset the ADC for a clean start!
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&resetCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -54,6 +57,7 @@ class MAX11128 {
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         microsecondsDelay(500);
 
+        // Send Config Register
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&commandConfigRegister32, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -63,6 +67,7 @@ class MAX11128 {
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         microsecondsDelay(50);
 
+        // start Init sample Command.. data receive will be triggered by EOC interrupt.
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&standardSampleCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -76,19 +81,15 @@ class MAX11128 {
 
     void fetchNewData() {
 
-        for (uint16_t x = 0; x < nChannels; x++) {
-            adcData[x] = 0;
-            empty[x] = 0;
-        }
+        // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
+        memset(command, 0, (nChannels - 1) * 2);
+        command[nChannels - 1] = standardSampleCommand;
 
-        empty[15] = standardSampleCommand;
-
-        uint16_t i = 0;
-
-        for (i = 0; i < nChannels; i++) {
+        // receive new samples and send sample command
+        for (uint16_t i = 0; i < nChannels; i++) {
 
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-            if (HAL_SPI_TransmitReceive(spi, (uint8_t *)&(empty[i]), (uint8_t *)&(adcData[i]), 1, 50) != HAL_OK) {
+            if (HAL_SPI_TransmitReceive(spi, (uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1, 50) != HAL_OK) {
                 HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
                 println("Error MAX11128 SPI Receive");
                 Error_Handler();
@@ -96,10 +97,8 @@ class MAX11128 {
             }
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         }
-
-        // data = adcData;
     }
-    uint32_t empty[16];
+    uint32_t command[16];
     uint32_t data[16];
 
     uint32_t adcData[16];
