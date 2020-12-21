@@ -142,8 +142,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         if (FlagHandler::interChipA_DMA_Started[0] == 1) {
             FlagHandler::interChipA_DMA_Started[0] = 0;
             FlagHandler::interChipA_DMA_Finished[0] = 1;
-            //println("HAL_SPI_TxCpltCallback: close SPI Line spi4");
-
             // close ChipSelectLine
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
         }

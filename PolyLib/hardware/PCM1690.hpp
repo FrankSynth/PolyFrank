@@ -6,7 +6,7 @@
 #include "spi.h"
 
 // number of audio channels defined in sai.h
-#define SAIDMABUFFERSIZE 16 // 32bit
+#define SAIDMABUFFERSIZE 16 // 32bit buffer
 
 /**
  * @brief 8ch Audio DAC class
@@ -35,7 +35,7 @@ class PCM1690 {
         // }
 
         // cs spi 4
-        HAL_Delay(30);
+        HAL_Delay(10);
         // disable sleep
 
         config[0] = 0x41;
@@ -52,7 +52,7 @@ class PCM1690 {
     }
 
     void startSAI() {
-        if (HAL_SAI_Transmit_DMA(sai, (uint8_t *)renderBuffer, SAIDMABUFFERSIZE * AUDIOCHANNELS) != HAL_OK) {
+        if (HAL_SAI_Transmit_DMA(sai, (uint8_t *)renderBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS) != HAL_OK) {
             Error_Handler();
         }
     }

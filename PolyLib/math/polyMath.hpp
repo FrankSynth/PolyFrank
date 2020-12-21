@@ -8,7 +8,6 @@
 // #include "string.h"
 
 #define FAST_MATH_TABLE_SIZE 512
-#define FAST_MATH_TABLE_SIZE 512
 #define noteLin2logMIN -2
 #define noteLin2logMAX 9
 #define FAST_NOTELIN2LOG_TABLE_SIZE (noteLin2logMAX - noteLin2logMIN) * 12 // 12 notes per octave
@@ -42,7 +41,7 @@ typedef struct {
 extern const float sinTable_f32[FAST_MATH_TABLE_SIZE + 1];
 
 // table for fast lin2log
-extern float lin2logTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
+extern float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 
 /**
  * @brief  Floating-point sin_cos function.
@@ -99,11 +98,15 @@ inline float fastPowLin2Exp(float x, float max) {
  */
 inline float fastMapCached(float input, float input_start, float input_end, float output_start, float output_end) {
 
-    static float input_start_store, input_end_store, output_start_store, output_end_store, slope_store = 0;
+    static float input_start_store = 0;
+    static float input_end_store = 0;
+    static float output_start_store = 0;
+    static float output_end_store = 0;
+    static float slope_store = 0;
 
-    if (input_start != input_start_store && input_end != input_end_store && output_start != output_start_store &&
+    if (input_start != input_start_store || input_end != input_end_store || output_start != output_start_store ||
         output_end != output_end_store) {
-        slope_store = 1.0 * (output_end - output_start) / (input_end - input_start);
+        slope_store = (output_end - output_start) / (input_end - input_start);
         input_start_store = input_start;
         input_end_store = input_end;
         output_start_store = output_start;
