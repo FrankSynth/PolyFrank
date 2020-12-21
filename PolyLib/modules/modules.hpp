@@ -72,7 +72,9 @@ class ADSR : public BaseModule {
     Analog aVelocity = Analog("VELOCITY", 0, 1, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, true, linMap);
 
-    Digital dLoop = Digital("LOOP", 0, 1, true);
+    std::vector<std::string> valueNames{"OFF", "ON"};
+
+    Digital dLoop = Digital("LOOP", 0, 1, true, &valueNames);
 
     void render();
 };
@@ -198,8 +200,30 @@ class LFO : public BaseModule {
     Analog aShape = Analog("SHAPE", 0.1, 100, true, linMap);
     Digital dFreq = Digital("FREQ", 0, 22, true);
     Digital dSync = Digital("SYNC", 0, 1, true);
-    Digital dTempoSync = Digital("TEMPOSYNC", 0, 1, false);
-    Digital dLockPhase = Digital("LOCK PHASE", 0, 1, false);
+    Digital dTempoSync = Digital("T-SYNC", 0, 1, false);
+    Digital dLockPhase = Digital("PHASE", 0, 1, false);
+};
+
+class TEST : public BaseModule {
+  public:
+    TEST(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aDistort);
+        knobs.push_back(&aFreq);
+
+        switches.push_back(&dSelectFilter);
+    }
+    Output out = Output("OUT");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 1, true, logMap);
+    Analog aResonance = Analog("RES", 0, 1, true, linMap);
+    Analog aDistort = Analog("DIST", 0, 1, true, linMap);
+    Analog aFreq = Analog("FREQ", 0, 1, true, linMap);
+
+    Digital dSelectFilter = Digital("dB", 0, 3, true);
 };
 
 // class VCFSteiner : public BaseModule {

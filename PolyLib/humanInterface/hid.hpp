@@ -3,7 +3,9 @@
 #include "gfx/gui.hpp"
 #include "hardware/AT42QT2120.hpp"
 #include "hardware/IS31FL3216.hpp"
+#include "hardware/MAX11128.hpp"
 #include "hardware/PCA9555.hpp"
+#include "hardware/TS3A5017D.hpp"
 #include "poly.hpp"
 
 typedef enum {
@@ -32,6 +34,9 @@ void processPanelTouch(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
 void eventControlTouch(uint16_t touchState);
 
+void initPotiMapping();
+void processPanelPotis(uint8_t layerID);
+void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 class PanelTouch {
 
   public:
@@ -86,8 +91,8 @@ class PanelTouch {
                 case 6: break;
                 case 7: break;
                 case 8: break;
-                case 9: break;
-                case 10: evaluateInput(&allLayers[layerID]->lfoA.iFm, event); break;
+                case 9: evaluateOutput(&allLayers[layerID]->adsrB.out, event); break;
+                case 10: evaluateOutput(&allLayers[layerID]->lfoA.out, event); break;
                 case 11: evaluateInput(&allLayers[layerID]->adsrA.iAttack, event); break;
             }
 
@@ -152,49 +157,52 @@ class PanelTouch {
     // TODO löschen eines Patches durch erneut klicken
 
     void evaluateInput(Input *pInput, uint8_t event) {
-        // println("-------------> input");
+        println("-------------> input");
         if (event) { // push Event
             if (activeOutput != nullptr) {
-                allLayers[layerID]->addPatchInOut(pInput->idGlobal, activeOutput->idGlobal);
-                // println("-------------> patch INOUT");
+                allLayers[layerID]->addPatchInOut(activeOutput->idGlobal, pInput->idGlobal);
+                println("-------------> patch INOUT");
             }
             else {
-                // println("-------------> create Focus IN");
+                println("-------------> create Focus IN");
 
                 setInputFocus(pInput);
             }
         }
         else { // release Event -> clear active input
             if (pInput == activeInput) {
-                // println("-------------> Release Focus IN");
+                println("-------------> Release Focus IN");
 
                 activeInput = nullptr;
             }
         }
     }
     void evaluateOutput(Output *pOutput, uint8_t event) {
-        // println("-------------> output");
+        println("-------------> output");
 
         if (event) { // push Event
 
             if (activeInput != nullptr) {
-                allLayers[layerID]->addPatchInOut(activeInput->idGlobal, pOutput->idGlobal, 1);
-                // println("-------------> patch OUTIN");
+                allLayers[layerID]->addPatchInOut(pOutput->idGlobal, activeInput->idGlobal, 1);
+                println("-------------> patch OUTIN");
             }
             else if (activeOutput != nullptr) {
 
-                allLayers[layerID]->addPatchOutOut(pOutput->idGlobal, activeOutput->idGlobal, 1);
-                // println("-------------> patch OUTOUT");
+                if (activeOutput != pOutput) {
+
+                    allLayers[layerID]->addPatchOutOut(pOutput->idGlobal, activeOutput->idGlobal, 1);
+                    println("-------------> patch OUTOUT");
+                }
             }
             else {
                 setOutputFocus(pOutput);
-                // println("-------------> create Focus OUT");
+                println("-------------> create Focus OUT");
             }
         }
 
         else { // release Event -> clear active output
             if (pOutput == activeOutput) {
-                // println("-------------> Release Focus OUT");
+                println("-------------> Release Focus OUT");
 
                 activeOutput = nullptr;
             }
@@ -208,7 +216,6 @@ class PanelTouch {
 
             location focus = {pInput->layerId, pInput->moduleId, pInput->id, FOCUSINPUT};
             ui.setFocus(focus);
-            // TODO focus display
         }
     }
 
@@ -216,9 +223,8 @@ class PanelTouch {
         if (activeInput == nullptr && activeOutput == nullptr) {
             activeOutput = pOutput;
 
-            location focus = {pOutput->layerId, pOutput->moduleId, pOutput->id}, FOCUSOUTPUT;
+            location focus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
             ui.setFocus(focus);
-            // TODO focus display
         }
     }
 

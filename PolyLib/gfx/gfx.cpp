@@ -30,8 +30,8 @@ void GFX_Init() {
 
     // set BG Color;
     hltdc.Init.Backcolor.Red = 0;
-    hltdc.Init.Backcolor.Green = 24;
-    hltdc.Init.Backcolor.Blue = 30;
+    hltdc.Init.Backcolor.Green = 16;
+    hltdc.Init.Backcolor.Blue = 20;
 
     //__HAL_LTDC_RELOAD_CONFIG(&hltdc);
     HAL_LTDC_Init(&hltdc); // update config

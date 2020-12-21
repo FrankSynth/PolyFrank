@@ -22,10 +22,10 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
+        modules.push_back(&test);
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
         modules.push_back(&lfoA);
-
         modules.push_back(&midi);
         // skip layer settings?
 
@@ -66,6 +66,7 @@ class Layer {
 
     uint8_t id;
 
+    TEST test = TEST("TEST");
     ADSR adsrA = ADSR("ADSR A");
     ADSR adsrB = ADSR("ADSR B");
     LFO lfoA = LFO("LFO A");
