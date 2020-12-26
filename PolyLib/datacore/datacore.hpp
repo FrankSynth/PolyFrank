@@ -163,8 +163,8 @@ class Digital : public DataElement {
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
-    void setValueWithoutMapping(int32_t newValue) { value = newValue; }
-    void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
+    void setValueWithoutMapping(int32_t newValue) { valueMapped = newValue; }
+    void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
 
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values

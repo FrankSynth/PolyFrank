@@ -53,7 +53,7 @@ void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels) {
 
             renderDest[i + chan] = convert(audioSample);
 
-            float step = fastNoteLin2Log_f32((float)chan);
+            float step = fastNoteLin2Log_f32((float)chan * layerA.test.aFreq.valueMapped);
             stepWavetable1[chan] += step;
             stepWavetable2[chan] += step;
         }

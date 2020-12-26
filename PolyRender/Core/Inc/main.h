@@ -101,17 +101,17 @@ void Error_Handler(void);
 #define switch_1_open_GPIO_Port GPIOD
 #define switch_2_open_Pin GPIO_PIN_7
 #define switch_2_open_GPIO_Port GPIOD
-#define switch_1_A_Pin GPIO_PIN_9
+#define switch_1_A_Pin GPIO_PIN_10
 #define switch_1_A_GPIO_Port GPIOG
-#define switch_1_B_Pin GPIO_PIN_10
+#define switch_1_B_Pin GPIO_PIN_11
 #define switch_1_B_GPIO_Port GPIOG
-#define switch_1_C_Pin GPIO_PIN_11
+#define switch_1_C_Pin GPIO_PIN_12
 #define switch_1_C_GPIO_Port GPIOG
-#define switch_2_A_Pin GPIO_PIN_12
+#define switch_2_A_Pin GPIO_PIN_13
 #define switch_2_A_GPIO_Port GPIOG
-#define switch_2_B_Pin GPIO_PIN_13
+#define switch_2_B_Pin GPIO_PIN_14
 #define switch_2_B_GPIO_Port GPIOG
-#define switch_2_C_Pin GPIO_PIN_14
+#define switch_2_C_Pin GPIO_PIN_15
 #define switch_2_C_GPIO_Port GPIOG
 /* USER CODE BEGIN Private defines */
 

@@ -1,5 +1,7 @@
 #include "polyRender.hpp"
 #include "datacore/dataHelperFunctions.hpp"
+#include "hardware/TS3A5017D.hpp"
+
 #include "render/renderAudio.hpp"
 
 /// LAYER
@@ -17,6 +19,10 @@ uint16_t cvDacCbuffer[4];
 MCP4728 cvDacA(&hi2c1, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin);
 MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin);
 MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin);
+
+// Switch Ladder  //andere chip aber selbe logik
+TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port, switch_1_A_Pin,
+                                   switch_1_B_GPIO_Port, switch_1_B_Pin);
 
 // AUDIO DAC
 RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS]);
@@ -43,6 +49,8 @@ void PolyRenderInit() {
     hardwareInit();
 
     audioDacA.init();
+
+    switchLadder.disableChannels();
 
     // empty buffers
     uint32_t emptyData = 0;
@@ -80,13 +88,13 @@ void PolyRenderRun() {
     while (1) {
 
         FlagHandler::handleFlags();
-        cvDacAbuffer[0] = layerA.test.aCutoff.valueMapped * 4096;
-        cvDacAbuffer[1] = layerA.test.aResonance.valueMapped * 4096;
-        cvDacAbuffer[2] = layerA.test.aFreq.valueMapped * 4096;
-        cvDacAbuffer[3] = layerA.test.aDistort.valueMapped * 4096;
+        cvDacAbuffer[0] = layerA.test.aCutoff.valueMapped * 4095;
+        cvDacAbuffer[1] = (1 - layerA.test.aResonance.valueMapped) * 4095;
+        cvDacAbuffer[2] = layerA.test.aFreq.valueMapped * 4095;
+        cvDacAbuffer[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
 
-        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
-        //                      fastMapLEDBrightness(layerA.adsrA.aDecay.valueMapped * 0.1) * LEDMAXBRIGHTNESSCOUNT);
+        // switch ladder Filter
+        switchLadder.setChannel(layerA.test.dSelectFilter.valueMapped);
 
         cvDacA.fastUpdate();
         cvDacB.fastUpdate();

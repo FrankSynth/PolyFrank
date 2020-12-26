@@ -112,7 +112,7 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     switchBuffer();
 
-    //println("send buffer size", dmaOutCurrentBufferASize);
+    // println("send buffer size", dmaOutCurrentBufferASize);
 
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
@@ -217,7 +217,7 @@ uint8_t COMinterChip::sendTransmissionSuccessfull() {
         HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
         HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
     }
-    //println("Transmission success!!!");
+    // println("Transmission success!!!");
     blockNewSendBeginCommand = 0;
     return 0;
 }

@@ -12,17 +12,19 @@ void Layer::initID() {
     for (BaseModule *m : modules) { // for all modules
         m->id = modID.getNewId();
         m->layerId = this->id;
-        ID settID;
+        ID digitalID;
+        ID analogID;
+
         ID inputLocalID;
         ID outputLocalID;
 
         for (Analog *i : m->getPotis()) { // for all Knobs
-            i->id = settID.getNewId();
+            i->id = analogID.getNewId();
             i->moduleId = m->id;
             i->layerId = this->id;
         }
         for (Digital *i : m->getSwitches()) { // for all Knobs
-            i->id = settID.getNewId();
+            i->id = digitalID.getNewId();
             i->moduleId = m->id;
             i->layerId = this->id;
         }

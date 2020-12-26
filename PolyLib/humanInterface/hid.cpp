@@ -260,10 +260,10 @@ void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TOD
 
 void initPotiMapping() { // TODO fill mapping
 
-    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aFreq), std::placeholders::_1);
+    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aFreq), std::placeholders::_1);
     potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aResonance), std::placeholders::_1);
     potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aCutoff), std::placeholders::_1);
-    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aDistort), std::placeholders::_1);
+    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aDistort), std::placeholders::_1);
 
     // potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aAttack), std::placeholders::_1);
     // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aDecay), std::placeholders::_1);

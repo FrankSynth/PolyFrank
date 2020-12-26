@@ -214,7 +214,7 @@ class TEST : public BaseModule {
         knobs.push_back(&aDistort);
         knobs.push_back(&aFreq);
 
-        switches.push_back(&dSelectFilter);
+        switches.push_back(&dSelectFilter); 
     }
     Output out = Output("OUT");
 
