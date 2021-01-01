@@ -154,6 +154,7 @@ inline uint32_t millis() {
  * THE SOFTWARE.
  */
 
+// FIXME error? tut iwas nicht richtig
 class elapsedMicros {
   private:
     uint32_t us;

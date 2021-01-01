@@ -47,6 +47,8 @@ class MAX11128 {
 
         uint32_t resetCommand = 0x40; // reset command
 
+        // microsecondsDelay(500);
+
         // Reset the ADC for a clean start!
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&resetCommand, 1, 50) != HAL_OK) {
@@ -55,7 +57,8 @@ class MAX11128 {
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        microsecondsDelay(500);
+
+        // microsecondsDelay(500);
 
         // Send Config Register
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
@@ -98,6 +101,7 @@ class MAX11128 {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         }
     }
+
     uint32_t command[16];
     uint32_t data[16];
 
@@ -108,5 +112,5 @@ class MAX11128 {
     uint8_t nChannels;
     uint16_t cs_pin;
     GPIO_TypeDef *cs_pinPort;
-    uint16_t standardSampleCommand;
+    uint32_t standardSampleCommand;
 };

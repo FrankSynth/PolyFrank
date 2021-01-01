@@ -5,7 +5,6 @@
 #include "i2c.h"
 #include "tim.h"
 
-
 // implementation i2C bit-banging : https://en.wikipedia.org/wiki/I%C2%B2C
 
 #define I2CSPEED 10 // 100khz

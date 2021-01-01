@@ -81,10 +81,14 @@ void PolyRenderInit() {
 void PolyRenderRun() {
 
     // init Sai, first fill buffer
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS, AUDIOCHANNELS);
-    audioDacA.startSAI();
+    // renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS, AUDIOCHANNELS);
+    // audioDacA.startSAI();
 
     elapsedMillis millitimer = 0;
+
+    elapsedMillis dacSendTimer = 0;
+    elapsedMicros dacSendTimer2 = 0;
+    uint32_t microTimer = micros();
     while (1) {
 
         FlagHandler::handleFlags();
@@ -93,24 +97,41 @@ void PolyRenderRun() {
         cvDacAbuffer[2] = layerA.test.aFreq.valueMapped * 4095;
         cvDacAbuffer[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
 
+        // cvDacBbuffer[3] = (fast_sin_f32((float)micros() / 1000.0f) + 1) * 4095 / 2; // 1khz sinus
+        // cvDacBbuffer[3] = (fast_sin_f32((float)micros() / 100000.0f) + 1) * 4095 / 2; // 10hz sinus
+
         // switch ladder Filter
         switchLadder.setChannel(layerA.test.dSelectFilter.valueMapped);
 
-        cvDacA.fastUpdate();
-        cvDacB.fastUpdate();
-        cvDacC.fastUpdate();
+        if (micros() - microTimer > layerA.test.aResonance.valueMapped * 1000) {
+            microTimer = micros();
+
+            static float dacStep = 0;
+
+            dacStep += layerA.test.aCutoff.valueMapped / (10 / layerA.test.aResonance.valueMapped); // 100hz sinus
+
+            cvDacBbuffer[3] = (fast_sin_f32(dacStep) + 1) * 2047; // 100hz sinus
+
+            if (dacStep > 1) {
+                dacStep -= 1;
+            }
+
+            cvDacA.fastUpdate();
+            cvDacB.fastUpdate();
+            cvDacC.fastUpdate();
+        }
 
         // cvDacAbuffer[0] = fast_sin_f32((float)micros() / 1000000.0f) * 2048 + 2047;
-        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
-                             fastMapLEDBrightness((fast_sin_f32((float)micros() / 1000000.0f) + 1) / 2) *
-                                 LEDMAXBRIGHTNESSCOUNT);
-        __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2,
-                             fastMapLEDBrightness((fast_sin_f32((float)micros() / 5000000.0f) + 1) / 2) *
-                                 LEDMAXBRIGHTNESSCOUNT);
+        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
+        //                      fastMapLEDBrightness((fast_sin_f32((float)micros() / 1000000.0f) + 1) / 2) *
+        //                          LEDMAXBRIGHTNESSCOUNT);
+        // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2,
+        //                      fastMapLEDBrightness((fast_sin_f32((float)micros() / 5000000.0f) + 1) / 2) *
+        //                          LEDMAXBRIGHTNESSCOUNT);
         // __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, cvDacAbuffer[0] / 4);
         // cvDacAbuffer[1] = fast_sin_f32((float)micros() / 300000.0f) * 2048 + 2047;
-        __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 1);
-        __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 1);
+        // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 1);
+        // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 1);
 
         // if (millitimer > 10000) {
         //     millitimer = 0;

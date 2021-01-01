@@ -6,7 +6,7 @@
 #include "spi.h"
 
 // number of audio channels defined in sai.h
-#define SAIDMABUFFERSIZE 16 // 32bit buffer
+#define SAIDMABUFFERSIZE 8 // 32bit buffer
 
 /**
  * @brief 8ch Audio DAC class

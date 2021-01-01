@@ -41,7 +41,7 @@ void PolyControlInit() {
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
-    initHID();
+    // initHID();
     ////////Hardware init////////
 
     // enable Layer
