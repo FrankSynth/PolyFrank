@@ -13,12 +13,10 @@ RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSI
 COMinterChip layerCom;
 
 // CV DACS
-uint16_t cvDacAbuffer[4];
-uint16_t cvDacBbuffer[4];
-uint16_t cvDacCbuffer[4];
-MCP4728 cvDacA(&hi2c1, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin);
-MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin);
-MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin);
+RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[10][4]);
+MCP4728 cvDacA(&hi2c1, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABuffer[0]);
+MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABuffer[1]);
+MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABuffer[2]);
 
 // Switch Ladder  //andere chip aber selbe logik
 TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port, switch_1_A_Pin,
@@ -57,9 +55,9 @@ void PolyRenderInit() {
     fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
     fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
 
-    cvDacA.setDataPointer((uint8_t *)cvDacAbuffer);
-    cvDacB.setDataPointer((uint8_t *)cvDacBbuffer);
-    cvDacC.setDataPointer((uint8_t *)cvDacCbuffer);
+    // cvDacA.setDataPointer((uint8_t *)&cvDacDMABuffer[0]);
+    // cvDacB.setDataPointer((uint8_t *)&cvDacDMABuffer[1]);
+    // cvDacC.setDataPointer((uint8_t *)&cvDacDMABuffer[2]);
 
     // init allLayers
     allLayers.push_back(&layerA);
@@ -92,10 +90,6 @@ void PolyRenderRun() {
     while (1) {
 
         FlagHandler::handleFlags();
-        cvDacAbuffer[0] = layerA.test.aCutoff.valueMapped * 4095;
-        cvDacAbuffer[1] = (1 - layerA.test.aResonance.valueMapped) * 4095;
-        cvDacAbuffer[2] = layerA.test.aFreq.valueMapped * 4095;
-        cvDacAbuffer[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
 
         // cvDacBbuffer[3] = (fast_sin_f32((float)micros() / 1000.0f) + 1) * 4095 / 2; // 1khz sinus
         // cvDacBbuffer[3] = (fast_sin_f32((float)micros() / 100000.0f) + 1) * 4095 / 2; // 10hz sinus
@@ -110,11 +104,16 @@ void PolyRenderRun() {
 
             dacStep += layerA.test.aCutoff.valueMapped / (10 / layerA.test.aResonance.valueMapped); // 100hz sinus
 
-            cvDacBbuffer[3] = (fast_sin_f32(dacStep) + 1) * 2047; // 100hz sinus
+            cvDacB.data[3] = (fast_sin_f32(dacStep) + 1) * 2047; // 100hz sinus
 
             if (dacStep > 1) {
                 dacStep -= 1;
             }
+
+            cvDacA.data[0] = layerA.test.aCutoff.valueMapped * 4095;
+            cvDacA.data[1] = (1 - layerA.test.aResonance.valueMapped) * 4095;
+            cvDacA.data[2] = layerA.test.aFreq.valueMapped * 4095;
+            cvDacA.data[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
 
             cvDacA.fastUpdate();
             cvDacB.fastUpdate();

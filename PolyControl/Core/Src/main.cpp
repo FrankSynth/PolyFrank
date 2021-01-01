@@ -134,6 +134,9 @@ int main(void) {
     MX_TIM2_Init();
 
     /* USER CODE BEGIN 2 */
+    // 4 wait states for flash
+    MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
+
     HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);

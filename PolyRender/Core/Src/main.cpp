@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "bdma.h"
 #include "dma.h"
 #include "gpio.h"
 #include "i2c.h"
@@ -102,6 +103,7 @@ int main(void) {
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
+    MX_BDMA_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
     MX_I2C1_Init();
@@ -119,7 +121,10 @@ int main(void) {
     MX_TIM5_Init();
     MX_TIM15_Init();
     MX_TIM16_Init();
+
     /* USER CODE BEGIN 2 */
+    // 4 wait states for flash
+    MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
     HAL_TIM_Base_Start(&htim2);
 

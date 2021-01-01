@@ -6,7 +6,7 @@
  ******************************************************************************
  * @attention
  *
- * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
  * All rights reserved.</center></h2>
  *
  * This software component is licensed by ST under BSD 3-Clause license,
@@ -18,7 +18,7 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "dma.h"
+#include "bdma.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -35,28 +35,15 @@
 /**
  * Enable DMA controller clock
  */
-void MX_DMA_Init(void) {
+void MX_BDMA_Init(void) {
 
     /* DMA controller clock enable */
-    __HAL_RCC_DMA1_CLK_ENABLE();
-    __HAL_RCC_DMA2_CLK_ENABLE();
+    __HAL_RCC_BDMA_CLK_ENABLE();
 
     /* DMA interrupt init */
-    /* DMA1_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-    /* DMA2_Stream0_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-    /* DMA2_Stream1_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-    /* DMA2_Stream2_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-    /* DMA2_Stream3_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+    /* BDMA_Channel0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(BDMA_Channel0_IRQn, 2, 0);
+    HAL_NVIC_EnableIRQ(BDMA_Channel0_IRQn);
 }
 
 /* USER CODE BEGIN 2 */

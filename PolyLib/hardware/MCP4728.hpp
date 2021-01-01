@@ -47,12 +47,14 @@ I2C Address (7bit) ->   1 / 1 /0 / 0 / A2 / A1 / A0 / x
 
 class MCP4728 {
   public:
-    MCP4728(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddress, GPIO_TypeDef *latchPort, uint16_t latchPin) {
+    MCP4728(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddress, GPIO_TypeDef *latchPort, uint16_t latchPin,
+            uint16_t *buffer) {
 
         this->i2cHandle = i2cHandle;
         this->i2cAddress = i2cAddress; // combine default address with custom adress
         this->latchPin = latchPin;
         this->latchPort = latchPort;
+        this->data = buffer;
 
         i2cDeviceAddressing = i2cDeviceCode | i2cAddress << 1;
     }
@@ -83,21 +85,22 @@ class MCP4728 {
 
         // each half word needs to be swapped, because of reasons
         uint8_t sendOut[8];
-        ((uint32_t *)sendOut)[0] = __REV16(((uint32_t *)pData)[0]);
-        ((uint32_t *)sendOut)[1] = __REV16(((uint32_t *)pData)[1]);
+        ((uint32_t *)sendOut)[0] = __REV16(((uint32_t *)data)[0]);
+        ((uint32_t *)sendOut)[1] = __REV16(((uint32_t *)data)[1]);
 
-        HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
+        // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
+        HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, sendOut, 8);
     }
 
     // set the pointer to the data
-    inline void setDataPointer(uint8_t *pData) { this->pData = pData; }
+    // inline void setDataPointer(uint16_t *pData) { this->pData = pData; }
 
     I2C_HandleTypeDef *i2cHandle;
     uint8_t i2cAddress = 0;       // default address
     uint8_t i2cDeviceCode = 0xC0; // default address
     uint8_t i2cDeviceAddressing = 0;
 
-    uint8_t *pData = nullptr;
+    uint16_t *data = nullptr;
 
     uint16_t latchPin;
     GPIO_TypeDef *latchPort;
