@@ -37,7 +37,7 @@ DMA_HandleTypeDef hdma_i2c4_tx;
 void MX_I2C1_Init(void) {
 
     hi2c1.Instance = I2C1;
-    hi2c1.Init.Timing = 0x10300A0A; // 3.4 mhz
+    hi2c1.Init.Timing = 0x10650400; // 3.4 mhz 0050174F 00CC0609
     hi2c1.Init.OwnAddress1 = 0;
     hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -50,7 +50,7 @@ void MX_I2C1_Init(void) {
     }
     /** Configure Analogue filter
      */
-    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
         Error_Handler();
     }
     /** Configure Digital filter
@@ -66,7 +66,7 @@ void MX_I2C1_Init(void) {
 void MX_I2C2_Init(void) {
 
     hi2c2.Instance = I2C2;
-    hi2c2.Init.Timing = 0x10300A0A;
+    hi2c2.Init.Timing = 0x10650400;
     hi2c2.Init.OwnAddress1 = 0;
     hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -79,7 +79,7 @@ void MX_I2C2_Init(void) {
     }
     /** Configure Analogue filter
      */
-    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
         Error_Handler();
     }
     /** Configure Digital filter
@@ -95,7 +95,7 @@ void MX_I2C2_Init(void) {
 void MX_I2C3_Init(void) {
 
     hi2c3.Instance = I2C3;
-    hi2c3.Init.Timing = 0x10300A0A;
+    hi2c3.Init.Timing = 0x10650400;
     hi2c3.Init.OwnAddress1 = 0;
     hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -108,7 +108,7 @@ void MX_I2C3_Init(void) {
     }
     /** Configure Analogue filter
      */
-    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
         Error_Handler();
     }
     /** Configure Digital filter
@@ -124,7 +124,7 @@ void MX_I2C3_Init(void) {
 void MX_I2C4_Init(void) {
 
     hi2c4.Instance = I2C4;
-    hi2c4.Init.Timing = 0x10300A0A;
+    hi2c4.Init.Timing = 0x10650400;
     hi2c4.Init.OwnAddress1 = 0;
     hi2c4.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     hi2c4.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -137,7 +137,7 @@ void MX_I2C4_Init(void) {
     }
     /** Configure Analogue filter
      */
-    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c4, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c4, I2C_ANALOGFILTER_DISABLE) != HAL_OK) {
         Error_Handler();
     }
     /** Configure Digital filter
@@ -194,12 +194,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c1_tx);
 
-    /* I2C1 interrupt Init */
-    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C1_ER_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
-  /* USER CODE BEGIN I2C1_MspInit 1 */
+        /* I2C1 interrupt Init */
+        HAL_NVIC_SetPriority(I2C1_EV_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
+        HAL_NVIC_SetPriority(I2C1_ER_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
+        /* USER CODE BEGIN I2C1_MspInit 1 */
 
         /* USER CODE END I2C1_MspInit 1 */
     }
@@ -244,12 +244,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c2_tx);
 
-    /* I2C2 interrupt Init */
-    HAL_NVIC_SetPriority(I2C2_EV_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C2_ER_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
-  /* USER CODE BEGIN I2C2_MspInit 1 */
+        /* I2C2 interrupt Init */
+        HAL_NVIC_SetPriority(I2C2_EV_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
+        HAL_NVIC_SetPriority(I2C2_ER_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
+        /* USER CODE BEGIN I2C2_MspInit 1 */
 
         /* USER CODE END I2C2_MspInit 1 */
     }
@@ -294,12 +294,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c3_tx);
 
-    /* I2C3 interrupt Init */
-    HAL_NVIC_SetPriority(I2C3_EV_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C3_ER_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
-  /* USER CODE BEGIN I2C3_MspInit 1 */
+        /* I2C3 interrupt Init */
+        HAL_NVIC_SetPriority(I2C3_EV_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
+        HAL_NVIC_SetPriority(I2C3_ER_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
+        /* USER CODE BEGIN I2C3_MspInit 1 */
 
         /* USER CODE END I2C3_MspInit 1 */
     }
@@ -340,12 +340,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c4_tx);
 
-    /* I2C4 interrupt Init */
-    HAL_NVIC_SetPriority(I2C4_EV_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C4_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C4_ER_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(I2C4_ER_IRQn);
-  /* USER CODE BEGIN I2C4_MspInit 1 */
+        /* I2C4 interrupt Init */
+        HAL_NVIC_SetPriority(I2C4_EV_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C4_EV_IRQn);
+        HAL_NVIC_SetPriority(I2C4_ER_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(I2C4_ER_IRQn);
+        /* USER CODE BEGIN I2C4_MspInit 1 */
 
         /* USER CODE END I2C4_MspInit 1 */
     }
@@ -368,13 +368,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *i2cHandle) {
 
         HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7);
 
-    /* I2C1 DMA DeInit */
-    HAL_DMA_DeInit(i2cHandle->hdmatx);
+        /* I2C1 DMA DeInit */
+        HAL_DMA_DeInit(i2cHandle->hdmatx);
 
-    /* I2C1 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C1_ER_IRQn);
-  /* USER CODE BEGIN I2C1_MspDeInit 1 */
+        /* I2C1 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
+        HAL_NVIC_DisableIRQ(I2C1_ER_IRQn);
+        /* USER CODE BEGIN I2C1_MspDeInit 1 */
 
         /* USER CODE END I2C1_MspDeInit 1 */
     }
@@ -393,13 +393,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *i2cHandle) {
 
         HAL_GPIO_DeInit(GPIOF, GPIO_PIN_1);
 
-    /* I2C2 DMA DeInit */
-    HAL_DMA_DeInit(i2cHandle->hdmatx);
+        /* I2C2 DMA DeInit */
+        HAL_DMA_DeInit(i2cHandle->hdmatx);
 
-    /* I2C2 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(I2C2_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C2_ER_IRQn);
-  /* USER CODE BEGIN I2C2_MspDeInit 1 */
+        /* I2C2 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(I2C2_EV_IRQn);
+        HAL_NVIC_DisableIRQ(I2C2_ER_IRQn);
+        /* USER CODE BEGIN I2C2_MspDeInit 1 */
 
         /* USER CODE END I2C2_MspDeInit 1 */
     }
@@ -418,13 +418,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *i2cHandle) {
 
         HAL_GPIO_DeInit(GPIOH, GPIO_PIN_8);
 
-    /* I2C3 DMA DeInit */
-    HAL_DMA_DeInit(i2cHandle->hdmatx);
+        /* I2C3 DMA DeInit */
+        HAL_DMA_DeInit(i2cHandle->hdmatx);
 
-    /* I2C3 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(I2C3_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C3_ER_IRQn);
-  /* USER CODE BEGIN I2C3_MspDeInit 1 */
+        /* I2C3 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(I2C3_EV_IRQn);
+        HAL_NVIC_DisableIRQ(I2C3_ER_IRQn);
+        /* USER CODE BEGIN I2C3_MspDeInit 1 */
 
         /* USER CODE END I2C3_MspDeInit 1 */
     }
@@ -443,13 +443,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef *i2cHandle) {
 
         HAL_GPIO_DeInit(GPIOF, GPIO_PIN_15);
 
-    /* I2C4 DMA DeInit */
-    HAL_DMA_DeInit(i2cHandle->hdmatx);
+        /* I2C4 DMA DeInit */
+        HAL_DMA_DeInit(i2cHandle->hdmatx);
 
-    /* I2C4 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(I2C4_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C4_ER_IRQn);
-  /* USER CODE BEGIN I2C4_MspDeInit 1 */
+        /* I2C4 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(I2C4_EV_IRQn);
+        HAL_NVIC_DisableIRQ(I2C4_ER_IRQn);
+        /* USER CODE BEGIN I2C4_MspDeInit 1 */
 
         /* USER CODE END I2C4_MspDeInit 1 */
     }

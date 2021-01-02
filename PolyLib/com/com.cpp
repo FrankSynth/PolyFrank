@@ -555,7 +555,7 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
 
 uint8_t COMinterChip::decodeCurrentInBuffer() {
     switchBuffer();
-    println("decode Buffer");
+    // println("decode Buffer");
     // necessary decoding vars
     uint8_t outputID;
     uint8_t inputID;
@@ -571,7 +571,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     // assemble size
     uint16_t sizeOfReadBuffer = *(uint16_t *)(inBufferPointer[currentBufferSelect]);
-    println("Buffer size: ", sizeOfReadBuffer);
+    // println("Buffer size: ", sizeOfReadBuffer);
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
@@ -582,7 +582,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         currentByte = (inBufferPointer[currentBufferSelect])[i];
-        println("currentByte: ", currentByte);
+        // println("currentByte: ", currentByte);
 
         switch (currentByte & CMD_TYPEMASK) {
 
@@ -674,7 +674,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     case LASTBYTE:
                         // transmission complete
-                        println("decode success!");
+                        // println("decode success!");
                         return 0;
 
                     default:
@@ -702,7 +702,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         allLayers[0]->getModules()[modul]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
 
-                        println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountInt);
+                        // println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountInt);
 
                         break;
                     case UPDATESETTINGFLOAT:
@@ -712,7 +712,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         allLayers[0]->getModules()[modul]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
 
-                        println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountFloat);
+                        // println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountFloat);
 
                         break;
                     case RETRIGGER:

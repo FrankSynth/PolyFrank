@@ -54,7 +54,7 @@ class MCP4728 {
         this->i2cAddress = i2cAddress; // combine default address with custom adress
         this->latchPin = latchPin;
         this->latchPort = latchPort;
-        this->data = buffer;
+        this->dmabuffer = buffer;
 
         i2cDeviceAddressing = i2cDeviceCode | i2cAddress << 1;
     }
@@ -64,19 +64,28 @@ class MCP4728 {
         // set latch pin LOW
         HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET);
 
-        uint8_t initData[2];
+        uint32_t zeros = 0;
+        fastMemset(&zeros, (uint32_t *)data, 2);
+
+        uint8_t initData;
 
         // gain 2x  -> output = gain * internal reference (2048mV)
 
-        initData[0] = 0x8F; // set output reference to internal 2048mV
-        initData[1] = 0xCF; // set gain for all outputs to 2x
+        initData = 0b11001111; // set gain for all outputs to 2x
 
-        // timeout 50us
-
-        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, initData, 1, 50) != HAL_OK) {
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
             Error_Handler();
             println("I2C Dac Transmit Error");
         }
+
+        initData = 0x8F; // set output reference to internal 2048mV
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
+            Error_Handler();
+            println("I2C Dac Transmit Error");
+        }
+
+        // HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
     }
 
     // transmit data in fastMode
@@ -84,13 +93,21 @@ class MCP4728 {
         // pData[0] |= 0b01000000; // enable FastMode
 
         // each half word needs to be swapped, because of reasons
-        uint8_t sendOut[8];
-        ((uint32_t *)sendOut)[0] = __REV16(((uint32_t *)data)[0]);
-        ((uint32_t *)sendOut)[1] = __REV16(((uint32_t *)data)[1]);
+        // uint8_t sendOut[8];
+        ((uint32_t *)data)[0] = __REV16(((uint32_t *)data)[0]);
+        ((uint32_t *)data)[1] = __REV16(((uint32_t *)data)[1]);
+
+        fast_copy_f32((uint32_t *)data, (uint32_t *)dmabuffer, 2);
 
         // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
-        HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, sendOut, 8);
+        if (HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8) != HAL_OK) {
+            Error_Handler();
+            println("I2C DMA Transmit Error");
+        }
     }
+
+    inline void setLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET); }
+    inline void resetLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET); }
 
     // set the pointer to the data
     // inline void setDataPointer(uint16_t *pData) { this->pData = pData; }
@@ -100,8 +117,11 @@ class MCP4728 {
     uint8_t i2cDeviceCode = 0xC0; // default address
     uint8_t i2cDeviceAddressing = 0;
 
-    uint16_t *data = nullptr;
+    uint16_t data[4];
 
     uint16_t latchPin;
     GPIO_TypeDef *latchPort;
+
+  private:
+    uint16_t *dmabuffer = nullptr;
 };

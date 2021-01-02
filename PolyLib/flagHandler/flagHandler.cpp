@@ -37,10 +37,18 @@ void initFlagHandler() {
     interChipReceive_DMA_FinishedFunc = nullptr;
     interChipReceive_MDMA_FinishedFunc = nullptr;
 
-    saiHalfCptl = false;
-    saiHalfCptlFunc = nullptr;
-    saiCptl = false;
-    saiCptlFunc = nullptr;
+    // saiHalfCptl = false;
+    // saiHalfCptlFunc = nullptr;
+    // saiCptl = false;
+    // saiCptlFunc = nullptr;
+
+    cvDacAStarted = false;
+    cvDacBStarted = false;
+    cvDacCStarted = false;
+    cvDacCFinished = false;
+
+    renderNewCV = true;
+    renderNewCVFunc = nullptr;
 #endif
 }
 
@@ -93,10 +101,18 @@ std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 bool interChipReceive_newDataAvailable;
 std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 
-bool saiHalfCptl;
-std::function<uint8_t()> saiHalfCptlFunc;
-bool saiCptl;
-std::function<uint8_t()> saiCptlFunc;
+// bool saiHalfCptl;
+// std::function<uint8_t()> saiHalfCptlFunc;
+// bool saiCptl;
+// std::function<uint8_t()> saiCptlFunc;
+
+bool cvDacAStarted;
+bool cvDacBStarted;
+bool cvDacCStarted;
+bool cvDacCFinished;
+
+bool renderNewCV;
+std::function<void()> renderNewCVFunc;
 #endif
 
 // handle all interrupts
@@ -193,6 +209,11 @@ void handleFlags() {
 
 #elif POLYRENDER
 
+    if (renderNewCV) {
+        FlagHandler::renderNewCV = false;
+        renderNewCVFunc();
+    }
+
     // InterChip receive flags
     if (interChipReceive_DMA_Finished) {
         if (interChipReceive_DMA_FinishedFunc != nullptr) {
@@ -217,29 +238,29 @@ void handleFlags() {
         }
     }
 
-    if (saiHalfCptl) {
-        if (saiHalfCptlFunc != nullptr) {
-            if (saiHalfCptlFunc() == 0) {
-                saiHalfCptlFunc = nullptr;
-                saiHalfCptl = 0;
-            }
-        }
-        else {
-            saiHalfCptl = 0;
-        }
-    }
+    // if (saiHalfCptl) {
+    //     if (saiHalfCptlFunc != nullptr) {
+    //         if (saiHalfCptlFunc() == 0) {
+    //             saiHalfCptlFunc = nullptr;
+    //             saiHalfCptl = 0;
+    //         }
+    //     }
+    //     else {
+    //         saiHalfCptl = 0;
+    //     }
+    // }
 
-    if (saiCptl) {
-        if (saiCptlFunc != nullptr) {
-            if (saiCptlFunc() == 0) {
-                saiCptlFunc = nullptr;
-                saiCptl = 0;
-            }
-        }
-        else {
-            saiCptl = 0;
-        }
-    }
+    // if (saiCptl) {
+    //     if (saiCptlFunc != nullptr) {
+    //         if (saiCptlFunc() == 0) {
+    //             saiCptlFunc = nullptr;
+    //             saiCptl = 0;
+    //         }
+    //     }
+    //     else {
+    //         saiCptl = 0;
+    //     }
+    // }
 
 #endif
 }

@@ -219,7 +219,7 @@ void MX_TIM15_Init(void) {
     htim15.Instance = TIM15;
     htim15.Init.Prescaler = 240 - 1;
     htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim15.Init.Period = 10;
+    htim15.Init.Period = CVTIMERINTERVALUS - 1;
     htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim15.Init.RepetitionCounter = 0;
     htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -261,7 +261,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         __HAL_RCC_TIM2_CLK_ENABLE();
 
         /* TIM2 interrupt Init */
-        HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+        HAL_NVIC_SetPriority(TIM2_IRQn, 1, 0);
         HAL_NVIC_EnableIRQ(TIM2_IRQn);
         /* USER CODE BEGIN TIM2_MspInit 1 */
 
@@ -285,7 +285,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         __HAL_RCC_TIM15_CLK_ENABLE();
 
         /* TIM15 interrupt Init */
-        HAL_NVIC_SetPriority(TIM15_IRQn, 0, 0);
+        HAL_NVIC_SetPriority(TIM15_IRQn, 1, 0);
         HAL_NVIC_EnableIRQ(TIM15_IRQn);
         /* USER CODE BEGIN TIM15_MspInit 1 */
 
@@ -299,7 +299,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         __HAL_RCC_TIM16_CLK_ENABLE();
 
         /* TIM16 interrupt Init */
-        HAL_NVIC_SetPriority(TIM16_IRQn, 0, 0);
+        HAL_NVIC_SetPriority(TIM16_IRQn, 1, 0);
         HAL_NVIC_EnableIRQ(TIM16_IRQn);
         /* USER CODE BEGIN TIM16_MspInit 1 */
 
