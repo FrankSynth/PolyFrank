@@ -40,12 +40,14 @@ class ADSR : public BaseModule {
         inputs.push_back(&iDecay);
         inputs.push_back(&iSustain);
         inputs.push_back(&iRelease);
+        inputs.push_back(&iAmount);
 
         knobs.push_back(&aDelay);
         knobs.push_back(&aAttack);
         knobs.push_back(&aDecay);
         knobs.push_back(&aSustain);
         knobs.push_back(&aRelease);
+        knobs.push_back(&aAmount);
 
         knobs.push_back(&aKeytrack);
         knobs.push_back(&aVelocity);
@@ -61,20 +63,22 @@ class ADSR : public BaseModule {
     Input iDecay = Input("DECAY");
     Input iSustain = Input("SUSTAIN");
     Input iRelease = Input("RELEASE");
+    Input iAmount = Input("AMOUNT");
 
-    Analog aDelay = Analog("DELAY", 0.001, 10, true, logMap);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, true, logMap);
-    Analog aDecay = Analog("DECAY", 0.001, 10, true, logMap);
-    Analog aSustain = Analog("SUSTAIN", 0.001, 10, true, logMap);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, true, logMap);
+    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 1, true, logMap);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap);
+    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap);
 
-    Analog aKeytrack = Analog("KEYTRACK", 0, 1, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, true, linMap);
-    Analog aShape = Analog("SHAPE", 0, 1, true, linMap);
+    Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
     std::vector<std::string> valueNames{"OFF", "ON"};
 
-    Digital dLoop = Digital("LOOP", 0, 1, true, &valueNames);
+    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &valueNames, nullptr);
 
     void render();
 };
@@ -93,6 +97,7 @@ class OSC_A : public BaseModule {
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iOctave);
 
+        knobs.push_back(&aFM);
         knobs.push_back(&aPwm);
         knobs.push_back(&aMorph);
         knobs.push_back(&aGlide);
@@ -117,17 +122,18 @@ class OSC_A : public BaseModule {
     Input iBitcrusher = Input("BITCRUSHER");
     Input iOctave = Input("OCTAVE");
 
-    Analog aPwm = Analog("PWM", 0, 1, true, linMap);
-    Analog aMorph = Analog("MORPH", 0, 1, true, linMap);
-    Analog aGlide = Analog("GLIDE", 0, 10, true, logMap);
-    Analog aLevel = Analog("LEVEL", 0, 1, true, logMap);
-    Analog aSpread = Analog("SPREAD", 0, 1, true, logMap);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, true, linMap);
-    Analog aDetune = Analog("DETUNE", 0, 1, true, logMap);
+    Analog aFM = Analog("FM", 0, 1, 0, true, logMap, &iFm);
+    Analog aPwm = Analog("PWM", 0, 1, 0.5, true, linMap, &iPwm);
+    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aGlide = Analog("GLIDE", 0, 10, 0, true, logMap, &iGlide);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap, &iSpread);
+    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
+    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
 
-    Digital dNote = Digital("NOTE", 22, 108, false);
-    Digital dOctave = Digital("OCTAVE", -4, 4, true);
-    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, true);
+    Digital dNote = Digital("NOTE", 22, 108, 22, false);
+    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, 0, true);
 };
 
 class OSC_B : public BaseModule {
@@ -144,6 +150,7 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iOctave);
         inputs.push_back(&iSync);
 
+        knobs.push_back(&aFm);
         knobs.push_back(&aPwm);
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
@@ -166,15 +173,16 @@ class OSC_B : public BaseModule {
     Input iOctave = Input("OCTAVE");
     Input iSync = Input("OCTAVE");
 
-    Analog aPwm = Analog("PWM", 0, 1, true, linMap);
-    Analog aMorph = Analog("MORPH", 0, 1, true, linMap);
-    Analog aTuning = Analog("TUNING", 0, 10, true, logMap);
-    Analog aLevel = Analog("LEVEL", 0, 1, true, logMap);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, true, linMap);
+    Analog aFm = Analog("PWM", 0, 1, 0, true, linMap, &iFm);
+    Analog aPwm = Analog("PWM", 0, 1, 0.5, true, linMap, &iPwm);
+    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
 
-    Digital dNote = Digital("NOTE", 22, 108, false);
-    Digital dOctave = Digital("OCTAVE", -4, 4, true);
-    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, true);
+    Digital dNote = Digital("NOTE", 22, 108, 22, false);
+    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, 0, true);
 };
 
 class LFO : public BaseModule {
@@ -196,12 +204,14 @@ class LFO : public BaseModule {
     Output out = Output("OUT");
     Input iFm = Input("FM");
     Input iSync = Input("SYNC");
-    Analog aFreq = Analog("FREQ", 0.1, 100, true, logMap);
-    Analog aShape = Analog("SHAPE", 0.1, 100, true, linMap);
-    Digital dFreq = Digital("FREQ", 0, 22, true);
-    Digital dSync = Digital("SYNC", 0, 1, true);
-    Digital dTempoSync = Digital("T-SYNC", 0, 1, false);
-    Digital dLockPhase = Digital("PHASE", 0, 1, false);
+
+    Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap);
+    Analog aFm = Analog("FM", 0, 1, 0, true, linMap, &iFm);
+    Analog aShape = Analog("SHAPE", 0.1, 100, 1, true, linMap);
+    Digital dFreq = Digital("FREQ", 0, 22, 0, true);
+    Digital dSync = Digital("SYNC", 0, 1, 0, true, nullptr, &iSync);
+    Digital dTempoSync = Digital("T-SYNC", 0, 1, 0, false);
+    Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
 };
 
 class TEST : public BaseModule {
@@ -214,16 +224,16 @@ class TEST : public BaseModule {
         knobs.push_back(&aDistort);
         knobs.push_back(&aFreq);
 
-        switches.push_back(&dSelectFilter); 
+        switches.push_back(&dSelectFilter);
     }
     Output out = Output("OUT");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 1, true, logMap);
-    Analog aResonance = Analog("RES", 0, 1, true, linMap);
-    Analog aDistort = Analog("DIST", 0, 1, true, linMap);
-    Analog aFreq = Analog("FREQ", 0, 1, true, linMap);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, logMap);
+    Analog aResonance = Analog("RES", 0, 1, 0, true, linMap);
+    Analog aDistort = Analog("DIST", 0, 1, 0, true, linMap);
+    Analog aFreq = Analog("FREQ", 0, 1, 0, true, linMap);
 
-    Digital dSelectFilter = Digital("dB", 0, 3, true);
+    Digital dSelectFilter = Digital("dB", 0, 3, 0, true);
 };
 
 // class VCFSteiner : public BaseModule {
@@ -300,8 +310,8 @@ class Sub : public BaseModule {
     Input iShape = Input("SHAPE");
     Input iLevel = Input("LEVEL");
 
-    Analog aShape = Analog("SHAPE", 0, 1, true, logMap);
-    Analog aLevel = Analog("LEVEL", 0, 1, true, logMap);
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
 };
 
 class Midi : public BaseModule {
@@ -325,10 +335,10 @@ class Midi : public BaseModule {
     Output oVeloctiy = Output("VELOCITY");
     Output oGate = Output("GATE");
 
-    Analog aMod = Analog("MOD", 0, 1, true, linMap);
-    Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, true, linMap);
-    Analog aPitchbend = Analog("PITCHBEND", -1, 1, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, true, linMap);
+    Analog aMod = Analog("MOD", 0, 1, 0, true, linMap);
+    Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, true, linMap);
+    Analog aPitchbend = Analog("PITCHBEND", -1, 1, 0, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
 
     void render();
 };

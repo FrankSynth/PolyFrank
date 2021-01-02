@@ -1,6 +1,8 @@
 // Extracted wavetable from file strings01.wav
 // This file contains 6982 samples
 
+#ifdef POLYRENDER
+
 #include "wavetables.hpp"
 
 const float wavetabledata_strings01[6982] = { // start wavetable
@@ -2334,3 +2336,5 @@ const float wavetabledata_strings01[6982] = { // start wavetable
 };
 
 const wavetable wavetable_strings01 = {6982, wavetabledata_strings01};
+
+#endif

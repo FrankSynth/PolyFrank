@@ -2,6 +2,10 @@
 
 std::vector<Layer *> allLayers;
 
+/**
+ * @brief init for both Control and Render
+ *
+ */
 void initPoly() {
     // set all Flags to default state
 
