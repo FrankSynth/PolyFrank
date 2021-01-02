@@ -28,6 +28,7 @@ RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCH
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
+
     // general inits
     initPoly();
 
@@ -38,14 +39,14 @@ void PolyRenderInit() {
     HAL_Delay(200);
     audioDacA.init();
 
-    // TODO copy wavetables
+    // TODO copy wavetables to RAM D1
     initAudioRendering();
 
     // CV DACs
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
-    FlagHandler::renderNewCVFunc = std::bind<void>(renderCVs);
+    FlagHandler::renderNewCVFunc = renderCVs;
 
     // Ladder stuff
     switchLadder.disableChannels();
@@ -73,11 +74,9 @@ void PolyRenderRun() {
 
     elapsedMillis millitimer = 0;
 
-    // elapsedMillis dacSendTimer = 0;
-    // elapsedMicros dacSendTimer2 = 0;
     uint32_t microTimer = micros();
 
-    // TODO remove temp
+    // TODO remove this temporal init val
     layerA.test.aCutoff.valueMapped = 1;
 
     while (1) {
@@ -89,13 +88,9 @@ void PolyRenderRun() {
     }
 }
 
-// EXTI Callbacks
-void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-    // reception Line from Control
-    if (pin == GPIO_PIN_8)
-        FlagHandler::interChipReceive_DMA_Finished = true;
-}
+// CALLBACKS
 
+// cv DACs Send Callbacks
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     if (FlagHandler::cvDacAStarted) {
         cvDacB.fastUpdate();
@@ -110,13 +105,11 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     else if (FlagHandler::cvDacCStarted) {
         FlagHandler::cvDacCStarted = false;
         FlagHandler::cvDacCFinished = true;
-        // println("ALL I2C DONE <<<<<<<<<<<<<<<<<<<<<<<<<<<<");
     }
 }
-void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
-    // println("i2c tx ERROR");
-}
+// void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
 
+// Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]), SAIDMABUFFERSIZE, AUDIOCHANNELS);
 }
@@ -125,6 +118,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE, AUDIOCHANNELS);
 }
 
+// reception from Control SPI
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com SPI 1
@@ -136,21 +130,23 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     }
 }
 
-// TODO insert all DACs
-inline void resetLatchOnAllDACs() {
-
-    cvDacA.resetLatchPin();
-    cvDacB.resetLatchPin();
-    cvDacC.resetLatchPin();
+// reception line callback
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    // reception Line from Control
+    if (pin == GPIO_PIN_8)
+        FlagHandler::interChipReceive_DMA_Finished = true;
 }
 
+// cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
         // println("timer interrupt: ", micros());
         if (FlagHandler::cvDacCFinished) {
             // println("dac rendering was done");
             FlagHandler::cvDacCFinished = false;
-            resetLatchOnAllDACs();
+            cvDacA.resetLatchPin();
+            cvDacB.resetLatchPin();
+            cvDacC.resetLatchPin();
             FlagHandler::renderNewCV = true;
         }
     }

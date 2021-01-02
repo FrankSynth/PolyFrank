@@ -126,11 +126,13 @@ int main(void) {
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
-    // TODO timer IRQ for CV rendering, higher than Audio rendering, plus flag for CV rendering
+    // timer cv DAC latch
     HAL_TIM_Base_Start_IT(&htim15);
 
+    // timer micros()
     HAL_TIM_Base_Start(&htim2);
 
+    // timer LEDs
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
@@ -143,8 +145,7 @@ int main(void) {
     println("PolyRender Init");
     PolyRenderInit();
 
-    println("Init done");
-
+    // some example LED Brightness
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1);
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 2);
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 4);
@@ -152,17 +153,8 @@ int main(void) {
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 8);
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 10);
 
+    // start main programm
     PolyRenderRun();
-
-    /* USER CODE END 2 */
-
-    /* Infinite loop */
-    /* USER CODE BEGIN WHILE */
-    while (1) {
-        /* USER CODE END WHILE */
-        /* USER CODE BEGIN 3 */
-    }
-    /* USER CODE END 3 */
 }
 
 /**

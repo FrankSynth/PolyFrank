@@ -2,10 +2,10 @@
 
 void Setting::setValue(int32_t newValue) {
     value = testInt(newValue, min, max);
-    if (valueNameList == nullptr)
-        valueName = std::to_string(value);
 
 #ifdef POLYCONTROL
+    if (valueNameList == nullptr)
+        valueName = std::to_string(value);
         // if (sendOutViaCom) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
@@ -39,9 +39,8 @@ void Analog::setValue(int32_t newValue) {
     //     valueMapped = (logf(value + 1) * (max - min)) / logf(MAX_VALUE_12BIT + 1) + min; // Antilog with mapping
     // }
 
-    valueName = std::to_string(valueMapped);
-
 #ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
@@ -66,9 +65,9 @@ const std::string &Digital::getValueAsString() {
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
     valueMapped = round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
-    valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
@@ -77,9 +76,9 @@ void Digital::setValue(int32_t newValue) {
 
 void Digital::nextValue() {
     valueMapped = changeInt(valueMapped, 1, min, max);
-    valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
@@ -88,9 +87,9 @@ void Digital::nextValue() {
 
 void Digital::previousValue() {
     valueMapped = changeInt(valueMapped, -1, min, max);
-    valueName = std::to_string(valueMapped);
 
 #ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }

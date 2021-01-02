@@ -1,6 +1,8 @@
 // Extracted wavetable from file nylonGuitar01.wav
 // This file contains 13964 samples
 
+#ifdef POLYRENDER
+
 #include "wavetables.hpp"
 
 const float wavetabledata_nylonGuitar01[13964] = { // start wavetable
@@ -4662,3 +4664,5 @@ const float wavetabledata_nylonGuitar01[13964] = { // start wavetable
 };
 
 const wavetable wavetable_nylonGuitar01 = {13964, wavetabledata_nylonGuitar01};
+
+#endif

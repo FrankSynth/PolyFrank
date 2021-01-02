@@ -6,8 +6,10 @@
 #include <cmath>
 #include <functional>
 #include <list>
-#include <string>
 #include <vector>
+#ifdef POLYCONTROL
+#include <string>
+#endif
 
 #define MAX_VALUE_12BIT 3340 // todo andere rail to rail Opamp.. dann auf größere range setzen
 #define MIN_VALUE_12BIT 66   // todo andere rail to rail Opamp.. dann auf größere range setzen
@@ -92,16 +94,18 @@ class Setting : public DataElement {
     const std::string &getValueAsString();
 };
 
+class Input;
+
 // derived class Poti
 class Analog : public DataElement {
   public:
-    Analog(const char *name, float min = 0, float max = 1, bool sendOutViaCom = true, typeLinLog mapping = linMap,
-           uint8_t displayVis = 1) {
-
+    Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
+           typeLinLog mapping = linMap, Input *input = nullptr, uint8_t displayVis = 1) {
         this->value = 0;
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
+        this->defaultValue = defaultValue;
 
         this->mapping = mapping;
 
@@ -109,21 +113,31 @@ class Analog : public DataElement {
 
         this->sendOutViaCom = sendOutViaCom;
         this->displayVis = displayVis;
+
+        this->input = input;
     }
 
     void setValue(int32_t newValue);
-    void resetValue() { setValue(defaultValue); }
+    void resetValue() { setValueWithoutMapping(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
 
     void changeValue(int32_t change) { setValue(value + change); }
-    void setValueWithoutMapping(float newValue) { valueMapped = newValue; }
+    void setValueWithoutMapping(float newValue) {
+        valueMapped = newValue;
+#ifdef POLYCONTROL
+        valueName = std::to_string(valueMapped);
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, valueMapped);
+        }
+#endif
+    }
     void setValueWithoutMapping(uint8_t *newValue) { value = *(float *)newValue; }
 
     const std::string &getValueAsString();
 
     std::string valueName;
-    int32_t defaultValue = 0;
+    float defaultValue = 0;
 
     int32_t value;
     float valueMapped;
@@ -131,6 +145,7 @@ class Analog : public DataElement {
     float max;
     float minMaxDifference;
     uint8_t displayVis;
+    Input *input;
 
   protected:
     typeLinLog mapping;
@@ -139,13 +154,14 @@ class Analog : public DataElement {
 // derived class Poti
 class Digital : public DataElement {
   public:
-    Digital(const char *name, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
-            const std::vector<std::string> *valueNameList = nullptr, uint8_t displayVis = 1) {
+    Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
+            const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, uint8_t displayVis = 1) {
         setValue(value);
 
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
+        this->defaultValue = defaultValue;
 
         this->name = name;
         this->sendOutViaCom = sendOutViaCom;
@@ -153,17 +169,27 @@ class Digital : public DataElement {
         this->displayVis = displayVis;
 
         this->valueNameList = valueNameList;
+
+        this->input = input;
     }
 
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
     void nextValue();
     void previousValue();
-    void resetValue() { setValue(defaultValue); }
+    void resetValue() { setValueWithoutMapping(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
-    void setValueWithoutMapping(int32_t newValue) { valueMapped = newValue; }
+    void setValueWithoutMapping(int32_t newValue) {
+        valueMapped = newValue;
+#ifdef POLYCONTROL
+        valueName = std::to_string(valueMapped);
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, valueMapped);
+        }
+#endif
+    }
     void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
 
     const std::string &getValueAsString();
@@ -180,6 +206,8 @@ class Digital : public DataElement {
     int32_t minMaxDifference;
 
     uint8_t displayVis;
+
+    Input *input;
 
   protected:
     typeLinLog mapping;
