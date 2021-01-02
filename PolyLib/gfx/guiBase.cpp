@@ -48,4 +48,15 @@ void focusUp() {
     }
 }
 
+void focusDown(FOCUSMODE type, uint8_t id) {
+    focus.type = type;
+    if (focus.type == FOCUSMODULE) {
+
+        focus.modul = id;
+    }
+    else {
+        focus.id = id;
+    }
+}
+
 #endif

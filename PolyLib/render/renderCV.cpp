@@ -1,3 +1,6 @@
+
+#ifdef POLYRENDER
+
 #include "renderCV.hpp"
 
 extern MCP4728 cvDacA;
@@ -35,3 +38,5 @@ void renderCVs() {
     // cvDacB.fastUpdate();
     // cvDacC.fastUpdate();
 }
+
+#endif

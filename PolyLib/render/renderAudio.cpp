@@ -1,3 +1,5 @@
+#ifdef POLYRENDER
+
 #include "renderAudio.hpp"
 #include "datacore/datalocation.hpp"
 #include "debughelper/debughelper.hpp"
@@ -59,3 +61,5 @@ void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels) {
         }
     }
 }
+
+#endif

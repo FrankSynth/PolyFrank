@@ -36,13 +36,15 @@ typedef enum {
     FOCUSMODULE,
     FOCUSINPUT,
     FOCUSOUTPUT,
-    FOCUSSETTING
+    FOCUSSETTING,
+    NOFOCUS
 
 } FOCUSMODE;
 
 typedef enum {
     ANALOG,
     DIGITAL,
+    MODULE,
     PATCHINPUT,
     PATCHOUTPUT,
     PATCHOUTOUT,
@@ -65,6 +67,7 @@ typedef struct {
 
     PatchElement *patch = nullptr;
 
+    BaseModule *modules = nullptr;
     actionHandle functionCW;
     actionHandle functionCCW;
     actionHandle functionPush;
@@ -94,6 +97,8 @@ class GUIPanelBase {
 
 void nextLayer();
 void focusUp();
+void focusDown(FOCUSMODE type, uint8_t id);
+
 void Todo();
 
 extern location focus;

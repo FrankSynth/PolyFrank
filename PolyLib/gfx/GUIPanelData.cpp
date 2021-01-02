@@ -169,6 +169,27 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
+void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+
+    BaseModule *data = entry->modules;
+
+    // clear
+
+    drawRectangleChampfered(cGrey, x, y, w, h, 1);
+
+    // get text
+    std::string text = data->getName();
+
+    // Draw Name
+    if (select) {
+        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawString(text, cFont_Select, x + w / 2, y + (-elementFont->size + h) / 2, elementFont, CENTER);
+    }
+    else {
+        drawString(text, cFont_Deselect, x + w / 2, y + (-elementFont->size + h) / 2, elementFont, CENTER);
+    }
+}
+
 void Data_PanelElement::Draw() {
     uint16_t relX = 0;
     uint16_t relY = 0;
@@ -207,6 +228,9 @@ void Data_PanelElement::Draw() {
         else if (entrys[x].type == PATCHOUTOUT) {
             drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
         }
+        else if (entrys[x].type == MODULE) {
+            drawModuleElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+        }
 
         entrys[x].functionCW = {nullptr, ""};
         entrys[x].functionCCW = {nullptr, ""};
@@ -240,9 +264,17 @@ void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
 void GUIPanelData::registerPanelSettings() {
 
     // register Scroll
-    actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
-                                         {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
-                                         {std::bind(&GUIPanelData::resetScroll, this), "RESET"});
+    if (newFocusLocation.type != NOFOCUS) {
+        actionHandler.registerActionEncoder1(
+            {std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
+            {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
+            {std::bind(focusDown, newFocusLocation.type, newFocusLocation.id), "focus"});
+    }
+    else {
+        actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
+                                             {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
+                                             {nullptr, ""});
+    }
 
     // register Panel Seetings Left
     actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
@@ -263,9 +295,11 @@ void GUIPanelData::Draw() {
     // check Scroll position
     checkScroll();
 
+    // resetFocus
+    newFocusLocation.type = NOFOCUS;
+
     if (focus.type == FOCUSMODULE) {
         registerModuleSettings();
-
         for (int i = 0; i < DATAPANELENTRYS; i++) {
             panelElements[i].Draw();
         }
@@ -278,6 +312,12 @@ void GUIPanelData::Draw() {
     }
     else if (focus.type == FOCUSINPUT) {
         registerModulePatchIn();
+        for (int i = 0; i < DATAPANELENTRYS; i++) {
+            panelElements[i].Draw();
+        }
+    }
+    else if (focus.type == FOCUSLAYER) {
+        registerLayerModules();
         for (int i = 0; i < DATAPANELENTRYS; i++) {
             panelElements[i].Draw();
         }
@@ -364,8 +404,16 @@ void GUIPanelData::registerModuleSettings() {
 
             if (analogElement->displayVis) { // element Visible
 
+                // register newFocusLocation
+                if (scroll - scrollOffset == elementIndex) {
+                    if (analogElement->input != nullptr) {
+                        newFocusLocation.id = analogElement->input->idGlobal;
+                    }
+                    newFocusLocation.type = FOCUSINPUT;
+                }
+
                 panelElements[elementIndex].addAnalogEntry(
-                    
+
                     analogElement, {std::bind(&Analog::changeValue, analogElement, 100), "AMOUNT"},
                     {std::bind(&Analog::changeValue, analogElement, -100), "AMOUNT"},
                     {std::bind(&Analog::resetValue, analogElement), "RESET"});
@@ -444,6 +492,42 @@ void GUIPanelData::registerModulePatchIn() {
 
         break;
     }
+}
+void GUIPanelData::registerLayerModules() {
+
+    newFocusLocation.type = FOCUSMODULE;
+
+    uint16_t size;
+
+    uint16_t dataIndex = 0;
+    uint16_t elementIndex = 0;
+
+    size = allLayers[focus.layer]->getModules().size();
+
+    dataIndex = scrollOffset;
+
+    while (true) {
+        if (elementIndex >= DATAPANELENTRYS) {
+            break;
+        }
+
+        if (dataIndex < size) {
+            BaseModule *moduleElement = allLayers[focus.layer]->getModules()[dataIndex];
+
+            panelElements[elementIndex].addModuleEntry(moduleElement, {nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+
+            if (scroll - scrollOffset == elementIndex) {
+                newFocusLocation.id = moduleElement->id;
+            }
+
+            dataIndex++;
+            elementIndex++;
+        }
+        else {
+            break;
+        }
+    }
+    panelElements[scroll - scrollOffset].select = 1;
 }
 
 void GUIPanelData::registerModulePatchOut() {
