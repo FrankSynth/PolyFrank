@@ -597,7 +597,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->updatePatchInOut(outputID, inputID, amountFloat);
+                        allLayers[0]->updatePatchInOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -607,7 +607,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->addPatchInOut(outputID, inputID, amountFloat);
+                        allLayers[0]->addPatchInOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -615,7 +615,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         outputID = (inBufferPointer[currentBufferSelect])[++i];
                         inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                        allLayers[0]->removePatchInOut(outputID, inputID);
+                        allLayers[0]->removePatchInOutById(outputID, inputID);
 
                         break;
                     case UPDATEOUTOUTPATCH:
@@ -626,7 +626,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->updatePatchOutOut(outputID, inputID, amountFloat);
+                        allLayers[0]->updatePatchOutOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -638,7 +638,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->addPatchOutOut(outputID, inputID, amountFloat);
+                        allLayers[0]->addPatchOutOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -646,7 +646,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         outputID = (inBufferPointer[currentBufferSelect])[++i];
                         inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                        allLayers[0]->removePatchOutOut(outputID, inputID);
+                        allLayers[0]->removePatchOutOutById(outputID, inputID);
 
                         break;
                     case DELETEALLPATCHES:
