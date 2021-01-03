@@ -201,6 +201,77 @@ class Noise : public BaseModule {
     void render();
 };
 
+class Steiner : public BaseModule {
+  public:
+    Steiner(const char *name) : BaseModule(name) { // call subclass
+        inputs.push_back(&iCutoff);
+        inputs.push_back(&iResonance);
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aLevel);
+
+        switches.push_back(&dMode);
+    }
+    Input iCutoff = Input("CUTOFF");
+    Input iResonance = Input("RESONANCE");
+    Input iLevel = Input("LEVEL");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
+
+    Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
+
+    void render();
+};
+
+class Ladder : public BaseModule {
+  public:
+    Ladder(const char *name) : BaseModule(name) { // call subclass
+        inputs.push_back(&iCutoff);
+        inputs.push_back(&iResonance);
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aLevel);
+        knobs.push_back(&aParSer);
+
+        switches.push_back(&dSlope);
+    }
+
+    Input iCutoff = Input("CUTOFF");
+    Input iResonance = Input("RESONANCE");
+    Input iLevel = Input("LEVEL");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
+    Analog aParSer = Analog("CUTOFF", 0, 1, 1, true, linMap);
+
+    Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
+
+    void render();
+};
+
+class Distortion : public BaseModule {
+  public:
+    Distortion(const char *name) : BaseModule(name) { // call subclass
+
+        inputs.push_back(&iDrive);
+
+        knobs.push_back(&aDrive);
+    }
+
+    Input iDrive = Input("DRIVE");
+
+    Analog aDrive = Analog("DRIVE", 0, 1, 0, true, logMap, &iDrive);
+
+    void render();
+};
+
 class LFO : public BaseModule {
   public:
     LFO(const char *name) : BaseModule(name) { // call subclass
@@ -283,77 +354,6 @@ class ADSR : public BaseModule {
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
-
-    void render();
-};
-
-class Steiner : public BaseModule {
-  public:
-    Steiner(const char *name) : BaseModule(name) { // call subclass
-        inputs.push_back(&iCutoff);
-        inputs.push_back(&iResonance);
-        inputs.push_back(&iLevel);
-
-        knobs.push_back(&aCutoff);
-        knobs.push_back(&aResonance);
-        knobs.push_back(&aLevel);
-
-        switches.push_back(&dMode);
-    }
-    Input iCutoff = Input("CUTOFF");
-    Input iResonance = Input("RESONANCE");
-    Input iLevel = Input("LEVEL");
-
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
-
-    Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
-
-    void render();
-};
-
-class Ladder : public BaseModule {
-  public:
-    Ladder(const char *name) : BaseModule(name) { // call subclass
-        inputs.push_back(&iCutoff);
-        inputs.push_back(&iResonance);
-        inputs.push_back(&iLevel);
-
-        knobs.push_back(&aCutoff);
-        knobs.push_back(&aResonance);
-        knobs.push_back(&aLevel);
-        knobs.push_back(&aParSer);
-
-        switches.push_back(&dSlope);
-    }
-
-    Input iCutoff = Input("CUTOFF");
-    Input iResonance = Input("RESONANCE");
-    Input iLevel = Input("LEVEL");
-
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
-    Analog aParSer = Analog("CUTOFF", 0, 1, 1, true, linMap);
-
-    Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
-
-    void render();
-};
-
-class Distortion : public BaseModule {
-  public:
-    Distortion(const char *name) : BaseModule(name) { // call subclass
-
-        inputs.push_back(&iDrive);
-
-        knobs.push_back(&aDrive);
-    }
-
-    Input iDrive = Input("DRIVE");
-
-    Analog aDrive = Analog("DRIVE", 0, 1, 0, true, logMap, &iDrive);
 
     void render();
 };

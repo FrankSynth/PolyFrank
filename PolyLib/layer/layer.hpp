@@ -22,11 +22,20 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
-        modules.push_back(&test);
+        modules.push_back(&midi);
+        modules.push_back(&oscA);
+        modules.push_back(&oscB);
+        modules.push_back(&sub);
+        modules.push_back(&noise);
+        modules.push_back(&steiner);
+        modules.push_back(&ladder);
+        modules.push_back(&distort);
+        modules.push_back(&lfoA);
+        modules.push_back(&lfoB);
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
-        modules.push_back(&lfoA);
-        modules.push_back(&midi);
+        modules.push_back(&globalModule);
+        modules.push_back(&test);
         // skip layer settings?
 
         initID();
@@ -66,11 +75,20 @@ class Layer {
 
     uint8_t id;
 
-    TEST test = TEST("TEST");
+    Midi midi = Midi("MIDI");
+    OSC_A oscA = OSC_A("OSC_A");
+    OSC_B oscB = OSC_B("OSC_B");
+    Sub sub = Sub("SUB");
+    Noise noise = Noise("NOISE");
+    Steiner steiner = Steiner("STEINER");
+    Ladder ladder = Ladder("LADDER");
+    Distortion distort = Distortion("DISTORTION");
+    LFO lfoA = LFO("LFO A");
+    LFO lfoB = LFO("LFO B");
     ADSR adsrA = ADSR("ADSR A");
     ADSR adsrB = ADSR("ADSR B");
-    LFO lfoA = LFO("LFO A");
-    Midi midi = Midi("MIDI");
+    GlobalModule globalModule = GlobalModule("GLOBAL");
+    TEST test = TEST("TEST");
 
   private:
     std::vector<BaseModule *> modules; //  vector of all modules
