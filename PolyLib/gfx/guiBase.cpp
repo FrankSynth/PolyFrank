@@ -13,10 +13,10 @@ uint32_t cFont_Deselect = 0xFFFFFFFF;
 uint32_t cClear = 0x00000000;
 uint32_t cBlack = 0xFF000000;
 
-uint32_t cGreyLight = 0x20FFFFFF;
-uint32_t cGreyDark = 0xB0202020;
+uint32_t cGreyLight = 0x10FFFFFF;
+uint32_t cGreyDark = 0x60202020;
 
-uint32_t cGrey = 0x10FFFFFF;
+uint32_t cGrey = 0x10808080;
 
 uint32_t cWhite = 0xFFFFFFFF;
 uint32_t cWhiteLight = 0xd0FFFFFF;
@@ -30,6 +30,19 @@ uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t c
                LEFT); // draw text, height centered
 
     return width;
+}
+void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
+                   uint16_t viewable) {
+
+    if (viewable >= entrys) {
+        return;
+    }
+    drawRectangleChampfered(cGreyDark, x, y, width, heigth, 1); // draw Box
+    float entryHeight = heigth / (float)entrys;
+    uint16_t scrollBarHeight = entryHeight * viewable;
+    uint16_t scrollBarPositionY = entryHeight * scroll;
+
+    drawRectangleChampfered(cWhite, x, y + scrollBarPositionY, width, scrollBarHeight, 1); // draw Box
 }
 
 void Todo(){};
@@ -48,15 +61,16 @@ void focusUp() {
     }
 }
 
-void focusDown(FOCUSMODE type, uint8_t id) {
-    focus.type = type;
-    if (focus.type == FOCUSMODULE) {
+void focusDown(location newFocus) {
+    if (newFocus.type == NOFOCUS) {
+        return;
+    }
 
-        focus.modul = id;
+    focus.type = newFocus.type;
+    if (newFocus.type == FOCUSINPUT) {
+        focus.id = newFocus.id;
     }
-    else {
-        focus.id = id;
-    }
+    focus.modul = newFocus.modul;
 }
 
 #endif

@@ -30,8 +30,8 @@ void Footer_PanelBox::Draw() {
 
     drawRectangleFill(cClear, x, y, width, heigth);
 
-    drawString(mainName, cWhite, x + width / 2, y + (-fontBig->size + heigth) / 2 - fontShift, fontBig, CENTER);
-    drawString(secondName, cWhite, x + width / 2, y + (-fontSmall->size + heigth) / 2 + fontShift, fontSmall, CENTER);
+    drawString(mainName, cWhite, x + width / 2, y - fontBig->size + heigth / 2 - fontShift, fontBig, CENTER);
+    drawString(secondName, cWhite, x + width / 2, y + heigth / 2 + fontShift, fontSmall, CENTER);
 }
 
 void Side_PanelBox::Draw() {
@@ -43,7 +43,7 @@ void Side_PanelBox::Draw() {
 
     drawRectangleFill(cClear, x, y, width, heigth);
 
-    drawString(mainName, cWhite, x + width / 2, y + (-fontBig->size + heigth) / 2, fontBig, CENTER);
+    drawString(mainName, cWhite, x + width / 2, y + (-fontSmall->size + heigth) / 2, fontSmall, CENTER);
 }
 
 //////PANELS/////
@@ -166,25 +166,26 @@ void GUIFOOTER::Draw() {
     }
 }
 
-void GUISIDE::init(uint16_t width, uint16_t height, uint16_t y) {
+void GUISIDE::init(uint16_t width, uint16_t height, uint16_t y, uint16_t x) {
     panelWidth = width;
     panelHeight = height / panelCount;
     panelAbsY = y;
+    panelAbsX = x;
 
     // boxes on the left
     boxes.push_back(
-        Side_PanelBox(&actionHandler.buttonLeft_1, panelAbsX, panelAbsY + panelHeight * 1, panelWidth, panelHeight));
+        Side_PanelBox(&actionHandler.buttonLeft_1, panelAbsX, panelAbsY + panelHeight * 0, panelWidth, panelHeight));
     boxes.push_back(
-        Side_PanelBox(&actionHandler.buttonLeft_2, panelAbsX, panelAbsY + panelHeight * 2, panelWidth, panelHeight));
+        Side_PanelBox(&actionHandler.buttonLeft_2, panelAbsX, panelAbsY + panelHeight * 1, panelWidth, panelHeight));
     boxes.push_back(
-        Side_PanelBox(&actionHandler.buttonLeft_3, panelAbsX, panelAbsY + panelHeight * 3, panelWidth, panelHeight));
+        Side_PanelBox(&actionHandler.buttonLeft_3, panelAbsX, panelAbsY + panelHeight * 2, panelWidth, panelHeight));
 
     // boxes on the rigth
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_1, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 1,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_1, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 0,
                                   panelWidth, panelHeight));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_2, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 2,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_2, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 1,
                                   panelWidth, panelHeight));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_3, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 3,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_3, LCDWIDTH - panelWidth, panelAbsY + panelHeight * 2,
                                   panelWidth, panelHeight));
 }
 void GUISIDE::Draw() {
@@ -212,7 +213,7 @@ void GUI::Init() { // add settings pointer
     guiFooter.init(LCDWIDTH, FOOTERHEIGHT);
 
     // init side
-    guiSide.init(BOARDERWIDTH, CENTERHEIGHT);
+    guiSide.init(BOARDERWIDTH, CENTERHEIGHT, HEADERHEIGHT + SPACER);
 
     // init Footer
     guiFooter.init(LCDWIDTH, FOOTERHEIGHT);
@@ -252,11 +253,11 @@ void GUI::Draw() {
     // Draw Path
     guiPath.Draw();
 
-    // Draw Footer
-    guiFooter.Draw();
-
     // Draw Side
     guiSide.Draw();
+
+    // Draw Footer
+    guiFooter.Draw();
 
     // Draw Panel
     if (activePanel != nullptr) {

@@ -22,7 +22,7 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
-        modules.push_back(&test);
+        modules.push_back(&oscA);
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
         modules.push_back(&lfoA);
@@ -66,9 +66,9 @@ class Layer {
 
     uint8_t id;
 
-    TEST test = TEST("TEST");
     ADSR adsrA = ADSR("ADSR A");
     ADSR adsrB = ADSR("ADSR B");
+    OSC_A oscA = OSC_A("OSC A");
     LFO lfoA = LFO("LFO A");
     Midi midi = Midi("MIDI");
 

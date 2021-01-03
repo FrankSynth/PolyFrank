@@ -25,7 +25,7 @@ class Header_PanelBox {
     void Draw();
 
   private:
-    const GUI_FONTINFO *font = &GUI_FontBahnschriftSemiBold28_FontInfo;
+    const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 
     GUIPanelBase *pSource;
     uint16_t x;
@@ -50,8 +50,8 @@ class Footer_PanelBox {
     void Draw();
 
   private:
-    const GUI_FONTINFO *fontBig = &GUI_FontBahnschriftSemiBold28_FontInfo;
-    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift24_FontInfo;
+    const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift24_FontInfo;
+    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; // TODO mittlere schriftgröße noch exporten
 
     actionHandle *main;
     actionHandle *secondary;
@@ -59,7 +59,7 @@ class Footer_PanelBox {
     uint16_t y;
     uint16_t width;
     uint16_t heigth;
-    uint16_t fontShift = 13;
+    uint16_t fontShift = 0;
 };
 
 class Side_PanelBox {
@@ -100,7 +100,7 @@ class GUIPanelPath {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
-    const GUI_FONTINFO *font = &GUI_FontBahnschriftSemiBold28_FontInfo;
+    const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 };
 
 // PANEL Config Type
@@ -152,7 +152,7 @@ class GUIFOOTER {
 // FOOTER
 class GUISIDE {
   public:
-    void init(uint16_t width = BOARDERWIDTH, uint16_t height = LCDHEIGHT, uint16_t y = 0);
+    void init(uint16_t width = BOARDERWIDTH, uint16_t height = LCDHEIGHT, uint16_t y = 0, uint16_t x = 0);
     void Draw();
 
   private:

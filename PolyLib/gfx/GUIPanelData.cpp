@@ -2,11 +2,11 @@
 
 #include "GUIPanelData.hpp"
 
-const GUI_FONTINFO *elementFont = &GUI_FontBahnschriftSemiBold28_FontInfo;
+const GUI_FONTINFO *elementFont = &GUI_FontBahnschrift24_FontInfo;
 
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
-    PatchElementOutOut *dataOutOut;
-    PatchElementInOut *data;
+    PatchElementOutOut *dataOutOut = nullptr;
+    PatchElementInOut *data = nullptr;
     uint8_t outOutFlag = 0;
 
     if (entry->type == PATCHOUTOUT) {
@@ -53,7 +53,7 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     uint16_t relY = spaceTopBottomBar;
 
     // valueBar
-    drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 
     int16_t valueBaroffsetCenter = 0;
     float amount;
@@ -111,7 +111,7 @@ void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
         drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-elementFont->size + h) / 2, elementFont, CENTER);
     }
 
-    uint16_t valueBarWidth = w - nameWidth;
+    uint16_t valueBarWidth = w - nameWidth - 4;
     uint16_t valueBarHeigth = heightBar;
 
     uint16_t relX = nameWidth;
@@ -123,11 +123,11 @@ void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
                CENTER); // center Text
 
     // valueBar
-    drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 
-    valueBarWidth = (float)valueBarWidth * (float)data->valueMapped / (float)(data->max - data->min);
+    valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
 
-    drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    drawRectangleChampfered(cWhite, relX + x + 2, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
 void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
@@ -162,7 +162,7 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     uint16_t relY = spaceTopBottomBar;
 
     // valueBar
-    drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 
     valueBarWidth = (float)valueBarWidth * data->valueMapped / (float)(data->max - data->min);
 
@@ -251,9 +251,9 @@ void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
     panelAbsY = y;
 
     // elements Sizes
-    uint16_t elementWidth = width;
-    uint16_t elementSpace = 5;
-    uint16_t elementHeight = (height - (DATAPANELENTRYS - 1) * elementSpace) / DATAPANELENTRYS;
+    uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
+    uint16_t elementSpace = 3;
+    uint16_t elementHeight = (height - (DATAPANELENTRYS - 2) * elementSpace) / DATAPANELENTRYS;
 
     // init Elements
     for (int i = 0; i < DATAPANELENTRYS; i++) {
@@ -265,10 +265,9 @@ void GUIPanelData::registerPanelSettings() {
 
     // register Scroll
     if (newFocusLocation.type != NOFOCUS) {
-        actionHandler.registerActionEncoder1(
-            {std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
-            {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
-            {std::bind(focusDown, newFocusLocation.type, newFocusLocation.id), "focus"});
+        actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
+                                             {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
+                                             {std::bind(focusDown, newFocusLocation), "FOCUS"});
     }
     else {
         actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
@@ -322,6 +321,9 @@ void GUIPanelData::Draw() {
             panelElements[i].Draw();
         }
     }
+
+    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scrollOffset, entrys,
+                  DATAPANELENTRYS);
 }
 
 uint16_t GUIPanelData::updateEntrys() {
@@ -405,11 +407,12 @@ void GUIPanelData::registerModuleSettings() {
             if (analogElement->displayVis) { // element Visible
 
                 // register newFocusLocation
-                if (scroll - scrollOffset == elementIndex) {
+                if ((scroll - scrollOffset) == elementIndex) {
                     if (analogElement->input != nullptr) {
-                        newFocusLocation.id = analogElement->input->idGlobal;
+                        newFocusLocation.id = analogElement->input->id;
+                        newFocusLocation.modul = analogElement->input->moduleId;
+                        newFocusLocation.type = FOCUSINPUT;
                     }
-                    newFocusLocation.type = FOCUSINPUT;
                 }
 
                 panelElements[elementIndex].addAnalogEntry(
@@ -495,8 +498,6 @@ void GUIPanelData::registerModulePatchIn() {
 }
 void GUIPanelData::registerLayerModules() {
 
-    newFocusLocation.type = FOCUSMODULE;
-
     uint16_t size;
 
     uint16_t dataIndex = 0;
@@ -516,8 +517,9 @@ void GUIPanelData::registerLayerModules() {
 
             panelElements[elementIndex].addModuleEntry(moduleElement, {nullptr, ""}, {nullptr, ""}, {nullptr, ""});
 
-            if (scroll - scrollOffset == elementIndex) {
-                newFocusLocation.id = moduleElement->id;
+            if ((scroll - scrollOffset) == elementIndex) {
+                newFocusLocation.modul = moduleElement->id;
+                newFocusLocation.type = FOCUSMODULE;
             }
 
             dataIndex++;
@@ -625,7 +627,16 @@ void GUIPanelData::changeScroll(int16_t change) {
 }
 
 void GUIPanelData::checkScroll() {
-    changeScroll(0);
+    static location BackupForCompare = focus;
+
+    if (focus.modul != BackupForCompare.modul || focus.id != BackupForCompare.id ||
+        focus.type != BackupForCompare.type) {
+        resetScroll();
+        BackupForCompare = focus;
+    }
+    else {
+        changeScroll(0);
+    }
 }
 
 void GUIPanelData::resetScroll() {

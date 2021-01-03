@@ -299,9 +299,9 @@ class PatchElement {
     void setOffset(float offset);
     void changeOffset(float change);
 
-    float value;
-    float offset;
     float defaultValue = 0.5;
+    float value = defaultValue;
+    float offset;
 };
 
 class PatchElementInOut : public PatchElement {

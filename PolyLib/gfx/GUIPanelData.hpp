@@ -9,7 +9,7 @@
 #include <functional>
 #include <string>
 
-#define DATAPANELENTRYS 5
+#define DATAPANELENTRYS 6
 /*Aufbau Data Panel
 
   - GUIPanelData
