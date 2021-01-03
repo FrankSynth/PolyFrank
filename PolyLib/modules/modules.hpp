@@ -4,6 +4,13 @@
 #include <string>
 #include <vector>
 
+// NameLists for switches
+extern const std::vector<std::string> nlOnOff;
+extern const std::vector<std::string> nlVCFDest;
+extern const std::vector<std::string> nlSteinerModes;
+extern const std::vector<std::string> nlLadderSlopes;
+
+// Basemodule
 class BaseModule {
   public:
     BaseModule(const char *name) { this->name = name; }
@@ -18,6 +25,8 @@ class BaseModule {
     uint8_t id;
     uint8_t layerId;
 
+    virtual void render();
+
   protected:
     std::string name;
     std::vector<Output *> outputs;
@@ -28,291 +37,6 @@ class BaseModule {
 };
 
 //////////////////////////////// MODULES ///////////////////////////////////////////////
-
-class ADSR : public BaseModule {
-  public:
-    ADSR(const char *name) : BaseModule(name) { // call subclass
-
-        outputs.push_back(&out);
-
-        inputs.push_back(&iDelay);
-        inputs.push_back(&iAttack);
-        inputs.push_back(&iDecay);
-        inputs.push_back(&iSustain);
-        inputs.push_back(&iRelease);
-        inputs.push_back(&iAmount);
-
-        knobs.push_back(&aDelay);
-        knobs.push_back(&aAttack);
-        knobs.push_back(&aDecay);
-        knobs.push_back(&aSustain);
-        knobs.push_back(&aRelease);
-        knobs.push_back(&aAmount);
-
-        knobs.push_back(&aKeytrack);
-        knobs.push_back(&aVelocity);
-        knobs.push_back(&aShape);
-
-        switches.push_back(&dLoop);
-    }
-
-    Output out = Output("OUT");
-
-    Input iDelay = Input("DELAY");
-    Input iAttack = Input("ATTACK");
-    Input iDecay = Input("DECAY");
-    Input iSustain = Input("SUSTAIN");
-    Input iRelease = Input("RELEASE");
-    Input iAmount = Input("AMOUNT");
-
-    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 1, true, logMap);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap);
-    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap);
-
-    Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
-    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
-
-    std::vector<std::string> valueNames{"OFF", "ON"};
-
-    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &valueNames, nullptr);
-
-    void render();
-};
-
-class OSC_A : public BaseModule {
-  public:
-    OSC_A(const char *name) : BaseModule(name) { // call subclass
-        outputs.push_back(&out);
-
-        inputs.push_back(&iFm);
-        inputs.push_back(&iPwm);
-        inputs.push_back(&iMorph);
-        inputs.push_back(&iGlide);
-        inputs.push_back(&iLevel);
-        inputs.push_back(&iSpread);
-        inputs.push_back(&iBitcrusher);
-        inputs.push_back(&iOctave);
-
-        knobs.push_back(&aFM);
-        knobs.push_back(&aPwm);
-        knobs.push_back(&aMorph);
-        knobs.push_back(&aGlide);
-        knobs.push_back(&aLevel);
-        knobs.push_back(&aSpread);
-        knobs.push_back(&aBitcrusher);
-        knobs.push_back(&aDetune);
-
-        switches.push_back(&dNote);
-        switches.push_back(&dOctave);
-        switches.push_back(&dVcfSwitch);
-    }
-
-    Output out = Output("OUT");
-
-    Input iFm = Input("FM");
-    Input iPwm = Input("PWM");
-    Input iMorph = Input("MORPH");
-    Input iGlide = Input("GLIDE");
-    Input iLevel = Input("LEVEL");
-    Input iSpread = Input("SPREAD");
-    Input iBitcrusher = Input("BITCRUSHER");
-    Input iOctave = Input("OCTAVE");
-
-    Analog aFM = Analog("FM", 0, 1, 0, true, logMap, &iFm);
-    Analog aPwm = Analog("PWM", 0, 1, 0.5, true, linMap, &iPwm);
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aGlide = Analog("GLIDE", 0, 10, 0, true, logMap, &iGlide);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
-    Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap, &iSpread);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
-    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
-
-    Digital dNote = Digital("NOTE", 22, 108, 22, false);
-    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, 0, true);
-};
-
-class OSC_B : public BaseModule {
-  public:
-    OSC_B(const char *name) : BaseModule(name) { // call subclass
-        outputs.push_back(&out);
-
-        inputs.push_back(&iFm);
-        inputs.push_back(&iPwm);
-        inputs.push_back(&iMorph);
-        inputs.push_back(&iTuning);
-        inputs.push_back(&iLevel);
-        inputs.push_back(&iBitcrusher);
-        inputs.push_back(&iOctave);
-        inputs.push_back(&iSync);
-
-        knobs.push_back(&aFm);
-        knobs.push_back(&aPwm);
-        knobs.push_back(&aMorph);
-        knobs.push_back(&aTuning);
-        knobs.push_back(&aLevel);
-        knobs.push_back(&aBitcrusher);
-
-        switches.push_back(&dNote);
-        switches.push_back(&dOctave);
-        switches.push_back(&dVcfSwitch);
-    }
-
-    Output out = Output("OUT");
-
-    Input iFm = Input("FM");
-    Input iPwm = Input("PWM");
-    Input iMorph = Input("MORPH");
-    Input iTuning = Input("TUNING");
-    Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSHER");
-    Input iOctave = Input("OCTAVE");
-    Input iSync = Input("OCTAVE");
-
-    Analog aFm = Analog("PWM", 0, 1, 0, true, linMap, &iFm);
-    Analog aPwm = Analog("PWM", 0, 1, 0.5, true, linMap, &iPwm);
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
-
-    Digital dNote = Digital("NOTE", 22, 108, 22, false);
-    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfSwitch = Digital("VCF OUT", 0, 2, 0, true);
-};
-
-class LFO : public BaseModule {
-  public:
-    LFO(const char *name) : BaseModule(name) { // call subclass
-        outputs.push_back(&out);
-
-        inputs.push_back(&iFm);
-        inputs.push_back(&iSync);
-
-        knobs.push_back(&aFreq);
-        knobs.push_back(&aShape);
-
-        switches.push_back(&dFreq);
-        switches.push_back(&dSync);
-        switches.push_back(&dTempoSync);
-        switches.push_back(&dLockPhase);
-    }
-    Output out = Output("OUT");
-    Input iFm = Input("FM");
-    Input iSync = Input("SYNC");
-
-    Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap);
-    Analog aFm = Analog("FM", 0, 1, 0, true, linMap, &iFm);
-    Analog aShape = Analog("SHAPE", 0.1, 100, 1, true, linMap);
-    Digital dFreq = Digital("FREQ", 0, 22, 0, true);
-    Digital dSync = Digital("SYNC", 0, 1, 0, true, nullptr, &iSync);
-    Digital dTempoSync = Digital("T-SYNC", 0, 1, 0, false);
-    Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
-};
-
-class TEST : public BaseModule {
-  public:
-    TEST(const char *name) : BaseModule(name) { // call subclass
-        outputs.push_back(&out);
-
-        knobs.push_back(&aCutoff);
-        knobs.push_back(&aResonance);
-        knobs.push_back(&aDistort);
-        knobs.push_back(&aFreq);
-
-        switches.push_back(&dSelectFilter);
-    }
-    Output out = Output("OUT");
-
-    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, logMap);
-    Analog aResonance = Analog("RES", 0, 1, 0, true, linMap);
-    Analog aDistort = Analog("DIST", 0, 1, 0, true, linMap);
-    Analog aFreq = Analog("FREQ", 0, 1, 0, true, linMap);
-
-    Digital dSelectFilter = Digital("dB", 0, 3, 0, true);
-};
-
-// class VCFSteiner : public BaseModule {
-//   public:
-//     VCFSteiner(const char *name) : BaseModule(name) { // call subclass
-
-//         inputs.push_back(Input("CUTOFF"));
-//         inputs.push_back(Input("RESONANCE"));
-//         inputs.push_back(Input("LEVEL"));
-//         inputs.push_back(Input("MODE"));
-
-//         knobs.push_back(Analog("CUTOFF", 10, 20000, true, logMap));
-//         knobs.push_back(Analog("RESONANCE", 0, 1, true, linMap));
-//         knobs.push_back(Analog("LEVEL", 0, 1, true, logMap));
-//         knobs.push_back(Analog("ENV AMT", 0, 1, true, logMap));
-
-//         switches.push_back(Digital("MODE", 0, 3, true));
-//     }
-// };
-
-// class VCFLadder : public BaseModule {
-//   public:
-//     VCFLadder(const char *name) : BaseModule(name) { // call subclass
-
-//         inputs.push_back(Input("CUTOFF"));
-//         inputs.push_back(Input("RESONANCE"));
-//         inputs.push_back(Input("LEVEL"));
-//         inputs.push_back(Input("SLOPE"));
-//         inputs.push_back(Input("SER/PAR"));
-
-//         knobs.push_back(Analog("CUTOFF", 10, 20000, true, logMap));
-//         knobs.push_back(Analog("RESONANCE", 0, 1, true, linMap));
-//         knobs.push_back(Analog("LEVEL", 0, 1, true, logMap));
-//         knobs.push_back(Analog("ENV AMT", 0, 1, true, logMap));
-//         knobs.push_back(Analog("SER/PAR", 0, 1, true, linMap));
-
-//         switches.push_back(Digital("SLOPE", 0, 3, true));
-//     }
-// };
-
-// class Distortion : public BaseModule {
-//   public:
-//     Distortion(const char *name) : BaseModule(name) { // call subclass
-
-//         inputs.push_back(Input("AMOUNT"));
-
-//         knobs.push_back(Analog("AMOUNT", 0, 1, true, logMap));
-//     }
-// };
-
-// class Noise : public BaseModule {
-//   public:
-//     Noise(const char *name) : BaseModule(name) { // call subclass
-
-//         inputs.push_back(Input("COLOR"));
-//         inputs.push_back(Input("LEVEL"));
-
-//         knobs.push_back(Analog("COLOR", 0, 1, true, logMap));
-//         knobs.push_back(Analog("LEVEL", 0, 1, true, logMap));
-//     }
-// };
-
-class Sub : public BaseModule {
-  public:
-    Sub(const char *name) : BaseModule(name) { // call subclass
-
-        inputs.push_back(&iShape);
-        inputs.push_back(&iLevel);
-
-        knobs.push_back(&aShape);
-        knobs.push_back(&aLevel);
-    }
-
-    Input iShape = Input("SHAPE");
-    Input iLevel = Input("LEVEL");
-
-    Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-};
 
 class Midi : public BaseModule {
   public:
@@ -341,4 +65,344 @@ class Midi : public BaseModule {
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
 
     void render();
+};
+
+class OSC_A : public BaseModule {
+  public:
+    OSC_A(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        inputs.push_back(&iMorph);
+        inputs.push_back(&iLevel);
+        inputs.push_back(&iSpread);
+        inputs.push_back(&iBitcrusher);
+        inputs.push_back(&iOctave);
+
+        knobs.push_back(&aMasterTune);
+        knobs.push_back(&aMorph);
+        knobs.push_back(&aLevel);
+        knobs.push_back(&aBitcrusher);
+
+        switches.push_back(&dNote);
+        switches.push_back(&dOctave);
+        switches.push_back(&dVcfDestSwitch);
+    }
+
+    Output out = Output("OUT");
+
+    Input iMorph = Input("MORPH");
+    Input iLevel = Input("LEVEL");
+    Input iSpread = Input("SPREAD");
+    Input iBitcrusher = Input("BITCRUSHER");
+    Input iOctave = Input("OCTAVE");
+
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
+    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
+
+    Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
+    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
+
+    void render();
+};
+
+class OSC_B : public BaseModule {
+  public:
+    OSC_B(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        inputs.push_back(&iMorph);
+        inputs.push_back(&iTuning);
+        inputs.push_back(&iLevel);
+        inputs.push_back(&iBitcrusher);
+        inputs.push_back(&iOctave);
+        inputs.push_back(&iSync);
+
+        knobs.push_back(&aMorph);
+        knobs.push_back(&aTuning);
+        knobs.push_back(&aLevel);
+        knobs.push_back(&aBitcrusher);
+
+        switches.push_back(&dNote);
+        switches.push_back(&dOctave);
+        switches.push_back(&dVcfDestSwitch);
+    }
+
+    Output out = Output("OUT");
+
+    Input iMorph = Input("MORPH");
+    Input iTuning = Input("TUNING");
+    Input iLevel = Input("LEVEL");
+    Input iBitcrusher = Input("BITCRUSHER");
+    Input iOctave = Input("OCTAVE");
+    Input iSync = Input("SYNC");
+
+    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
+
+    Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
+    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 0, true, &nlVCFDest);
+
+    void render();
+};
+
+class Sub : public BaseModule {
+  public:
+    Sub(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        inputs.push_back(&iShape);
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aShape);
+        knobs.push_back(&aLevel);
+
+        switches.push_back(&dVcfDestSwitch);
+    }
+
+    Output out = Output("OUT");
+
+    Input iShape = Input("SHAPE");
+    Input iLevel = Input("LEVEL");
+
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+
+    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
+
+    void render();
+};
+
+class Noise : public BaseModule {
+  public:
+    Noise(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aLevel);
+
+        switches.push_back(&dVcfDestSwitch);
+    }
+
+    Output out = Output("OUT");
+
+    Input iLevel = Input("LEVEL");
+
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+
+    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
+
+    void render();
+};
+
+class LFO : public BaseModule {
+  public:
+    LFO(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        inputs.push_back(&iFreq);
+        inputs.push_back(&iSync);
+
+        knobs.push_back(&aFreq);
+        knobs.push_back(&aShape);
+
+        switches.push_back(&dFreq);
+        switches.push_back(&dSync);
+        switches.push_back(&dTempoSync);
+        switches.push_back(&dLockPhase);
+    }
+    Output out = Output("OUT");
+
+    Input iFreq = Input("FREQ");
+    Input iSync = Input("SYNC");
+
+    Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
+    Analog aShape = Analog("SHAPE", 0.1, 100, 1, true, linMap);
+
+    Digital dFreq = Digital("FREQ", 0, 22, 0, true);
+    Digital dSync = Digital("SYNC", 0, 1, 0, true, nullptr, &iSync);
+    Digital dTempoSync = Digital("T-SYNC", 0, 1, 0, false);
+    Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
+
+    void render();
+};
+
+class ADSR : public BaseModule {
+  public:
+    ADSR(const char *name) : BaseModule(name) { // call subclass
+
+        outputs.push_back(&out);
+
+        inputs.push_back(&iDelay);
+        inputs.push_back(&iAttack);
+        inputs.push_back(&iDecay);
+        inputs.push_back(&iSustain);
+        inputs.push_back(&iRelease);
+        inputs.push_back(&iAmount);
+
+        knobs.push_back(&aDelay);
+        knobs.push_back(&aAttack);
+        knobs.push_back(&aDecay);
+        knobs.push_back(&aSustain);
+        knobs.push_back(&aRelease);
+        knobs.push_back(&aAmount);
+
+        knobs.push_back(&aKeytrack);
+        knobs.push_back(&aVelocity);
+        knobs.push_back(&aShape);
+
+        switches.push_back(&dLoop);
+        switches.push_back(&dLatch);
+    }
+
+    Output out = Output("OUT");
+
+    Input iDelay = Input("DELAY");
+    Input iAttack = Input("ATTACK");
+    Input iDecay = Input("DECAY");
+    Input iSustain = Input("SUSTAIN");
+    Input iRelease = Input("RELEASE");
+    Input iAmount = Input("AMOUNT");
+
+    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 0.001, true, logMap);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap);
+    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap);
+
+    Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
+
+    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
+
+    void render();
+};
+
+class Steiner : public BaseModule {
+  public:
+    Steiner(const char *name) : BaseModule(name) { // call subclass
+        inputs.push_back(&iCutoff);
+        inputs.push_back(&iResonance);
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aLevel);
+
+        switches.push_back(&dMode);
+    }
+    Input iCutoff = Input("CUTOFF");
+    Input iResonance = Input("RESONANCE");
+    Input iLevel = Input("LEVEL");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
+
+    Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
+
+    void render();
+};
+
+class Ladder : public BaseModule {
+  public:
+    Ladder(const char *name) : BaseModule(name) { // call subclass
+        inputs.push_back(&iCutoff);
+        inputs.push_back(&iResonance);
+        inputs.push_back(&iLevel);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aLevel);
+        knobs.push_back(&aParSer);
+
+        switches.push_back(&dSlope);
+    }
+
+    Input iCutoff = Input("CUTOFF");
+    Input iResonance = Input("RESONANCE");
+    Input iLevel = Input("LEVEL");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
+    Analog aParSer = Analog("CUTOFF", 0, 1, 1, true, linMap);
+
+    Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
+
+    void render();
+};
+
+class Distortion : public BaseModule {
+  public:
+    Distortion(const char *name) : BaseModule(name) { // call subclass
+
+        inputs.push_back(&iDrive);
+
+        knobs.push_back(&aDrive);
+    }
+
+    Input iDrive = Input("DRIVE");
+
+    Analog aDrive = Analog("DRIVE", 0, 1, 0, true, logMap, &iDrive);
+
+    void render();
+};
+
+class GlobalModule : public BaseModule {
+  public:
+    GlobalModule(const char *name) : BaseModule(name) { // call subclass
+
+        inputs.push_back(&iVCA);
+        inputs.push_back(&iPan);
+
+        knobs.push_back(&aVCA);
+        knobs.push_back(&aGlide);
+        knobs.push_back(&aPan);
+        knobs.push_back(&aSpread);
+        knobs.push_back(&aDetune);
+    }
+
+    Input iVCA = Input("VCA");
+    Input iPan = Input("LEVEL");
+
+    Analog aVCA = Analog("VCA", 0, 1, 0, true, logMap, &iVCA);
+    Analog aGlide = Analog("LEVEL", 0, 1, 0, true, logMap);
+    Analog aPan = Analog("LEVEL", 0, 1, 0, true, logMap, &iPan);
+    Analog aSpread = Analog("LEVEL", 0, 1, 0, true, logMap);
+    Analog aDetune = Analog("LEVEL", 0, 1, 0, true, logMap);
+
+    void render();
+};
+
+// TODO remove Test Module
+class TEST : public BaseModule {
+  public:
+    TEST(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&out);
+
+        knobs.push_back(&aCutoff);
+        knobs.push_back(&aResonance);
+        knobs.push_back(&aDistort);
+        knobs.push_back(&aFreq);
+
+        switches.push_back(&dSelectFilter);
+    }
+    Output out = Output("OUT");
+
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, logMap);
+    Analog aResonance = Analog("RES", 0, 1, 0, true, linMap);
+    Analog aDistort = Analog("DIST", 0, 1, 0, true, linMap);
+    Analog aFreq = Analog("FREQ", 0, 1, 0, true, linMap);
+
+    Digital dSelectFilter = Digital("dB", 0, 3, 0, true);
 };
