@@ -11,8 +11,8 @@
 #include <string>
 #endif
 
-#define MAX_VALUE_12BIT 3340 // todo andere rail to rail Opamp.. dann auf größere range setzen
-#define MIN_VALUE_12BIT 66   // todo andere rail to rail Opamp.. dann auf größere range setzen
+#define MAX_VALUE_12BIT 3340 // TODO andere rail to rail Opamp.. dann auf größere range setzen
+#define MIN_VALUE_12BIT 66   // TODO andere rail to rail Opamp.. dann auf größere range setzen
 
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
@@ -105,7 +105,8 @@ class Analog : public DataElement {
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
-        this->defaultValue = defaultValue;
+        // this->defaultValue = fastMap(defaultValue, min, max, MIN_VALUE_12BIT, MAX_VALUE_12BIT);
+        this->defaultValue = (((float)value) / (max - min)) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT;
 
         this->mapping = mapping;
 
@@ -118,7 +119,7 @@ class Analog : public DataElement {
     }
 
     void setValue(int32_t newValue);
-    void resetValue() { setValueWithoutMapping(defaultValue); }
+    void resetValue() { setValue(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
 
@@ -137,7 +138,7 @@ class Analog : public DataElement {
     const std::string &getValueAsString();
 
     std::string valueName;
-    float defaultValue = 0;
+    int32_t defaultValue = 0;
 
     int32_t value;
     float valueMapped;
