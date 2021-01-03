@@ -100,7 +100,7 @@ class Input;
 class Analog : public DataElement {
   public:
     Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
-           typeLinLog mapping = linMap, Input *input = nullptr, uint8_t displayVis = 1) {
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
         this->value = 0;
         this->min = min;
         this->max = max;
@@ -144,7 +144,7 @@ class Analog : public DataElement {
     float min;
     float max;
     float minMaxDifference;
-    uint8_t displayVis;
+    bool displayVis;
     Input *input;
 
   protected:
@@ -155,7 +155,7 @@ class Analog : public DataElement {
 class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
-            const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, uint8_t displayVis = 1) {
+            const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
         setValue(value);
 
         this->min = min;
@@ -205,7 +205,7 @@ class Digital : public DataElement {
     int32_t max;
     int32_t minMaxDifference;
 
-    uint8_t displayVis;
+    bool displayVis;
 
     Input *input;
 
@@ -274,17 +274,23 @@ class Output : public BasePatch {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
         patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
+
+        currentSample = bufferCurrentSample;
+        nextSample = bufferNextSample;
     }
 
     // set next calculatedSample as current sample
     void updateToNextSample() {
-        for (int16_t i = 0; i < VOICESPERCHIP; i++) {
-            currentSample[i] = nextSample[i];
-        }
+        float *tempPointer = currentSample;
+        currentSample = nextSample;
+        nextSample = tempPointer;
     }
 
-    float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
-    float nextSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    float *currentSample;
+    float *nextSample;
+
+    float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
 class PatchElement {
