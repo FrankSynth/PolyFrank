@@ -15,12 +15,12 @@ class BaseModule {
   public:
     BaseModule(const char *name) { this->name = name; }
 
-    const std::string &getName() { return name; }
-    std::vector<Output *> &getOutputs() { return outputs; }
-    std::vector<Input *> &getInputs() { return inputs; }
-    std::vector<Analog *> &getPotis() { return knobs; }
-    std::vector<Digital *> &getSwitches() { return switches; }
-    std::vector<Setting *> &getSettings() { return settings; }
+    inline const std::string &getName() { return name; }
+    inline std::vector<Output *> &getOutputs() { return outputs; }
+    inline std::vector<Input *> &getInputs() { return inputs; }
+    inline std::vector<Analog *> &getPotis() { return knobs; }
+    inline std::vector<Digital *> &getSwitches() { return switches; }
+    inline std::vector<Setting *> &getSettings() { return settings; }
 
     uint8_t id;
     uint8_t layerId;

@@ -63,7 +63,7 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
             return;
     }
 
-    patchesInOut.push_back(PatchElementInOut(sourceOut, targetIn, amount));
+    patchesInOut.push_back(PatchElementInOut(sourceOut, targetIn, id, amount));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
 
@@ -72,25 +72,18 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
 #endif
 }
 
-void Layer::addPatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
+void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     addPatchInOut(*outputs[outputId], *inputs[inputId]);
 }
 
 void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {
     patch.setAmount(amount);
-#ifdef POLYCONTROL
-    sendUpdatePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal, amount);
-#endif
 }
 
-void Layer::updatePatchInOut(uint8_t outputId, uint8_t inputId, float amount) {
+void Layer::updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             p->setAmount(amount);
-#ifdef POLYCONTROL
-
-            sendUpdatePatchInOut(id, p->sourceOut->idGlobal, p->targetIn->idGlobal, amount);
-#endif
             return;
         }
     }
@@ -108,7 +101,7 @@ void Layer::removePatchInOut(PatchElementInOut &patch) {
     patchesInOut.remove_if([](PatchElementInOut n) { return n.remove; }); // find element and remove from list
 }
 
-void Layer::removePatchInOut(uint8_t outputId, uint8_t inputId) {
+void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
     for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             removePatchInOut(*p);
@@ -125,7 +118,7 @@ void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, f
             return;
     }
 
-    patchesOutOut.push_back(PatchElementOutOut(sourceOut, targetOut, amount, offset));
+    patchesOutOut.push_back(PatchElementOutOut(sourceOut, targetOut, id, amount, offset));
     sourceOut.addPatchOutOut(patchesOutOut.back());
     targetOut.addPatchOutOut(patchesOutOut.back());
 
@@ -135,27 +128,18 @@ void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, f
 #endif
 }
 
-void Layer::addPatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+void Layer::addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
     addPatchOutOut(*outputs[outputOutId], *outputs[outputInId]);
 }
 
 void Layer::updatePatchOutOut(PatchElementOutOut &patch, float amount, float offset) {
-    patch.setAmount(amount);
-    patch.setOffset(offset);
-
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(id, patch.sourceOut->idGlobal, patch.targetOut->idGlobal, amount, offset);
-#endif
+    patch.setAmountAndOffset(amount, offset);
 }
 
-void Layer::updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+void Layer::updatePatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
     for (PatchElementOutOut *p : outputs[outputOutId]->getPatchesOutOut()) {
         if (p->targetOut == outputs[outputInId]) {
-            p->setAmount(amount);
-            p->setOffset(offset);
-#ifdef POLYCONTROL
-            sendUpdatePatchOutOut(id, p->sourceOut->idGlobal, p->targetOut->idGlobal, amount, offset);
-#endif
+            updatePatchOutOut(*p, amount, offset);
             return;
         }
     }
@@ -173,7 +157,7 @@ void Layer::removePatchOutOut(PatchElementOutOut &patch) {
     patchesOutOut.remove_if([](PatchElementOutOut n) { return n.remove; }); // find element and remove from list
 }
 
-void Layer::removePatchOutOut(uint8_t outputOutId, uint8_t outputInId) {
+void Layer::removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId) {
     for (PatchElementOutOut *p : outputs[outputOutId]->getPatchesOutOut()) {
         if (p->targetOut == outputs[outputInId]) {
             removePatchOutOut(*p);

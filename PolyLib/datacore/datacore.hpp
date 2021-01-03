@@ -80,10 +80,10 @@ class Setting : public DataElement {
 
     int32_t getValue();
     void setValue(int32_t newValue);
-    void resetValue() { setValue(defaultValue); }
+    inline void resetValue() { setValue(defaultValue); }
 
-    void setValueWithoutMapping(int32_t newValue) { value = newValue; }
-    void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(int32_t newValue) { value = newValue; }
+    inline void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
     void increase(int32_t amount = 1);
     void decrease(int32_t amount = -1);
     void push();
@@ -120,12 +120,12 @@ class Analog : public DataElement {
     }
 
     void setValue(int32_t newValue);
-    void resetValue() { setValue(defaultValue); }
+    inline void resetValue() { setValue(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
 
-    void changeValue(int32_t change) { setValue(value + change); }
-    void setValueWithoutMapping(float newValue) {
+    inline void changeValue(int32_t change) { setValue(value + change); }
+    inline void setValueWithoutMapping(float newValue) {
         valueMapped = newValue;
 #ifdef POLYCONTROL
         valueName = std::to_string(valueMapped);
@@ -134,7 +134,7 @@ class Analog : public DataElement {
         }
 #endif
     }
-    void setValueWithoutMapping(uint8_t *newValue) { value = *(float *)newValue; }
+    inline void setValueWithoutMapping(uint8_t *newValue) { value = *(float *)newValue; }
 
     const std::string &getValueAsString();
 
@@ -179,11 +179,11 @@ class Digital : public DataElement {
     void setValue(int32_t newValue);
     void nextValue();
     void previousValue();
-    void resetValue() { setValueWithoutMapping(defaultValue); }
+    inline void resetValue() { setValueWithoutMapping(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
-    void setValueWithoutMapping(int32_t newValue) {
+    inline void setValueWithoutMapping(int32_t newValue) {
         valueMapped = newValue;
 #ifdef POLYCONTROL
         valueName = std::to_string(valueMapped);
@@ -192,7 +192,7 @@ class Digital : public DataElement {
         }
 #endif
     }
-    void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
 
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values
@@ -221,9 +221,9 @@ class NameElement {
     NameElement(const char *name) { this->name = name; }
     ~NameElement() {}
 
-    void setName(const char *name) { this->name = name; }
+    inline void setName(const char *name) { this->name = name; }
 
-    const std::string &getName() { return name; }
+    inline const std::string &getName() { return name; }
 
   private:
     std::string name;
@@ -242,9 +242,9 @@ class BasePatch {
     void removePatchInOut(PatchElementInOut &patch);
     void removePatchOutOut(PatchElementOutOut &patch);
 
-    const std::string &getName() { return name; };
-    std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
-    std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
+    inline const std::string &getName() { return name; };
+    inline std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
+    inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
@@ -291,61 +291,66 @@ class Output : public BasePatch {
     float *currentSample;
     float *nextSample;
 
+  private:
     float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
     float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
 class PatchElement {
   public:
-    inline float getAmount() { return value; }
-    inline float getOffset() { return offset; }
+    inline float getAmount() { return amount; }
 
-    void setAmount(float value);
-    void resetAmount() { value = defaultValue; }
-    void changeAmount(float change);
+    // void setAmount(float value);
+    // void resetAmount() { value = defaultValue; }
+    // virtual void changeAmount(float change);
 
-    void setOffset(float offset);
-    void changeOffset(float change);
+    // void setOffset(float offset);
+    // void changeOffset(float change);
 
-    float value;
-    float offset;
-    float defaultValue = 0.5;
+    float amount;
+    uint8_t layerId;
 };
 
 class PatchElementInOut : public PatchElement {
   public:
-    PatchElementInOut(Output &source, Input &targetIn, float value = 0) {
+    PatchElementInOut(Output &source, Input &targetIn, uint8_t layerId, float amount = 0) {
         this->sourceOut = &source;
         this->targetIn = &targetIn;
-        this->value = value;
+        this->amount = amount;
+        this->layerId = layerId;
     }
 
+    void setAmount(float amount);
+    void changeAmount(float change);
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
 
-    // inline float getAmount() { return value; }
-    // void setAmount(float value);
+    // inline float getAmount() { return amount; }
+    // void setAmount(float amount);
 
     // void changeAmount(float change);
-    // void resetAmount() { value = defaultValue; }
+    // void resetAmount() { amount = defaultamount; }
 
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
-
-  private:
-    float value;
-    float defaultValue = 0.5;
 };
 
 class PatchElementOutOut : public PatchElement {
   public:
-    PatchElementOutOut(Output &source, Output &targetOut, float value = 0, float offset = 0) {
+    PatchElementOutOut(Output &source, Output &targetOut, uint8_t layerId, float amount = 0, float offset = 0) {
         this->sourceOut = &source;
         this->targetOut = &targetOut;
-        this->value = value;
+        this->amount = amount;
         this->offset = offset;
+        this->layerId = layerId;
     }
+    inline float getOffset() { return offset; }
 
+    void setAmount(float amount);
+    void changeAmount(float change);
+    void setOffset(float offset);
+    void changeOffset(float change);
+    void setAmountAndOffset(float amount, float offset);
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
 
     bool remove = false;
@@ -353,6 +358,7 @@ class PatchElementOutOut : public PatchElement {
     Output *targetOut;
 
   private:
+    float offset;
 };
 
 class ID {
@@ -365,17 +371,48 @@ class ID {
 
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
-inline void PatchElement::changeAmount(float change) {
-    value = changeFloat(value, change, -1, 1);
+inline void PatchElementInOut::changeAmount(float change) {
+    amount = changeFloat(amount, change, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, amount);
+#endif
 }
-inline void PatchElement::setAmount(float value) {
-    value = testFloat(value, -1, 1);
+inline void PatchElementInOut::setAmount(float amount) {
+    amount = testFloat(amount, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, amount);
+#endif
 }
-inline void PatchElement::changeOffset(float change) {
+inline void PatchElementOutOut::changeAmount(float change) {
+    amount = changeFloat(amount, change, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+#endif
+}
+inline void PatchElementOutOut::setAmount(float amount) {
+    amount = testFloat(amount, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+#endif
+}
+inline void PatchElementOutOut::changeOffset(float change) {
     offset = changeFloat(offset, change, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+#endif
 }
-inline void PatchElement::setOffset(float offset) {
+inline void PatchElementOutOut::setOffset(float offset) {
     offset = testFloat(offset, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+#endif
+}
+inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
+    amount = testFloat(amount, -1, 1);
+    offset = testFloat(offset, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+#endif
 }
 inline void BasePatch::clearPatches() {
     patchesInOut.clear();

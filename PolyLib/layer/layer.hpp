@@ -41,7 +41,7 @@ class Layer {
         initID();
     }
 
-    std::vector<BaseModule *> &getModules() { return modules; } // return modules
+    inline std::vector<BaseModule *> &getModules() { return modules; } // return modules
 
     // init Layer
     void initID();
@@ -54,21 +54,21 @@ class Layer {
     // clear all Layer patchesInOut
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
-    void addPatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
+    void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
     void updatePatchInOut(PatchElementInOut &patch, float amount = 0);
-    void updatePatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
+    void updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
     void removePatchInOut(PatchElementInOut &patch);
-    void removePatchInOut(uint8_t outputId, uint8_t inputId);
+    void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
     void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
-    void addPatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
+    void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
     void updatePatchOutOut(PatchElementOutOut &patch, float amount = 0, float offset = 0);
-    void updatePatchOutOut(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
+    void updatePatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
     void removePatchOutOut(PatchElementOutOut &patch);
-    void removePatchOutOut(uint8_t outputOutId, uint8_t outputInId);
+    void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
 
-    std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
-    std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
+    inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
+    inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
 
     // ID for
     LayerSettings layerSettings = LayerSettings("LayerSettings");

@@ -160,7 +160,7 @@ class PanelTouch {
         println("-------------> input");
         if (event) { // push Event
             if (activeOutput != nullptr) {
-                allLayers[layerID]->addPatchInOut(activeOutput->idGlobal, pInput->idGlobal);
+                allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
                 println("-------------> patch INOUT");
             }
             else {
@@ -183,14 +183,14 @@ class PanelTouch {
         if (event) { // push Event
 
             if (activeInput != nullptr) {
-                allLayers[layerID]->addPatchInOut(pOutput->idGlobal, activeInput->idGlobal, 1);
+                allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
                 println("-------------> patch OUTIN");
             }
             else if (activeOutput != nullptr) {
 
                 if (activeOutput != pOutput) {
 
-                    allLayers[layerID]->addPatchOutOut(pOutput->idGlobal, activeOutput->idGlobal, 1);
+                    allLayers[layerID]->addPatchOutOutById(pOutput->idGlobal, activeOutput->idGlobal, 1);
                     println("-------------> patch OUTOUT");
                 }
             }
