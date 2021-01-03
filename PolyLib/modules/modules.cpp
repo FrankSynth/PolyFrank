@@ -36,6 +36,7 @@ void OSC_A::render() {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
 }
+
 void OSC_B::render() {
     for (Input *input : inputs) {
         input->collectCurrentSample();
@@ -44,6 +45,7 @@ void OSC_B::render() {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
 }
+
 void Sub::render() {
     for (Input *input : inputs) {
         input->collectCurrentSample();
@@ -52,6 +54,7 @@ void Sub::render() {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
 }
+
 void Noise::render() {
     for (Input *input : inputs) {
         input->collectCurrentSample();
@@ -60,6 +63,34 @@ void Noise::render() {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
 }
+
+void Steiner::render() {
+    for (Input *input : inputs) {
+        input->collectCurrentSample();
+    }
+
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    }
+}
+
+void Ladder::render() {
+    for (Input *input : inputs) {
+        input->collectCurrentSample();
+    }
+
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    }
+}
+
+void Distortion::render() {
+    for (Input *input : inputs) {
+        input->collectCurrentSample();
+    }
+
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    }
+}
+
 void LFO::render() {
     for (Input *input : inputs) {
         input->collectCurrentSample();
@@ -70,15 +101,6 @@ void LFO::render() {
 }
 
 void ADSR::render() {
-    for (Input *input : inputs) {
-        input->collectCurrentSample();
-    }
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void Distortion::render() {
     for (Input *input : inputs) {
         input->collectCurrentSample();
     }
