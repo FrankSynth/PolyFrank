@@ -243,12 +243,15 @@ void Data_PanelElement::Draw() {
     select = 0;
 }
 
-void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id) {
 
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
+
+    this->name = name;
+    this->id = id;
 
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
@@ -317,6 +320,12 @@ void GUIPanelData::Draw() {
     }
     else if (focus.type == FOCUSLAYER) {
         registerLayerModules();
+        for (int i = 0; i < DATAPANELENTRYS; i++) {
+            panelElements[i].Draw();
+        }
+    }
+    else if (focus.type == FOCUSCONFIG) {
+        // registerConfigs();
         for (int i = 0; i < DATAPANELENTRYS; i++) {
             panelElements[i].Draw();
         }

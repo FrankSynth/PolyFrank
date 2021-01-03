@@ -114,8 +114,8 @@ void GUIPanelPath::Draw() {
 // PANEL Path Type
 
 void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
-    panelCount = panels->size();
-    panelWidth = width / panels->size();
+    panelCount = 4;
+    panelWidth = width / 4;
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
@@ -200,11 +200,15 @@ void GUI::Init() { // add settings pointer
     // init Display
     GFX_Init();
 
+    guiPanelData.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+    guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
+
     // add Panels to vector
+    panels.push_back(&guiPanel_0);
     panels.push_back(&guiPanel_1);
     panels.push_back(&guiPanel_2);
     panels.push_back(&guiPanel_3);
-    panels.push_back(&guiPanel_4);
+    panels.push_back(&guiPanelData);
 
     // init Header
     guiHeader.init(&panels, LCDWIDTH, HEADERHEIGHT);
@@ -223,10 +227,8 @@ void GUI::Init() { // add settings pointer
 
     // register Header action
     actionHandler.registerActionHeader(
-        {std::bind(&GUI::setPanel1Active, this), "LIVEMODE"}, {std::bind(&GUI::setPanel2Active, this), "PATCH"},
-        {std::bind(&GUI::setPanel3Active, this), "PRESET"}, {std::bind(&GUI::setPanel4Active, this), "CONFIG"});
-
-    guiPanelData.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+        {std::bind(&GUI::setPanel0Active, this), "LIVEMODE"}, {std::bind(&GUI::setPanel1Active, this), "PATCH"},
+        {std::bind(&GUI::setPanel2Active, this), "PRESET"}, {std::bind(&GUI::setPanel3Active, this), "CONFIG"});
 
     setPanelFocusActive();
 
@@ -274,47 +276,51 @@ void GUI::setFocus(location newFocus) {
 }
 
 // PanelSelect
-void GUI::setPanel1Active() {
-    guiPanel_1.active = 1;
+void GUI::setPanel0Active() {
+    guiPanel_0.active = 1;
+    guiPanel_1.active = 0;
     guiPanel_2.active = 0;
     guiPanel_3.active = 0;
-    guiPanel_4.active = 0;
+    guiPanelData.active = 0;
 
     setActivePanel(0);
 }
-void GUI::setPanel2Active() {
-    guiPanel_1.active = 0;
-    guiPanel_2.active = 1;
+void GUI::setPanel1Active() {
+    guiPanel_0.active = 0;
+    guiPanel_1.active = 1;
+    guiPanel_2.active = 0;
     guiPanel_3.active = 0;
-    guiPanel_4.active = 0;
+    guiPanelData.active = 0;
 
     setActivePanel(1);
 }
-void GUI::setPanel3Active() {
+void GUI::setPanel2Active() {
+    guiPanel_0.active = 0;
     guiPanel_1.active = 0;
-    guiPanel_2.active = 0;
-    guiPanel_3.active = 1;
-    guiPanel_4.active = 0;
+    guiPanel_2.active = 1;
+    guiPanel_3.active = 0;
+    guiPanelData.active = 0;
 
     setActivePanel(2);
 }
 
-void GUI::setPanel4Active() {
+void GUI::setPanel3Active() {
+    guiPanel_0.active = 0;
     guiPanel_1.active = 0;
     guiPanel_2.active = 0;
-    guiPanel_3.active = 0;
-    guiPanel_4.active = 1;
+    guiPanel_3.active = 1;
+    guiPanelData.active = 0;
 
     setActivePanel(3);
 }
 
 void GUI::setPanelFocusActive() {
+    guiPanel_0.active = 0;
     guiPanel_1.active = 0;
     guiPanel_2.active = 0;
     guiPanel_3.active = 0;
-    guiPanel_4.active = 0;
-
-    activePanel = &guiPanelData;
+    guiPanelData.active = 1;
+    setActivePanel(4);
 }
 
 void GUI::setActivePanel(uint8_t id) {

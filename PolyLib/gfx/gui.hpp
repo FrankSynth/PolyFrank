@@ -103,19 +103,6 @@ class GUIPanelPath {
     const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 };
 
-// PANEL Config Type
-class GUIPanelConfig : public GUIPanelBase {
-  public:
-    GUIPanelConfig(std::string name, uint8_t id) : GUIPanelBase(name, id){};
-
-    void Reset();
-
-    void Draw() {}
-    void registerActions();
-
-  private:
-};
-
 // Header
 class GUIHeader {
   public:
@@ -176,13 +163,13 @@ class GUI {
     void setFocus(location newFocus);
 
     // PanelSelect
+    void setPanel0Active();
+
     void setPanel1Active();
 
     void setPanel2Active();
 
     void setPanel3Active();
-
-    void setPanel4Active();
     void setPanelFocusActive();
 
     void setActivePanel(uint8_t id);
@@ -190,14 +177,14 @@ class GUI {
     std::vector<Layer *> layers;
 
   private:
-    GUIPanelConfig guiPanel_1 = GUIPanelConfig("LIVEMODE", 0);
-    GUIPanelConfig guiPanel_2 = GUIPanelConfig("PATCH", 1);
-    GUIPanelConfig guiPanel_3 = GUIPanelConfig("PRESET", 2);
-    GUIPanelConfig guiPanel_4 = GUIPanelConfig("CONFIG", 3);
+    GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
+    GUIPanelBase guiPanel_1 = GUIPanelBase("PATCH", 1);
+    GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
 
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelData guiPanelData;
+    GUIPanelData guiPanel_3;
 
     GUIPanelPath guiPath;
 

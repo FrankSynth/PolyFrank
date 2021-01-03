@@ -35,6 +35,7 @@ extern uint32_t cWhiteLight;
 typedef enum {
     FOCUSLAYER,
     FOCUSMODULE,
+    FOCUSCONFIG,
     FOCUSINPUT,
     FOCUSOUTPUT,
     FOCUSSETTING,
