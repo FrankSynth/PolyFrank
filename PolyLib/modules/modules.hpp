@@ -96,7 +96,7 @@ class OSC_A : public BaseModule {
     Input iBitcrusher = Input("BITCRUSHER");
     Input iOctave = Input("OCTAVE");
 
-    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
+    Analog aMasterTune = Analog("MASTERTUNING", -1, 1, 0, true, logMap);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSHER", 0, 24, 0, true, linMap, &iBitcrusher);
@@ -219,8 +219,8 @@ class Steiner : public BaseModule {
     Input iLevel = Input("LEVEL");
 
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
 
     Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
 
@@ -247,9 +247,9 @@ class Ladder : public BaseModule {
     Input iLevel = Input("LEVEL");
 
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("CUTOFF", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("CUTOFF", 0, 1, 1, true, logMap, &iLevel);
-    Analog aParSer = Analog("CUTOFF", 0, 1, 1, true, linMap);
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
 
@@ -376,10 +376,10 @@ class GlobalModule : public BaseModule {
     Input iPan = Input("LEVEL");
 
     Analog aVCA = Analog("VCA", 0, 1, 0, true, logMap, &iVCA);
-    Analog aGlide = Analog("LEVEL", 0, 1, 0, true, logMap);
-    Analog aPan = Analog("LEVEL", 0, 1, 0, true, logMap, &iPan);
-    Analog aSpread = Analog("LEVEL", 0, 1, 0, true, logMap);
-    Analog aDetune = Analog("LEVEL", 0, 1, 0, true, logMap);
+    Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);
+    Analog aPan = Analog("PAN", 0, 1, 0, true, logMap, &iPan);
+    Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
+    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
 
     void render();
 };
