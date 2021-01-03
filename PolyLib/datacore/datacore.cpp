@@ -30,7 +30,8 @@ void Analog::setValue(int32_t newValue) {
     value = testInt(newValue, 0, MAX_VALUE_12BIT);
 
     // if (mapping == linMap) {
-    valueMapped = fast_lerp_f32(min, max, ((float)value - MIN_VALUE_12BIT) / (MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+    valueMapped =
+        fast_lerp_f32(min, max, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
     // }
     // else if (mapping == logMap) {
     //     valueMapped = (powf(1.5, value) - 1) / powf(1.5, MAX_VALUE_12BIT) * (max - min) + min; // Log with mapping

@@ -106,7 +106,8 @@ class Analog : public DataElement {
         this->max = max;
         this->minMaxDifference = max - min;
         // this->defaultValue = fastMap(defaultValue, min, max, MIN_VALUE_12BIT, MAX_VALUE_12BIT);
-        this->defaultValue = (((float)value) / (max - min)) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT;
+        this->defaultValue =
+            (((float)value - min) / (max - min)) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT;
 
         this->mapping = mapping;
 
