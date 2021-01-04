@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GUIPanelData.hpp"
 #include "datacore/datacore.hpp"
 #include "gfx.hpp"
 #include "guiActionHandler.hpp"
 #include "guiBase.hpp"
+#include "guiPanels.hpp"
 #include "layer/layer.hpp"
 #include "tim.h"
 #include <functional>
@@ -22,7 +22,7 @@ class Header_PanelBox {
         this->heigth = heigth;
     }
 
-    void Draw();
+    void Draw(uint8_t active);
 
   private:
     const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
@@ -106,11 +106,13 @@ class GUIPanelPath {
 // Header
 class GUIHeader {
   public:
-    void init(std::vector<GUIPanelBase *> *panels, uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
+    void init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID, uint16_t width, uint16_t height,
+              uint16_t x = 0, uint16_t y = 0);
     void Draw();
 
   private:
     // Boxes
+    uint8_t *activePanelID = nullptr;
     std::vector<Header_PanelBox> boxes;
     uint16_t panelWidth;
     uint16_t panelHeight;
@@ -163,23 +165,21 @@ class GUI {
     void setFocus(location newFocus);
 
     // PanelSelect
-    void setPanel0Active();
-
-    void setPanel1Active();
-
-    void setPanel2Active();
-
-    void setPanel3Active();
-    void setPanelFocusActive();
+    void setPanelActive(uint8_t panelID);
 
     void setActivePanel(uint8_t id);
+
     GUIPanelBase *activePanel = nullptr;
+
+    uint8_t activePanelID = 0;
+    uint8_t oldActivePanelID = 0;
+
     std::vector<Layer *> layers;
 
   private:
     GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
     GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
-    
+
     GUIPanelPatch guiPanel_1;
     GUIPanelConfig guiPanel_3;
 

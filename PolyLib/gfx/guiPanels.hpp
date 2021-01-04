@@ -13,6 +13,7 @@
 #define DATAPANELENTRYS 6
 #define CONFIGPANELENTRYS 5
 #define PATCHPANELENTRYS 7
+#define PRESETPANELENTRYS 7
 
 /*Aufbau Data Panel
 
@@ -159,10 +160,10 @@ class Patch_PanelElement {
         this->entryHeight = heigth;
     }
     void Draw();
+    void addPatchEntry(PatchElementInOut *patch) { this->patch = patch; }
+    void addEntry(BasePatch *entry) {
 
-    void addEntry(BasePatch *patch) {
-
-        entry = patch;
+        this->entry = entry;
         active = 1;
     }
 
@@ -171,7 +172,9 @@ class Patch_PanelElement {
     uint8_t select = 0;
     uint16_t panelAbsX;
 
-    BasePatch *entry;
+    BasePatch *entry = nullptr;
+
+    PatchElementInOut *patch = nullptr;
 
   private:
     uint16_t panelAbsY;
@@ -216,17 +219,13 @@ class GUIPanelData : public GUIPanelBase {
     void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
     void Draw();
 
-    uint16_t updateEntrys();
+    void updateEntrys();
     void registerModuleSettings();
     void registerModulePatchIn();
     void registerModulePatchOut();
     void registerLayerModules();
 
     void registerPanelSettings();
-
-    void changeScroll(int16_t change);
-    void checkScroll();
-    void resetScroll();
 
   private:
     // Boxes
@@ -244,8 +243,8 @@ class GUIPanelData : public GUIPanelBase {
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
     location oldLocation;
-    uint16_t scroll = 0;
-    uint8_t scrollOffset = 0;
+
+    Scroller scroll = Scroller(CONFIGPANELENTRYS);
 
     location newFocusLocation;
 
@@ -257,15 +256,11 @@ class GUIPanelConfig : public GUIPanelBase {
     void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
     void Draw();
 
-    uint16_t updateEntrys();
+    void updateEntrys();
 
     void registerGlobalSettings();
 
     void registerPanelSettings();
-
-    void changeScroll(int16_t change);
-    void checkScroll();
-    void resetScroll();
 
   private:
     // Boxes
@@ -280,8 +275,8 @@ class GUIPanelConfig : public GUIPanelBase {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
-    uint16_t scroll = 0;
-    uint8_t scrollOffset = 0;
+
+    Scroller scroll = Scroller(CONFIGPANELENTRYS);
 
     Data_PanelElement panelElements[CONFIGPANELENTRYS];
 };
@@ -298,12 +293,9 @@ class GUIPanelPatch : public GUIPanelBase {
     void registerPanelSettings();
 
     void addCurrentPatch();
-
     void removeCurrentPatch();
     void clearPatches();
-    void changeScroll(int16_t changeModul, int16_t changeTarget, int16_t changeSource);
-    void checkScroll();
-    void resetScroll();
+
     void toggleFlipView() { flipView = !flipView; }
 
   private:
@@ -322,14 +314,9 @@ class GUIPanelPatch : public GUIPanelBase {
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
 
-    uint16_t scrollModule = 0;
-    uint8_t scrollModuleOffset = 0;
-
-    uint16_t scrollSource = 0;
-    uint8_t scrollSourceOffset = 0;
-
-    uint16_t scrollTarget = 0;
-    uint8_t scrollTargetOffset = 0;
+    Scroller scrollModule = Scroller(PATCHPANELENTRYS);
+    Scroller scrollSource = Scroller(PATCHPANELENTRYS);
+    Scroller scrollTarget = Scroller(PATCHPANELENTRYS);
 
     uint8_t flipView = 0;
     uint16_t absXPositions[3];
@@ -337,4 +324,38 @@ class GUIPanelPatch : public GUIPanelBase {
     Patch_PanelElement panelElementsSource[PATCHPANELENTRYS];
     Patch_PanelElement panelElementsTarget[PATCHPANELENTRYS];
     Module_PanelElement panelElementsModule[PATCHPANELENTRYS];
+};
+
+class GUIPanelPreset : public GUIPanelBase {
+  public:
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
+    void Draw();
+
+    void updateEntrys();
+
+    void registerElements();
+    void registerPanelSettings();
+
+  private:
+    // Boxes
+
+    FOCUSMODE mode;
+
+    uint16_t entrysModule = 0;
+    uint16_t entrysSource = 0;
+    uint16_t entrysTarget = 0;
+
+    const uint16_t maxEntrys = PRESETPANELENTRYS;
+
+    uint16_t panelWidth = 0;
+    uint16_t panelHeight = 0;
+    uint16_t panelAbsX = 0;
+    uint16_t panelAbsY = 0;
+
+    Scroller scroll = Scroller(PRESETPANELENTRYS);
+
+    uint8_t flipView = 0;
+    uint16_t absXPositions[3];
+
+    // Preset_PanelElement panelElementsSource[PRESETPANELENTRYS];
 };

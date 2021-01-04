@@ -6,8 +6,8 @@ GUI ui;
 ///////DRAW ELEMENTS//////
 // GUIHeader Box for Panel Selection
 
-void Header_PanelBox::Draw() {
-    if (pSource->active) {
+void Header_PanelBox::Draw(uint8_t active) {
+    if (active) {
         drawRectangleFill(cWhite, x, y, width, heigth);
         drawString(pSource->name, cFont_Select, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
@@ -113,12 +113,14 @@ void GUIPanelPath::Draw() {
 
 // PANEL Path Type
 
-void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID, uint16_t width, uint16_t height,
+                     uint16_t x, uint16_t y) {
     panelCount = 4;
     panelWidth = width / 4;
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
+    this->activePanelID = activePanelID;
 
     // create Header Boxes;
     for (unsigned int p = 0; p < panelCount; p++) {
@@ -128,8 +130,13 @@ void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint16_t width, uint16
 }
 void GUIHeader::Draw() {
 
-    for (Header_PanelBox i : boxes) {
-        i.Draw();
+    for (int i = 0; i < panelCount; i++) {
+        if (i == *activePanelID) {
+            boxes[i].Draw(true);
+        }
+        else {
+            boxes[i].Draw(false);
+        }
     }
 
     for (unsigned int p = 1; p < panelCount; p++) {
@@ -212,7 +219,7 @@ void GUI::Init() { // add settings pointer
     panels.push_back(&guiPanelData);
 
     // init Header
-    guiHeader.init(&panels, LCDWIDTH, HEADERHEIGHT);
+    guiHeader.init(&panels, &activePanelID, LCDWIDTH, HEADERHEIGHT);
 
     // init Footer
     guiFooter.init(LCDWIDTH, FOOTERHEIGHT);
@@ -228,10 +235,10 @@ void GUI::Init() { // add settings pointer
 
     // register Header action
     actionHandler.registerActionHeader(
-        {std::bind(&GUI::setPanel0Active, this), "LIVEMODE"}, {std::bind(&GUI::setPanel1Active, this), "PATCH"},
-        {std::bind(&GUI::setPanel2Active, this), "PRESET"}, {std::bind(&GUI::setPanel3Active, this), "CONFIG"});
+        {std::bind(&GUI::setPanelActive, this, 0), "LIVEMODE"}, {std::bind(&GUI::setPanelActive, this, 1), "PATCH"},
+        {std::bind(&GUI::setPanelActive, this, 2), "PRESET"}, {std::bind(&GUI::setPanelActive, this, 3), "CONFIG"});
 
-    setPanelFocusActive();
+    setPanelActive(3);
 
     // Set Focus for test
     setFocus({0, 0, 0, FOCUSMODULE});
@@ -277,59 +284,21 @@ void GUI::setFocus(location newFocus) {
 
     focus = newFocus;
 
-    setPanelFocusActive(); // activate Focus Panel
+    setPanelActive(4); // activate Focus Panel
 }
 
 // PanelSelect
-void GUI::setPanel0Active() {
-    guiPanel_0.active = 1;
-    guiPanel_1.active = 0;
-    guiPanel_2.active = 0;
-    guiPanel_3.active = 0;
-    guiPanelData.active = 0;
-
-    setActivePanel(0);
-}
-void GUI::setPanel1Active() {
-    guiPanel_0.active = 0;
-    guiPanel_1.active = 1;
-    guiPanel_2.active = 0;
-    guiPanel_3.active = 0;
-    guiPanelData.active = 0;
-
-    setActivePanel(1);
-}
-void GUI::setPanel2Active() {
-    guiPanel_0.active = 0;
-    guiPanel_1.active = 0;
-    guiPanel_2.active = 1;
-    guiPanel_3.active = 0;
-    guiPanelData.active = 0;
-
-    setActivePanel(2);
-}
-
-void GUI::setPanel3Active() {
-    guiPanel_0.active = 0;
-    guiPanel_1.active = 0;
-    guiPanel_2.active = 0;
-    guiPanel_3.active = 1;
-    guiPanelData.active = 0;
-
-    setActivePanel(3);
-}
-
-void GUI::setPanelFocusActive() {
-    guiPanel_0.active = 0;
-    guiPanel_1.active = 0;
-    guiPanel_2.active = 0;
-    guiPanel_3.active = 0;
-    guiPanelData.active = 1;
-    setActivePanel(4);
-}
-
-void GUI::setActivePanel(uint8_t id) {
-    activePanel = panels[id];
+void GUI::setPanelActive(uint8_t panelID) {
+    // zurück zum letzen panel
+    if (activePanelID == panelID) {
+        activePanel = panels[oldActivePanelID];
+        activePanelID = oldActivePanelID;
+    }
+    else {
+        oldActivePanelID = activePanelID;
+        activePanel = panels[panelID];
+        activePanelID = panelID;
+    }
 }
 
 #endif // ifdef POLYCONTROL

@@ -21,6 +21,7 @@ extern uint32_t cGreyDark;
 extern uint32_t cWhite;
 extern uint32_t cWhiteLight;
 extern uint32_t cWhiteMedium;
+extern uint32_t cHighlight;
 
 // responsive sizes
 #define HEADERHEIGHT 36
@@ -105,6 +106,23 @@ class GUIPanelBase {
     uint8_t active;
 
   private:
+};
+
+class Scroller {
+  public:
+    Scroller(uint16_t maxEntrysVisible) { this->maxEntrysVisible = maxEntrysVisible; }
+
+    void scroll(int16_t change);
+    void checkScroll() { scroll(0); }
+    void resetScroll() {
+        position = 0;
+        offset = 0;
+    };
+
+    uint16_t position;
+    uint16_t offset;
+    uint16_t entrys;
+    uint16_t maxEntrysVisible;
 };
 
 void nextLayer();

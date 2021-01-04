@@ -42,7 +42,7 @@ class tactileSwitch {
 
     void process(uint16_t pinStatus) {
 
-        uint8_t newState = pinStatus & (1 << pin);
+        uint16_t newState = pinStatus & (1 << pin);
         if (newState != state) { // switch state changed?
             if (!newState) {     // push
                 if (functionPush != nullptr) {
@@ -64,7 +64,7 @@ class tactileSwitch {
         this->functionRelease = functionRelease;
     }
 
-    uint8_t state;
+    uint16_t state;
 
     uint16_t pin;
 

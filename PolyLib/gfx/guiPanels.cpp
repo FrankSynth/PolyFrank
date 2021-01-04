@@ -1,6 +1,6 @@
 #ifdef POLYCONTROL
 
-#include "GUIPanelData.hpp"
+#include "guiPanels.hpp"
 
 const GUI_FONTINFO *elementFont = &GUI_FontBahnschrift24_FontInfo;
 
@@ -179,6 +179,52 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
         drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
         drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
     }
+}
+
+void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, uint16_t y, uint16_t w, uint16_t h,
+                          uint8_t select, uint8_t patched) {
+
+    int valueBarHeigth = 6;
+
+    if (select) {
+        drawRectangleChampfered(cWhite, x, y, w, h - valueBarHeigth - 1, 1);
+        drawString(element->name, cFont_Select, x + w / 2, y + (-elementFont->size + h) / 2 - valueBarHeigth / 2,
+                   elementFont, CENTER);
+    }
+    else {
+        drawRectangleChampfered(cGrey, x, y, w, h, 1);
+
+        drawString(element->name, cFont_Deselect, x + w / 2, y + (-elementFont->size + h) / 2 - valueBarHeigth / 2,
+                   elementFont, CENTER);
+    }
+
+    if (patched == 1) {
+        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
+    }
+    else if (patched == 2) {
+        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+    }
+    else if (patched == 3) {
+        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+    }
+
+    float amount;
+    int valueBaroffsetCenter;
+
+    amount = patch->getAmount();
+
+    if (amount < 0) {
+        valueBaroffsetCenter = (w + (float)w * amount) / 2;
+    }
+    else {
+        valueBaroffsetCenter = w / 2;
+    }
+
+    drawRectangleFill(cWhite, x + valueBaroffsetCenter, y + h - valueBarHeigth, (float)w / 2 * abs(amount),
+                      valueBarHeigth);
+
+    drawRectangleFill(cWhite, x + w / 2 - 1, y + h - valueBarHeigth, 1, valueBarHeigth);
 }
 
 void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
@@ -392,41 +438,57 @@ void Data_PanelElement::Draw() {
 }
 
 void Patch_PanelElement::Draw() {
-    if (!active) {
-        return;
+    if (entry != nullptr) {
+
+        if (!active) {
+            return;
+        }
+        if (patch == nullptr) {
+            drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+        }
+        else {
+
+            if (select) {
+                actionHandler.registerActionEncoder4(
+                    {std::bind(&PatchElementInOut::changeAmount, patch, 0.05), "AMOUNT"},
+                    {std::bind(&PatchElementInOut::changeAmount, patch, -0.05), "AMOUNT"},
+                    {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
+
+                // TODO reset geht nicht?
+            }
+            drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+        }
     }
-
-    if (select) {
-        // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
-        // entrys[2].functionPush);
-    }
-
-    drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
-
     // reset Marker
     select = 0;
     active = 0;
     patched = 0;
+    patch = nullptr;
+    // entry = nullptr;
 }
 
 void Module_PanelElement::Draw() {
-    if (!active) {
-        return;
-    }
-    if (select) {
-        // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-    }
+    if (entry != nullptr) {
 
-    drawModuleElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+        if (!active) {
+            return;
+        }
+        if (select) {
+            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
+            // entrys[2].functionPush);
+        }
 
-    // reset Marker
-    select = 0;
-    active = 0;
-    patched = 0;
+        drawModuleElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+
+        // reset Marker
+        select = 0;
+        active = 0;
+        patched = 0;
+        //    entry = nullptr;
+    }
 }
 
 void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
-
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -444,16 +506,15 @@ void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
 }
 
 void GUIPanelData::registerPanelSettings() {
-
     // register Scroll
     if (newFocusLocation.type != NOFOCUS) {
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
-                                             {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"},
                                              {std::bind(focusDown, newFocusLocation), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelData::changeScroll, this, 1), "SCROLL"},
-                                             {std::bind(&GUIPanelData::changeScroll, this, -1), "SCROLL"},
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"},
                                              {nullptr, ""});
     }
 
@@ -466,15 +527,11 @@ void GUIPanelData::registerPanelSettings() {
 }
 
 void GUIPanelData::Draw() {
-
     // register Panel Seetings
     registerPanelSettings();
 
     // update number ob entrys
     updateEntrys();
-
-    // check Scroll position
-    checkScroll();
 
     // resetFocus
     newFocusLocation.type = NOFOCUS;
@@ -504,11 +561,11 @@ void GUIPanelData::Draw() {
         }
     }
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scrollOffset, entrys,
-                  DATAPANELENTRYS);
+    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
+                  entrys, DATAPANELENTRYS);
 }
 
-uint16_t GUIPanelData::updateEntrys() {
+void GUIPanelData::updateEntrys() {
     entrys = 0;
 
     if (focus.type == FOCUSINPUT) {
@@ -520,7 +577,6 @@ uint16_t GUIPanelData::updateEntrys() {
                       .size(); // all patches to this input
 
         // println("entrys Input", entrys);
-        return entrys;
     }
     else if (focus.type == FOCUSOUTPUT) {
         entrys = 0; // BaseValue
@@ -536,8 +592,6 @@ uint16_t GUIPanelData::updateEntrys() {
                       ->getPatchesOutOut()
                       .size(); // all Output patches to this output
         // println("entrys Output", entrys);
-
-        return entrys;
     }
     else if (focus.type == FOCUSMODULE) {
 
@@ -556,17 +610,21 @@ uint16_t GUIPanelData::updateEntrys() {
                 sub++;
             }
         }
-        return entrys;
     }
     else if (focus.type == FOCUSLAYER) {
-        return entrys = allLayers[focus.layer]->getModules().size(); // all Modules
+        entrys = allLayers[focus.layer]->getModules().size(); // all Modules
     }
 
-    return 0;
+    scroll.entrys = entrys;
+    scroll.checkScroll();
+
+    if (oldLocation.id != focus.id || oldLocation.modul != focus.modul || oldLocation.type != focus.type) {
+        scroll.resetScroll();
+        oldLocation = focus;
+    }
 }
 
 void GUIPanelData::registerModuleSettings() {
-
     uint16_t size;
 
     uint16_t dataIndex = 0;
@@ -574,7 +632,7 @@ void GUIPanelData::registerModuleSettings() {
 
     size = allLayers[focus.layer]->getModules()[focus.modul]->getPotis().size();
 
-    dataIndex = scrollOffset;
+    dataIndex = scroll.offset;
 
     while (true) {
         if (elementIndex >= DATAPANELENTRYS) {
@@ -587,7 +645,7 @@ void GUIPanelData::registerModuleSettings() {
             if (analogElement->displayVis) { // element Visible
 
                 // register newFocusLocation
-                if ((scroll - scrollOffset) == elementIndex) {
+                if ((scroll.position - scroll.offset) == elementIndex) {
                     if (analogElement->input != nullptr) {
                         newFocusLocation.id = analogElement->input->id;
                         newFocusLocation.modul = analogElement->input->moduleId;
@@ -638,7 +696,7 @@ void GUIPanelData::registerModuleSettings() {
         elementIndex++;
     }
 
-    panelElements[scroll - scrollOffset].select = 1;
+    panelElements[scroll.position - scroll.offset].select = 1;
 }
 
 void GUIPanelData::registerModulePatchIn() {
@@ -651,7 +709,7 @@ void GUIPanelData::registerModulePatchIn() {
     while (true) {
         for (unsigned int i = 0; i < DATAPANELENTRYS; i++) {
 
-            dataIndex = i + scrollOffset;
+            dataIndex = i + scroll.offset;
             if (dataIndex < size) {
 
                 // println("register PatchElement");
@@ -665,7 +723,7 @@ void GUIPanelData::registerModulePatchIn() {
                     {std::bind(&PatchElementInOut::changeAmount, patchElement, -0.02), "AMOUNT"},
                     {std::bind(&PatchElementInOut::setAmount, patchElement, 0), "RESET"});
             }
-            if (scroll == (i + scrollOffset)) {
+            if (scroll.position == (i + scroll.offset)) {
                 panelElements[i].select = 1;
             }
             else {
@@ -677,7 +735,6 @@ void GUIPanelData::registerModulePatchIn() {
     }
 }
 void GUIPanelData::registerLayerModules() {
-
     uint16_t size;
 
     uint16_t dataIndex = 0;
@@ -685,7 +742,7 @@ void GUIPanelData::registerLayerModules() {
 
     size = allLayers[focus.layer]->getModules().size();
 
-    dataIndex = scrollOffset;
+    dataIndex = scroll.offset;
 
     while (true) {
         if (elementIndex >= DATAPANELENTRYS) {
@@ -697,7 +754,7 @@ void GUIPanelData::registerLayerModules() {
 
             panelElements[elementIndex].addModuleEntry(moduleElement, {nullptr, ""}, {nullptr, ""}, {nullptr, ""});
 
-            if ((scroll - scrollOffset) == elementIndex) {
+            if ((scroll.position - scroll.offset) == elementIndex) {
                 newFocusLocation.modul = moduleElement->id;
                 newFocusLocation.type = FOCUSMODULE;
             }
@@ -709,11 +766,10 @@ void GUIPanelData::registerLayerModules() {
             break;
         }
     }
-    panelElements[scroll - scrollOffset].select = 1;
+    panelElements[scroll.position - scroll.offset].select = 1;
 }
 
 void GUIPanelData::registerModulePatchOut() {
-
     uint16_t size;
 
     uint16_t dataIndex = 0;
@@ -721,7 +777,7 @@ void GUIPanelData::registerModulePatchOut() {
 
     size = allLayers[focus.layer]->getModules()[focus.modul]->getOutputs()[focus.id]->getPatchesInOut().size();
 
-    dataIndex = scrollOffset;
+    dataIndex = scroll.offset;
 
     while (true) {
         if (elementIndex >= DATAPANELENTRYS) {
@@ -773,55 +829,7 @@ void GUIPanelData::registerModulePatchOut() {
             break;
         }
     }
-    panelElements[scroll - scrollOffset].select = 1;
-}
-
-void GUIPanelData::changeScroll(int16_t change) {
-
-    if (scroll + change != 0) {
-        scroll = testInt(scroll + change, 0, entrys - 1);
-    }
-    else
-        scroll = 0;
-
-    if (scroll >= entrys) {
-        scroll = 0;
-    }
-
-    if (entrys <= DATAPANELENTRYS) {
-        scrollOffset = 0;
-    }
-    else if (scroll == entrys - 1) {
-        scrollOffset = entrys - DATAPANELENTRYS;
-    }
-    else if (scroll == 0) {
-        scrollOffset = 0;
-    }
-
-    else if (scroll >= (DATAPANELENTRYS + scrollOffset - 1)) {
-        scrollOffset++;
-    }
-    else if (scroll < (scrollOffset + 1)) {
-        scrollOffset--;
-    }
-}
-
-void GUIPanelData::checkScroll() {
-    static location BackupForCompare = focus;
-
-    if (focus.modul != BackupForCompare.modul || focus.id != BackupForCompare.id ||
-        focus.type != BackupForCompare.type) {
-        resetScroll();
-        BackupForCompare = focus;
-    }
-    else {
-        changeScroll(0);
-    }
-}
-
-void GUIPanelData::resetScroll() {
-    scroll = 0;
-    scrollOffset = 0;
+    panelElements[scroll.position - scroll.offset].select = 1;
 }
 
 void GUIPanelConfig::registerGlobalSettings() {
@@ -920,68 +928,26 @@ void GUIPanelConfig::registerGlobalSettings() {
             break;
     }
 
-    panelElements[scroll - scrollOffset].select = 1;
+    panelElements[scroll.position - scroll.offset].select = 1;
 }
 
-void GUIPanelConfig::changeScroll(int16_t change) {
-
-    if (scroll + change != 0) {
-        scroll = testInt(scroll + change, 0, entrys - 1);
-    }
-    else
-        scroll = 0;
-
-    if (scroll >= entrys) {
-        scroll = 0;
-    }
-
-    if (entrys <= CONFIGPANELENTRYS) {
-        scrollOffset = 0;
-    }
-    else if (scroll == entrys - 1) {
-        scrollOffset = entrys - CONFIGPANELENTRYS;
-    }
-    else if (scroll == 0) {
-        scrollOffset = 0;
-    }
-
-    else if (scroll >= (CONFIGPANELENTRYS + scrollOffset - 1)) {
-        scrollOffset++;
-    }
-    else if (scroll < (scrollOffset + 1)) {
-        scrollOffset--;
-    }
-}
-
-void GUIPanelConfig::checkScroll() {
-    changeScroll(0);
-}
-
-void GUIPanelConfig::resetScroll() {
-    scroll = 0;
-    scrollOffset = 0;
-}
-
-uint16_t GUIPanelConfig::updateEntrys() {
+void GUIPanelConfig::updateEntrys() {
     entrys = 0;
     entrys += ceil((float)globalSettings.__globSettingsSystem.settings.size() / EntrysPerElement);
 
     entrys += ceil((float)globalSettings.__globSettingsDisplay.settings.size() / EntrysPerElement);
     entrys += ceil((float)globalSettings.__globSettingsMIDI.settings.size() / EntrysPerElement);
 
-    return entrys;
+    scroll.entrys = entrys;
+    scroll.checkScroll();
 }
 
 void GUIPanelConfig::Draw() {
-
     // register Panel Seetings.settings.
     registerPanelSettings();
 
     // update number ob entrys
     updateEntrys();
-
-    // check Scroll position
-    checkScroll();
 
     registerGlobalSettings();
 
@@ -989,14 +955,13 @@ void GUIPanelConfig::Draw() {
         panelElements[i].Draw();
     }
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scrollOffset, entrys,
-                  CONFIGPANELENTRYS);
+    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
+                  entrys, CONFIGPANELENTRYS);
 }
 
 void GUIPanelConfig::registerPanelSettings() {
-
-    actionHandler.registerActionEncoder1({std::bind(&GUIPanelConfig::changeScroll, this, 1), "SCROLL"},
-                                         {std::bind(&GUIPanelConfig::changeScroll, this, -1), "SCROLL"}, {nullptr, ""});
+    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
     // register Panel Seetings Left
     actionHandler.registerActionLeft({nullptr, "RESET"}, // RESET
@@ -1008,7 +973,6 @@ void GUIPanelConfig::registerPanelSettings() {
 }
 
 void GUIPanelConfig::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id) {
-
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -1033,7 +997,7 @@ void GUIPanelPatch::registerElements() {
     uint16_t dataIndex = 0;
     uint16_t elementIndex = 0;
 
-    dataIndex = scrollModuleOffset;
+    dataIndex = scrollModule.offset;
 
     // register Module Elements
     while (true) {
@@ -1052,10 +1016,10 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsModule[scrollModule - scrollModuleOffset].select = 1;
+    panelElementsModule[scrollModule.position - scrollModule.offset].select = 1;
 
     elementIndex = 0;
-    dataIndex = scrollSourceOffset;
+    dataIndex = scrollSource.offset;
     // register Source Elements
     while (true) {
         if (elementIndex >= maxEntrys) {
@@ -1073,10 +1037,10 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsSource[scrollSource - scrollSourceOffset].select = 1;
+    panelElementsSource[scrollSource.position - scrollSource.offset].select = 1;
 
     elementIndex = 0;
-    dataIndex = scrollTargetOffset;
+    dataIndex = scrollTarget.offset;
     // register Target Elements
     while (true) {
         if (elementIndex >= maxEntrys) {
@@ -1086,7 +1050,7 @@ void GUIPanelPatch::registerElements() {
         if (dataIndex < entrysTarget) {
 
             panelElementsTarget[elementIndex].addEntry(
-                (BasePatch *)allLayers[focus.layer]->getModules()[scrollModule]->getInputs()[dataIndex]);
+                (BasePatch *)allLayers[focus.layer]->getModules()[scrollModule.position]->getInputs()[dataIndex]);
             dataIndex++;
         }
         else {
@@ -1095,7 +1059,7 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsTarget[scrollTarget - scrollTargetOffset].select = 1;
+    panelElementsTarget[scrollTarget.position - scrollTarget.offset].select = 1;
 
     // register PatchMarker
     if (flipView) {
@@ -1111,7 +1075,7 @@ void GUIPanelPatch::registerElements() {
 
             if (i < entrysModule) {
                 for (PatchElementInOut *p :
-                     panelElementsSource[scrollSource - scrollSourceOffset].entry->getPatchesInOut()) {
+                     panelElementsSource[scrollSource.position - scrollSource.offset].entry->getPatchesInOut()) {
 
                     if (panelElementsModule[i].entry->id == p->targetIn->moduleId) {
                         panelElementsModule[i].patched = 1;
@@ -1121,15 +1085,19 @@ void GUIPanelPatch::registerElements() {
         }
         for (int i = 0; i < maxEntrys; i++) {
 
-            if (panelElementsModule[scrollModule - scrollModuleOffset].patched) {
-                if (i < entrysTarget) {
+            if (i < entrysTarget) {
 
-                    for (PatchElementInOut *p : panelElementsTarget[i].entry->getPatchesInOut()) {
+                for (PatchElementInOut *p : panelElementsTarget[i].entry->getPatchesInOut()) {
 
-                        if (panelElementsModule[scrollModule - scrollModuleOffset].entry->id == p->targetIn->moduleId) {
-                            panelElementsModule[scrollModule - scrollModuleOffset].patched = 3;
-                            panelElementsTarget[i].patched = 1;
+                    if (panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal ==
+                        p->sourceOut->idGlobal) {
+                        panelElementsTarget[i].patched = 1;
+
+                        if (panelElementsModule[scrollModule.position - scrollModule.offset].entry->id ==
+                            p->targetIn->moduleId) {
+                            panelElementsModule[scrollModule.position - scrollModule.offset].patched = 3;
                         }
+                        panelElementsTarget[i].addPatchEntry(p); // register patchElement
                     }
                 }
             }
@@ -1140,134 +1108,52 @@ void GUIPanelPatch::registerElements() {
 
         // für jeden Eintrag
         for (int i = 0; i < maxEntrys; i++) {
+            if (i < entrysTarget) {
 
-            if (panelElementsTarget[i].entry->getPatchesInOut().size()) {
-                panelElementsTarget[i].patched = 2;
+                if (panelElementsTarget[i].entry->getPatchesInOut().size()) {
+                    panelElementsTarget[i].patched = 2;
+                }
+
+                // Ist die Source auf den aktuellen target connected -> makierung links
             }
-            // Ist die Source auf den aktuellen target connected -> makierung links
+        }
+        if (entrysTarget != 0) {
             for (PatchElementInOut *p :
-                 panelElementsTarget[scrollTarget - scrollTargetOffset].entry->getPatchesInOut()) {
-
-                if (panelElementsSource[i].entry->idGlobal == p->sourceOut->idGlobal) {
-                    panelElementsSource[i].patched = 1;
+                 panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->getPatchesInOut()) {
+                for (int i = 0; i < maxEntrys; i++) {
+                    if (i < entrysSource) {
+                        if (panelElementsSource[i].entry->idGlobal == p->sourceOut->idGlobal) {
+                            panelElementsSource[i].patched = 1;
+                            panelElementsSource[i].addPatchEntry(p); // register patchElement
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-void GUIPanelPatch::changeScroll(int16_t changeModul, int16_t changeTarget, int16_t changeSource) {
-
-    if (scrollTarget + changeTarget != 0) {
-        scrollTarget = testInt(scrollTarget + changeTarget, 0, entrysTarget - 1);
-    }
-    else
-        scrollTarget = 0;
-
-    if (scrollTarget >= entrysTarget) {
-        scrollTarget = 0;
-    }
-
-    if (entrysTarget <= maxEntrys) {
-        scrollTargetOffset = 0;
-    }
-    else if (scrollTarget == entrysTarget - 1) {
-        scrollTargetOffset = entrysTarget - maxEntrys;
-    }
-    else if (scrollTarget == 0) {
-        scrollTargetOffset = 0;
-    }
-
-    else if (scrollTarget >= (maxEntrys + scrollTargetOffset - 1)) {
-        scrollTargetOffset++;
-    }
-    else if (scrollTarget < (scrollTargetOffset + 1)) {
-        scrollTargetOffset--;
-    }
-
-    ///
-    if (scrollSource + changeSource != 0) {
-        scrollSource = testInt(scrollSource + changeSource, 0, entrysSource - 1);
-    }
-    else
-        scrollSource = 0;
-
-    if (scrollSource >= entrysSource) {
-        scrollSource = 0;
-    }
-
-    if (entrysSource <= maxEntrys) {
-        scrollSourceOffset = 0;
-    }
-    else if (scrollSource == entrysSource - 1) {
-        scrollSourceOffset = entrysSource - maxEntrys;
-    }
-    else if (scrollSource == 0) {
-        scrollSourceOffset = 0;
-    }
-
-    else if (scrollSource >= (maxEntrys + scrollSourceOffset - 1)) {
-        scrollSourceOffset++;
-    }
-    else if (scrollSource < (scrollSourceOffset + 1)) {
-        scrollSourceOffset--;
-    }
-
-    ///
-    if (scrollModule + changeModul != 0) {
-        scrollModule = testInt(scrollModule + changeModul, 0, entrysModule - 1);
-    }
-    else
-        scrollModule = 0;
-
-    if (scrollModule >= entrysModule) {
-        scrollModule = 0;
-    }
-
-    if (entrysModule <= maxEntrys) {
-        scrollModuleOffset = 0;
-    }
-    else if (scrollModule == entrysModule - 1) {
-        scrollModuleOffset = entrysModule - maxEntrys;
-    }
-    else if (scrollModule == 0) {
-        scrollModuleOffset = 0;
-    }
-
-    else if (scrollModule >= (maxEntrys + scrollModuleOffset - 1)) {
-        scrollModuleOffset++;
-    }
-    else if (scrollModule < (scrollModuleOffset + 1)) {
-        scrollModuleOffset--;
-    }
-}
-
-void GUIPanelPatch::checkScroll() {
-    changeScroll(0, 0, 0);
-}
-
-void GUIPanelPatch::resetScroll() {
-    // scroll = 0;
-    // scrollOffset = 0;
-}
-
 void GUIPanelPatch::updateEntrys() {
-
     entrysModule = allLayers[focus.layer]->getModules().size();
-    entrysTarget = allLayers[focus.layer]->getModules()[scrollModule]->getInputs().size();
+    entrysTarget = allLayers[focus.layer]->getModules()[scrollModule.position]->getInputs().size();
     entrysSource = allLayers[focus.layer]->outputs.size();
+    // check ScrollPosition
+    scrollModule.entrys = entrysModule;
+    scrollTarget.entrys = entrysTarget;
+    scrollSource.entrys = entrysSource;
+
+    // check Scroll position
+    scrollSource.checkScroll();
+    scrollTarget.checkScroll();
+    scrollModule.checkScroll();
 }
 
 void GUIPanelPatch::Draw() {
-
     // register Panel Seetings.settings.
     registerPanelSettings();
 
     // update number ob entrys
     updateEntrys();
-
-    // check Scroll position
-    checkScroll();
 
     registerElements();
 
@@ -1288,34 +1174,33 @@ void GUIPanelPatch::Draw() {
         panelElementsModule[i].Draw();
     }
 
-    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scrollOffset,
-    // entrys,
+    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight,
+    // scrollOffset, entrys,
     //               CONFIGPANELENTRYS);
 }
 
 void GUIPanelPatch::registerPanelSettings() {
-
     if (flipView) {
 
-        actionHandler.registerActionEncoder2({std::bind(&GUIPanelPatch::changeScroll, this, 1, 0, 0), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, -1, 0, 0), "SCROLL"},
+        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "SCROLL"},
                                              {nullptr, ""});
-        actionHandler.registerActionEncoder3({std::bind(&GUIPanelPatch::changeScroll, this, 0, 1, 0), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, 0, -1, 0), "SCROLL"},
+        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "SCROLL"},
                                              {nullptr, ""});
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelPatch::changeScroll, this, 0, 0, 1), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, 0, 0, -1), "SCROLL"},
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "SCROLL"},
                                              {nullptr, ""});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelPatch::changeScroll, this, 1, 0, 0), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, -1, 0, 0), "SCROLL"},
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "SCROLL"},
                                              {nullptr, ""});
-        actionHandler.registerActionEncoder2({std::bind(&GUIPanelPatch::changeScroll, this, 0, 1, 0), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, 0, -1, 0), "SCROLL"},
+        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "SCROLL"},
                                              {nullptr, ""});
-        actionHandler.registerActionEncoder3({std::bind(&GUIPanelPatch::changeScroll, this, 0, 0, 1), "SCROLL"},
-                                             {std::bind(&GUIPanelPatch::changeScroll, this, 0, 0, -1), "SCROLL"},
+        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "SCROLL"},
                                              {nullptr, ""});
     }
     // register Panel Seetings Left
@@ -1326,6 +1211,9 @@ void GUIPanelPatch::registerPanelSettings() {
     // register Panel Seetings Rigth
     actionHandler.registerActionRight({std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"}, // SAVE
                                       {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, {nullptr, ""});
+
+    // clear Encoder 4
+    actionHandler.registerActionEncoder4({nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
 }
 
 void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id) {
@@ -1356,14 +1244,15 @@ void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 }
 
 void GUIPanelPatch::addCurrentPatch() {
-    allLayers[focus.layer]->addPatchInOutById(panelElementsSource[scrollSource - scrollSourceOffset].entry->idGlobal,
-                                              panelElementsTarget[scrollTarget - scrollTargetOffset].entry->idGlobal);
+    allLayers[focus.layer]->addPatchInOutById(
+        panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
+        panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
 }
 
 void GUIPanelPatch::removeCurrentPatch() {
     allLayers[focus.layer]->removePatchInOutById(
-        panelElementsSource[scrollSource - scrollSourceOffset].entry->idGlobal,
-        panelElementsTarget[scrollTarget - scrollTargetOffset].entry->idGlobal);
+        panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
+        panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
 }
 
 void GUIPanelPatch::clearPatches() {
