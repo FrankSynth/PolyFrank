@@ -19,7 +19,9 @@ uint32_t cGreyDark = 0x60202020;
 uint32_t cGrey = 0x10808080;
 
 uint32_t cWhite = 0xFFFFFFFF;
-uint32_t cWhiteLight = 0xd0FFFFFF;
+uint32_t cWhiteMedium = 0x20FFFFFF;
+
+uint32_t cWhiteLight = 0x10FFFFFF;
 
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer, FONTALIGN alignment) {

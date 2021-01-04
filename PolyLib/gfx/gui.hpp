@@ -178,13 +178,14 @@ class GUI {
 
   private:
     GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
-    GUIPanelBase guiPanel_1 = GUIPanelBase("PATCH", 1);
     GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
+    
+    GUIPanelPatch guiPanel_1;
+    GUIPanelConfig guiPanel_3;
 
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelData guiPanelData;
-    GUIPanelData guiPanel_3;
 
     GUIPanelPath guiPath;
 

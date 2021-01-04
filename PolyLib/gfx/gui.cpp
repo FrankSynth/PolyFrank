@@ -8,7 +8,7 @@ GUI ui;
 
 void Header_PanelBox::Draw() {
     if (pSource->active) {
-        drawRectangleFill(cSelect, x, y, width, heigth);
+        drawRectangleFill(cWhite, x, y, width, heigth);
         drawString(pSource->name, cFont_Select, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
     else {
@@ -133,7 +133,7 @@ void GUIHeader::Draw() {
     }
 
     for (unsigned int p = 1; p < panelCount; p++) {
-        drawRectangleFill(cWhiteLight, panelWidth * p + panelAbsX, 0 + panelAbsY, 1, panelHeight);
+        drawRectangleFill(cWhite, panelWidth * p + panelAbsX, 0 + panelAbsY, 1, panelHeight);
     }
 }
 
@@ -202,6 +202,7 @@ void GUI::Init() { // add settings pointer
 
     guiPanelData.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
     guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
+    guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
 
     // add Panels to vector
     panels.push_back(&guiPanel_0);
@@ -243,10 +244,14 @@ void GUI::Clear() {
 }
 
 void GUI::Draw() {
+
+    // setDisplayBrigthness
+    __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
+                          globalSettings.dispBrigthness.getValue() * 1000); // 6553* 1-10 -> 65530
+
     setRenderState(RENDER_PROGRESS);
 
     // clear
-
     drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 
     // Draw Header

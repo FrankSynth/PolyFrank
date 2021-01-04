@@ -26,9 +26,9 @@ class BaseModule {
     uint8_t layerId;
 
     virtual void render();
+    std::string name;
 
   protected:
-    std::string name;
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
     std::vector<Analog *> knobs;

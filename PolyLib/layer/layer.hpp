@@ -22,12 +22,12 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
+        modules.push_back(&steiner);
         modules.push_back(&midi);
         modules.push_back(&oscA);
         modules.push_back(&oscB);
         modules.push_back(&sub);
         modules.push_back(&noise);
-        modules.push_back(&steiner);
         modules.push_back(&ladder);
         modules.push_back(&distort);
         modules.push_back(&lfoA);
@@ -90,13 +90,13 @@ class Layer {
     GlobalModule globalModule = GlobalModule("GLOBAL");
     TEST test = TEST("TEST");
 
-  private:
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
     std::list<PatchElementInOut> patchesInOut;
     std::list<PatchElementOutOut> patchesOutOut;
 
+  private:
     // sendout?
 
     // modules, don't forget them to push into modules vector in constructor

@@ -2,6 +2,7 @@
 
 #include "datacore/datacore.hpp"
 #include "gfx.hpp"
+#include "globalSettings/globalSettings.hpp"
 #include "guiActionHandler.hpp"
 #include "guiBase.hpp"
 #include "layer/layer.hpp"
@@ -10,6 +11,9 @@
 #include <string>
 
 #define DATAPANELENTRYS 6
+#define CONFIGPANELENTRYS 5
+#define PATCHPANELENTRYS 7
+
 /*Aufbau Data Panel
 
   - GUIPanelData
@@ -50,13 +54,14 @@ class Data_PanelElement {
         this->heigth = heigth;
         this->select = select;
     }
-
     void Draw();
+
+    void setName(std::string *name);
 
     void addAnalogEntry(Analog *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{ANALOG, data, nullptr, nullptr, nullptr, functionCW, functionCCW, functionPush};
+            entryStruct{ANALOG, data, nullptr, nullptr, nullptr, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -66,7 +71,7 @@ class Data_PanelElement {
                         actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{MODULE, nullptr, nullptr, nullptr, data, functionCW, functionCCW, functionPush};
+            entryStruct{MODULE, nullptr, nullptr, nullptr, nullptr, data, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -75,7 +80,15 @@ class Data_PanelElement {
     void addDigitalEntry(Digital *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{DIGITAL, nullptr, data, nullptr, nullptr, functionCW, functionCCW, functionPush};
+            entryStruct{DIGITAL, nullptr, data, nullptr, nullptr, nullptr, functionCW, functionCCW, functionPush};
+
+        numberEntrys++;
+        visible = 1;
+    }
+    void addSettingsEntry(Setting *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
+
+        entrys[numberEntrys] =
+            entryStruct{SETTING, nullptr, nullptr, data, nullptr, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -85,7 +98,7 @@ class Data_PanelElement {
                             actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{PATCHINPUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
+            entryStruct{PATCHINPUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -94,7 +107,7 @@ class Data_PanelElement {
                              actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{PATCHOUTOUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
+            entryStruct{PATCHOUTOUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -103,15 +116,15 @@ class Data_PanelElement {
                              actionHandle functionPush) {
 
         entrys[numberEntrys] =
-            entryStruct{PATCHOUTPUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
+            entryStruct{PATCHOUTPUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
     }
     void addEmptyEntry() {
 
-        entrys[numberEntrys] =
-            entryStruct{EMPTY, nullptr, nullptr, nullptr, nullptr, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}};
+        entrys[numberEntrys] = entryStruct{EMPTY,   nullptr,       nullptr,       nullptr,      nullptr,
+                                           nullptr, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}};
 
         numberEntrys++;
         visible = 1;
@@ -120,6 +133,8 @@ class Data_PanelElement {
     uint8_t select = 0;
     uint8_t visible = 0;
     uint16_t numberEntrys = 0;
+
+    std::string *panelElementName; // custom Name
 
   private:
     uint16_t panelAbsX;
@@ -135,14 +150,73 @@ class Data_PanelElement {
 };
 
 // GUIHeader Box for Panel Selection
+class Patch_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->entryWidth = width;
+        this->entryHeight = heigth;
+    }
+    void Draw();
+
+    void addEntry(BasePatch *patch) {
+
+        entry = patch;
+        active = 1;
+    }
+
+    uint8_t patched = 0;
+    uint8_t active = 0;
+    uint8_t select = 0;
+    uint16_t panelAbsX;
+
+    BasePatch *entry;
+
+  private:
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+};
+
+class Module_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->entryWidth = width;
+        this->entryHeight = heigth;
+        this->select = select;
+    }
+    void Draw();
+
+    void addEntry(BaseModule *modulePointer) {
+        entry = modulePointer;
+        active = 1;
+    }
+    uint8_t patched = 0;
+    uint8_t select = 0;
+    uint8_t active = 0;
+    uint16_t panelAbsX;
+
+    BaseModule *entry;
+
+  private:
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+};
+
+// GUIHeader Box for Panel Selection
 
 class GUIPanelData : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
     void Draw();
 
     uint16_t updateEntrys();
-
     void registerModuleSettings();
     void registerModulePatchIn();
     void registerModulePatchOut();
@@ -176,4 +250,91 @@ class GUIPanelData : public GUIPanelBase {
     location newFocusLocation;
 
     Data_PanelElement panelElements[DATAPANELENTRYS];
+};
+
+class GUIPanelConfig : public GUIPanelBase {
+  public:
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
+    void Draw();
+
+    uint16_t updateEntrys();
+
+    void registerGlobalSettings();
+
+    void registerPanelSettings();
+
+    void changeScroll(int16_t change);
+    void checkScroll();
+    void resetScroll();
+
+  private:
+    // Boxes
+
+    FOCUSMODE mode;
+
+    uint16_t entrys = CONFIGPANELENTRYS;
+
+    uint16_t EntrysPerElement = 3;
+
+    uint16_t panelWidth = 0;
+    uint16_t panelHeight = 0;
+    uint16_t panelAbsX = 0;
+    uint16_t panelAbsY = 0;
+    uint16_t scroll = 0;
+    uint8_t scrollOffset = 0;
+
+    Data_PanelElement panelElements[CONFIGPANELENTRYS];
+};
+
+class GUIPanelPatch : public GUIPanelBase {
+  public:
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
+    void Draw();
+
+    void updateEntrys();
+
+    void registerElements();
+
+    void registerPanelSettings();
+
+    void addCurrentPatch();
+
+    void removeCurrentPatch();
+    void clearPatches();
+    void changeScroll(int16_t changeModul, int16_t changeTarget, int16_t changeSource);
+    void checkScroll();
+    void resetScroll();
+    void toggleFlipView() { flipView = !flipView; }
+
+  private:
+    // Boxes
+
+    FOCUSMODE mode;
+
+    uint16_t entrysModule = 0;
+    uint16_t entrysSource = 0;
+    uint16_t entrysTarget = 0;
+
+    const uint16_t maxEntrys = PATCHPANELENTRYS;
+
+    uint16_t panelWidth = 0;
+    uint16_t panelHeight = 0;
+    uint16_t panelAbsX = 0;
+    uint16_t panelAbsY = 0;
+
+    uint16_t scrollModule = 0;
+    uint8_t scrollModuleOffset = 0;
+
+    uint16_t scrollSource = 0;
+    uint8_t scrollSourceOffset = 0;
+
+    uint16_t scrollTarget = 0;
+    uint8_t scrollTargetOffset = 0;
+
+    uint8_t flipView = 0;
+    uint16_t absXPositions[3];
+
+    Patch_PanelElement panelElementsSource[PATCHPANELENTRYS];
+    Patch_PanelElement panelElementsTarget[PATCHPANELENTRYS];
+    Module_PanelElement panelElementsModule[PATCHPANELENTRYS];
 };
