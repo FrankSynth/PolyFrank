@@ -22,8 +22,10 @@ enum typeDisplayValue { continuous, binary };
 enum typeLinLog { linMap, logMap, antilogMap };
 
 #ifdef POLYCONTROL
-extern uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
-extern uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
+uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
+uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
+uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
+uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset);
 #endif
 
 class DataElement {
@@ -66,6 +68,14 @@ class Setting : public DataElement {
 
         this->name = name;
         this->valueNameList = valueNameList;
+
+#ifdef POLYCONTROL
+        if (valueNameList == nullptr)
+            valueName = std::to_string(value);
+            // if (sendOutViaCom) {
+            //     sendSetting(layerId, moduleId, id, value);
+            // }
+#endif
     }
 
     int32_t value;
@@ -251,11 +261,11 @@ class BasePatch {
     uint8_t layerId;
 
     uint8_t idGlobal;
+    std::string name;
 
   protected:
     std::vector<PatchElementInOut *> patchesInOut;
     std::vector<PatchElementOutOut *> patchesOutOut;
-    std::string name;
 };
 
 class Input : public BasePatch {
@@ -379,9 +389,9 @@ inline void PatchElementInOut::changeAmount(float change) {
 #endif
 }
 inline void PatchElementInOut::setAmount(float amount) {
-    amount = testFloat(amount, -1, 1);
+    this->amount = testFloat(amount, -1, 1);
 #ifdef POLYCONTROL
-    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, amount);
+    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
 #endif
 }
 inline void PatchElementOutOut::changeAmount(float change) {
@@ -391,9 +401,9 @@ inline void PatchElementOutOut::changeAmount(float change) {
 #endif
 }
 inline void PatchElementOutOut::setAmount(float amount) {
-    amount = testFloat(amount, -1, 1);
+    this->amount = testFloat(amount, -1, 1);
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, offset);
 #endif
 }
 inline void PatchElementOutOut::changeOffset(float change) {
@@ -409,10 +419,10 @@ inline void PatchElementOutOut::setOffset(float offset) {
 #endif
 }
 inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
-    amount = testFloat(amount, -1, 1);
+    this->amount = testFloat(amount, -1, 1);
     offset = testFloat(offset, -1, 1);
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, offset);
 #endif
 }
 inline void BasePatch::clearPatches() {
@@ -436,10 +446,24 @@ inline const std::string &Analog::getValueAsString() {
 }
 inline void Setting::increase(int32_t amount) {
     value = changeInt(value, amount, min, max);
+#ifdef POLYCONTROL
+    if (valueNameList == nullptr)
+        valueName = std::to_string(value);
+        // if (sendOutViaCom) {
+        //     sendSetting(layerId, moduleId, id, value);
+        // }
+#endif
 }
 
 inline void Setting::decrease(int32_t amount) {
     value = changeInt(value, amount, min, max);
+#ifdef POLYCONTROL
+    if (valueNameList == nullptr)
+        valueName = std::to_string(value);
+        // if (sendOutViaCom) {
+        //     sendSetting(layerId, moduleId, id, value);
+        // }
+#endif
 }
 
 inline void Setting::push() {

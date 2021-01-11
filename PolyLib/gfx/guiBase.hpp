@@ -20,6 +20,8 @@ extern uint32_t cGreyDark;
 
 extern uint32_t cWhite;
 extern uint32_t cWhiteLight;
+extern uint32_t cWhiteMedium;
+extern uint32_t cHighlight;
 
 // responsive sizes
 #define HEADERHEIGHT 36
@@ -38,7 +40,6 @@ typedef enum {
     FOCUSCONFIG,
     FOCUSINPUT,
     FOCUSOUTPUT,
-    FOCUSSETTING,
     NOFOCUS
 
 } FOCUSMODE;
@@ -50,7 +51,8 @@ typedef enum {
     PATCHINPUT,
     PATCHOUTPUT,
     PATCHOUTOUT,
-    EMPTY
+    EMPTY,
+    SETTING
 
 } DATAELEMENTTYPE;
 typedef struct {
@@ -66,6 +68,7 @@ typedef struct {
     DATAELEMENTTYPE type;
     Analog *analog = nullptr;
     Digital *digital = nullptr;
+    Setting *setting = nullptr;
 
     PatchElement *patch = nullptr;
 
@@ -75,6 +78,12 @@ typedef struct {
     actionHandle functionPush;
 
 } entryStruct;
+
+typedef struct {
+    DATAELEMENTTYPE type;
+    PatchElement *patch = nullptr;
+
+} patchEntryStruct;
 
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer = 0,
@@ -97,6 +106,23 @@ class GUIPanelBase {
     uint8_t active;
 
   private:
+};
+
+class Scroller {
+  public:
+    Scroller(uint16_t maxEntrysVisible) { this->maxEntrysVisible = maxEntrysVisible; }
+
+    void scroll(int16_t change);
+    void checkScroll() { scroll(0); }
+    void resetScroll() {
+        position = 0;
+        offset = 0;
+    };
+
+    uint16_t position;
+    uint16_t offset;
+    uint16_t entrys;
+    uint16_t maxEntrysVisible;
 };
 
 void nextLayer();

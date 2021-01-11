@@ -19,7 +19,10 @@ uint32_t cGreyDark = 0x60202020;
 uint32_t cGrey = 0x10808080;
 
 uint32_t cWhite = 0xFFFFFFFF;
-uint32_t cWhiteLight = 0xd0FFFFFF;
+uint32_t cWhiteMedium = 0x20FFFFFF;
+
+uint32_t cWhiteLight = 0x10FFFFFF;
+uint32_t cHighlight = 0xF0db0000;
 
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer, FONTALIGN alignment) {
@@ -71,6 +74,36 @@ void focusDown(location newFocus) {
         focus.id = newFocus.id;
     }
     focus.modul = newFocus.modul;
+}
+
+void Scroller::scroll(int16_t change) {
+
+    if (position + change != 0) {
+        position = testInt(position + change, 0, entrys - 1);
+    }
+    else
+        position = 0;
+
+    if (position >= entrys) {
+        position = 0;
+    }
+
+    if (entrys <= maxEntrysVisible) {
+        offset = 0;
+    }
+    else if (position == entrys - 1) {
+        offset = entrys - maxEntrysVisible;
+    }
+    else if (position == 0) {
+        offset = 0;
+    }
+
+    else if (position >= (maxEntrysVisible + offset - 1)) {
+        offset++;
+    }
+    else if (position < (offset + 1)) {
+        offset--;
+    }
 }
 
 #endif

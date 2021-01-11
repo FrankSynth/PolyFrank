@@ -13,9 +13,6 @@ ID layerId;
 Layer layerA(layerId.getNewId());
 Layer layerB(layerId.getNewId());
 
-// global settings
-GlobalSettings globalSettings;
-
 // InterChip Com
 COMinterChip layerCom[2];
 

@@ -141,6 +141,7 @@ int main(void) {
     HAL_TIM_Base_Start(&htim3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
+    HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
 
     // println("Hi, this is Frank!");
     HAL_Delay(200); // !!

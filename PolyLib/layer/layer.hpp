@@ -22,12 +22,12 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
+        modules.push_back(&steiner);
         modules.push_back(&midi);
         modules.push_back(&oscA);
         modules.push_back(&oscB);
         modules.push_back(&sub);
         modules.push_back(&noise);
-        modules.push_back(&steiner);
         modules.push_back(&ladder);
         modules.push_back(&distort);
         modules.push_back(&lfoA);
