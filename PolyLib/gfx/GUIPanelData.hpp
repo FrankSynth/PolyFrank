@@ -9,7 +9,7 @@
 #include <functional>
 #include <string>
 
-#define DATAPANELENTRYS 5
+#define DATAPANELENTRYS 6
 /*Aufbau Data Panel
 
   - GUIPanelData
@@ -29,6 +29,9 @@
 
 
 */
+
+void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
 void drawPatchOutOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
@@ -52,14 +55,27 @@ class Data_PanelElement {
 
     void addAnalogEntry(Analog *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
 
-        entrys[numberEntrys] = entryStruct{ANALOG, data, nullptr, nullptr, functionCW, functionCCW, functionPush};
+        entrys[numberEntrys] =
+            entryStruct{ANALOG, data, nullptr, nullptr, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
     }
+
+    void addModuleEntry(BaseModule *data, actionHandle functionCW, actionHandle functionCCW,
+                        actionHandle functionPush) {
+
+        entrys[numberEntrys] =
+            entryStruct{MODULE, nullptr, nullptr, nullptr, data, functionCW, functionCCW, functionPush};
+
+        numberEntrys++;
+        visible = 1;
+    }
+
     void addDigitalEntry(Digital *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
 
-        entrys[numberEntrys] = entryStruct{DIGITAL, nullptr, data, nullptr, functionCW, functionCCW, functionPush};
+        entrys[numberEntrys] =
+            entryStruct{DIGITAL, nullptr, data, nullptr, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -68,7 +84,8 @@ class Data_PanelElement {
     void addPatchInputEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
                             actionHandle functionPush) {
 
-        entrys[numberEntrys] = entryStruct{PATCHINPUT, nullptr, nullptr, patch, functionCW, functionCCW, functionPush};
+        entrys[numberEntrys] =
+            entryStruct{PATCHINPUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -76,7 +93,8 @@ class Data_PanelElement {
     void addPatchOutOutEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
                              actionHandle functionPush) {
 
-        entrys[numberEntrys] = entryStruct{PATCHOUTOUT, nullptr, nullptr, patch, functionCW, functionCCW, functionPush};
+        entrys[numberEntrys] =
+            entryStruct{PATCHOUTOUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -84,7 +102,8 @@ class Data_PanelElement {
     void addPatchOutputEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
                              actionHandle functionPush) {
 
-        entrys[numberEntrys] = entryStruct{PATCHOUTPUT, nullptr, nullptr, patch, functionCW, functionCCW, functionPush};
+        entrys[numberEntrys] =
+            entryStruct{PATCHOUTPUT, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
 
         numberEntrys++;
         visible = 1;
@@ -92,7 +111,7 @@ class Data_PanelElement {
     void addEmptyEntry() {
 
         entrys[numberEntrys] =
-            entryStruct{EMPTY, nullptr, nullptr, nullptr, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}};
+            entryStruct{EMPTY, nullptr, nullptr, nullptr, nullptr, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}};
 
         numberEntrys++;
         visible = 1;
@@ -119,7 +138,7 @@ class Data_PanelElement {
 
 class GUIPanelData : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0);
     void Draw();
 
     uint16_t updateEntrys();
@@ -127,6 +146,7 @@ class GUIPanelData : public GUIPanelBase {
     void registerModuleSettings();
     void registerModulePatchIn();
     void registerModulePatchOut();
+    void registerLayerModules();
 
     void registerPanelSettings();
 
@@ -152,6 +172,8 @@ class GUIPanelData : public GUIPanelBase {
     location oldLocation;
     uint16_t scroll = 0;
     uint8_t scrollOffset = 0;
+
+    location newFocusLocation;
 
     Data_PanelElement panelElements[DATAPANELENTRYS];
 };

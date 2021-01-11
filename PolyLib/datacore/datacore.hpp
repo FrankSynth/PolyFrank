@@ -307,6 +307,7 @@ class PatchElement {
     // void setOffset(float offset);
     // void changeOffset(float change);
 
+    float offset;
     float amount;
     uint8_t layerId;
 };

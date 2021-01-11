@@ -203,22 +203,22 @@ void eventControlTouch(uint16_t touchState) {
     if (event & (1 << 9)) {
         actionHandler.callActionHeader4();
     }
-    if (event & (1 << 6)) {
+    if (event & (1 << 5)) {
         actionHandler.callActionLeft1();
     }
-    if (event & (1 << 4)) {
+    if (event & (1 << 3)) {
         actionHandler.callActionLeft2();
     }
-    if (event & (1 << 2)) {
+    if (event & (1 << 1)) {
         actionHandler.callActionLeft3();
     }
-    if (event & (1 << 5)) {
+    if (event & (1 << 4)) {
         actionHandler.callActionRight1();
     }
-    if (event & (1 << 3)) {
+    if (event & (1 << 2)) {
         actionHandler.callActionRight2();
     }
-    if (event & (1 << 1)) {
+    if (event & (1 << 0)) {
         actionHandler.callActionRight3();
     }
 
@@ -260,10 +260,11 @@ void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TOD
 
 void initPotiMapping() { // TODO fill mapping
 
-    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aFreq), std::placeholders::_1);
-    potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aResonance), std::placeholders::_1);
-    potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aCutoff), std::placeholders::_1);
-    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->test.aDistort), std::placeholders::_1);
+    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aBitcrusher),
+    // std::placeholders::_1); potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
+    // std::placeholders::_1); potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aFM),
+    // std::placeholders::_1);
+    // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aLevel), std::placeholders::_1);
 
     // potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aAttack), std::placeholders::_1);
     // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aDecay), std::placeholders::_1);

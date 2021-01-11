@@ -1,3 +1,5 @@
+#ifdef POLYRENDER
+
 #include "renderAudio.hpp"
 
 #define SAMPLERATE 96000
@@ -54,3 +56,5 @@ void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels) {
         }
     }
 }
+
+#endif

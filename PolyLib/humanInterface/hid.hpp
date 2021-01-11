@@ -91,7 +91,7 @@ class PanelTouch {
                 case 6: break;
                 case 7: break;
                 case 8: break;
-                case 9: evaluateOutput(&allLayers[layerID]->adsrB.out, event); break;
+                case 9: break;
                 case 10: evaluateOutput(&allLayers[layerID]->lfoA.out, event); break;
                 case 11: evaluateInput(&allLayers[layerID]->adsrA.iAttack, event); break;
             }

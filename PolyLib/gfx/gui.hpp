@@ -25,7 +25,7 @@ class Header_PanelBox {
     void Draw();
 
   private:
-    const GUI_FONTINFO *font = &GUI_FontBahnschriftSemiBold28_FontInfo;
+    const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 
     GUIPanelBase *pSource;
     uint16_t x;
@@ -50,8 +50,8 @@ class Footer_PanelBox {
     void Draw();
 
   private:
-    const GUI_FONTINFO *fontBig = &GUI_FontBahnschriftSemiBold28_FontInfo;
-    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift24_FontInfo;
+    const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift24_FontInfo;
+    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; // TODO mittlere schriftgröße noch exporten
 
     actionHandle *main;
     actionHandle *secondary;
@@ -59,7 +59,7 @@ class Footer_PanelBox {
     uint16_t y;
     uint16_t width;
     uint16_t heigth;
-    uint16_t fontShift = 13;
+    uint16_t fontShift = 0;
 };
 
 class Side_PanelBox {
@@ -100,20 +100,7 @@ class GUIPanelPath {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
-    const GUI_FONTINFO *font = &GUI_FontBahnschriftSemiBold28_FontInfo;
-};
-
-// PANEL Config Type
-class GUIPanelConfig : public GUIPanelBase {
-  public:
-    GUIPanelConfig(std::string name, uint8_t id) : GUIPanelBase(name, id){};
-
-    void Reset();
-
-    void Draw() {}
-    void registerActions();
-
-  private:
+    const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 };
 
 // Header
@@ -152,7 +139,7 @@ class GUIFOOTER {
 // FOOTER
 class GUISIDE {
   public:
-    void init(uint16_t width = BOARDERWIDTH, uint16_t height = LCDHEIGHT, uint16_t y = 0);
+    void init(uint16_t width = BOARDERWIDTH, uint16_t height = LCDHEIGHT, uint16_t y = 0, uint16_t x = 0);
     void Draw();
 
   private:
@@ -176,13 +163,13 @@ class GUI {
     void setFocus(location newFocus);
 
     // PanelSelect
+    void setPanel0Active();
+
     void setPanel1Active();
 
     void setPanel2Active();
 
     void setPanel3Active();
-
-    void setPanel4Active();
     void setPanelFocusActive();
 
     void setActivePanel(uint8_t id);
@@ -190,14 +177,14 @@ class GUI {
     std::vector<Layer *> layers;
 
   private:
-    GUIPanelConfig guiPanel_1 = GUIPanelConfig("LIVEMODE", 0);
-    GUIPanelConfig guiPanel_2 = GUIPanelConfig("PATCH", 1);
-    GUIPanelConfig guiPanel_3 = GUIPanelConfig("PRESET", 2);
-    GUIPanelConfig guiPanel_4 = GUIPanelConfig("CONFIG", 3);
+    GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
+    GUIPanelBase guiPanel_1 = GUIPanelBase("PATCH", 1);
+    GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
 
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelData guiPanelData;
+    GUIPanelData guiPanel_3;
 
     GUIPanelPath guiPath;
 

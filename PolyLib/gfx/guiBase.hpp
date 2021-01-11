@@ -22,27 +22,31 @@ extern uint32_t cWhite;
 extern uint32_t cWhiteLight;
 
 // responsive sizes
-#define HEADERHEIGHT 40
-#define FOOTERHEIGHT 40
-#define FOCUSHEIGHT 40
-#define SPACER 12
+#define HEADERHEIGHT 36
+#define FOOTERHEIGHT 44
+#define FOCUSHEIGHT 30
+#define SPACER 8
+#define SCROLLBARWIDTH 4
 
-#define BOARDERWIDTH 100
+#define BOARDERWIDTH 80
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
 #define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER - SPACER
 
 typedef enum {
     FOCUSLAYER,
     FOCUSMODULE,
+    FOCUSCONFIG,
     FOCUSINPUT,
     FOCUSOUTPUT,
-    FOCUSSETTING
+    FOCUSSETTING,
+    NOFOCUS
 
 } FOCUSMODE;
 
 typedef enum {
     ANALOG,
     DIGITAL,
+    MODULE,
     PATCHINPUT,
     PATCHOUTPUT,
     PATCHOUTOUT,
@@ -65,6 +69,7 @@ typedef struct {
 
     PatchElement *patch = nullptr;
 
+    BaseModule *modules = nullptr;
     actionHandle functionCW;
     actionHandle functionCCW;
     actionHandle functionPush;
@@ -74,6 +79,8 @@ typedef struct {
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer = 0,
                          FONTALIGN alignment = CENTER);
+void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
+                   uint16_t viewable);
 
 class GUIPanelBase {
   public:
@@ -94,6 +101,8 @@ class GUIPanelBase {
 
 void nextLayer();
 void focusUp();
+void focusDown(location newFocus);
+
 void Todo();
 
 extern location focus;
