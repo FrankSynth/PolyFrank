@@ -1,9 +1,4 @@
 #include "polyRender.hpp"
-#include "datacore/dataHelperFunctions.hpp"
-#include "hardware/TS3A5017D.hpp"
-
-#include "render/renderAudio.hpp"
-#include "render/renderCV.hpp"
 
 /// LAYER
 ID layerId;
@@ -41,6 +36,8 @@ void PolyRenderInit() {
 
     // TODO copy wavetables to RAM D1
     initAudioRendering();
+
+    initCVRendering();
 
     // CV DACs
     cvDacA.init();

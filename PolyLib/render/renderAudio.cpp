@@ -1,9 +1,4 @@
 #include "renderAudio.hpp"
-#include "datacore/datalocation.hpp"
-#include "debughelper/debughelper.hpp"
-#include "layer/layer.hpp"
-#include "math/polyMath.hpp"
-#include "wavetables/wavetables.hpp"
 
 #define SAMPLERATE 96000
 #define FULLSCALE 0xFFFFFFFF

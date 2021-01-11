@@ -83,7 +83,7 @@ void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {
 void Layer::updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
-            p->setAmount(amount);
+            updatePatchInOut(*p, amount);
             return;
         }
     }

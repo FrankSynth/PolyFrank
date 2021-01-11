@@ -9,6 +9,7 @@ extern const std::vector<std::string> nlOnOff;
 extern const std::vector<std::string> nlVCFDest;
 extern const std::vector<std::string> nlSteinerModes;
 extern const std::vector<std::string> nlLadderSlopes;
+extern const std::vector<std::string> nlADSRShapes;
 
 // Basemodule
 class BaseModule {
@@ -25,15 +26,14 @@ class BaseModule {
     uint8_t id;
     uint8_t layerId;
 
-    virtual void render();
-
-  protected:
     std::string name;
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
     std::vector<Analog *> knobs;
     std::vector<Digital *> switches;
     std::vector<Setting *> settings;
+
+  protected:
 };
 
 //////////////////////////////// MODULES ///////////////////////////////////////////////
@@ -51,6 +51,8 @@ class Midi : public BaseModule {
         knobs.push_back(&aAftertouch);
         knobs.push_back(&aPitchbend);
         knobs.push_back(&aVelocity);
+
+        switches.push_back(&dGate);
     }
 
     Output oMod = Output("MOD");
@@ -64,7 +66,7 @@ class Midi : public BaseModule {
     Analog aPitchbend = Analog("PITCHBEND", -1, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
 
-    void render();
+    Digital dGate = Digital("GATE", 0, 1, 0, true);
 };
 
 class OSC_A : public BaseModule {
@@ -104,8 +106,6 @@ class OSC_A : public BaseModule {
     Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
-
-    void render();
 };
 
 class OSC_B : public BaseModule {
@@ -147,8 +147,6 @@ class OSC_B : public BaseModule {
     Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 0, true, &nlVCFDest);
-
-    void render();
 };
 
 class Sub : public BaseModule {
@@ -174,8 +172,6 @@ class Sub : public BaseModule {
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
-
-    void render();
 };
 
 class Noise : public BaseModule {
@@ -197,8 +193,6 @@ class Noise : public BaseModule {
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
-
-    void render();
 };
 
 class Steiner : public BaseModule {
@@ -223,8 +217,6 @@ class Steiner : public BaseModule {
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
 
     Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
-
-    void render();
 };
 
 class Ladder : public BaseModule {
@@ -252,8 +244,6 @@ class Ladder : public BaseModule {
     Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
-
-    void render();
 };
 
 class Distortion : public BaseModule {
@@ -268,8 +258,6 @@ class Distortion : public BaseModule {
     Input iDrive = Input("DRIVE");
 
     Analog aDrive = Analog("DRIVE", 0, 1, 0, true, logMap, &iDrive);
-
-    void render();
 };
 
 class LFO : public BaseModule {
@@ -300,8 +288,6 @@ class LFO : public BaseModule {
     Digital dSync = Digital("SYNC", 0, 1, 0, true, nullptr, &iSync);
     Digital dTempoSync = Digital("T-SYNC", 0, 1, 0, false);
     Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
-
-    void render();
 };
 
 class ADSR : public BaseModule {
@@ -326,10 +312,10 @@ class ADSR : public BaseModule {
 
         knobs.push_back(&aKeytrack);
         knobs.push_back(&aVelocity);
-        knobs.push_back(&aShape);
 
         switches.push_back(&dLoop);
         switches.push_back(&dLatch);
+        switches.push_back(&dShape);
     }
 
     Output out = Output("OUT");
@@ -341,21 +327,25 @@ class ADSR : public BaseModule {
     Input iRelease = Input("RELEASE");
     Input iAmount = Input("AMOUNT");
 
-    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 0.001, true, logMap);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap);
-    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap);
+    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap, &iAttack);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 0.001, true, logMap, &iDecay);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap, &iSustain);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap, &iRelease);
+    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
-    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dShape = Digital("SHAPE", 0, 2, 0, true, &nlADSRShapes, nullptr);
 
-    void render();
+    // render shizzle
+    enum State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
+    State currentState[VOICESPERCHIP] = {OFF};
+    float currentTime[VOICESPERCHIP] = {0};
+    float currentLevel[VOICESPERCHIP] = {0};
 };
 
 class GlobalModule : public BaseModule {
@@ -380,8 +370,6 @@ class GlobalModule : public BaseModule {
     Analog aPan = Analog("PAN", 0, 1, 0, true, logMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
-
-    void render();
 };
 
 // TODO remove Test Module

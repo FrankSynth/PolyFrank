@@ -90,13 +90,13 @@ class Layer {
     GlobalModule globalModule = GlobalModule("GLOBAL");
     TEST test = TEST("TEST");
 
-  private:
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
     std::list<PatchElementInOut> patchesInOut;
     std::list<PatchElementOutOut> patchesOutOut;
 
+  private:
     // sendout?
 
     // modules, don't forget them to push into modules vector in constructor
