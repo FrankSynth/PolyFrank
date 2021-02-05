@@ -8,6 +8,12 @@
 #include "hardware/TS3A5017D.hpp"
 
 #include "poly.hpp"
+#define LEDBRIGTHNESS_LOW 50
+#define LEDBRIGTHNESS_MEDIUM 100
+#define LEDBRIGTHNESS_MAX 220
+#define NUMBERENCODERS 4
+#define NUMBER_PANELTOUCHICS 1
+#define NUMBER_LEDDRIVER 2
 
 typedef enum {
     TOUCH_IO_PIN_0,
@@ -38,6 +44,9 @@ void eventControlTouch(uint16_t touchState);
 void initPotiMapping();
 void processPanelPotis(uint8_t layerID);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
+
+uint16_t patchLEDMapping(FOCUSMODE type, uint32_t id);
+
 class PanelTouch {
 
   public:
@@ -158,52 +167,52 @@ class PanelTouch {
     // TODO löschen eines Patches durch erneut klicken
 
     void evaluateInput(Input *pInput, uint8_t event) {
-        println("-------------> input");
+        // println("-------------> input");
         if (event) { // push Event
             if (activeOutput != nullptr) {
                 allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
-                println("-------------> patch INOUT");
+                // println("-------------> patch INOUT");
             }
             else {
-                println("-------------> create Focus IN");
+                // println("-------------> create Focus IN");
 
                 setInputFocus(pInput);
             }
         }
         else { // release Event -> clear active input
             if (pInput == activeInput) {
-                println("-------------> Release Focus IN");
+                // println("-------------> Release Focus IN");
 
                 activeInput = nullptr;
             }
         }
     }
     void evaluateOutput(Output *pOutput, uint8_t event) {
-        println("-------------> output");
+        // println("-------------> output");
 
         if (event) { // push Event
 
             if (activeInput != nullptr) {
                 allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
-                println("-------------> patch OUTIN");
+                // println("-------------> patch OUTIN");
             }
             else if (activeOutput != nullptr) {
 
                 if (activeOutput != pOutput) {
 
                     allLayers[layerID]->addPatchOutOutById(pOutput->idGlobal, activeOutput->idGlobal, 1);
-                    println("-------------> patch OUTOUT");
+                    // println("-------------> patch OUTOUT");
                 }
             }
             else {
                 setOutputFocus(pOutput);
-                println("-------------> create Focus OUT");
+                // println("-------------> create Focus OUT");
             }
         }
 
         else { // release Event -> clear active output
             if (pOutput == activeOutput) {
-                println("-------------> Release Focus OUT");
+                // println("-------------> Release Focus OUT");
 
                 activeOutput = nullptr;
             }
@@ -238,19 +247,7 @@ class PanelTouch {
     uint16_t pinState[8];
 };
 
-void updatePatchLED() {
+void updatePatchLED();
+void switchLEDMapping();
 
-    // Zwischen den Layern wechseln
-    if (allLayers[focus.layer] == 0) {
-        IS31FL3216 *ledDriver = ledDriverA;
-    }
-    else {
-        IS31FL3216 *ledDriver = ledDriverB;
-    }
-
-    if (focus.type == FOCUSINPUT) {
-        uint32_t inputID = allLayers[focus.layer]->modules[focus.modul]->getOutputs()[focus.id]->idGlobal;
-    }
-    else if (focus.type == FOCUSOUTPUT) {
-    }
-}
+void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);

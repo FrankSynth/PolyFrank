@@ -78,8 +78,6 @@ class MAX11128 {
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-
-        println("MAX: init Done");
     }
 
     void fetchNewData() {

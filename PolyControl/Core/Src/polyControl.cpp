@@ -98,6 +98,9 @@ void PolyControlRun() { // Here the party starts
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
+
+            // TODO updatePatchLED an wenn chip dran
+            // updatePatchLED();
         }
 
         layerCom[0].beginSendTransmission();

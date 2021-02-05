@@ -26,7 +26,7 @@ class IS31FL3216 {
         command[1] = 0b00000000; // write 0000 0000
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, command, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
         // Set all pins to led-mode
@@ -36,7 +36,7 @@ class IS31FL3216 {
         enable[2] = 0xFF;
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, enable, 3, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
         // set LED brigthness to 0
@@ -55,7 +55,7 @@ class IS31FL3216 {
         }
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, data, 17, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
         // send update command
@@ -65,7 +65,7 @@ class IS31FL3216 {
         commandUpdate[1] = 0b00000000; // write 0000 0000
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, commandUpdate, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
     }
 
@@ -83,7 +83,7 @@ class IS31FL3216 {
         data[1] = pwm;
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, data, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
         // send update command
@@ -93,7 +93,7 @@ class IS31FL3216 {
         commandUpdate[1] = 0b00000000; // write 0000 0000
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, commandUpdate, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
     }
 
@@ -113,7 +113,7 @@ class IS31FL3216 {
         data[0] = 0x10; // write to register 0x10 + pin
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, data, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
         // send update command
@@ -123,12 +123,49 @@ class IS31FL3216 {
         commandUpdate[1] = 0b00000000; // write 0000 0000
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, commandUpdate, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
     }
 
-    // uint16_t setLEDs() {}
+    void updateLEDs() {
+        uint8_t changed = 0;
+        // Switch bus
+        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
 
+        for (int x = 0; x < 16; x++) {
+            if (data[x + 1] != pwmValue[x]) {
+                data[x + 1] = pwmValue[x];
+                changed = 1;
+            }
+        }
+
+        if (changed == 0) {
+            return;
+        }
+
+        data[0] = 0x10; // write to register 0x10 + pin
+                        // TODO umbau sobald chip dran..
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, data, 17, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
+        }
+
+        // send update command
+
+        uint8_t commandUpdate[2];
+        commandUpdate[0] = 0xB0;       // write to register 0x00
+        commandUpdate[1] = 0b00000000; // write 0000 0000
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, commandUpdate, 2, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
+
+            memset(pwmValue, 0, 16);
+        }
+    }
+
+    uint8_t data[17];
+
+    uint8_t pwmValue[16];
     I2C_HandleTypeDef *i2cHandle;
     uint8_t i2cBusSwitchAddress = 0;
     uint8_t i2cDeviceCode = 0xE8;
