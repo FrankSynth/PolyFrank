@@ -208,8 +208,9 @@ void GUI::Init() { // add settings pointer
     GFX_Init();
 
     guiPanelData.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+    guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH", 1);
+    guiPanel_2.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET", 2);
     guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
-    guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
 
     // add Panels to vector
     panels.push_back(&guiPanel_0);
@@ -232,6 +233,9 @@ void GUI::Init() { // add settings pointer
 
     // init Path
     guiPath.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
+
+    // init Error
+    guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
     // register Header action
     actionHandler.registerActionHeader(
@@ -261,22 +265,28 @@ void GUI::Draw() {
     // clear
     drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 
-    // Draw Header
-    guiHeader.Draw();
+    // Error Occurred?
+    if (!globalSettings.error.errorActive) {
+        // Draw Panel
+        if (activePanel != nullptr) {
+            activePanel->Draw();
+        }
 
-    // Draw Path
-    guiPath.Draw();
+        // Draw Header
+        guiHeader.Draw();
+
+        // Draw Path
+        guiPath.Draw();
+
+        // Draw Footer
+        guiFooter.Draw();
+    }
+    else {
+        guiError.Draw();
+    }
 
     // Draw Side
     guiSide.Draw();
-
-    // Draw Footer
-    guiFooter.Draw();
-
-    // Draw Panel
-    if (activePanel != nullptr) {
-        activePanel->Draw();
-    }
 
     setRenderState(RENDER_WAIT);
 }

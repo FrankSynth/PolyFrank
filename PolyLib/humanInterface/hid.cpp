@@ -4,6 +4,7 @@
 
 #define NUMBERENCODERS 4
 #define NUMBER_PANELTOUCHICS 1
+#define NUMBER_LEDDRIVER 2
 
 // PCA9555 -> Bus expander for the Encoder
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
@@ -19,7 +20,9 @@ AT42QT2120 touchPanel[NUMBER_PANELTOUCHICS] = {AT42QT2120(&hi2c4, 0)};
 AT42QT2120 touchControl = AT42QT2120(&hi2c4, 0); // TODO anderen Constructor nehmne
 
 // TODO ledDriver zu Display
-IS31FL3216 ledDriverA = IS31FL3216(&hi2c4, 0, 7);
+IS31FL3216 ledDriverA[] = {IS31FL3216(&hi2c4, 0, 7), IS31FL3216(&hi2c4, 0, 6)};
+IS31FL3216 ledDriverB[] = {IS31FL3216(&hi2c3, 0, 7), IS31FL3216(&hi2c3, 0, 6)};
+
 // IS31FL3216 ledDriverB = IS31FL3216(&hi2c4, 0, 6);
 
 PanelTouch touchEvaluteLayer0(0);
@@ -27,7 +30,7 @@ PanelTouch touchEvaluteLayer1(1);
 
 // Potentiomer ADC
 
-MAX11128 adcA(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+MAX11128 adcA(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
 
 //
 TS3A5017D multiplexerA = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
@@ -77,9 +80,6 @@ void initHID() {
 
     HAL_Delay(1000);
 
-    // TODO ledDriver zu Display
-    // ledDriverA.init();
-
     // init Panel touch ICS
     for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
         touchPanel[x].init();
@@ -87,7 +87,12 @@ void initHID() {
     // init Control touch IC
     touchControl.init();
 
-    // ledDriverB.init();
+    for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+        // TODO sobald was am Bus haengt aktivieren
+
+        // ledDriverA[x].init();
+        // ledDriverB[x].init();
+    }
 
     // init ADC, Multiplexer
 
@@ -261,15 +266,16 @@ void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TOD
 void initPotiMapping() { // TODO fill mapping
 
     // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aBitcrusher),
-    // std::placeholders::_1); potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
+    // std::placeholders::_1);
+    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
     // std::placeholders::_1); potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aFM),
     // std::placeholders::_1);
     // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aLevel), std::placeholders::_1);
 
-    // potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aAttack), std::placeholders::_1);
-    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aDecay), std::placeholders::_1);
-    // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aSustain), std::placeholders::_1);
-    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aRelease), std::placeholders::_1);
+    potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aCutoff), std::placeholders::_1);
+    potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aLevel), std::placeholders::_1);
+    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aResonance), std::placeholders::_1);
+    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.a), std::placeholders::_1);
 }
 
 #endif

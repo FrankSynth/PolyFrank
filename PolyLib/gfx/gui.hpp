@@ -178,7 +178,7 @@ class GUI {
 
   private:
     GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
-    GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
+    GUIPanelPreset guiPanel_2;
 
     GUIPanelPatch guiPanel_1;
     GUIPanelConfig guiPanel_3;
@@ -188,11 +188,12 @@ class GUI {
     GUIPanelData guiPanelData;
 
     GUIPanelPath guiPath;
-
     GUISIDE guiSide;
 
     GUIFOOTER guiFooter;
     GUIHeader guiHeader;
+
+    GUIPanelError guiError;
 };
 
 // GUI

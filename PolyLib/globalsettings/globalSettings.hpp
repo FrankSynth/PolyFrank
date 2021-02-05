@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
+#include "preset/preset.hpp"
 #include <vector>
 
 struct categoryStruct {
@@ -31,6 +32,50 @@ class GlobalSettings {
         // initID();
     }
 
+    void saveGlobalSettings() {
+        uint32_t index = 0;
+        int32_t *buffer = (int32_t *)blockBuffer;
+
+        for (Setting *i : __globSettingsSystem.settings) {
+            buffer[index] = i->value;
+            index++;
+        }
+        for (Setting *i : __globSettingsMIDI.settings) {
+            buffer[index] = i->value;
+            index++;
+        }
+        for (Setting *i : __globSettingsDisplay.settings) {
+            buffer[index] = i->value;
+            index++;
+        }
+
+        writeConfigBlock();
+
+        if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)blockBuffer) > (CONFIG_BLOCKSIZE)) {
+            PolyError_Handler("ERROR | FATAL | GlobalSettings -> saveGlobalSettings -> BufferOverflow!");
+        }
+    }
+
+    void loadGlobalSettings() {
+        uint32_t index = 0;
+        int32_t *buffer = (int32_t *)blockBuffer;
+
+        readConfig();
+
+        for (Setting *i : __globSettingsSystem.settings) {
+            i->setValue(buffer[index]);
+            index++;
+        }
+        for (Setting *i : __globSettingsMIDI.settings) {
+            i->setValue(buffer[index]);
+            index++;
+        }
+        for (Setting *i : __globSettingsDisplay.settings) {
+            i->setValue(buffer[index]);
+            index++;
+        }
+    }
+
     // init
     void initID() {
         // ID MIDIID;
@@ -51,6 +96,7 @@ class GlobalSettings {
     // return all settings
     // std::vector<Setting *> getSettings() { return __globSettings; }
 
+    // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
     categoryStruct __globSettingsSystem;
     categoryStruct __globSettingsMIDI;
     categoryStruct __globSettingsDisplay;
@@ -65,6 +111,8 @@ class GlobalSettings {
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrigthness = Setting("BRIGTHNESS", 10, 2, 10, false, binary);
+
+    Error error;
 
   private:
     const std::vector<std::string> amountLayerNameList = {"A", "A+B"};

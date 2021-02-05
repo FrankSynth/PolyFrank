@@ -300,10 +300,22 @@ void MPU_Config(void) {
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void) {
+void PolyError_Handler(const char *error) {
+
+    if (error == nullptr) {
+        PolyError_Handler("PolyError_Handler | ERROR Message == nullptr");
+        return;
+    }
+
+    globalSettings.error.setErrorMessage(error); // set Error Message for Display
+    println(error);                              // print Error Message
+}
+
+void Error_Handler() {
     /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
-    println("--------ERROR HANDLER OCCURED---------");
+
+    PolyError_Handler("Unknown / HAL Error");
     /* USER CODE END Error_Handler_Debug */
 }
 

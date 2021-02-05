@@ -6,6 +6,7 @@
 #include "hardware/MAX11128.hpp"
 #include "hardware/PCA9555.hpp"
 #include "hardware/TS3A5017D.hpp"
+
 #include "poly.hpp"
 
 typedef enum {
@@ -236,3 +237,20 @@ class PanelTouch {
     // soviele anlegen wie es ports gibt
     uint16_t pinState[8];
 };
+
+void updatePatchLED() {
+
+    // Zwischen den Layern wechseln
+    if (allLayers[focus.layer] == 0) {
+        IS31FL3216 *ledDriver = ledDriverA;
+    }
+    else {
+        IS31FL3216 *ledDriver = ledDriverB;
+    }
+
+    if (focus.type == FOCUSINPUT) {
+        uint32_t inputID = allLayers[focus.layer]->modules[focus.modul]->getOutputs()[focus.id]->idGlobal;
+    }
+    else if (focus.type == FOCUSOUTPUT) {
+    }
+}

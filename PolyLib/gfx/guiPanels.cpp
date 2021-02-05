@@ -170,14 +170,14 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -199,14 +199,14 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 
     float amount;
@@ -240,14 +240,14 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 7, y, 5, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 5, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -357,6 +357,28 @@ void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     }
 }
 
+void drawPresetElement(presetStruct *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+
+    std::string name;
+
+    if (element->usageState != PRESETBLOCKUSED) {
+
+        name = "free";
+    }
+    else {
+        name = element->name;
+    }
+
+    if (select) {
+        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawString(name, cFont_Select, x + w / 2, y + (-elementFont->size + h) / 2, elementFont, CENTER);
+    }
+    else {
+        drawRectangleChampfered(cGrey, x, y, w, h, 1);
+
+        drawString(name, cFont_Deselect, x + w / 2, y + (-elementFont->size + h) / 2, elementFont, CENTER);
+    }
+}
 void Data_PanelElement::setName(std::string *name) {
     this->panelElementName = name;
 }
@@ -488,6 +510,24 @@ void Module_PanelElement::Draw() {
     }
 }
 
+void Preset_PanelElement::Draw() {
+    if (entry != nullptr) {
+
+        if (!active) {
+            return;
+        }
+        if (select) {
+            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
+            // entrys[2].functionPush);
+        }
+
+        drawPresetElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select);
+
+        // reset Marker
+        select = 0;
+        active = 0;
+    }
+}
 void GUIPanelData::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
     panelWidth = width;
     panelHeight = height;
@@ -968,7 +1008,7 @@ void GUIPanelConfig::registerPanelSettings() {
                                      {nullptr, ""}, {nullptr, ""});
 
     // register Panel Seetings Rigth
-    actionHandler.registerActionRight({nullptr, "SAVE"}, // SAVE
+    actionHandler.registerActionRight({std::bind(&GlobalSettings::saveGlobalSettings, &globalSettings), "SAVE"}, // SAVE
                                       {nullptr, ""}, {nullptr, ""});
 }
 
@@ -1257,6 +1297,124 @@ void GUIPanelPatch::removeCurrentPatch() {
 
 void GUIPanelPatch::clearPatches() {
     allLayers[focus.layer]->clearPatches();
+}
+
+void GUIPanelPreset::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id) {
+    panelWidth = width;
+    panelHeight = height;
+    panelAbsX = x;
+    panelAbsY = y;
+    this->name = name;
+    this->id = id;
+
+    // elements Sizes
+    uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
+    uint16_t elementSpace = 3;
+    uint16_t elementHeight = (height - (maxEntrys - 2) * elementSpace) / PRESETPANELENTRYS;
+    // init Elements
+    for (int i = 0; i < maxEntrys; i++) {
+
+        PanelElementPreset[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i, elementWidth,
+                                   elementHeight);
+    }
+
+    scrollSecondName.entrys = secondName.size();
+    scrollFirstName.entrys = firstName.size();
+}
+
+void GUIPanelPreset::registerPanelSettings() {
+
+    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollPreset), 1), "SCROLL"},
+                                         {std::bind(&Scroller::scroll, &(this->scrollPreset), -1), "SCROLL"},
+                                         {nullptr, "Scroll"});
+    actionHandler.registerActionEncoder2(
+        {std::bind(&Scroller::scroll, &(this->scrollFirstName), 1), firstName[scrollFirstName.position]},
+        {std::bind(&Scroller::scroll, &(this->scrollFirstName), -1), "FirstName"}, {nullptr, "Scroll"});
+    actionHandler.registerActionEncoder3(
+        {std::bind(&Scroller::scroll, &(this->scrollSecondName), 1), secondName[scrollSecondName.position]},
+        {std::bind(&Scroller::scroll, &(this->scrollSecondName), -1), "SecondName"}, {nullptr, "Scroll"});
+
+    // register Panel Seetings Left
+    actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {nullptr, "Layer"});
+
+    // register Panel Seetings Rigth
+    actionHandler.registerActionRight(
+        {std::bind(&Layer::loadLayerFromPreset, (allLayers[focus.layer]), scrollPreset.position), "Load"},
+        {std::bind(&Layer::saveLayerToPreset, (allLayers[focus.layer]), scrollPreset.position,
+                   firstName[scrollFirstName.position], secondName[scrollSecondName.position]),
+         "Save"},
+        {std::bind(&removePreset, scrollPreset.position), "Clear"});
+
+    // clear Encoder 4
+    actionHandler.registerActionEncoder4({nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
+}
+
+void GUIPanelPreset::updateEntrys() {
+    entrys = presets.size();
+    scrollPreset.entrys = entrys;
+
+    // check Scroll position
+    scrollPreset.checkScroll();
+}
+
+void GUIPanelPreset::registerElements() {
+    uint16_t dataIndex = 0;
+    uint16_t elementIndex = 0;
+
+    dataIndex = scrollPreset.offset;
+
+    // register Preset Elements
+    while (true) {
+        if (elementIndex >= maxEntrys) {
+            break;
+        }
+
+        if (dataIndex < entrys) {
+            PanelElementPreset[elementIndex].addEntry(&presets[dataIndex]);
+
+            dataIndex++;
+        }
+        else {
+            break;
+        }
+        elementIndex++;
+    }
+    PanelElementPreset[scrollPreset.position - scrollPreset.offset].select = 1;
+}
+
+void GUIPanelPreset::Draw() {
+    // register Panel Seetings.settings.
+    registerPanelSettings();
+
+    // update number ob entrys
+    updateEntrys();
+
+    registerElements();
+
+    for (int i = 0; i < maxEntrys; i++) {
+        PanelElementPreset[i].Draw();
+    }
+
+    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scrollPreset.offset,
+                  entrys, PRESETPANELENTRYS);
+}
+
+void GUIPanelError::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+    panelWidth = width;
+    panelHeight = height;
+    panelAbsX = x;
+    panelAbsY = y;
+}
+
+void GUIPanelError::Draw() {
+    // register Action
+
+    // register Panel Seetings Rigth
+    actionHandler.registerActionRight({std::bind(&Error::resetError, &globalSettings.error), "IGNORE"}, // Reset Error
+                                      {nullptr, ""}, {nullptr, ""});
+    // register Panel Seetings LEFT
+    actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+    drawString(globalSettings.error.errorMessage, cFont_Deselect, panelWidth / 2, panelHeight / 2, elementFont, CENTER);
 }
 
 #endif

@@ -7,6 +7,7 @@
 #include "guiBase.hpp"
 #include "layer/layer.hpp"
 #include "poly.hpp"
+#include "preset/preset.hpp"
 #include <functional>
 #include <string>
 
@@ -34,6 +35,8 @@
 
 
 */
+
+void drawPresetElemet(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
 void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
@@ -212,6 +215,35 @@ class Module_PanelElement {
     uint16_t entryHeight;
 };
 
+// PresetPanelElemnt for Presets
+class Preset_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->entryWidth = width;
+        this->entryHeight = heigth;
+    }
+    void Draw();
+    void addEntry(presetStruct *entry) {
+
+        this->entry = entry;
+        active = 1;
+    }
+
+    uint8_t active = 0;
+    uint8_t select = 0;
+
+    presetStruct *entry = nullptr;
+
+  private:
+    uint16_t panelAbsY;
+    uint16_t panelAbsX;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+};
+
 // GUIHeader Box for Panel Selection
 
 class GUIPanelData : public GUIPanelBase {
@@ -341,9 +373,7 @@ class GUIPanelPreset : public GUIPanelBase {
 
     FOCUSMODE mode;
 
-    uint16_t entrysModule = 0;
-    uint16_t entrysSource = 0;
-    uint16_t entrysTarget = 0;
+    uint16_t entrys = 0;
 
     const uint16_t maxEntrys = PRESETPANELENTRYS;
 
@@ -352,10 +382,31 @@ class GUIPanelPreset : public GUIPanelBase {
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
 
-    Scroller scroll = Scroller(PRESETPANELENTRYS);
+    Scroller scrollPreset = Scroller(PRESETPANELENTRYS);
 
-    uint8_t flipView = 0;
-    uint16_t absXPositions[3];
+    Scroller scrollFirstName = Scroller(PRESETPANELENTRYS);
+    Scroller scrollSecondName = Scroller(PRESETPANELENTRYS);
 
-    // Preset_PanelElement panelElementsSource[PRESETPANELENTRYS];
+    const std::vector<std::string> firstName = {"Sir",    "Space",  "Green",  "Blue",      "Pink",   "Return",
+                                                "Master", "Radium", "Nucleo", "Comet",     "Synth",  "Chill",
+                                                "Frank",  "Mono",   "Poly",   "Andromeda", "Temple", "Buffer"};
+    const std::vector<std::string> secondName = {"Leavce", "Cowboy", "Traveler", "Tree",   "Floyd",   "Void", "Chief",
+                                                 "Vortex", "Wave",   "Moody",    "Rhythm", "42",      "Keys", "Chords",
+                                                 "Ship",   "Galaxy", "Quest",    "Error",  "Overflow"};
+
+    Preset_PanelElement PanelElementPreset[PRESETPANELENTRYS];
+};
+
+class GUIPanelError : public GUIPanelBase {
+  public:
+    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
+    void Draw();
+
+  private:
+    // Boxes
+
+    uint16_t panelWidth = 0;
+    uint16_t panelHeight = 0;
+    uint16_t panelAbsX = 0;
+    uint16_t panelAbsY = 0;
 };

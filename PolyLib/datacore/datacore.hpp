@@ -52,6 +52,25 @@ class DataElement {
     std::string valueName; // value as string
 };
 
+// Error element
+class Error {
+  public:
+    void setErrorMessage(const char *errorMessage) {
+
+        this->errorMessage = errorMessage;
+
+        errorActive = 1;
+    }
+
+    void resetError() {
+        errorMessage.clear();
+        errorActive = 0;
+    }
+    int32_t errorActive = 0;  // no error = 0
+    std::string errorMessage; // errorMessage as string
+  private:
+};
+
 // basic data element
 class Setting : public DataElement {
   public:

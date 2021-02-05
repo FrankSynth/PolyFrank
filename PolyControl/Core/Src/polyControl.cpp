@@ -81,6 +81,12 @@ void PolyControlInit() {
     // init midi
     initMidi();
 
+    // read Preset List from EEPROM
+    updatePresetList();
+
+    // load global Settings
+    globalSettings.loadGlobalSettings();
+
     println("Hi, Frank here!");
 }
 
@@ -89,9 +95,7 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 void PolyControlRun() { // Here the party starts
 
     while (1) {
-
         FlagHandler::handleFlags();
-
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
         }
