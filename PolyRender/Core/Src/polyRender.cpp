@@ -69,9 +69,9 @@ void PolyRenderRun() {
     renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS, AUDIOCHANNELS);
     audioDacA.startSAI();
 
-    elapsedMillis millitimer = 0;
+    // elapsedMillis millitimer = 0;
 
-    uint32_t microTimer = micros();
+    // uint32_t microTimer = micros();
 
     // TODO remove this temporal init val
     layerA.test.aCutoff.valueMapped = 1;

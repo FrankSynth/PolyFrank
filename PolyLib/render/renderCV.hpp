@@ -9,3 +9,5 @@
 
 void initCVRendering();
 void renderCVs();
+
+constexpr float secondsPerCVRender = ((float)CVTIMERINTERVALUS / 1000000.0f);

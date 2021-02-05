@@ -342,10 +342,30 @@ class ADSR : public BaseModule {
     Digital dShape = Digital("SHAPE", 0, 2, 0, true, &nlADSRShapes, nullptr);
 
     // render shizzle
-    enum State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
-    State currentState[VOICESPERCHIP] = {OFF};
-    float currentTime[VOICESPERCHIP] = {0};
+
+    inline void setStatusOff(uint16_t voice) { currentState[voice] = OFF; }
+    inline void setStatusDelay(uint16_t voice) {
+        currentState[voice] = DELAY;
+        currentTime[voice] = 0;
+    }
+    inline void setStatusAttack(uint16_t voice) { currentState[voice] = ATTACK; }
+    inline void setStatusDecay(uint16_t voice) { currentState[voice] = DECAY; }
+    inline void setStatusSustain(uint16_t voice) { currentState[voice] = SUSTAIN; }
+    inline void setStatusRelease(uint16_t voice) { currentState[voice] = RELEASE; }
+
+    inline void restartADSR(uint16_t voice) {
+        currentLevel[voice] = 0;
+        setStatusDelay(voice);
+    };
+
+    enum ADSR_State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
+    inline ADSR_State getState(uint16_t voice) { return currentState[voice]; }
+
     float currentLevel[VOICESPERCHIP] = {0};
+    float currentTime[VOICESPERCHIP] = {0};
+
+  private:
+    ADSR_State currentState[VOICESPERCHIP] = {OFF};
 };
 
 class GlobalModule : public BaseModule {

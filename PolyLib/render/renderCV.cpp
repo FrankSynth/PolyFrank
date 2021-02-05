@@ -2,6 +2,7 @@
 #ifdef POLYRENDER
 
 #include "renderCV.hpp"
+#include "renderADSR.hpp"
 
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
@@ -9,9 +10,8 @@ extern MCP4728 cvDacC;
 
 extern Layer layerA;
 
-float secondsPerRender;
 void initCVRendering() {
-    secondsPerRender = (float)CVTIMERINTERVALUS / 1000000.0;
+    //
 }
 
 void collectAllCurrentInputs() {
@@ -101,97 +101,6 @@ void renderDistortion(Distortion &distort) {
 void renderLFO(LFO &lfo) {
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void renderADSR(ADSR &adsr) {
-
-    // TODO render not time based, but pitch
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-
-        switch (adsr.currentState[voice]) {
-            case adsr.OFF:
-                if (layerA.midi.oGate.currentSample[voice] == 1 || adsr.dLoop.valueMapped == 1)
-                    adsr.currentState[voice] = adsr.DELAY;
-                break;
-
-            case adsr.DELAY:
-                if (layerA.midi.oGate.currentSample[voice] == 0 && adsr.dLoop.valueMapped == 0)
-                    adsr.currentState[voice] = adsr.OFF;
-
-                float delay = adsr.iDelay.currentSample[voice] * adsr.aDelay.minMaxDifference + adsr.aDelay.valueMapped;
-
-                adsr.currentTime[voice] += secondsPerRender;
-                adsr.out.nextSample[voice] = 0;
-
-                if (adsr.currentTime[voice] >= delay) {
-                    adsr.currentState[voice] = adsr.ATTACK;
-                    adsr.currentTime[voice] = 0;
-                }
-
-                break;
-
-            case adsr.ATTACK:
-                float attack =
-                    adsr.iAttack.currentSample[voice] * adsr.aAttack.minMaxDifference + adsr.aAttack.valueMapped;
-
-                adsr.currentTime[voice] += secondsPerRender;
-
-                adsr.out.nextSample[voice] = testFloat(adsr.currentTime[voice] / attack, 0, 1);
-
-                if (adsr.dLoop.valueMapped) {
-                    if (adsr.nextSample[voice] >= 1) {
-                        adsr.currentState[voice] = adsr.RELEASE;
-                        adsr.currentTime[voice] = 0;
-                    }
-                }
-                else {
-                    if (layerA.midi.oGate.currentSample[voice] == 0) {
-                        adsr.currentState[voice] = adsr.RELEASE;
-                        adsr.currentTime[voice] = 0;
-                    }
-                    else if (adsr.currentTime[voice] >= attack) {
-                        adsr.currentState[voice] = adsr.DECAY;
-                        adsr.currentTime[voice] = 0;
-                    }
-                }
-
-                break;
-            case adsr.DECAY:
-                float decay = adsr.iDecay.currentSample[voice] * adsr.aDecay.minMaxDifference + adsr.aDecay.valueMapped;
-                float sustain =
-                    adsr.iSustain.currentSample[voice] * adsr.aSustain.minMaxDifference + adsr.aSustain.valueMapped;
-
-                adsr.currentTime[voice] += secondsPerRender;
-
-                if (adsr.currentTime[voice] >= attack) {
-                    adsr.currentState[voice] = adsr.SUSTAIN;
-                    adsr.currentTime[voice] = 0;
-                }
-
-                adsr.out.nextSample[voice] = testFloat(1 - (adsr.currentTime[voice] / decay) * (1 - sustain), 0, 1);
-                break;
-            case adsr.SUSTAIN:
-                float sustain =
-                    adsr.iSustain.currentSample[voice] * adsr.aSustain.minMaxDifference + adsr.aSustain.valueMapped;
-
-                if (layerA.midi.oGate.currentSample[voice] == 0)
-                    adsr.currentState[voice] = adsr.RELEASE;
-                adsr.out.nextSample[voice] = sustain;
-                break;
-
-            case adsr.RELEASE: break;
-            default: Error_Handler(); break;
-        }
-
-        adsr.currentLevel[voice] = fast_lerp_f32(adsr.currentLevel[voice],
-                                                 adsr.currentLevel[voice] * layerA.midi.oVeloctiy.currentSample[voice],
-                                                 adsr.aVelocity.valueMapped);
-
-        // TODO keytrack MISSING
-
-        adsr.out.nextSample[voice] = adsr.currentLevel[voice] * adsr.aAmount.valueMapped;
     }
 }
 
