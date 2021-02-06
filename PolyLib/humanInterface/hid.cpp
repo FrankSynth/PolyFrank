@@ -287,27 +287,27 @@ void updatePatchLED() {
         Output *output = allLayers[focus.layer]->modules[focus.modul]->getOutputs()[focus.id];
 
         uint16_t sourceID = output->idGlobal;
-        patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGTHNESS_MAX);
+        patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
 
         for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
             uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-            patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGTHNESS_MEDIUM);
+            patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
         }
 
         for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
             uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-            patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGTHNESS_MEDIUM);
+            patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
         }
     }
     else if (focus.type == FOCUSINPUT) {
 
         Input *input = allLayers[focus.layer]->modules[focus.modul]->getInputs()[focus.id];
         uint16_t inputID = input->idGlobal;
-        patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGTHNESS_MAX);
+        patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
 
         for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
             uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
-            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGTHNESS_MEDIUM);
+            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
         }
     }
 

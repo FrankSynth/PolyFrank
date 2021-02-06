@@ -71,9 +71,6 @@ void writePresetBlock(uint16_t blockID, std::string name) {
     }
 
     address = TABLE_STARTADDRESS + newEntry.ID * sizeof(presetStruct);
-    println("ID : ", blockID);
-
-    println("Adresse : ", address);
 
     EEPROM_SPI_WriteBuffer((uint8_t *)&newEntry, address, sizeof(presetStruct));
 

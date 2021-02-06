@@ -39,7 +39,7 @@ class IS31FL3216 {
             PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
         }
 
-        // set LED brigthness to 0
+        // set LED brightness to 0
         setPWM(0); // set all LEDs to 0
     }
 
@@ -50,7 +50,7 @@ class IS31FL3216 {
         uint8_t data[17]; // pwm
         data[0] = 0x10;   // write to register 0x10 - 0x1F
 
-        for (int x = 1; x < 17; x++) { // set brigthness for all leds
+        for (int x = 1; x < 17; x++) { // set brightness for all leds
             data[x] = pwm;
         }
 

@@ -26,7 +26,7 @@ class GlobalSettings {
 
         __globSettingsDisplay.category = "DISPLAY";
         __globSettingsDisplay.settings.push_back(&dispColor);
-        __globSettingsDisplay.settings.push_back(&dispBrigthness);
+        __globSettingsDisplay.settings.push_back(&dispBrightness);
 
         // init setting IDs
         // initID();
@@ -110,7 +110,7 @@ class GlobalSettings {
     Setting midiLayer2Channel = Setting("Layer B Ch.", 0, 0, 10, false, binary);
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
-    Setting dispBrigthness = Setting("BRIGTHNESS", 10, 2, 10, false, binary);
+    Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
 
     Error error;
 

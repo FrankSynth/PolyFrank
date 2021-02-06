@@ -104,6 +104,7 @@ class GUIPanelBase {
     std::string name;
     uint8_t id;
     uint8_t active;
+    uint8_t pathVisible = 0;
 
   private:
 };

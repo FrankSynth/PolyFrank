@@ -207,7 +207,8 @@ void GUI::Init() { // add settings pointer
     // init Display
     GFX_Init();
 
-    guiPanelData.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+    guiPanelFocus.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+    guiPanel_0.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 0);
     guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH", 1);
     guiPanel_2.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET", 2);
     guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
@@ -217,7 +218,7 @@ void GUI::Init() { // add settings pointer
     panels.push_back(&guiPanel_1);
     panels.push_back(&guiPanel_2);
     panels.push_back(&guiPanel_3);
-    panels.push_back(&guiPanelData);
+    panels.push_back(&guiPanelFocus);
 
     // init Header
     guiHeader.init(&panels, &activePanelID, LCDWIDTH, HEADERHEIGHT);
@@ -256,9 +257,9 @@ void GUI::Clear() {
 
 void GUI::Draw() {
 
-    // setDisplayBrigthness
+    // setDisplayBrightness
     __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
-                          globalSettings.dispBrigthness.getValue() * 1000); // 6553* 1-10 -> 65530
+                          globalSettings.dispBrightness.getValue() * 1000); // 6553* 1-10 -> 65530
 
     setRenderState(RENDER_PROGRESS);
 
@@ -270,13 +271,16 @@ void GUI::Draw() {
         // Draw Panel
         if (activePanel != nullptr) {
             activePanel->Draw();
+
+            // Path Visisble?
+            if (activePanel->pathVisible) {
+                // Draw Path
+                guiPath.Draw();
+            }
         }
 
         // Draw Header
         guiHeader.Draw();
-
-        // Draw Path
-        guiPath.Draw();
 
         // Draw Footer
         guiFooter.Draw();
