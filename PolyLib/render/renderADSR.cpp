@@ -74,6 +74,7 @@ void renderADSR(ADSR &adsr) {
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice);
                 currentLevel += secondsPerCVRender / attack;
+
                 if (currentLevel >= 1) {
                     currentLevel = 1;
                     if (gate == 1) {

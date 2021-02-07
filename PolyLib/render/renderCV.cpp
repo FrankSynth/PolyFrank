@@ -105,21 +105,10 @@ void renderGlobalModule(GlobalModule globalModule) {
     }
 }
 
-// TODO remove this later
-void tempRendering() {
-    static float dacStep = 0;
+void writeDataToDACBuffer() {
 
-    dacStep += layerA.test.aCutoff.valueMapped / (1000.0f / (float)CVTIMERINTERVALUS); // 100hz sinus
-
-    cvDacB.data[3] = (fast_sin_f32(dacStep) + 1) * 2047; // 100hz sinus
-    // cvDacB.data[3] = 4095; // const
-
-    if (dacStep > 1) {
-        dacStep -= 1;
-    }
-
-    cvDacA.data[0] = layerA.test.aCutoff.valueMapped * 4095;
-    cvDacA.data[1] = (1 - layerA.test.aResonance.valueMapped) * 4095;
+    cvDacA.data[0] = layerA.adsrA.out.currentSample[0] * 4095;
+    cvDacA.data[1] = (layerA.lfoA.out.currentSample[0] + 1) * 2047;
     cvDacA.data[2] = layerA.test.aFreq.valueMapped * 4095;
     cvDacA.data[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
 }
@@ -137,19 +126,16 @@ void renderCVs() {
     renderLadder(layerA.ladder);
     renderDistortion(layerA.distort);
     renderLFO(layerA.lfoA);
-    renderLFO(layerA.lfoB);
+    // renderLFO(layerA.lfoB);
     renderADSR(layerA.adsrA);
-    renderADSR(layerA.adsrB);
+    // renderADSR(layerA.adsrB);
     renderGlobalModule(layerA.globalModule);
 
     // TODO ? still true? need to render global stuff like Filter Out Levels here
 
     updateAllOutputSamples();
 
-    // TODO copy all output.currentSamples to their DAC data storage here
-
-    // TODO remove this later
-    tempRendering();
+    writeDataToDACBuffer();
 
     cvDacA.setLatchPin();
     cvDacB.setLatchPin();

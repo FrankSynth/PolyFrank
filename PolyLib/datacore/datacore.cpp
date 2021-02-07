@@ -26,19 +26,26 @@ const std::string &Setting::getValueAsString() {
     }
 }
 
+LogCurve logMapping(16, 0.1);
+LogCurve antiLogMapping(16, 0.9);
+
 void Analog::setValue(int32_t newValue) {
     value = testInt(newValue, 0, MAX_VALUE_12BIT);
 
-    // if (mapping == linMap) {
-    valueMapped =
-        fast_lerp_f32(min, max, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
-    // }
-    // else if (mapping == logMap) {
-    //     valueMapped = (powf(1.5, value) - 1) / powf(1.5, MAX_VALUE_12BIT) * (max - min) + min; // Log with mapping
-    // }
-    // else if (mapping == antilogMap) {
-    //     valueMapped = (logf(value + 1) * (max - min)) / logf(MAX_VALUE_12BIT + 1) + min; // Antilog with mapping
-    // }
+    if (mapping == linMap) {
+        valueMapped =
+            fast_lerp_f32(min, max, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+    }
+    else if (mapping == logMap) {
+        valueMapped =
+            fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+        valueMapped = logMapping.mapValue(valueMapped);
+    }
+    else if (mapping == antilogMap) {
+        valueMapped =
+            fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+        valueMapped = antiLogMapping.mapValue(valueMapped);
+    }
 
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);

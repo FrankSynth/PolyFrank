@@ -333,10 +333,10 @@ class ADSR : public BaseModule {
     Input iAmount = Input("AMOUNT");
 
     Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.001, true, logMap, &iAttack);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 0.001, true, logMap, &iDecay);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.5, true, logMap, &iAttack);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 0.5, true, logMap, &iDecay);
     Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap, &iSustain);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.001, true, logMap, &iRelease);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.5, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);

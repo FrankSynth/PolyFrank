@@ -35,7 +35,7 @@ inline float calcRandom() {
         Error_Handler();
     }
     // map number between 0 and 1 float
-    return (float)randomNumber / 4294967295.0f;
+    return ((float)randomNumber / 2147483647.0f) - 1;
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
@@ -54,7 +54,7 @@ void renderLFO(LFO &lfo) {
         float &currentSample = lfo.out.currentSample[voice];
         bool &newPhase = lfo.newPhase[voice];
 
-        phase += (1 / speed) / secondsPerCVRender;
+        phase += speed * secondsPerCVRender;
         if (phase > 1) {
             phase -= 1;
             newPhase = true;

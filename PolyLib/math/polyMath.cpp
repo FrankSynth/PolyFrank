@@ -93,6 +93,12 @@ void LogCurve::precomputeTable() {
     }
 }
 
+/**
+ * @brief map values between 0 and 1 to specific log curve
+ *
+ * @param value
+ * @return float
+ */
 float LogCurve::mapValue(float value) {
     float ret, fract; /* Temporary variables for input, output */
     uint16_t index;   /* Index variable */
