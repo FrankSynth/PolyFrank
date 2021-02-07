@@ -1,3 +1,5 @@
+#ifdef POLYRENDER
+
 #include "renderADSR.hpp"
 #include "renderCV.hpp"
 
@@ -166,3 +168,5 @@ void renderADSR(ADSR &adsr) {
         adsr.out.nextSample[voice] = adsr.out.nextSample[voice] * adsr.aAmount.valueMapped;
     }
 }
+
+#endif

@@ -1,3 +1,5 @@
+#ifdef POLYRENDER
+
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
 #include "rng.h"
@@ -86,3 +88,5 @@ void renderLFO(LFO &lfo) {
         }
     }
 }
+
+#endif

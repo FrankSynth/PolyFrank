@@ -6,6 +6,5 @@
 #include "wavetables/wavetables.hpp"
 #include <stdint.h>
 
-
 void initAudioRendering();
 void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels = 8);
