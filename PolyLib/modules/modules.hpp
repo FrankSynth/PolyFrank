@@ -292,6 +292,7 @@ class LFO : public BaseModule {
     Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
 
     float currentTime[VOICESPERCHIP] = {0};
+    bool newPhase[VOICESPERCHIP] = {false};
 };
 
 class ADSR : public BaseModule {

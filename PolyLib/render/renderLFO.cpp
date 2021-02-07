@@ -29,7 +29,13 @@ inline float calcSquare(float phase) {
 
 // TODO random number
 inline float calcRandom() {
-    //
+    uint32_t randomNumber;
+    if (HAL_RNG_GenerateRandomNumber(&hrng, &randomNumber) != HAL_OK) {
+        /* Random number generation error */
+        Error_Handler();
+    }
+    // map number between 0 and 1 float
+    return (float)randomNumber / 4294967295.0f;
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
@@ -45,10 +51,16 @@ void renderLFO(LFO &lfo) {
         float &phase = lfo.currentTime[voice];
         float speed = accumulateSpeed(lfo, voice);
         float &nextSample = lfo.out.nextSample[voice];
+        bool &newPhase = lfo.newPhase[voice];
 
         phase += (1 / speed) / secondsPerCVRender;
-        if (phase > 1)
+        if (phase > 1) {
             phase -= 1;
+            newPhase = true;
+        }
+        else {
+            newPhase = false;
+        }
 
         if (shape < 1) {
             nextSample = calcSin(phase);
@@ -62,8 +74,12 @@ void renderLFO(LFO &lfo) {
         else if (shape < 4) {
             nextSample = calcTriangle(phase);
         }
-        else {
+        else if (shape < 5) {
             nextSample = calcSquare(phase);
+        }
+        else {
+            if (newPhase)
+                nextSample = calcRandom();
         }
     }
 }
