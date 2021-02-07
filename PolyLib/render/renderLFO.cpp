@@ -51,6 +51,7 @@ void renderLFO(LFO &lfo) {
         float &phase = lfo.currentTime[voice];
         float speed = accumulateSpeed(lfo, voice);
         float &nextSample = lfo.out.nextSample[voice];
+        float &currentSample = lfo.out.currentSample[voice];
         bool &newPhase = lfo.newPhase[voice];
 
         phase += (1 / speed) / secondsPerCVRender;
@@ -80,6 +81,8 @@ void renderLFO(LFO &lfo) {
         else {
             if (newPhase)
                 nextSample = calcRandom();
+            else
+                nextSample = currentSample;
         }
     }
 }
