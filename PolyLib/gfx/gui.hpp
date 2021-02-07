@@ -4,7 +4,12 @@
 #include "gfx.hpp"
 #include "guiActionHandler.hpp"
 #include "guiBase.hpp"
-#include "guiPanels.hpp"
+#include "guiPanelConfig.hpp"
+#include "guiPanelError.hpp"
+#include "guiPanelFocus.hpp"
+#include "guiPanelLive.hpp"
+#include "guiPanelPatch.hpp"
+#include "guiPanelPreset.hpp"
 #include "layer/layer.hpp"
 #include "tim.h"
 #include <functional>
@@ -177,22 +182,22 @@ class GUI {
     std::vector<Layer *> layers;
 
   private:
-    GUIPanelBase guiPanel_0 = GUIPanelBase("LIVEMODE", 0);
-    GUIPanelBase guiPanel_2 = GUIPanelBase("PRESET", 2);
-
+    GUIPanelLive guiPanel_0;
     GUIPanelPatch guiPanel_1;
+    GUIPanelPreset guiPanel_2;
     GUIPanelConfig guiPanel_3;
 
     std::vector<GUIPanelBase *> panels;
 
-    GUIPanelData guiPanelData;
+    GUIPanelFocus guiPanelFocus;
 
     GUIPanelPath guiPath;
-
     GUISIDE guiSide;
 
     GUIFOOTER guiFooter;
     GUIHeader guiHeader;
+
+    GUIPanelError guiError;
 };
 
 // GUI

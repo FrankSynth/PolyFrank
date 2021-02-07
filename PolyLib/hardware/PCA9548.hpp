@@ -17,7 +17,7 @@ class PCA9548 {
 
         if (activeAddress != (1 << targetAddress)) {
             activeAddress = (1 << targetAddress);
-            println("activeAddress: ", targetAddress);
+            // println("activeAddress: ", targetAddress);
 
             if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, &activeAddress, 1, 50) != HAL_OK) {
                 Error_Handler();

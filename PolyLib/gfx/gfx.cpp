@@ -266,6 +266,50 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
         posX += activeFont->font[(uint8_t)c - 32].XSize; // Distance to next character
     }
 }
+void drawString(char *charArray, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+                FONTALIGN alignment) {
+    renderTask task;
+
+    std::string text = charArray;
+
+    task.mode = M2MTRANSPARENT_A4;  // Set DMA2D To copy M2M with Blending
+    task.height = activeFont->size; // Set Font Height
+    task.color = color;             // Set Font Height
+
+    // Curser Position
+    uint16_t posX = x;
+    uint16_t posY = y;
+
+    // alignment
+    if (alignment != LEFT) {
+        uint16_t offset = 0;
+
+        // calculate center of current string
+        for (char &c : text) {
+            offset += activeFont->font[(uint8_t)c - 32].XSize;
+        }
+        if (alignment == CENTER) {
+            posX -= offset / 2; // offset posX to Center
+        }
+        else if (alignment == RIGHT) {
+            posX -= offset; // offset posX for right Right alignment
+        }
+    }
+
+    // For each Char
+    for (char &c : text) {
+
+        task.x = posX;
+        task.y = posY;
+
+        task.width = activeFont->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint8_t)c - 32].pData; // Pointer to Character
+
+        addToRenderQueue(task); // Add Task to RenderQue
+
+        posX += activeFont->font[(uint8_t)c - 32].XSize; // Distance to next character
+    }
+}
 
 uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font) {
     uint16_t offset = 0;

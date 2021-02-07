@@ -81,6 +81,12 @@ void PolyControlInit() {
     // init midi
     initMidi();
 
+    // read Preset List from EEPROM
+    updatePresetList();
+
+    // load global Settings
+    globalSettings.loadGlobalSettings();
+
     println("Hi, Frank here!");
 }
 
@@ -88,12 +94,18 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
+    location tempFocus = {0, allLayers[0]->adsrA.id, 0, FOCUSMODULE};
+
+    // temp set focus
+    ui.setFocus(tempFocus);
     while (1) {
 
         FlagHandler::handleFlags();
-
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
+
+            // TODO updatePatchLED an wenn chip dran
+            // updatePatchLED();
         }
 
         layerCom[0].beginSendTransmission();

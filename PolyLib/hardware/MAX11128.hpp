@@ -32,7 +32,7 @@ class MAX11128 {
         // scan control
         uint16_t scCntlRegAdr = 0b0 << 15;
         uint16_t scScan = 0b0011 << 11; // scan N channels and store results
-        uint16_t scChSel = 0b1111 << 7; // (number of channels to scan) - 1
+        uint16_t scChSel = 0b1011 << 7; // (number of channels to scan) - 1
         uint16_t scReset = 0b00 << 5;   // no reset
         uint16_t scPM = 0b00 << 3;      // no pwr off
         uint16_t scChanID = 0b1 << 2;
@@ -78,8 +78,6 @@ class MAX11128 {
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-
-        println("MAX: init Done");
     }
 
     void fetchNewData() {

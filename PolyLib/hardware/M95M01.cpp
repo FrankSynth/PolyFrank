@@ -71,9 +71,9 @@ EepromOperations EEPROM_SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint
 
     EEPROM_SPI_SendInstruction((uint8_t *)header, 4);
 
-    // Make 20 attemtps to write the data
+    // Make 5 attemtps to write the data
     for (uint8_t i = 0; i < 5; i++) {
-        spiTransmitStatus = HAL_SPI_Transmit(EEPROM_SPI, pBuffer, NumByteToWrite, 100);
+        spiTransmitStatus = HAL_SPI_Transmit(EEPROM_SPI, pBuffer, NumByteToWrite, 1000);
 
         if (spiTransmitStatus == HAL_BUSY) {
             HAL_Delay(5); // wait EEPROM finished writing
@@ -93,6 +93,7 @@ EepromOperations EEPROM_SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint
     sEE_WriteDisable();
 
     if (spiTransmitStatus == HAL_ERROR) {
+        PolyError_Handler("ERROR | COMMUNICATION | M95M01 -> Write -> SPI Transmit failed");
         return EEPROM_STATUS_ERROR;
     }
     else {
@@ -142,12 +143,13 @@ EepromOperations EEPROM_SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, ui
                 WriteAddr += EEPROM_PAGESIZE;
                 pBuffer += EEPROM_PAGESIZE;
             }
+            if (NumOfSingle) { // check last packet not size 0
+                sEE_DataNum = NumOfSingle;
+                pageWriteStatus = EEPROM_SPI_WritePage(pBuffer, WriteAddr, sEE_DataNum);
 
-            sEE_DataNum = NumOfSingle;
-            pageWriteStatus = EEPROM_SPI_WritePage(pBuffer, WriteAddr, sEE_DataNum);
-
-            if (pageWriteStatus != EEPROM_STATUS_COMPLETE) {
-                return pageWriteStatus;
+                if (pageWriteStatus != EEPROM_STATUS_COMPLETE) {
+                    return pageWriteStatus;
+                }
             }
         }
     }
@@ -421,7 +423,7 @@ void EEPROM_SPI_SendInstruction(uint8_t *instruction, uint8_t size) {
     }
 
     if (HAL_SPI_Transmit(EEPROM_SPI, (uint8_t *)instruction, (uint16_t)size, 200) != HAL_OK) {
-        Error_Handler();
+        PolyError_Handler("ERROR | COMMUNICATION | M95M01 -> Instruction ->SPI Transmit failed");
     }
 }
 

@@ -3,6 +3,7 @@
 #include "datacore/datacore.hpp"
 #include "modules/layersettings.hpp"
 #include "modules/modules.hpp"
+#include "preset/preset.hpp"
 #include <list>
 #include <string>
 #include <vector>
@@ -17,6 +18,12 @@ extern uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8
 extern uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
                                      float offset);
 extern uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId);
+
+typedef struct {
+    uint8_t sourceID;
+    uint8_t targetID;
+    float amount;
+} patchSaveStruct;
 
 class Layer {
   public:
@@ -66,6 +73,11 @@ class Layer {
     void updatePatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
     void removePatchOutOut(PatchElementOutOut &patch);
     void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
+
+#ifdef POLYCONTROL
+    void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName);
+    void loadLayerFromPreset(uint32_t presetID);
+#endif
 
     inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
     inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }

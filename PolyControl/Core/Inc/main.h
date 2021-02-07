@@ -51,7 +51,8 @@ extern "C" {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+void Error_Handler();
+void PolyError_Handler(const char *errorMessage);
 
 /* USER CODE BEGIN EFP */
 

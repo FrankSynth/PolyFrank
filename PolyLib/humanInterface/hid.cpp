@@ -2,9 +2,6 @@
 
 #include "hid.hpp"
 
-#define NUMBERENCODERS 4
-#define NUMBER_PANELTOUCHICS 1
-
 // PCA9555 -> Bus expander for the Encoder
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 
@@ -19,7 +16,9 @@ AT42QT2120 touchPanel[NUMBER_PANELTOUCHICS] = {AT42QT2120(&hi2c4, 0)};
 AT42QT2120 touchControl = AT42QT2120(&hi2c4, 0); // TODO anderen Constructor nehmne
 
 // TODO ledDriver zu Display
-IS31FL3216 ledDriverA = IS31FL3216(&hi2c4, 0, 7);
+IS31FL3216 ledDriverA[] = {IS31FL3216(&hi2c4, 0, 7), IS31FL3216(&hi2c4, 0, 6)};
+IS31FL3216 ledDriverB[] = {IS31FL3216(&hi2c3, 0, 7), IS31FL3216(&hi2c3, 0, 6)};
+
 // IS31FL3216 ledDriverB = IS31FL3216(&hi2c4, 0, 6);
 
 PanelTouch touchEvaluteLayer0(0);
@@ -27,7 +26,7 @@ PanelTouch touchEvaluteLayer1(1);
 
 // Potentiomer ADC
 
-MAX11128 adcA(&hspi1, 16, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+MAX11128 adcA(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
 
 //
 TS3A5017D multiplexerA = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
@@ -77,9 +76,6 @@ void initHID() {
 
     HAL_Delay(1000);
 
-    // TODO ledDriver zu Display
-    // ledDriverA.init();
-
     // init Panel touch ICS
     for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
         touchPanel[x].init();
@@ -87,7 +83,12 @@ void initHID() {
     // init Control touch IC
     touchControl.init();
 
-    // ledDriverB.init();
+    for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+        // TODO sobald was am Bus haengt aktivieren
+
+        // ledDriverA[x].init();
+        // ledDriverB[x].init();
+    }
 
     // init ADC, Multiplexer
 
@@ -261,15 +262,174 @@ void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TOD
 void initPotiMapping() { // TODO fill mapping
 
     // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aBitcrusher),
-    // std::placeholders::_1); potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
+    // std::placeholders::_1);
+    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
     // std::placeholders::_1); potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aFM),
     // std::placeholders::_1);
     // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aLevel), std::placeholders::_1);
 
-    // potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aAttack), std::placeholders::_1);
-    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aDecay), std::placeholders::_1);
-    // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aSustain), std::placeholders::_1);
-    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->adsrA.aRelease), std::placeholders::_1);
+    potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aCutoff), std::placeholders::_1);
+    potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aLevel), std::placeholders::_1);
+    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aResonance), std::placeholders::_1);
+    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.a), std::placeholders::_1);
+}
+void updatePatchLED() {
+
+    static location focusCompare = {0, 0, 0, FOCUSLAYER};
+
+    // nothing changed?
+    if (focus.id == focusCompare.id && focus.layer == focusCompare.layer && focus.modul == focusCompare.modul &&
+        focus.type == focusCompare.type) {
+        return;
+    }
+
+    if (focus.type == FOCUSOUTPUT) {
+        Output *output = allLayers[focus.layer]->modules[focus.modul]->getOutputs()[focus.id];
+
+        uint16_t sourceID = output->idGlobal;
+        patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
+
+        for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
+            uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+            patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+        }
+
+        for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
+            uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+            patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+        }
+    }
+    else if (focus.type == FOCUSINPUT) {
+
+        Input *input = allLayers[focus.layer]->modules[focus.modul]->getInputs()[focus.id];
+        uint16_t inputID = input->idGlobal;
+        patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
+
+        for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
+            uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
+            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+        }
+    }
+
+    // mapping Switch settings to LEDs
+    switchLEDMapping();
+    // update LEDDriver Outputs
+    for (int i = 0; i < NUMBER_LEDDRIVER; i++) {
+        ledDriverA[i].updateLEDs();
+        ledDriverB[i].updateLEDs();
+    }
+
+    focusCompare = focus;
+}
+
+void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm) { // type 0 -> Output | type 1 -> Input
+    // TODO mapping fertig machen sobald platine klar
+
+    static IS31FL3216 *ledDriver;
+    // Zwischen den Layern wechseln
+    if (allLayers[focus.layer] == 0) {
+        ledDriver = ledDriverA;
+    }
+    else {
+        ledDriver = ledDriverB;
+    }
+
+    uint16_t mappedID = 0xFFFF;
+    if (type == FOCUSOUTPUT) {
+        if (allLayers[focus.layer]->lfoA.out.idGlobal == id) {
+            mappedID = 0;
+        }
+        if (allLayers[focus.layer]->lfoB.out.idGlobal == id) {
+            mappedID = 1;
+        }
+        if (allLayers[focus.layer]->adsrA.out.idGlobal == id) {
+            mappedID = 2;
+        }
+        if (allLayers[focus.layer]->adsrB.out.idGlobal == id) {
+            mappedID = 3;
+        }
+    }
+
+    if (type == FOCUSINPUT) {
+        if (allLayers[focus.layer]->lfoA.iFreq.idGlobal == id) {
+            mappedID = 5;
+        }
+        if (allLayers[focus.layer]->lfoB.iFreq.idGlobal == id) {
+            mappedID = 6;
+        }
+        if (allLayers[focus.layer]->adsrA.iAttack.idGlobal == id) {
+            mappedID = 8;
+        }
+        if (allLayers[focus.layer]->adsrB.iAmount.idGlobal == id) {
+            mappedID = 9;
+        }
+    }
+
+    if (mappedID != 0xFFFF) {
+        ledDriver[mappedID % 16].pwmValue[(uint8_t)(mappedID - ((mappedID % 16) * 16))] = pwm;
+    }
+}
+
+void switchLEDMapping() {
+    // TODO mapping fertig machen sobald platine klar hier gerade nur beispiele
+    static IS31FL3216 *ledDriver;
+
+    // single led
+
+    for (uint8_t i = 0; i < 2; i++) {
+
+        // Zwischen den Layern wechseln
+        if (i == 0) {
+            ledDriver = ledDriverA;
+        }
+        else {
+            ledDriver = ledDriverB;
+        }
+
+        switch (allLayers[i]->test.dSelectFilter.value) {
+            case 0: ledDriver[0].pwmValue[1] = 0; break;
+            case 1: ledDriver[0].pwmValue[1] = 255; break;
+        };
+        // dual LED
+        switch (allLayers[i]->test.dSelectFilter.value) {
+            case 0:
+                ledDriver[0].pwmValue[1] = 255;
+                ledDriver[0].pwmValue[2] = 0;
+                break;
+
+            case 1:
+                ledDriver[0].pwmValue[1] = 0;
+                ledDriver[0].pwmValue[2] = 255;
+                break;
+        };
+        // Quad LED
+        switch (allLayers[i]->test.dSelectFilter.value) {
+            case 0:
+                ledDriver[0].pwmValue[1] = 255;
+                ledDriver[0].pwmValue[2] = 0;
+                ledDriver[0].pwmValue[3] = 0;
+                ledDriver[0].pwmValue[4] = 0;
+                break;
+            case 1:
+                ledDriver[0].pwmValue[1] = 0;
+                ledDriver[0].pwmValue[2] = 255;
+                ledDriver[0].pwmValue[3] = 0;
+                ledDriver[0].pwmValue[4] = 0;
+                break;
+            case 2:
+                ledDriver[0].pwmValue[1] = 0;
+                ledDriver[0].pwmValue[2] = 0;
+                ledDriver[0].pwmValue[3] = 255;
+                ledDriver[0].pwmValue[4] = 0;
+                break;
+            case 3:
+                ledDriver[0].pwmValue[1] = 0;
+                ledDriver[0].pwmValue[2] = 0;
+                ledDriver[0].pwmValue[3] = 0;
+                ledDriver[0].pwmValue[4] = 255;
+                break;
+        };
+    }
 }
 
 #endif

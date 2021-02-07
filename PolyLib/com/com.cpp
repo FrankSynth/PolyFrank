@@ -279,6 +279,7 @@ uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
 uint8_t COMinterChip::invokeBufferFullSend() {
     uint8_t ret = beginSendTransmission();
     while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
+        FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen bleiben
         ret = beginSendTransmission();
     }
     return ret;
