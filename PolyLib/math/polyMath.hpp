@@ -45,7 +45,7 @@ extern float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 
 /**
  * @brief  Floating-point sin_cos function.
- * @param[in]  theta   input value in degrees
+ * @param[in]  theta   input value from 0 to 1 = 1 cycle, not degree
  * @param[out] pSinVal  points to the processed sine output.
  * @param[out] pCosVal  points to the processed cos output.
  */

@@ -282,12 +282,16 @@ class LFO : public BaseModule {
     Input iSync = Input("SYNC");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
-    Analog aShape = Analog("SHAPE", 0.1, 100, 1, true, linMap);
+    // TODO amount shapes for LFO
+    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap);
 
+    // Freq as Digital knob?
     Digital dFreq = Digital("FREQ", 0, 22, 0, true);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, nullptr, &iSync);
     Digital dTempoSync = Digital("T-SYNC", 0, 1, 0, false);
     Digital dLockPhase = Digital("PHASE", 0, 1, 0, false);
+
+    float currentTime[VOICESPERCHIP] = {0};
 };
 
 class ADSR : public BaseModule {

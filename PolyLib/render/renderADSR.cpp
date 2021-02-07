@@ -8,17 +8,17 @@ extern Layer layerA;
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iDelay.currentSample[voice] * adsr.aDelay.valueMapped * INPUTWEIGHTING +
                          adsr.aDelay.valueMapped,
-                     adsr.aDelay.min, adsr.aDelay.max);
+                     adsr.aDelay.min, adsr.aDelay.max * 2);
 }
 inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iAttack.currentSample[voice] * adsr.aAttack.valueMapped * INPUTWEIGHTING +
                          adsr.aAttack.valueMapped,
-                     adsr.aAttack.min, adsr.aAttack.max);
+                     adsr.aAttack.min, adsr.aAttack.max * 2);
 }
 inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iDecay.currentSample[voice] * adsr.aDecay.valueMapped * INPUTWEIGHTING +
                          adsr.aDecay.valueMapped,
-                     adsr.aDecay.min, adsr.aDecay.max);
+                     adsr.aDecay.min, adsr.aDecay.max * 2);
 }
 inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iSustain.currentSample[voice] * adsr.aSustain.valueMapped * INPUTWEIGHTING +
@@ -28,7 +28,12 @@ inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
 inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iRelease.currentSample[voice] * adsr.aRelease.valueMapped * INPUTWEIGHTING +
                          adsr.aRelease.valueMapped,
-                     adsr.aRelease.min, adsr.aRelease.max);
+                     adsr.aRelease.min, adsr.aRelease.max * 2);
+}
+inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
+    return testFloat(adsr.iAmount.currentSample[voice] * adsr.aAmount.valueMapped * INPUTWEIGHTING +
+                         adsr.aAmount.valueMapped,
+                     adsr.aAmount.min, adsr.aAmount.max);
 }
 
 /**
@@ -39,13 +44,13 @@ inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
 void renderADSR(ADSR &adsr) {
 
     float delay, decay, attack, sustain, release;
-    const bool loop = adsr.dLoop.valueMapped;
+    int32_t &loop = adsr.dLoop.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
         float &currentLevel = adsr.currentLevel[voice];
         float &currentTime = adsr.currentTime[voice];
-        const bool gate = layerA.midi.oGate.currentSample[voice];
+        float &gate = layerA.midi.oGate.currentSample[voice];
 
         switch (adsr.getState(voice)) {
             case adsr.OFF:
@@ -152,11 +157,10 @@ void renderADSR(ADSR &adsr) {
         }
 
         // midi velocity
-        // TODO midi velocity weighting? -> patch to amount?
         adsr.out.nextSample[voice] = fast_lerp_f32(
             currentLevel, currentLevel * layerA.midi.oVeloctiy.currentSample[voice], adsr.aVelocity.valueMapped);
 
-        // TODO keytrack MISSING, just simple patch like velocity?
+        // TODO keytrack MISSING, input note necessary
 
         adsr.out.nextSample[voice] = adsr.out.nextSample[voice] * adsr.aAmount.valueMapped;
     }

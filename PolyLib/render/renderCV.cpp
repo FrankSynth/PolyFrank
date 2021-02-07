@@ -3,6 +3,7 @@
 
 #include "renderCV.hpp"
 #include "renderADSR.hpp"
+#include "renderLFO.hpp"
 
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
@@ -93,12 +94,6 @@ void renderLadder(Ladder &ladder) {
 }
 
 void renderDistortion(Distortion &distort) {
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void renderLFO(LFO &lfo) {
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
