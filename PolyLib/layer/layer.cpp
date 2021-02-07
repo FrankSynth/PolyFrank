@@ -57,6 +57,24 @@ void Layer::initID() {
     }
 }
 
+void Layer::resetLayer() {
+
+    for (BaseModule *m : modules) { // for all modules
+
+        for (Analog *i : m->getPotis()) { // for all Knobs
+            i->resetValue();
+        }
+        for (Digital *i : m->getSwitches()) { // for all Knobs
+            i->resetValue();
+        }
+
+        // Layer specific settings, not part of modules
+    }
+    for (Setting *i : layerSettings.getSettings()) {
+        i->resetValue();
+    }
+}
+
 void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     for (PatchElementInOut *p : sourceOut.getPatchesInOut()) {
         if (p->targetIn == &targetIn)

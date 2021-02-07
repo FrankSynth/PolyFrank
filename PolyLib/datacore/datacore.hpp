@@ -109,7 +109,7 @@ class Setting : public DataElement {
 
     int32_t getValue();
     void setValue(int32_t newValue);
-    inline void resetValue() { setValue(defaultValue); }
+    void resetValue() { setValue(defaultValue); }
 
     inline void setValueWithoutMapping(int32_t newValue) { value = newValue; }
     inline void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
@@ -130,15 +130,16 @@ class Analog : public DataElement {
   public:
     Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
            typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
-        this->value = 0;
+        this->value = MIN_VALUE_12BIT;
+        this->valueMapped = min;
+
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
-        // this->defaultValue = fastMap(defaultValue, min, max, MIN_VALUE_12BIT, MAX_VALUE_12BIT);
-        this->defaultValue =
-            (((float)value - min) / (max - min)) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT;
 
         this->mapping = mapping;
+
+        this->defaultValueMapped = defaultValue;
 
         this->name = name;
 
@@ -149,9 +150,14 @@ class Analog : public DataElement {
     }
 
     void setValue(int32_t newValue);
-    inline void resetValue() { setValue(defaultValue); }
+    void resetValue() {
+        defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
+        setValue(defaultValue);
+    }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
+
+    int32_t reverseMapping(float newValue);
 
     inline void changeValue(int32_t change) { setValue(value + change); }
     inline void setValueWithoutMapping(float newValue) {
@@ -171,6 +177,8 @@ class Analog : public DataElement {
     int32_t defaultValue = 0;
 
     int32_t value;
+    float defaultValueMapped;
+
     float valueMapped;
     float min;
     float max;
@@ -208,7 +216,7 @@ class Digital : public DataElement {
     void setValue(int32_t newValue);
     void nextValue();
     void previousValue();
-    inline void resetValue() { setValueWithoutMapping(defaultValue); }
+    void resetValue() { setValueWithoutMapping(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 

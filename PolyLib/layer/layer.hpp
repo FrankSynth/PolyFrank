@@ -53,6 +53,8 @@ class Layer {
     // init Layer
     void initID();
 
+    void resetLayer();
+
     // Patch stuff
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendCreatePatchInOut;
     // static std::function<uint8_t(uint8_t, uint8_t, uint8_t)> sendDeletePatchInOut;

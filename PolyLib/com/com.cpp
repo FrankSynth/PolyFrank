@@ -69,7 +69,6 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     // block new transmissions as long as a transmission is already running
     if (blockNewSendBeginCommand) {
-        println("ERRORCODE_SENDBLOCK");
         return ERRORCODE_SENDBLOCK;
     }
 
@@ -278,10 +277,18 @@ uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
 
 uint8_t COMinterChip::invokeBufferFullSend() {
     uint8_t ret = beginSendTransmission();
-    while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
-        FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen bleiben
-        ret = beginSendTransmission();
+
+    if (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
+        uint32_t timer = millis();
+        while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) { // wait...
+            if ((millis() - timer) > 5) {                                      // transmission takes longer than 5ms
+                PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 5ms ");
+            }
+            FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen bleiben
+            ret = beginSendTransmission();
+        }
     }
+
     return ret;
 }
 

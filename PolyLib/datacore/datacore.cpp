@@ -31,7 +31,7 @@ LogCurve logMapping(16, 0.1);
 LogCurve antiLogMapping(16, 0.9);
 
 void Analog::setValue(int32_t newValue) {
-    value = testInt(newValue, 0, MAX_VALUE_12BIT);
+    value = testInt(newValue, MIN_VALUE_12BIT, MAX_VALUE_12BIT);
 
     if (mapping == linMap) {
         valueMapped =
@@ -40,12 +40,12 @@ void Analog::setValue(int32_t newValue) {
     else if (mapping == logMap) {
         valueMapped =
             fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
-        valueMapped = logMapping.mapValue(valueMapped);
+        valueMapped = logMapping.mapValue(valueMapped) * (max - min) + min;
     }
     else if (mapping == antilogMap) {
         valueMapped =
             fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
-        valueMapped = antiLogMapping.mapValue(valueMapped);
+        valueMapped = antiLogMapping.mapValue(valueMapped) * (max - min) + min;
     }
 
 #ifdef POLYCONTROL
@@ -54,6 +54,29 @@ void Analog::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+}
+
+int32_t Analog::reverseMapping(float newValue) {
+
+    newValue = testFloat(newValue, min, max);
+
+    int32_t reverseMapped = MIN_VALUE_12BIT;
+
+    if (mapping == linMap) {
+        newValue = (newValue - min) / (max - min);
+        reverseMapped = (int32_t)(newValue * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+    }
+    else if (mapping == antilogMap) {
+        newValue = (newValue - min) / (max - min);
+        reverseMapped =
+            (int32_t)(logMapping.mapValue(newValue) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+    }
+    else if (mapping == logMap) {
+        newValue = (newValue - min) / (max - min);
+        reverseMapped =
+            (int32_t)(antiLogMapping.mapValue(newValue) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+    }
+    return reverseMapped;
 }
 
 const std::string &Digital::getValueAsString() {

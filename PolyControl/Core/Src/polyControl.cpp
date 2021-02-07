@@ -78,6 +78,13 @@ void PolyControlInit() {
             (uint8_t *)interChipDMABufferLayerB, 1);
     }
 
+    // resetLayer to default Value (must be called in runtime!)
+
+    allLayers[0]->resetLayer();
+    // for (Layer *l : allLayers) {
+    //     l->resetLayer();
+    // };
+
     // init midi
     initMidi();
 
