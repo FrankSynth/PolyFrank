@@ -148,7 +148,7 @@ void renderADSR(ADSR &adsr) {
                     if (loop == 0)
                         adsr.setStatusOff(voice);
                     else
-                        adsr.setStatusAttack(voice);
+                        adsr.setStatusDelay(voice);
                 }
 
                 if (gate == 1) {
