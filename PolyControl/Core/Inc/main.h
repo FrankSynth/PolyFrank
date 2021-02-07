@@ -52,7 +52,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler();
-void PolyError_Handler(const char *error);
+void PolyError_Handler(const char *errorMessage);
 
 /* USER CODE BEGIN EFP */
 

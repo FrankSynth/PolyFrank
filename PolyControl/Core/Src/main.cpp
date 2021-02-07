@@ -300,15 +300,15 @@ void MPU_Config(void) {
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void PolyError_Handler(const char *error) {
+void PolyError_Handler(const char *errorMessage) {
 
-    if (error == nullptr) {
+    if (errorMessage == nullptr) {
         PolyError_Handler("PolyError_Handler | ERROR Message == nullptr");
         return;
     }
 
-    globalSettings.error.setErrorMessage(error); // set Error Message for Display
-    println(error);                              // print Error Message
+    globalSettings.error.setErrorMessage(errorMessage); // set Error Message for Display
+    println(errorMessage);                              // print Error Message
 }
 
 void Error_Handler() {

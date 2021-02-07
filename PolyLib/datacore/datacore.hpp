@@ -55,7 +55,7 @@ class DataElement {
 // Error element
 class Error {
   public:
-    void setErrorMessage(const char *errorMessage) {
+    void setErrorMessage(std::string errorMessage) {
 
         this->errorMessage = errorMessage;
 

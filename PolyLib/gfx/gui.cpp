@@ -246,7 +246,6 @@ void GUI::Init() { // add settings pointer
     setPanelActive(3);
 
     // Set Focus for test
-    setFocus({0, 0, 0, FOCUSMODULE});
 }
 
 void GUI::Clear() {

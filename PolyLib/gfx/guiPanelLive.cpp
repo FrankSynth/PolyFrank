@@ -41,13 +41,13 @@ void GUIPanelLive::registerSettingsElements() {
 void GUIPanelLive::updateEntrys() {
 
     if (subPanelSelect == 0) {
-        pCategory = &globalSettings.__globSettingsSystem;
+        pCategory = &globalSettings.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &globalSettings.__globSettingsDisplay;
+        pCategory = &globalSettings.__liveSettingsArp;
     }
     if (subPanelSelect == 2) {
-        pCategory = &globalSettings.__globSettingsMIDI;
+        pCategory = &globalSettings.__liveSettingsLivemode;
     }
 
     entrys = ceil((float)pCategory->settings.size() / EntrysPerElement);
@@ -83,8 +83,8 @@ void GUIPanelLive::registerPanelSettings() {
 
     // register Panel Seetings Left
     actionHandler.registerActionLeft(
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 0), globalSettings.__globSettingsSystem.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 1), globalSettings.__globSettingsMIDI.category},
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 0), globalSettings.__liveSettingsLivemode.category},
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 1), globalSettings.__liveSettingsArp.category},
         {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
     // register Panel Seetings Rigth
     actionHandler.registerActionRight({nullptr, "SAVE"}, // SAVE

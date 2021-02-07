@@ -69,3 +69,103 @@ class LiveData {
 
     std::vector<Layer *> layers;
 };
+
+#pragma once
+
+#include "polyControl.hpp"
+
+#define NUMBERLAYER 2
+#define NUMBERVOICES 8
+
+/*
+
+Middleman
+
+Zuweisung der Note, Gate, Trigger Signale
+
+clocking
+
+arp
+
+
+
+*/
+
+typedef enum { FREE, PLAYED, OFF } voiceStatus;
+
+// struct pro voice für den aktuellen status: gespielter ton, c
+typedef struct {
+    voiceStatus status = FREE;
+    uint8_t note = 0;
+    uint8_t velocity = 0;
+    uint8_t voiceID = 0;
+    uint8_t layerID = 0;
+} voiceStruct;
+
+/* class VoiceHandler {
+  public:
+    VoiceHandler() {
+        // init Voices
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            voicesA[i].voiceID = i;
+            voicesA[i].layerID = 0;
+        }
+
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            voicesB[i].voiceID = i;
+            voicesB[i].layerID = 1;
+        }
+    }
+    void playNote(uint8_t note, uint8_t velocity, uint8_t numberVoices) {
+        getNextVoices(numberVoices);
+        for (voiceStruct *v : foundVoices) {
+            v->status = PLAYED;
+            v->note = note;
+            v->velocity = velocity;
+            // TODO send Note, Gate, Velocity
+        }
+    }
+    void freeNote(uint8_t note) {
+        findVoices(note);
+        for (voiceStruct *v : foundVoices) {
+            v->status = FREE;
+            // TODO send Gate off
+        }
+    }
+
+    void findVoices(uint8_t note) {
+        foundVoices.clear();
+
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            if (voicesA[i].note == note && voicesA[i].status == PLAYED) {
+                foundVoices.push_back(&voicesA[i]);
+            }
+        }
+
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            if (voicesB[i].note == note && voicesB[i].status == PLAYED) {
+                foundVoices.push_back(&voicesB[i]);
+            }
+        }
+    }
+
+    getNextVoices(uint8_t numberVoices) {
+
+
+
+
+        foundVoices.clear();
+
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            if (voices[i].note == note && voices[i].status == PLAYED) {
+                foundVoices.push_back(&voices[i]);
+            }
+        }
+    }
+
+    std::vector<voiceStruct *> foundVoices;
+    uint8_t layerID = 0;
+
+    voiceStruct voicesA[NUMBERVOICES];
+    voiceStruct voicesB[NUMBERVOICES];
+}; */

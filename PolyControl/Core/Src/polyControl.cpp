@@ -94,7 +94,12 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
+    location tempFocus = {0, allLayers[0]->adsrA.id, 0, FOCUSMODULE};
+
+    // temp set focus
+    ui.setFocus(tempFocus);
     while (1) {
+
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
