@@ -217,10 +217,10 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
     }
 
     // Layer specific settings, not part of modules
-    for (Setting *i : layerSettings.getSettings()) {
-        buffer[index] = i->value;
-        index++;
-    }
+    // for (Setting *i : layerSettings.getSettings()) {
+    //     buffer[index] = i->value;
+    //     index++;
+    // }
 
     // start Position vom patch buffer bereich
 
@@ -286,10 +286,10 @@ void Layer::loadLayerFromPreset(uint32_t presetID) {
     }
 
     // Layer specific settings, not part of modules
-    for (Setting *i : layerSettings.getSettings()) {
-        i->setValue(buffer[index]);
-        index++;
-    }
+    // for (Setting *i : layerSettings.getSettings()) {
+    //     i->setValue(buffer[index]);
+    //     index++;
+    // }
 
     // clear existing patches
     clearPatches();

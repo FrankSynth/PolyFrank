@@ -386,49 +386,49 @@ void switchLEDMapping() {
             ledDriver = ledDriverB;
         }
 
-        switch (allLayers[i]->test.dSelectFilter.value) {
-            case 0: ledDriver[0].pwmValue[1] = 0; break;
-            case 1: ledDriver[0].pwmValue[1] = 255; break;
-        };
-        // dual LED
-        switch (allLayers[i]->test.dSelectFilter.value) {
-            case 0:
-                ledDriver[0].pwmValue[1] = 255;
-                ledDriver[0].pwmValue[2] = 0;
-                break;
+        // switch (allLayers[i]->test.dSelectFilter.value) {
+        //     case 0: ledDriver[0].pwmValue[1] = 0; break;
+        //     case 1: ledDriver[0].pwmValue[1] = 255; break;
+        // };
+        // // dual LED
+        // switch (allLayers[i]->test.dSelectFilter.value) {
+        //     case 0:
+        //         ledDriver[0].pwmValue[1] = 255;
+        //         ledDriver[0].pwmValue[2] = 0;
+        //         break;
 
-            case 1:
-                ledDriver[0].pwmValue[1] = 0;
-                ledDriver[0].pwmValue[2] = 255;
-                break;
-        };
-        // Quad LED
-        switch (allLayers[i]->test.dSelectFilter.value) {
-            case 0:
-                ledDriver[0].pwmValue[1] = 255;
-                ledDriver[0].pwmValue[2] = 0;
-                ledDriver[0].pwmValue[3] = 0;
-                ledDriver[0].pwmValue[4] = 0;
-                break;
-            case 1:
-                ledDriver[0].pwmValue[1] = 0;
-                ledDriver[0].pwmValue[2] = 255;
-                ledDriver[0].pwmValue[3] = 0;
-                ledDriver[0].pwmValue[4] = 0;
-                break;
-            case 2:
-                ledDriver[0].pwmValue[1] = 0;
-                ledDriver[0].pwmValue[2] = 0;
-                ledDriver[0].pwmValue[3] = 255;
-                ledDriver[0].pwmValue[4] = 0;
-                break;
-            case 3:
-                ledDriver[0].pwmValue[1] = 0;
-                ledDriver[0].pwmValue[2] = 0;
-                ledDriver[0].pwmValue[3] = 0;
-                ledDriver[0].pwmValue[4] = 255;
-                break;
-        };
+        //     case 1:
+        //         ledDriver[0].pwmValue[1] = 0;
+        //         ledDriver[0].pwmValue[2] = 255;
+        //         break;
+        // };
+        // // Quad LED
+        // switch (allLayers[i]->test.dSelectFilter.value) {
+        //     case 0:
+        //         ledDriver[0].pwmValue[1] = 255;
+        //         ledDriver[0].pwmValue[2] = 0;
+        //         ledDriver[0].pwmValue[3] = 0;
+        //         ledDriver[0].pwmValue[4] = 0;
+        //         break;
+        //     case 1:
+        //         ledDriver[0].pwmValue[1] = 0;
+        //         ledDriver[0].pwmValue[2] = 255;
+        //         ledDriver[0].pwmValue[3] = 0;
+        //         ledDriver[0].pwmValue[4] = 0;
+        //         break;
+        //     case 2:
+        //         ledDriver[0].pwmValue[1] = 0;
+        //         ledDriver[0].pwmValue[2] = 0;
+        //         ledDriver[0].pwmValue[3] = 255;
+        //         ledDriver[0].pwmValue[4] = 0;
+        //         break;
+        //     case 3:
+        //         ledDriver[0].pwmValue[1] = 0;
+        //         ledDriver[0].pwmValue[2] = 0;
+        //         ledDriver[0].pwmValue[3] = 0;
+        //         ledDriver[0].pwmValue[4] = 255;
+        //         break;
+        // };
     }
 }
 
