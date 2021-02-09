@@ -5,7 +5,7 @@ RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
 RAM2_DMA volatile uint8_t interChipDMABufferLayerB[2 * INTERCHIPBUFFERSIZE];
 
 // USB
-midi::MidiInterface<COMusb> mididevice(MIDIComRead);
+midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
 // CDC USB DEVICE missing
 
 // Layer
@@ -15,9 +15,6 @@ Layer layerB(layerId.getNewId());
 
 // InterChip Com
 COMinterChip layerCom[2];
-
-// live Data
-LiveData liveData;
 
 // function pointers
 void initMidi();
@@ -106,6 +103,9 @@ void PolyControlRun() { // Here the party starts
     // temp set focus
     ui.setFocus(tempFocus);
     while (1) {
+        mididevice.read();
+
+        liveData.update();
 
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
@@ -201,15 +201,21 @@ inline void midiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
     liveData.keyPressed(channel, note, velocity);
 }
 inline void midiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+
     liveData.keyReleased(channel, note);
 }
 inline void midiControlChange(uint8_t channel, uint8_t cc, uint8_t value) {
-    liveData.keyPressed(channel, cc, value);
+
+    liveData.controlChange(channel, cc, value);
+}
+inline void midiClock() {
+    liveData.clockTick();
 }
 void initMidi() {
     mididevice.setHandleNoteOn(midiNoteOn);
     mididevice.setHandleNoteOff(midiNoteOff);
     mididevice.setHandleControlChange(midiControlChange);
+    mididevice.setHandleClock(midiClock);
 }
 
 // EXTI Callback

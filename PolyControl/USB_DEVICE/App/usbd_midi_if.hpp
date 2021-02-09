@@ -129,7 +129,7 @@ uint8_t MIDI_Transmit_FS(uint8_t *Buf, uint16_t Len);
 }
 #endif
 
-extern COMusb MIDIComRead;
+extern midiUSB::COMusb MIDIComRead;
 
 #endif /* __USBD_MIDI_IF_H__ */
 
