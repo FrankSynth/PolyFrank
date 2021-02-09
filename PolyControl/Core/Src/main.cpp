@@ -249,7 +249,7 @@ void SystemClock_Config(void) {
     }
     /** Enable USB Voltage detector
      */
-    // HAL_PWREx_EnableUSBVoltageDetector();
+    HAL_PWREx_EnableUSBVoltageDetector();
 }
 
 /* USER CODE BEGIN 4 */

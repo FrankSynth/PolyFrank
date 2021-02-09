@@ -103,6 +103,7 @@ void PolyControlRun() { // Here the party starts
     // temp set focus
     ui.setFocus(tempFocus);
     while (1) {
+
         mididevice.read();
 
         liveData.update();

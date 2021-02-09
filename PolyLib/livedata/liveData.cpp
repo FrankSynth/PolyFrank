@@ -1,10 +1,16 @@
 #ifdef POLYCONTROL
 #include "liveData.hpp"
 
+Clock clock;
+
 LiveData liveData;
 
 uint16_t clockTicksPerStep[23] = {1,  2,  3,  4,  6,  8,   9,   12,  16,  18,  24, 32,
                                   36, 48, 64, 72, 96, 128, 144, 192, 256, 288, 384};
+
+bool compareByNote(const Key &a, const Key &b) {
+    return a.note < b.note;
+}
 
 void VoiceHandler::playNote(Key &key) {
 
@@ -230,7 +236,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
 }
 
 // functions
-void Arpeggiator::keyPressed(Key key) {
+void Arpeggiator::keyPressed(Key &key) {
     allKeysReleased = 1;
     if (!inputKeys.empty()) {                                                                // inputKey list empty?
         for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
@@ -259,7 +265,7 @@ void Arpeggiator::keyPressed(Key key) {
     inputKeys.push_back(key);
     orderKeys();
 }
-void Arpeggiator::keyReleased(Key key) {
+void Arpeggiator::keyReleased(Key &key) {
 
     if (inputKeys.empty()) {
         return;
@@ -279,23 +285,38 @@ void Arpeggiator::keyReleased(Key key) {
     orderKeys();
 }
 
-void Arpeggiator::pressAndLifetime(Key key) {
-    key.releaseMe = micros() + 100; // in micros //TODO Lifespan berechnen
-    voiceHandler->playNote(key);    // play new note
-    pressedKeys.push_back(key);     // add to pressed List
+void Arpeggiator::pressKey(Key &key) {
+
+    lifetime(key); // calculate lifespan
+
+    voiceHandler->playNote(key); // play new note
+    pressedKeys.push_back(key);  // add to pressed List
 
     // TODO multiple KEYS pressed
     voiceHandler->freeNote(pressedKeys.front()); // free oldest key
     pressedKeys.pop_front();                     // kick from list
 }
 
+void Arpeggiator::lifetime(Key &key) {
+    uint32_t lifespan = (60000000 / (clock.bpm * 24)) * clockTicksPerStep[arpSteps.value]; // in micros  //TODO ratched
+    println(lifespan);
+    key.born = micros();
+    key.lifespan = lifespan;
+
+    // in micros //TODO Lifespan berechnen
+}
+
 void Arpeggiator::releaseAndRatchet() {
+
+    //    if (!sustain) { // Sustain off -> half gate Time
+    //      lifespan /= 2;
+    //}
 
     // TODO Ratched
     for (std::list<Key>::iterator it = pressedKeys.begin(); it != pressedKeys.end();) {
-        if (it->releaseMe < micros()) {  // find keys to be released //TODO überkauf checken
-            voiceHandler->freeNote(*it); // free Note
-            pressedKeys.erase(it);       // delete key
+        if ((micros() - it->born) > it->lifespan) { // find keys to be released
+            voiceHandler->freeNote(*it);            // free Note
+            pressedKeys.erase(it);                  // delete key
 
             println("ReleaseKey");
         }
@@ -305,25 +326,30 @@ void Arpeggiator::releaseAndRatchet() {
     }
 }
 
-void Arpeggiator::orderKeys() { // TODO Key Order
+void Arpeggiator::orderKeys() {
     orderedKeys.clear();
 
     for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {
         orderedKeys.push_back(*it);
     }
+    std::sort(orderedKeys.begin(), orderedKeys.end(), compareByNote);
 }
 void Arpeggiator::nextStep() {
 
-    if (!arpEnable.value) {
+    if (!arpEnable.value || orderedKeys.empty()) {
         return;
     }
     keyListPosition++;
     keyListPosition %= orderedKeys.size();
-    pressAndLifetime(orderedKeys[keyListPosition]);
+
+    pressKey(orderedKeys[keyListPosition]);
 }
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
     // TODO zu Midi Modul weiterleiten
+
+    // Sustain liegt im voiceHandler
+    // Sustain muss auch in den Arp
 }
 
 // functions
@@ -332,6 +358,8 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
     Key key;
     key.note = note;
     key.velocity = velocity;
+
+    println("keyPressed");
 
     // check Midi channel
 
@@ -393,6 +421,7 @@ void LiveData::update() {
 }
 
 void LiveData::clockHandling() {
+    // TODO BPM berechnung
 
     // TODO polyrythm
     // TODO LFO
