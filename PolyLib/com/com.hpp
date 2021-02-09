@@ -6,6 +6,10 @@
 #include "debughelper/debughelper.hpp"
 #include "flagHandler/flagHandler.hpp"
 #include "mdma.h"
+#include "midiInterface/midi_Defs.h"
+
+#include "midiInterface/midi_Namespace.h"
+
 #include "poly.hpp"
 #include "spi.h"
 #include <functional>
@@ -29,6 +33,98 @@
 extern GlobalSettings globalSettings;
 #endif
 
+namespace midiUSB {
+
+typedef struct {
+    struct {
+        uint8_t header;
+        uint8_t byte1;
+        uint8_t byte2;
+        uint8_t byte3;
+    };
+} midiEventPacket_t;
+
+/*! Enumeration of MIDI types */
+enum MidiType : uint8_t {
+    InvalidType = 0x00,                     ///< For notifying errors
+    NoteOff = 0x80,                         ///< Channel Message - Note Off
+    NoteOn = 0x90,                          ///< Channel Message - Note On
+    AfterTouchPoly = 0xA0,                  ///< Channel Message - Polyphonic AfterTouch
+    ControlChange = 0xB0,                   ///< Channel Message - Control Change / Channel Mode
+    ProgramChange = 0xC0,                   ///< Channel Message - Program Change
+    AfterTouchChannel = 0xD0,               ///< Channel Message - Channel (monophonic) AfterTouch
+    PitchBend = 0xE0,                       ///< Channel Message - Pitch Bend
+    SystemExclusive = 0xF0,                 ///< System Exclusive
+    SystemExclusiveStart = SystemExclusive, ///< System Exclusive Start
+    TimeCodeQuarterFrame = 0xF1,            ///< System Common - MIDI Time Code Quarter Frame
+    SongPosition = 0xF2,                    ///< System Common - Song Position Pointer
+    SongSelect = 0xF3,                      ///< System Common - Song Select
+    Undefined_F4 = 0xF4,
+    Undefined_F5 = 0xF5,
+    TuneRequest = 0xF6,        ///< System Common - Tune Request
+    SystemExclusiveEnd = 0xF7, ///< System Exclusive End
+    Clock = 0xF8,              ///< System Real Time - Timing Clock
+    Undefined_F9 = 0xF9,
+    Tick = Undefined_F9, ///< System Real Time - Timing Tick (1 tick = 10 milliseconds)
+    Start = 0xFA,        ///< System Real Time - Start
+    Continue = 0xFB,     ///< System Real Time - Continue
+    Stop = 0xFC,         ///< System Real Time - Stop
+    Undefined_FD = 0xFD,
+    ActiveSensing = 0xFE, ///< System Real Time - Active Sensing
+    SystemReset = 0xFF,   ///< System Real Time - System Reset
+};
+
+// static uint8_t type2cin[][2] = {
+//     {MidiType::InvalidType, 0},         {MidiType::NoteOff, 8},         {MidiType::NoteOn, 9},
+//     {MidiType::AfterTouchPoly, 0xA},    {MidiType::ControlChange, 0xB}, {MidiType::ProgramChange, 0xC},
+//     {MidiType::AfterTouchChannel, 0xD}, {MidiType::PitchBend, 0xE}};
+
+// static uint8_t system2cin[][2] = {{MidiType::SystemExclusive, 0},
+//                                   {MidiType::TimeCodeQuarterFrame, 2},
+//                                   {MidiType::SongPosition, 3},
+//                                   {MidiType::SongSelect, 2},
+//                                   {0, 0},
+//                                   {0, 0},
+//                                   {MidiType::TuneRequest, 5},
+//                                   {MidiType::SystemExclusiveEnd, 0},
+//                                   {MidiType::Clock, 0xF},
+//                                   {0, 0},
+//                                   {MidiType::Start, 0xF},
+//                                   {MidiType::Continue, 0xF},
+//                                   {MidiType::Stop, 0xF},
+//                                   {0, 0},
+//                                   {MidiType::ActiveSensing, 0xF},
+//                                   {MidiType::SystemReset, 0xF}};
+
+static int8_t cin2Len[][2] = {{0, 0}, {1, 0}, {2, 2},  {3, 3},  {4, 0},  {5, 0},  {6, 0},  {7, 0},
+                              {8, 3}, {9, 3}, {10, 3}, {11, 3}, {12, 2}, {13, 2}, {14, 3}, {15, 1}};
+
+#define GETCABLENUMBER(packet) (packet.header >> 4);
+#define GETCIN(packet) (packet.header & 0x0f);
+#define MAKEHEADER(cn, cin) (((cn & 0x0f) << 4) | cin)
+#define RXBUFFER_PUSHBACK1                                                                                             \
+    { mRxBuffer[mRxLength++] = mPacket.byte1; }
+#define RXBUFFER_PUSHBACK2                                                                                             \
+    {                                                                                                                  \
+        mRxBuffer[mRxLength++] = mPacket.byte1;                                                                        \
+        mRxBuffer[mRxLength++] = mPacket.byte2;                                                                        \
+    }
+#define RXBUFFER_PUSHBACK3                                                                                             \
+    {                                                                                                                  \
+        mRxBuffer[mRxLength++] = mPacket.byte1;                                                                        \
+        mRxBuffer[mRxLength++] = mPacket.byte2;                                                                        \
+        mRxBuffer[mRxLength++] = mPacket.byte3;                                                                        \
+    }
+
+#define RXBUFFER_POPFRONT(dataByte)                                                                                    \
+    auto dataByte = mRxBuffer[mRxIndex++];                                                                             \
+    mRxLength--;
+#define SENDMIDI(packet)                                                                                               \
+    {                                                                                                                  \
+        MidiUSB.sendMIDI(packet);                                                                                      \
+        MidiUSB.flush();                                                                                               \
+    }
+
 // class for USB communication
 // beginUSBTransmission has to be executed to send Buffers via USB
 // Constructor needs Transmit function
@@ -40,6 +136,109 @@ class COMusb {
         wBuffer[1].reserve(OUTPUTBUFFERSIZE);
     }
     ~COMusb() {}
+
+    // function pointer to USB Transmit function
+    uint8_t (*sendViaUSB)(uint8_t *, uint16_t);
+
+    // add single byte to output buffer
+    // call beginUSBTransmission() to start USB transmit
+    uint8_t write(uint8_t data);
+
+    // add array of bytes to output buffer
+    // call beginUSBTransmission() to start USB transmit
+    uint8_t write(uint8_t *data, uint16_t size);
+
+    // send output buffer via usb
+    uint8_t beginUSBTransmission();
+
+    // push byte array in Input Buffer
+    uint8_t push(uint8_t *data, uint32_t length);
+
+    // push single byte in Input Buffer
+    uint8_t push(uint8_t data);
+
+    uint8_t read() {
+        RXBUFFER_POPFRONT(dataByte);
+        return dataByte;
+    };
+
+    midiEventPacket_t readPacket() {
+
+        midiEventPacket_t data;
+        if (rBuffer.empty()) {
+            data.header = 0;
+        }
+        else {
+            data.header = rBuffer.front();
+            rBuffer.pop_front();
+            data.byte1 = rBuffer.front();
+            rBuffer.pop_front();
+            data.byte2 = rBuffer.front();
+            rBuffer.pop_front();
+            data.byte3 = rBuffer.front();
+            rBuffer.pop_front();
+        }
+
+        return data;
+    }
+
+    uint8_t available() {
+        // consume mRxBuffer first, before getting a new packet
+        if (mRxLength > 0) {
+            return mRxLength;
+        }
+        mRxIndex = 0;
+
+        mPacket = readPacket();
+        if (mPacket.header != 0) {
+            auto cn = GETCABLENUMBER(mPacket);
+            if (cn != cableNumber)
+                return 0;
+
+            auto cin = GETCIN(mPacket);
+            auto len = cin2Len[cin][1];
+
+            switch (len) {
+                case 0:
+                    if (cin == 0x4 || cin == 0x7)
+                        RXBUFFER_PUSHBACK3
+                    else if (cin == 0x5)
+                        RXBUFFER_PUSHBACK1
+                    else if (cin == 0x6)
+                        RXBUFFER_PUSHBACK2
+                    break;
+                case 1: RXBUFFER_PUSHBACK1 break;
+                case 2: RXBUFFER_PUSHBACK2 break;
+                case 3: RXBUFFER_PUSHBACK3 break;
+                default: break; // error
+            }
+        }
+
+        return mRxLength;
+    }
+
+  private:
+    CircularBuffer<uint8_t, INPUTBUFFERSIZE> rBuffer; // read buffer
+    std::vector<uint8_t> wBuffer[2];                  // write buffer, size of BUFFERSIZE gets reserved in allocator
+    uint8_t writeBufferSelect = 0;                    // switch output buffers
+
+    uint8_t mRxBuffer[4];
+    uint8_t mRxLength;
+    uint8_t mRxIndex;
+
+    midiEventPacket_t mPacket;
+    uint8_t cableNumber;
+};
+} // namespace midiUSB
+
+class COMdin {
+  public:
+    COMdin(uint8_t (*sendViaUSB)(uint8_t *, uint16_t) = nullptr) {
+        this->sendViaUSB = sendViaUSB;
+        wBuffer[0].reserve(OUTPUTBUFFERSIZE);
+        wBuffer[1].reserve(OUTPUTBUFFERSIZE);
+    }
+    ~COMdin() {}
 
     // function pointer to USB Transmit function
     uint8_t (*sendViaUSB)(uint8_t *, uint16_t);
@@ -57,9 +256,6 @@ class COMusb {
     // add array of bytes to output buffer
     // call beginUSBTransmission() to start USB transmit
     uint8_t write(uint8_t *data, uint16_t size);
-
-    // send output buffer via usb
-    uint8_t beginUSBTransmission();
 
     // push byte array in Input Buffer
     uint8_t push(uint8_t *data, uint32_t length);

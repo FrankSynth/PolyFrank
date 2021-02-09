@@ -95,7 +95,7 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-COMusb MIDIComRead(MIDI_Transmit_FS);
+midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**

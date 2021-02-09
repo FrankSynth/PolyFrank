@@ -16,9 +16,7 @@
 #include "usbd_midi_if.hpp"
 #include <functional>
 
-extern midi::MidiInterface<COMusb> mididevice;
-
-extern GlobalSettings globalSettings;
+extern midi::MidiInterface<midiUSB::COMusb> mididevice;
 
 void PolyControlInit();
 void PolyControlRun();

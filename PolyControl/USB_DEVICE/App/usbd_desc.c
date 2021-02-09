@@ -70,8 +70,8 @@
 #define USBD_PRODUCT_STRING_HS "PolyFrank DebugPort"
 #define USBD_CONFIGURATION_STRING_HS "CDC Config"
 #define USBD_INTERFACE_STRING_HS "CDC Interface"
-#define USBD_PID_FS 22336
-#define USBD_PRODUCT_STRING_FS "PolyFrank"
+#define USBD_PID_FS 22337
+#define USBD_PRODUCT_STRING_FS "PolyFrank Midi"
 #define USBD_CONFIGURATION_STRING_FS "MIDI Config"
 #define USBD_INTERFACE_STRING_FS "MIDI Interface"
 

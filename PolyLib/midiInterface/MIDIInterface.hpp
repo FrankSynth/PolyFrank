@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include "debughelper/debughelper.hpp"
 BEGIN_MIDI_NAMESPACE
 
 /// \brief Constructor for MidiInterface.
@@ -663,17 +664,9 @@ template <class Transport, class Settings, class Platform> bool MidiInterface<Tr
     // Else, add the extracted byte to the pending message, and check validity.
     // When the message is done, store it.
 
-    static uint8_t bytesExtracted = 0;
+    // static uint8_t bytesExtracted = 0;
 
     const byte extracted = mTransport.read();
-
-    if (bytesExtracted == 0) {
-        bytesExtracted = 3;
-        return parse();
-    }
-    else {
-        bytesExtracted--;
-    }
 
     // Ignore Undefined
     if (extracted == Undefined_FD)
@@ -703,7 +696,6 @@ template <class Transport, class Settings, class Platform> bool MidiInterface<Tr
 
         switch (pendingType) {
             // 1 byte messages
-            case InvalidType: return parse();
             case Start:
             case Continue:
             case Stop:
@@ -750,6 +742,7 @@ template <class Transport, class Settings, class Platform> bool MidiInterface<Tr
                 mMessage.sysexArray[0] = pendingType;
                 break;
 
+            case InvalidType:
             default:
                 // This is obviously wrong. Let's get the hell out'a here.
                 mLastError |= 1UL << ErrorParse; // set the ErrorParse bit

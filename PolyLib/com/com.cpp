@@ -3,12 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////// COMusb //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-
-const uint8_t COMusb::read() {
-    uint8_t data = rBuffer.front();
-    rBuffer.pop_front();
-    return data;
-}
+namespace midiUSB {
 
 uint8_t COMusb::write(uint8_t data) {
     wBuffer[writeBufferSelect].push_back(data);
@@ -50,7 +45,48 @@ uint8_t COMusb::push(uint8_t *data, uint32_t length) {
 uint8_t COMusb::push(uint8_t data) {
     return rBuffer.push_back(data);
 }
+} // namespace midiUSB
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////// COMDin //////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 
+const uint8_t COMdin::read() {
+    uint8_t data = rBuffer.front();
+    rBuffer.pop_front();
+    return data;
+}
+
+bool COMdin::available() {
+    return !rBuffer.empty();
+}
+
+uint8_t COMdin::write(uint8_t data) {
+    wBuffer[writeBufferSelect].push_back(data);
+
+    return 0; // might be used for error codes
+}
+
+uint8_t COMdin::write(uint8_t *data, uint16_t size) {
+    for (uint16_t i = 0; i < size; i++) {
+        wBuffer[writeBufferSelect].push_back(data[i]);
+    }
+    return 0; // might be used for error codes
+}
+
+uint8_t COMdin::push(uint8_t *data, uint32_t length) {
+
+    for (uint32_t i = 0; i < length; i++) {
+        // println(data[i]);
+        if (rBuffer.push_back(data[i])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+uint8_t COMdin::push(uint8_t data) {
+    return rBuffer.push_back(data);
+}
 /////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// COMinterChip //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////

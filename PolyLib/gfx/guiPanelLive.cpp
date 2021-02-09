@@ -41,13 +41,13 @@ void GUIPanelLive::registerSettingsElements() {
 void GUIPanelLive::updateEntrys() {
 
     if (subPanelSelect == 0) {
-        pCategory = &globalSettings.__liveSettingsLivemode;
+        pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &globalSettings.__liveSettingsArp;
+        pCategory = &liveData.arps[focus.layer]->__liveSettingsArp;
     }
     if (subPanelSelect == 2) {
-        pCategory = &globalSettings.__liveSettingsLivemode;
+        pCategory = &liveData.__liveSettingsLivemode;
     }
 
     entrys = ceil((float)pCategory->settings.size() / EntrysPerElement);
@@ -81,14 +81,14 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
                                          {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
-    // register Panel Seetings Left
-    actionHandler.registerActionLeft(
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 0), globalSettings.__liveSettingsLivemode.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 1), globalSettings.__liveSettingsArp.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
     // register Panel Seetings Rigth
-    actionHandler.registerActionRight({nullptr, "SAVE"}, // SAVE
-                                      {nullptr, ""}, {nullptr, ""});
+    actionHandler.registerActionRight(
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 1), liveData.arps[focus.layer]->__liveSettingsArp.category},
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
+    // register Panel Seetings Left
+    actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
+                                     {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
 }
 
 void GUIPanelLive::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,

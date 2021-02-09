@@ -1,171 +1,45 @@
 #pragma once
 
-#include "datacore/datacore.hpp"
-#include <list>
-#include <string>
-#include <vector>
+#include "arp.hpp"
+#include "clock.hpp"
+#include "liveDataBase.hpp"
+#include "voiceHandler.hpp"
 
-struct Key {
-    uint8_t note;
-    uint8_t velocity;
-};
 
-struct NoteOutStates {
-    uint8_t note;
-    uint8_t velocity;
-    uint8_t gate;
-};
-
-// this class handles all data occuring during live play
 class LiveData {
   public:
-    LiveData() {}
+    LiveData() {
+        __liveSettingsLivemode.category = "MODE";
+        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceMode);
+        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeMergeLayer);
+        __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
+    }
     ~LiveData() {}
 
-    // inputs
-    std::list<Key> pressedKeys[2];
-
-    // live settings
-
-    // outputs
-    NoteOutStates noteOutputs[2][8];
+    void controlChange(uint8_t channel, uint8_t cc, uint8_t value);
 
     // functions
-    void keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
+    void keyPressed(uint8_t channel, uint8_t note, uint8_t velocity);
+    void keyReleased(uint8_t channel, uint8_t note);
 
-        for (uint16_t l = 0; l < layers.size(); l++) {
-            Key key;
-            key.note = note;
-            key.velocity = velocity;
-            pressedKeys[l].push_front(key);
-        }
-    }
+    void clockTick();
 
-    void keyReleased(uint8_t channel, uint8_t note) {
-        for (uint16_t l = 0; l < layers.size(); l++) {
+    void update();
+    void clockHandling();
+    VoiceHandler voiceHandler;
 
-            for (std::list<Key>::iterator it = pressedKeys[l].begin(); it != pressedKeys[l].end();) {
-                if (it->note == note) {
-                    pressedKeys[l].erase(it);
-                }
-                else {
-                    it++;
-                }
-            }
-        }
-    }
+    Arpeggiator arpA = Arpeggiator(&voiceHandler);
+    Arpeggiator arpB = Arpeggiator(&voiceHandler);
 
-    void controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
-        //
-    }
+    uint16_t bpm = 0;
 
-    // import Layers
-    void init(std::vector<Layer *> &layers) {
-        this->layers = layers;
-        for (uint16_t l = 0; l < layers.size(); l++) {
-            pressedKeys[l].clear();
-        }
-    }
+    std::vector<Arpeggiator *> arps = {&arpA, &arpB};
 
-    std::vector<Layer *> layers;
+    categoryStruct __liveSettingsLivemode;
+
+    Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList);
+
+    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
 };
 
-#pragma once
-
-#include "polyControl.hpp"
-
-#define NUMBERLAYER 2
-#define NUMBERVOICES 8
-
-/*
-
-Middleman
-
-Zuweisung der Note, Gate, Trigger Signale
-
-clocking
-
-arp
-
-
-
-*/
-
-typedef enum { FREE, PLAYED, OFF } voiceStatus;
-
-// struct pro voice für den aktuellen status: gespielter ton, c
-typedef struct {
-    voiceStatus status = FREE;
-    uint8_t note = 0;
-    uint8_t velocity = 0;
-    uint8_t voiceID = 0;
-    uint8_t layerID = 0;
-} voiceStruct;
-
-/* class VoiceHandler {
-  public:
-    VoiceHandler() {
-        // init Voices
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            voicesA[i].voiceID = i;
-            voicesA[i].layerID = 0;
-        }
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            voicesB[i].voiceID = i;
-            voicesB[i].layerID = 1;
-        }
-    }
-    void playNote(uint8_t note, uint8_t velocity, uint8_t numberVoices) {
-        getNextVoices(numberVoices);
-        for (voiceStruct *v : foundVoices) {
-            v->status = PLAYED;
-            v->note = note;
-            v->velocity = velocity;
-            // TODO send Note, Gate, Velocity
-        }
-    }
-    void freeNote(uint8_t note) {
-        findVoices(note);
-        for (voiceStruct *v : foundVoices) {
-            v->status = FREE;
-            // TODO send Gate off
-        }
-    }
-
-    void findVoices(uint8_t note) {
-        foundVoices.clear();
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            if (voicesA[i].note == note && voicesA[i].status == PLAYED) {
-                foundVoices.push_back(&voicesA[i]);
-            }
-        }
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            if (voicesB[i].note == note && voicesB[i].status == PLAYED) {
-                foundVoices.push_back(&voicesB[i]);
-            }
-        }
-    }
-
-    getNextVoices(uint8_t numberVoices) {
-
-
-
-
-        foundVoices.clear();
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            if (voices[i].note == note && voices[i].status == PLAYED) {
-                foundVoices.push_back(&voices[i]);
-            }
-        }
-    }
-
-    std::vector<voiceStruct *> foundVoices;
-    uint8_t layerID = 0;
-
-    voiceStruct voicesA[NUMBERVOICES];
-    voiceStruct voicesB[NUMBERVOICES];
-}; */
+extern LiveData liveData;
