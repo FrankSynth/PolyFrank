@@ -5,6 +5,9 @@
 
 extern Layer layerA;
 
+LogCurve convertLog(16, 0.1);
+LogCurve convertAntiLog(16, 0.9);
+
 #define INPUTWEIGHTING 1
 
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
@@ -33,9 +36,7 @@ inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
                      adsr.aRelease.min, adsr.aRelease.max * 2);
 }
 inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAmount.currentSample[voice] * adsr.aAmount.valueMapped * INPUTWEIGHTING +
-                         adsr.aAmount.valueMapped,
-                     adsr.aAmount.min, adsr.aAmount.max);
+    return testFloat(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
 }
 
 /**
@@ -47,6 +48,7 @@ void renderADSR(ADSR &adsr) {
 
     float delay, decay, attack, sustain, release;
     int32_t &loop = adsr.dLoop.valueMapped;
+    float &shape = adsr.aShape.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
@@ -159,11 +161,21 @@ void renderADSR(ADSR &adsr) {
             default: Error_Handler(); break;
         }
 
+        if (shape < 1) {
+            // shape between 0 and 1, 1 is linear
+            fast_lerp_f32(convertLog.mapValue(currentLevel), currentLevel, shape);
+        }
+        else {
+            // shape between 1 and 2, 1 is linear
+            fast_lerp_f32(currentLevel, convertAntiLog.mapValue(currentLevel), shape - 1);
+        }
+
         // midi velocity
         adsr.out.nextSample[voice] = fast_lerp_f32(
             currentLevel, currentLevel * layerA.midi.oVeloctiy.currentSample[voice], adsr.aVelocity.valueMapped);
 
-        // TODO keytrack MISSING, input note necessary
+        adsr.out.nextSample[voice] = fast_lerp_f32(currentLevel, currentLevel * layerA.midi.oNote.currentSample[voice],
+                                                   adsr.aKeytrack.valueMapped);
 
         adsr.out.nextSample[voice] = adsr.out.nextSample[voice] * adsr.aAmount.valueMapped;
     }

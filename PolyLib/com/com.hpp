@@ -91,7 +91,7 @@ class COMinterChip {
     uint8_t sendDeleteAllPatches();
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, float amount);
-    uint8_t sendNewNote(uint8_t modulID, uint8_t voiceID, uint8_t settingID, int32_t amount);
+    uint8_t sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocity);
     uint8_t sendOpenGate(uint8_t voiceID);
     uint8_t sendCloseGate(uint8_t voiceID);
     uint8_t sendRetrigger(uint8_t modulID, uint8_t voiceID);

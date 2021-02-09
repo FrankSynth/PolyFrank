@@ -2,7 +2,6 @@
 
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
-#include "rng.h"
 
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
@@ -29,15 +28,12 @@ inline float calcSquare(float phase) {
     return phase < 0.5f ? -1 : 1;
 }
 
-// TODO random number
 inline float calcRandom() {
     uint32_t randomNumber;
-    if (HAL_RNG_GenerateRandomNumber(&hrng, &randomNumber) != HAL_OK) {
-        /* Random number generation error */
-        Error_Handler();
-    }
-    // map number between 0 and 1 float
-    return ((float)randomNumber / 2147483647.0f) - 1;
+
+    randomNumber = std::rand();
+    // map number between -1 and 1 float
+    return ((float)((double)randomNumber / (double)RAND_MAX)) * 2 - 1;
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
@@ -47,7 +43,9 @@ inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
 
 void renderLFO(LFO &lfo) {
 
+    static bool alignedRandom = false;
     float &shape = lfo.aShape.valueMapped;
+    int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         float &phase = lfo.currentTime[voice];
@@ -81,10 +79,30 @@ void renderLFO(LFO &lfo) {
             nextSample = calcSquare(phase);
         }
         else {
-            if (newPhase)
+            if (newPhase) {
+                if (voice == 0) {
+                    // re-seed once when they should be aligned
+                    if (alignLFOs && alignedRandom == false) {
+                        static uint32_t randSeed = 1;
+                        std::srand(randSeed++);
+                        alignedRandom = true;
+                    }
+                    else {
+                        alignedRandom = false;
+                    }
+                }
                 nextSample = calcRandom();
+            }
             else
                 nextSample = currentSample;
+        }
+        // check if all voices should output the same LFO
+        if (alignLFOs) {
+            for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++) {
+                lfo.out.nextSample[otherVoice] = nextSample;
+                lfo.newPhase[otherVoice] = newPhase;
+            }
+            break;
         }
     }
 }

@@ -1,4 +1,5 @@
 #include "polyRender.hpp"
+#include "render/renderAudioDef.h"
 
 /// LAYER
 ID layerId;
@@ -65,23 +66,13 @@ void PolyRenderInit() {
 
 void PolyRenderRun() {
 
-    // init Sai, first fill buffer
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS, AUDIOCHANNELS);
+    // init Sai, first fill buffer once
+    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS);
     audioDacA.startSAI();
 
-    // elapsedMillis millitimer = 0;
-
-    // uint32_t microTimer = micros();
-
-    // TODO remove this temporal init val
-    layerA.test.aCutoff.valueMapped = 1;
-
-    while (1) {
-
+    // run loop
+    while (true) {
         FlagHandler::handleFlags();
-
-        // switch ladder Filter
-        switchLadder.setChannel(layerA.test.dSelectFilter.valueMapped);
     }
 }
 
@@ -108,11 +99,11 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]), SAIDMABUFFERSIZE, AUDIOCHANNELS);
+    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]), SAIDMABUFFERSIZE);
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE, AUDIOCHANNELS);
+    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE);
 }
 
 // reception from Control SPI

@@ -2,3 +2,4 @@ build/*
 PolyControl/build/*
 PolyRender/build/*
 PolyLib/build/*
+.VSCodeCounter/*

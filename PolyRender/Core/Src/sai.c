@@ -21,6 +21,7 @@
 
 #include "dma.h"
 #include "gpio.h"
+#include "render/renderAudioDef.h"
 
 /* USER CODE BEGIN 0 */
 

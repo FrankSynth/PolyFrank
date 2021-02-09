@@ -23,8 +23,6 @@
 extern "C" {
 #endif
 
-#define AUDIOCHANNELS 8
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 

@@ -15,7 +15,7 @@
 #define DELETEALLPATCHESCMDSIZE 1
 #define SETTINGCMDSIZE 6
 #define GATECMDSIZE 1
-#define NEWNOTECMDSIZE SETTINGCMDSIZE + GATECMDSIZE
+#define NEWNOTECMDSIZE 3
 #define RETRIGGERCMDSIZE 2
 #define LASTBYTECMDSIZE 1
 #define RESETALLCMDSIZE 1
@@ -49,6 +49,7 @@ enum comCommands {
 
     // Trigger
     // 1CCCCVVV
+    NEWNOTE = 0b01100000,   // received new Note
     OPENGATE = 0b01000000,  // received NoteOn
     CLOSEGATE = 0b01001000, // received NoteOff
     CLOCK = 0b01010000,     // received NoteOff

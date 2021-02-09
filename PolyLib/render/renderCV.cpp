@@ -1,9 +1,11 @@
-
 #ifdef POLYRENDER
 
 #include "renderCV.hpp"
 #include "renderADSR.hpp"
 #include "renderLFO.hpp"
+#include "renderNoise.hpp"
+#include "renderOSC.hpp"
+#include "renderSub.hpp"
 
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
@@ -29,55 +31,30 @@ void updateAllOutputSamples() {
             o->updateToNextSample();
         }
     }
+    for (RenderBuffer *b : layerA.oscA.renderBuffer) {
+        b->updateToNextSample();
+    }
+    for (RenderBuffer *b : layerA.oscB.renderBuffer) {
+        b->updateToNextSample();
+    }
+    for (RenderBuffer *b : layerA.noise.renderBuffer) {
+        b->updateToNextSample();
+    }
+    for (RenderBuffer *b : layerA.sub.renderBuffer) {
+        b->updateToNextSample();
+    }
 }
 
 // Render Functions
 
 void renderMidiModule(Midi midi) {
-
-    midi.oMod.nextSample[0] = midi.aMod.valueMapped;
-    midi.oMod.nextSample[1] = midi.aMod.valueMapped;
-    midi.oMod.nextSample[2] = midi.aMod.valueMapped;
-    midi.oMod.nextSample[3] = midi.aMod.valueMapped;
-    midi.oAftertouch.nextSample[0] = midi.aAftertouch.valueMapped;
-    midi.oAftertouch.nextSample[1] = midi.aAftertouch.valueMapped;
-    midi.oAftertouch.nextSample[2] = midi.aAftertouch.valueMapped;
-    midi.oAftertouch.nextSample[3] = midi.aAftertouch.valueMapped;
-    midi.oPitchbend.nextSample[0] = midi.aPitchbend.valueMapped;
-    midi.oPitchbend.nextSample[1] = midi.aPitchbend.valueMapped;
-    midi.oPitchbend.nextSample[2] = midi.aPitchbend.valueMapped;
-    midi.oPitchbend.nextSample[3] = midi.aPitchbend.valueMapped;
-    midi.oVeloctiy.nextSample[0] = midi.aVelocity.valueMapped;
-    midi.oVeloctiy.nextSample[1] = midi.aVelocity.valueMapped;
-    midi.oVeloctiy.nextSample[2] = midi.aVelocity.valueMapped;
-    midi.oVeloctiy.nextSample[3] = midi.aVelocity.valueMapped;
-    midi.oGate.nextSample[0] = midi.dGate.valueMapped;
-    midi.oGate.nextSample[1] = midi.dGate.valueMapped;
-    midi.oGate.nextSample[2] = midi.dGate.valueMapped;
-    midi.oGate.nextSample[3] = midi.dGate.valueMapped;
-}
-
-void renderOSC_A(OSC_A &osc_A) {
-
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void renderOSC_B(OSC_B &osc_B) {
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void renderSub(Sub &sub) {
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-    }
-}
-
-void renderNoise(Noise &noise) {
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        midi.oMod.nextSample[voice] = midi.aMod.valueMapped;
+        midi.oAftertouch.nextSample[voice] = midi.aAftertouch.valueMapped;
+        midi.oPitchbend.nextSample[voice] = midi.aPitchbend.valueMapped;
+        midi.oNote.nextSample[voice] = (float)midi.rawNote[voice] / 127.0f;
+        midi.oVeloctiy.nextSample[voice] = (float)midi.rawVelocity[voice] / 127.0f;
+        midi.oGate.nextSample[voice] = midi.rawGate[voice];
     }
 }
 
@@ -109,8 +86,8 @@ void writeDataToDACBuffer() {
 
     cvDacA.data[0] = layerA.adsrA.out.currentSample[0] * 4095;
     cvDacA.data[1] = (layerA.lfoA.out.currentSample[0] + 1) * 2047;
-    cvDacA.data[2] = layerA.test.aFreq.valueMapped * 4095;
-    cvDacA.data[3] = (1 - layerA.test.aDistort.valueMapped) * 4095;
+    cvDacA.data[2] = layerA.noise.out.currentSample[0] * 4095;
+    cvDacA.data[3] = 0;
 }
 
 void renderCVs() {
@@ -126,9 +103,9 @@ void renderCVs() {
     renderLadder(layerA.ladder);
     renderDistortion(layerA.distort);
     renderLFO(layerA.lfoA);
-    // renderLFO(layerA.lfoB);
+    renderLFO(layerA.lfoB);
     renderADSR(layerA.adsrA);
-    // renderADSR(layerA.adsrB);
+    renderADSR(layerA.adsrB);
     renderGlobalModule(layerA.globalModule);
 
     // TODO ? still true? need to render global stuff like Filter Out Levels here

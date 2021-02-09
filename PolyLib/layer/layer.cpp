@@ -46,15 +46,6 @@ void Layer::initID() {
             o->layerId = this->id;
         }
     }
-
-    // Layer specific settings, not part of modules
-    layerSettings.id = modID.getNewId();
-    ID settID;
-    for (Setting *i : layerSettings.getSettings()) {
-        i->id = settID.getNewId();
-        i->moduleId = layerSettings.id;
-        i->layerId = this->id;
-    }
 }
 
 void Layer::resetLayer() {
@@ -67,12 +58,17 @@ void Layer::resetLayer() {
         for (Digital *i : m->getSwitches()) { // for all Knobs
             i->resetValue();
         }
-
         // Layer specific settings, not part of modules
     }
-    for (Setting *i : layerSettings.getSettings()) {
-        i->resetValue();
-    }
+    clearPatches();
+
+#ifdef POLYRENDER
+    allGatesOff();
+    adsrA.resetAllADSRs();
+    adsrB.resetAllADSRs();
+    lfoA.resetAllPhases();
+    lfoB.resetAllPhases();
+#endif
 }
 
 void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {

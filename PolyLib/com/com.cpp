@@ -281,7 +281,7 @@ uint8_t COMinterChip::invokeBufferFullSend() {
     if (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
         uint32_t timer = millis();
         while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) { // wait...
-            if ((millis() - timer) > 5) {                                      // transmission takes longer than 5ms
+            if ((millis() - timer) > 5) {                                         // transmission takes longer than 5ms
                 PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 5ms ");
             }
             FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen bleiben
@@ -397,17 +397,16 @@ uint8_t COMinterChip::sendSetting(uint8_t modulID, uint8_t settingID, float amou
     return 0;
 }
 
-uint8_t COMinterChip::sendNewNote(uint8_t modulID, uint8_t voiceID, uint8_t settingID, int32_t amount) {
+uint8_t COMinterChip::sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocity) {
     uint8_t comCommand[NEWNOTECMDSIZE];
     uint8_t voiceIDsend = voiceID;
 
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
 
-    comCommand[0] = SETTINGTYPE | (modulID << 3) | voiceIDsend;
-    comCommand[1] = UPDATESETTINGINT | settingID;
-    *(int32_t *)(&comCommand[2]) = amount;
-    comCommand[6] = OPENGATE | voiceIDsend;
+    comCommand[0] = NEWNOTE | voiceIDsend;
+    comCommand[1] = note;
+    comCommand[2] = velocity;
 
     if (voiceID < 4)
         pushOutBufferChipA(comCommand, NEWNOTECMDSIZE);
@@ -571,6 +570,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     uint8_t setting;
     uint8_t modul;
     uint8_t voice;
+    uint8_t note;
+    uint8_t velocity;
     int32_t amountInt;
     float amountFloat;
     float offsetFloat;
@@ -662,22 +663,33 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         allLayers[0]->clearPatches();
                         break;
 
+                    case NEWNOTE:
+                        voice = currentByte & CMD_VOICEMASK;
+                        note = (inBufferPointer[currentBufferSelect])[++i];
+                        velocity = (inBufferPointer[currentBufferSelect])[++i];
+                        allLayers[0]->setNote(voice, note, velocity);
+                        allLayers[0]->gateOn(voice);
+
+                        break;
+
                     case OPENGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        // openGate(voice)
+                        allLayers[0]->gateOn(voice);
                         break;
 
                     case CLOSEGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        // closeGate(voice)
+                        allLayers[0]->gateOff(voice);
                         break;
 
                     case CLOCK:
                         // clock()
+                        // probably obsolete
                         break;
 
                     case RESETALL:
-                        // resetAll()
+                        // clear everything
+                        allLayers[0]->resetLayer();
                         break;
 
                     case LASTBYTE:
@@ -710,8 +722,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         allLayers[0]->getModules()[modul]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
 
-                        // println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountInt);
-
                         break;
                     case UPDATESETTINGFLOAT:
                         setting = currentByte & CMD_SETTINGSMASK;
@@ -720,11 +730,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         allLayers[0]->getModules()[modul]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
 
-                        // println("Modul: ", modul, ", Setting: ", setting, ", Amount: ", amountFloat);
-
                         break;
                     case RETRIGGER:
-
+                        // probably obsolete
                         // retrigger(modul, voice)
                         break;
 

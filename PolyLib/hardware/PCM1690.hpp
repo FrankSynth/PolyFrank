@@ -2,11 +2,9 @@
 
 #include "circularbuffer/circularbuffer.hpp"
 #include "debughelper/debughelper.hpp"
+#include "render/renderAudioDef.h"
 #include "sai.h"
 #include "spi.h"
-
-// number of audio channels defined in sai.h
-#define SAIDMABUFFERSIZE 8 // 32bit buffer
 
 /**
  * @brief 8ch Audio DAC class

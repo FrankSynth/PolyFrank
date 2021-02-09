@@ -407,6 +407,28 @@ class ID {
     uint8_t idCounter = 0;
 };
 
+class RenderBuffer {
+  public:
+    RenderBuffer() {
+        currentSample = bufferCurrentSample;
+        nextSample = bufferNextSample;
+    }
+
+    // set next calculatedSample as current sample
+    void updateToNextSample() {
+        float *tempPointer = currentSample;
+        currentSample = nextSample;
+        nextSample = tempPointer;
+    }
+
+    float *currentSample;
+    float *nextSample;
+
+  private:
+    float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
+};
+
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
 inline void PatchElementInOut::changeAmount(float change) {

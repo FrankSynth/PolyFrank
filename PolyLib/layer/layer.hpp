@@ -1,7 +1,6 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
-#include "modules/layersettings.hpp"
 #include "modules/modules.hpp"
 #include "preset/preset.hpp"
 #include <list>
@@ -42,7 +41,6 @@ class Layer {
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
         modules.push_back(&globalModule);
-        modules.push_back(&test);
         // skip layer settings?
 
         initID();
@@ -84,8 +82,30 @@ class Layer {
     inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
     inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
 
+#ifdef POLYRENDER
+    inline void gateOn(uint16_t voice) {
+        lfoA.gateOn(voice);
+        lfoB.gateOn(voice);
+        adsrA.gateOn(voice);
+        adsrB.gateOn(voice);
+        oscA.gateOn(voice);
+        oscB.gateOn(voice);
+        midi.gateOn(voice);
+    }
+
+    inline void gateOff(uint16_t voice) { midi.gateOff(voice); }
+
+    inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) { midi.setNote(voice, note, velocity); }
+
+    inline void allGatesOff() {
+        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+            gateOff(voice);
+        }
+    }
+
+#endif
+
     // ID for
-    LayerSettings layerSettings = LayerSettings("LayerSettings");
 
     uint8_t id;
 
@@ -102,7 +122,6 @@ class Layer {
     ADSR adsrA = ADSR("ADSR A");
     ADSR adsrB = ADSR("ADSR B");
     GlobalModule globalModule = GlobalModule("GLOBAL");
-    TEST test = TEST("TEST");
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
