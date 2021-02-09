@@ -106,7 +106,13 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     }
     Setting *data = entry->setting;
     uint16_t nameWidth = w;
-    uint16_t valueBarHeigth = 6;
+    uint16_t valueBarHeigth;
+    if (hugeFont) {
+        valueBarHeigth = 12;
+    }
+    else {
+        valueBarHeigth = 6;
+    }
     uint16_t dataHeight = h - valueBarHeigth;
 
     uint16_t fontShiftHeight = h / 4;
@@ -125,7 +131,7 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
                    selectedFont, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteLight, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cWhiteMedium, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
         drawString(text, cFont_Deselect, x + nameWidth / 2,
                    y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight, selectedFont, CENTER);
     }
@@ -135,6 +141,11 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     drawString(text, cFont_Deselect, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight,
                selectedFont,
                CENTER); // center Text
+
+    if (hugeFont) {
+        drawRectangleFill(cWhiteMedium, x + 1, y + 3, 1, h - 3);
+        drawRectangleFill(cWhiteMedium, x + w - 2, y + 3, 1, h - 3);
+    }
 
     // valueBar
     // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
