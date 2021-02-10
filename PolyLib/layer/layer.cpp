@@ -80,7 +80,6 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     patchesInOut.push_back(PatchElementInOut(sourceOut, targetIn, id, amount));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
-    patchesInOut.back().setAmount(amount);
 
 #ifdef POLYCONTROL
     sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, amount);
@@ -88,7 +87,7 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
 }
 
 void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
-    addPatchInOut(*outputs[outputId], *inputs[inputId], amount);
+    addPatchInOut(*(outputs[outputId]), *(inputs[inputId]), amount);
 }
 
 void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {

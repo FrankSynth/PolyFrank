@@ -5,8 +5,8 @@
 
 extern Layer layerA;
 
-LogCurve convertLog(16, 0.1);
-LogCurve convertAntiLog(16, 0.9);
+LogCurve adsrConvertLog(16, 0.1);
+LogCurve adsrConvertAntiLog(16, 0.9);
 
 #define INPUTWEIGHTING 1
 
@@ -163,18 +163,22 @@ void renderADSR(ADSR &adsr) {
 
         if (shape < 1) {
             // shape between 0 and 1, 1 is linear
-            fast_lerp_f32(convertLog.mapValue(currentLevel), currentLevel, shape);
+            adsr.out.nextSample[voice] = fast_lerp_f32(adsrConvertLog.mapValue(currentLevel), currentLevel, shape);
         }
         else {
             // shape between 1 and 2, 1 is linear
-            fast_lerp_f32(currentLevel, convertAntiLog.mapValue(currentLevel), shape - 1);
+            adsr.out.nextSample[voice] =
+                fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
         }
 
         // midi velocity
         adsr.out.nextSample[voice] = fast_lerp_f32(
-            currentLevel, currentLevel * layerA.midi.oVeloctiy.currentSample[voice], adsr.aVelocity.valueMapped);
+            adsr.out.nextSample[voice], adsr.out.nextSample[voice] * layerA.midi.oVeloctiy.currentSample[voice],
+            adsr.aVelocity.valueMapped);
 
-        adsr.out.nextSample[voice] = fast_lerp_f32(currentLevel, currentLevel * layerA.midi.oNote.currentSample[voice],
+        // keytrack
+        adsr.out.nextSample[voice] = fast_lerp_f32(adsr.out.nextSample[voice],
+                                                   adsr.out.nextSample[voice] * layerA.midi.oNote.currentSample[voice],
                                                    adsr.aKeytrack.valueMapped);
 
         adsr.out.nextSample[voice] = adsr.out.nextSample[voice] * adsr.aAmount.valueMapped;

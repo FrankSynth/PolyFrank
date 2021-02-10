@@ -1,5 +1,8 @@
 #include "datacore.hpp"
 
+LogCurve logMapping(16, 0.1);
+LogCurve antiLogMapping(16, 0.9);
+
 void Setting::setValue(int32_t newValue) {
     value = testInt(newValue, min, max);
 
@@ -26,9 +29,6 @@ const std::string &Setting::getValueAsString() {
         }
     }
 }
-
-LogCurve logMapping(16, 0.1);
-LogCurve antiLogMapping(16, 0.9);
 
 void Analog::setValue(int32_t newValue) {
     value = testInt(newValue, MIN_VALUE_12BIT, MAX_VALUE_12BIT);

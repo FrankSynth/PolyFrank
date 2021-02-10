@@ -197,11 +197,12 @@ class LogCurve {
     }
 
     float mapValue(float value);
+    void precomputeTable();
 
   private:
     float curve;
     uint16_t size;
     std::vector<float> logTable;
-
-    void precomputeTable();
 };
+
+// template <uint32_t _size, uint32_t _curve> LogCurve

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#define MINWAVETABLELENGTH 3491
 #define MAXWAVETABLELENGTH 13964
 
 /**

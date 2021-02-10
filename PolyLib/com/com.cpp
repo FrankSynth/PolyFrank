@@ -1,4 +1,7 @@
 #include "com.hpp"
+#include "layer/layer.hpp"
+
+extern Layer layerA;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////// COMusb //////////////////////////////////////
@@ -439,8 +442,10 @@ uint8_t COMinterChip::sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocit
 
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
+    else
+        voiceIDsend = 4;
 
-    comCommand[0] = NEWNOTE | voiceIDsend;
+    comCommand[0] = PATCHCMDTYPE | NEWNOTE | voiceIDsend;
     comCommand[1] = note;
     comCommand[2] = velocity;
 
@@ -461,6 +466,8 @@ uint8_t COMinterChip::sendOpenGate(uint8_t voiceID) {
 
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
+    else
+        voiceIDsend = 4;
 
     comCommand[0] = PATCHCMDTYPE | OPENGATE | voiceIDsend;
 
@@ -481,6 +488,8 @@ uint8_t COMinterChip::sendCloseGate(uint8_t voiceID) {
 
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
+    else
+        voiceIDsend = 4;
 
     comCommand[0] = PATCHCMDTYPE | CLOSEGATE | voiceIDsend;
 
@@ -501,6 +510,8 @@ uint8_t COMinterChip::sendRetrigger(uint8_t modulID, uint8_t voiceID) {
 
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
+    else
+        voiceIDsend = 4;
 
     comCommand[0] = SETTINGTYPE | (modulID << 3) | voiceIDsend;
     comCommand[1] = RETRIGGER;
@@ -600,17 +611,17 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     switchBuffer();
     // println("decode Buffer");
     // necessary decoding vars
-    uint8_t outputID;
-    uint8_t inputID;
-    uint8_t currentByte;
-    uint8_t setting;
-    uint8_t modul;
-    uint8_t voice;
-    uint8_t note;
-    uint8_t velocity;
-    int32_t amountInt;
-    float amountFloat;
-    float offsetFloat;
+    volatile uint8_t outputID = 0;
+    volatile uint8_t inputID = 0;
+    volatile uint8_t currentByte = 0;
+    volatile uint8_t setting = 0;
+    volatile uint8_t modul = 0;
+    volatile uint8_t voice = 0;
+    volatile uint8_t note = 0;
+    volatile uint8_t velocity = 0;
+    volatile int32_t amountInt = 0;
+    volatile float amountFloat = 0;
+    // volatile float offsetFloat = 0;
 
     beginReceiveTransmission();
 
@@ -620,7 +631,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
-        Error_Handler();
+        PolyError_Handler("ERROR | FATAL | com buffer too big");
+
         return 1;
     }
 
@@ -642,7 +654,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->updatePatchInOutById(outputID, inputID, amountFloat);
+                        layerA.updatePatchInOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -650,9 +662,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         outputID = (inBufferPointer[currentBufferSelect])[++i];
                         inputID = (inBufferPointer[currentBufferSelect])[++i];
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->addPatchInOutById(outputID, inputID, amountFloat);
+                        layerA.addPatchInOutById(outputID, inputID, amountFloat);
 
                         break;
 
@@ -660,62 +673,63 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         outputID = (inBufferPointer[currentBufferSelect])[++i];
                         inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                        allLayers[0]->removePatchInOutById(outputID, inputID);
+                        layerA.removePatchInOutById(outputID, inputID);
 
                         break;
-                    case UPDATEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
-                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
+                        // case UPDATEOUTOUTPATCH:
+                        // outputID = (inBufferPointer[currentBufferSelect])[++i];
+                        // inputID = (inBufferPointer[currentBufferSelect])[++i];
+                        // amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        // i += sizeof(float) - 1;
+                        // offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        // i += sizeof(float) - 1;
 
-                        allLayers[0]->updatePatchOutOutById(outputID, inputID, amountFloat);
+                        // layerA.updatePatchOutOutById(outputID, inputID, amountFloat);
 
-                        break;
+                        // break;
 
-                    case CREATEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
-                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
+                        // case CREATEOUTOUTPATCH:
+                        // outputID = (inBufferPointer[currentBufferSelect])[++i];
+                        // inputID = (inBufferPointer[currentBufferSelect])[++i];
+                        // amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        // i += sizeof(float) - 1;
+                        // offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        // i += sizeof(float) - 1;
 
-                        allLayers[0]->addPatchOutOutById(outputID, inputID, amountFloat);
+                        // layerA.addPatchOutOutById(outputID, inputID, amountFloat);
 
-                        break;
+                        // break;
 
-                    case DELETEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
+                    // case DELETEOUTOUTPATCH:
+                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                        allLayers[0]->removePatchOutOutById(outputID, inputID);
+                    //     layerA.removePatchOutOutById(outputID, inputID);
 
-                        break;
+                    //     break;
                     case DELETEALLPATCHES:
                         // delete all patchesInOut at once
-                        allLayers[0]->clearPatches();
+                        layerA.clearPatches();
                         break;
 
                     case NEWNOTE:
                         voice = currentByte & CMD_VOICEMASK;
+
                         note = (inBufferPointer[currentBufferSelect])[++i];
                         velocity = (inBufferPointer[currentBufferSelect])[++i];
-                        allLayers[0]->setNote(voice, note, velocity);
-                        allLayers[0]->gateOn(voice);
+                        layerA.setNote(voice, note, velocity);
+                        layerA.gateOn(voice);
 
                         break;
 
                     case OPENGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        allLayers[0]->gateOn(voice);
+                        layerA.gateOn(voice);
                         break;
 
                     case CLOSEGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        allLayers[0]->gateOff(voice);
+                        layerA.gateOff(voice);
                         break;
 
                     case CLOCK:
@@ -725,7 +739,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     case RESETALL:
                         // clear everything
-                        allLayers[0]->resetLayer();
+                        layerA.resetLayer();
                         break;
 
                     case LASTBYTE:
@@ -735,7 +749,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     default:
                         // seomething went wrong here
-                        Error_Handler();
+                        PolyError_Handler("ERROR | FATAL | COM wrong PATCHCMDTYPE");
+
                         return 1;
                 }
                 break;
@@ -750,13 +765,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 // get next byte
                 currentByte = (inBufferPointer[currentBufferSelect])[++i];
                 // second byte setting
-                switch (currentByte & CMD_PATCHMASK) {
+                switch (currentByte & CMD_SETTINGSCMDMASK) {
                     case UPDATESETTINGINT:
                         setting = currentByte & CMD_SETTINGSMASK;
                         amountInt = *(int32_t *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(int32_t) - 1;
 
-                        allLayers[0]->getModules()[modul]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
+                        layerA.getModules()[modul]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
 
                         break;
                     case UPDATESETTINGFLOAT:
@@ -764,39 +779,30 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        allLayers[0]->getModules()[modul]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
+                        layerA.getModules()[modul]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
 
                         break;
-                    case RETRIGGER:
-                        // probably obsolete
-                        // retrigger(modul, voice)
-                        break;
+                    case RETRIGGER: layerA.getModules()[modul]->resetPhase(voice); break;
 
                     default:
                         // something went wrong here
-                        Error_Handler();
+                        std::string error = "ERROR | FATAL | COM wrong SETTINGTYPE: " + std::to_string(currentByte);
+                        PolyError_Handler(error.data());
+
                         return 1;
                 }
                 break;
             default:
                 // seomething went wrong here
-                Error_Handler();
+                PolyError_Handler("ERROR | FATAL | Decode error");
+
                 return 1;
         }
     }
 
-    // surpress compiler warnings while not used
-    UNUSED(setting);
-    UNUSED(modul);
-    UNUSED(voice);
-    UNUSED(amountFloat);
-    UNUSED(amountInt);
-    UNUSED(offsetFloat);
-    UNUSED(outputID);
-    UNUSED(inputID);
-
     // we should always exit with LASTBYTE
-    Error_Handler();
+    PolyError_Handler("no LASTBYTE received");
+
     return 1;
 }
 

@@ -25,6 +25,7 @@ PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
 
+    layerA.resetLayer();
     // general inits
     initPoly();
 

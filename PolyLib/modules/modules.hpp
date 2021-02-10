@@ -33,6 +33,8 @@ class BaseModule {
     std::vector<Digital *> switches;
     std::vector<Setting *> settings;
 
+    inline virtual void resetPhase(uint16_t voice) {}
+
   protected:
 };
 
@@ -157,16 +159,15 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iLevel);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iOctave);
-        inputs.push_back(&iSync);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
         knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
 
-        // switches.push_back(&dNote);
         switches.push_back(&dOctave);
         switches.push_back(&dVcfDestSwitch);
+        switches.push_back(&dSync);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&morph);
@@ -183,7 +184,7 @@ class OSC_B : public BaseModule {
     Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSHER");
     Input iOctave = Input("OCTAVE");
-    Input iSync = Input("SYNC");
+    // Input iSync = Input("SYNC");
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
@@ -193,6 +194,7 @@ class OSC_B : public BaseModule {
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 0, true, &nlVCFDest);
+    Digital dSync = Digital("SYNC OSC A", 0, 1, 0, true, &nlOnOff);
 
     // render shizzle
 
@@ -205,6 +207,7 @@ class OSC_B : public BaseModule {
     RenderBuffer levelLadder;
 
     bool newPhase[VOICESPERCHIP] = {false};
+    float cacheOscAstep[VOICESPERCHIP] = {false};
     float stepWavetableA[VOICESPERCHIP] = {0};
     float stepWavetableB[VOICESPERCHIP] = {0};
 
@@ -376,7 +379,7 @@ class LFO : public BaseModule {
     }
     Output out = Output("OUT");
 
-    Input iFreq = Input("FREQ");
+    Input iFreq = Input("FM");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
     // TODO amount shapes for LFO, or digital?
@@ -384,10 +387,10 @@ class LFO : public BaseModule {
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
-    Digital dGateSync = Digital("SYNC TO GATE", 0, 1, 0, true);
-    Digital dClockSync = Digital("SYNC TO CLOCK", 0, 1, 0, false);
+    Digital dGateSync = Digital("SYNC TO GATE", 0, 1, 0, true, &nlOnOff);
+    Digital dClockSync = Digital("SYNC TO CLOCK", 0, 1, 0, false, &nlOnOff);
     Digital dClock = Digital("SYNC CLOCK", 0, 22, 0, false);
-    Digital dAlignLFOs = Digital("ALIGN LFOs", 0, 1, 0, false);
+    Digital dAlignLFOs = Digital("ALIGN LFOs", 0, 1, 0, false, &nlOnOff);
 
     // render shizzle
 
@@ -395,8 +398,13 @@ class LFO : public BaseModule {
     bool newPhase[VOICESPERCHIP] = {false};
 
     inline void resetPhase(uint16_t voice) {
-        currentTime[voice] = 0;
-        newPhase[voice] = true;
+        if (voice == 4) {
+            resetAllPhases();
+        }
+        else {
+            currentTime[voice] = 0;
+            newPhase[voice] = true;
+        }
     }
 
     inline void resetAllPhases() {
@@ -458,10 +466,10 @@ class ADSR : public BaseModule {
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 2, 1, true, linMap);
 
-    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dLoop = Digital("LOOP", 0, 1, 1, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
 
@@ -482,6 +490,20 @@ class ADSR : public BaseModule {
         setStatusDelay(voice);
     }
 
+    inline void resetPhase(uint16_t voice) {
+        if (voice == 4) {
+            resetAllPhases();
+        }
+        else {
+            resetADSR(voice);
+        }
+    }
+
+    inline void resetAllPhases() {
+        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+            resetPhase(voice);
+        }
+    }
     inline void resetADSR(uint16_t voice) {
         currentLevel[voice] = 0;
         setStatusOff(voice);
@@ -495,7 +517,7 @@ class ADSR : public BaseModule {
 
     inline void gateOn(uint16_t voice) {
         if (dReset.valueMapped)
-            restartADSR(voice);
+            resetADSR(voice);
     }
 
     enum ADSR_State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };

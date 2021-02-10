@@ -92,7 +92,7 @@ float getNoiseSample(uint16_t voice) {
     uint32_t randomNumber;
 
     if (HAL_RNG_GenerateRandomNumber(&hrng, &randomNumber) != HAL_OK) {
-        Error_Handler();
+        PolyError_Handler("ERROR | FATAL | Audio Rendering RNG");
     }
 
     uint32_t bitcrushBits = bitcrusher;
@@ -106,24 +106,46 @@ float getNoiseSample(uint16_t voice) {
 }
 
 float getSubSample(uint16_t voice) {
-    // float &bitcrusher = layerA.sub.bitcrusher.currentSample[voice];
 
-    return 0;
+    const float &stepWavetableA = layerA.oscA.stepWavetableA[voice];
+    const float shape = layerA.sub.shape.currentSample[voice] == 0 ? 0.0001f : layerA.sub.shape.currentSample[voice];
+
+    float sample;
+
+    float checkWavetableLength;
+    checkWavetableLength = stepWavetableA;
+    while (checkWavetableLength >= MINWAVETABLELENGTH)
+        checkWavetableLength -= (float)MINWAVETABLELENGTH;
+
+    float phase = checkWavetableLength / (float)MINWAVETABLELENGTH;
+
+    if (phase < 0.5f) {
+        sample = testFloat(phase * (2 / shape), -1, 1) - 1;
+    }
+    else {
+        sample = (testFloat((phase - 0.5) * (2 / shape), -1, 1) - 1) * -1;
+    }
+
+    // TODO bitcrushing
+
+    return sample;
 }
 
 float getOscASample(uint16_t voice) {
     // float &bitcrusher = layerA.oscA.bitcrusher.currentSample[voice];
     float &stepWavetableA = layerA.oscA.stepWavetableA[voice];
     float &stepWavetableB = layerA.oscA.stepWavetableB[voice];
-    float &morph = layerA.oscA.morph.currentSample[voice];
-    float &noteStep = layerA.oscA.note.currentSample[voice];
+    const float &morph = layerA.oscA.morph.currentSample[voice];
+    const float &noteStep = layerA.oscA.note.currentSample[voice];
     float sample;
 
     // make sure to be in the right step range
-    while (stepWavetableA >= oscAwavetableASize)
+    while (stepWavetableA >= oscAwavetableASize) {
         stepWavetableA -= (float)oscAwavetableASize;
-    while (stepWavetableB >= (float)oscAwavetableBSize)
+    }
+    while (stepWavetableB >= (float)oscAwavetableBSize) {
         stepWavetableB -= (float)oscAwavetableBSize;
+    }
 
     sample = oscAwavetableA[(uint32_t)stepWavetableA] * morph + oscAwavetableB[(uint32_t)stepWavetableB] * (1 - morph);
 
@@ -134,10 +156,51 @@ float getOscASample(uint16_t voice) {
 
     return sample;
 }
+
 float getOscBSample(uint16_t voice) {
-    // float &oscBbitcrusher = layerA.oscB.bitcrusher.currentSample[voice];
-    // float &oscBMorph = layerA.oscB.morph.currentSample[voice];
-    float sample = 0;
+    // cache steo of osc A, if smaller, new phase has begun.
+    const float &oscAstepWavetableA = layerA.oscA.stepWavetableA[voice];
+
+    int32_t &sync = layerA.oscB.dSync.valueMapped;
+
+    float &cacheOscAstep = layerA.oscB.cacheOscAstep[voice];
+
+    float &stepWavetableA = layerA.oscB.stepWavetableA[voice];
+    float &stepWavetableB = layerA.oscB.stepWavetableB[voice];
+
+    const float &morph = layerA.oscB.morph.currentSample[voice];
+    const float &noteStep = layerA.oscB.note.currentSample[voice];
+
+    float sample;
+    float checkWavetableLength;
+
+    checkWavetableLength = oscAstepWavetableA;
+
+    while (checkWavetableLength >= MINWAVETABLELENGTH)
+        checkWavetableLength -= (float)MINWAVETABLELENGTH;
+
+    if (sync) {
+        if (cacheOscAstep > checkWavetableLength) {
+            stepWavetableA = 0;
+            stepWavetableB = 0;
+        }
+    }
+    cacheOscAstep = checkWavetableLength;
+
+    // make sure to be in the right step range
+    while (stepWavetableA >= oscAwavetableASize) {
+        stepWavetableA -= (float)oscAwavetableASize;
+    }
+    while (stepWavetableB >= (float)oscAwavetableBSize) {
+        stepWavetableB -= (float)oscAwavetableBSize;
+    }
+
+    sample = oscAwavetableA[(uint32_t)stepWavetableA] * morph + oscAwavetableB[(uint32_t)stepWavetableB] * (1 - morph);
+
+    stepWavetableA += noteStep;
+    stepWavetableB += noteStep;
+
+    // TODO bitcrushing
 
     return sample;
 }
@@ -219,35 +282,5 @@ void renderAudio(int32_t *renderDest, uint16_t samples) {
     // render voice 4
     renderVoice(renderDest, samples, 3, 6, 7);
 }
-
-// void renderAudio(int32_t *renderDest, uint32_t samples, uint32_t channels) {
-
-//     // static const wavetable *currentWavetable1 = &wavetable_strings01;
-//     static float stepWavetable1[8] = {0};
-//     // static const wavetable *currentWavetable2 = &wavetable_nylonGuitar01;
-//     static float stepWavetable2[8] = {0};
-
-//     float balance = fastMapCached(layerA.adsrA.aAttack.valueMapped, 0, 10, 0, 1);
-
-//     for (uint32_t i = 0; i < samples * channels; i += channels) {
-
-//         for (uint32_t chan = 0; chan < channels; chan++) {
-
-//             while (stepWavetable1[chan] >= (float)wabetableASize)
-//                 stepWavetable1[chan] -= (float)wabetableASize;
-//             while (stepWavetable2[chan] >= (float)wabetableBSize)
-//                 stepWavetable2[chan] -= (float)wabetableBSize;
-
-//             float audioSample = wavetableA[(uint32_t)stepWavetable1[chan]] * balance +
-//                                 wavetableB[(uint32_t)stepWavetable2[chan]] * (1 - balance);
-
-//             renderDest[i + chan] = convert(audioSample);
-
-//             float step = fastNoteLin2Log_f32((float)chan * layerA.test.aFreq.valueMapped);
-//             stepWavetable1[chan] += step;
-//             stepWavetable2[chan] += step;
-//         }
-//     }
-// }
 
 #endif

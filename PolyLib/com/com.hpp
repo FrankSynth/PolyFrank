@@ -10,7 +10,7 @@
 
 #include "midiInterface/midi_Namespace.h"
 
-#include "poly.hpp"
+// #include "poly.hpp"
 #include "spi.h"
 #include <functional>
 #include <inttypes.h>

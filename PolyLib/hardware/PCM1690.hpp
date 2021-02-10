@@ -43,7 +43,7 @@ class PCM1690 {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
 
         if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | FATAL | PCM 1690 transmit");
         }
 
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
@@ -51,7 +51,7 @@ class PCM1690 {
 
     void startSAI() {
         if (HAL_SAI_Transmit_DMA(sai, (uint8_t *)renderBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | FATAL | PCM 1690 start SAI");
         }
     }
 

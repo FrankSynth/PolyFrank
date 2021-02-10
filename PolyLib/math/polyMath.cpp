@@ -50,8 +50,7 @@ float fast_sin_f32(float x) {
 float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 void precomputeNoteLin2LogTable() {
     for (uint32_t i = 0; i < FAST_NOTELIN2LOG_TABLE_SIZE + 1; i++) {
-        noteLin2LogTable_f32[i] =
-            powf(2.0, fastMapCached(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
+        noteLin2LogTable_f32[i] = powf(2.0, fastMap(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
     }
 }
 
@@ -88,8 +87,9 @@ void LogCurve::precomputeTable() {
     float b = powf((1 / curve) - 1, 2);
     float a = 1 / (b - 1);
 
-    for (uint16_t i = 0; i < size + 1; i++) {
+    for (uint16_t i = 0; i < (size + 1); i++) {
         logTable[i] = a * powf(b, fastMapCached(i, 0, size, 0, 1)) - a;
+        // logTable.push_back(a * powf(b, fastMap(i, 0, size, 0, 1)) - a);
     }
 }
 
