@@ -440,7 +440,7 @@ uint8_t COMinterChip::sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocit
     if (voiceIDsend != VOICEALL)
         voiceIDsend %= 4;
 
-    comCommand[0] = NEWNOTE | voiceIDsend;
+    comCommand[0] = PATCHCMDTYPE | NEWNOTE | voiceIDsend;
     comCommand[1] = note;
     comCommand[2] = velocity;
 

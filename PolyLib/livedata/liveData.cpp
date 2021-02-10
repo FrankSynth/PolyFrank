@@ -2,6 +2,7 @@
 #include "liveData.hpp"
 
 LiveData liveData;
+extern COMinterChip layerCom[2];
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
     // TODO zu Midi Modul weiterleiten
@@ -68,7 +69,7 @@ void LiveData::clockTick() {
     clock.tick();
 }
 
-void LiveData::update() {
+void LiveData::serviceRoutine() {
 
     arpA.serviceRoutine();
     arpB.serviceRoutine();
@@ -81,12 +82,27 @@ void LiveData::clockHandling() {
 
     if (clock.ticked) {
         for (uint8_t i = 0; i < NUMBERLAYER; i++) {
+
+            // ARP Steps
             if (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsA.value]) ||
                 (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsB.value]) && arps[i]->arpPolyrythm.value)) {
                 arps[i]->nextStep();
-
-                // println("nextStep");
             }
+
+            // LFO Sync
+            if (allLayers[i]->lfoA.dClockSync.value && !(clock.counter % allLayers[i]->lfoA.dClock.value)) {
+                layerCom[i].sendRetrigger(allLayers[i]->lfoA.id, 8); // all voices = 8
+            }
+            if (allLayers[i]->lfoB.dClockSync.value && !(clock.counter % allLayers[i]->lfoB.dClock.value)) {
+                layerCom[i].sendRetrigger(allLayers[i]->lfoB.id, 8); // all voices = 8
+            }
+            // ADSR Sync
+            // if (allLayers[i]->adsrA.dClockSync.value && !(clock.counter % allLayers[i]->adsrA.dClock.value)) {
+            //     layerCom[i].sendRetrigger(allLayers[i]->adsrA.id, 8); // all voices = 8
+            // }
+            // if (allLayers[i]->adsrB.dClockSync.value && !(clock.counter % allLayers[i]->adsrB.dClock.value)) {
+            //     layerCom[i].sendRetrigger(allLayers[i]->adsrB.id, 8); // all voices = 8
+            // }
         }
         clock.ticked = 0;
     }

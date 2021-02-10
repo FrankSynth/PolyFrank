@@ -495,8 +495,6 @@ void Patch_PanelElement::Draw() {
                     {std::bind(&PatchElementInOut::changeAmount, patch, 0.05), "AMOUNT"},
                     {std::bind(&PatchElementInOut::changeAmount, patch, -0.05), "AMOUNT"},
                     {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
-
-                // TODO reset geht nicht?
             }
             drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
         }

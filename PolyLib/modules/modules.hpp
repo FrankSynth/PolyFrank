@@ -10,6 +10,7 @@ extern const std::vector<std::string> nlVCFDest;
 extern const std::vector<std::string> nlSteinerModes;
 extern const std::vector<std::string> nlLadderSlopes;
 extern const std::vector<std::string> nlADSRShapes;
+extern const std::vector<std::string> nlClockSteps;
 
 // Basemodule
 class BaseModule {
@@ -116,13 +117,13 @@ class OSC_A : public BaseModule {
     Input iFM = Input("FM");
     Input iMorph = Input("MORPH");
     Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSHER");
+    Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
 
-    Analog aMasterTune = Analog("MASTERTUNING", -1, 1, 0, true, logMap);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
@@ -181,14 +182,14 @@ class OSC_B : public BaseModule {
     Input iMorph = Input("MORPH");
     Input iTuning = Input("TUNING");
     Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSHER");
+    Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSync = Input("SYNC");
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
     Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
@@ -238,11 +239,11 @@ class Sub : public BaseModule {
 
     Input iShape = Input("SHAPE");
     Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSHER");
+    Input iBitcrusher = Input("BITCRUSH");
 
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
 
@@ -277,10 +278,10 @@ class Noise : public BaseModule {
     Output out = Output("OUT");
 
     Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSHER");
+    Input iBitcrusher = Input("BITCRUSH");
 
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSHER", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
 
@@ -379,15 +380,15 @@ class LFO : public BaseModule {
     Input iFreq = Input("FREQ");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
-    // TODO amount shapes for LFO, or digital?
+
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
-    Digital dGateSync = Digital("SYNC TO GATE", 0, 1, 0, true);
-    Digital dClockSync = Digital("SYNC TO CLOCK", 0, 1, 0, false);
-    Digital dClock = Digital("SYNC CLOCK", 0, 22, 0, false);
-    Digital dAlignLFOs = Digital("ALIGN LFOs", 0, 1, 0, false);
+    Digital dGateSync = Digital("SYNC GATE", 0, 1, 0, true, &nlOnOff);
+    Digital dClockSync = Digital("SYNC CLOCK", 0, 1, 0, false, &nlOnOff);
+    Digital dClock = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, false, &nlOnOff);
 
     // render shizzle
 

@@ -52,7 +52,6 @@ void Arpeggiator::keyReleased(Key &key) {
 
 void Arpeggiator::pressKey(Key key) {
 
-    println("pressKey : ", key.note);
 
     lifetime(key); // calculate lifespan
 

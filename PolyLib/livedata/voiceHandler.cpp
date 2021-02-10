@@ -1,5 +1,8 @@
 #ifdef POLYCONTROL
 #include "voiceHandler.hpp"
+#include "com/com.hpp"
+
+extern COMinterChip layerCom[2];
 
 void VoiceHandler::playNote(Key &key) {
 
@@ -42,8 +45,9 @@ void VoiceHandler::playNote(Key &key) {
         v->velocity = key.velocity;
         v->playID = playIDCounter;
 
+        layerCom[v->layerID].sendNewNote(v->voiceID, v->note, v->velocity);
+
         // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
-        // TODO send Note, Gate, Velocity
 
         playIDCounter++; // increase playID
     }
@@ -103,7 +107,8 @@ void VoiceHandler::freeNote(Key &key) {
 void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 
     v->status = FREE;
-    // TODO send Gate off
+
+    layerCom[v->layerID].sendCloseGate(v->voiceID);
 }
 
 void VoiceHandler::sustainOff(uint8_t layer) {
