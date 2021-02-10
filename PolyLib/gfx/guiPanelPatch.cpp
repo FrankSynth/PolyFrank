@@ -37,7 +37,7 @@ void GUIPanelPatch::registerElements() {
 
         if (dataIndex < entrysSource) {
 
-            panelElementsSource[elementIndex].addEntry((BasePatch *)allLayers[focus.layer]->outputs[dataIndex]);
+            panelElementsSource[elementIndex].addEntry((BasePatch *)allLayers[focus.layer]->outputs[dataIndex], 1);
             dataIndex++;
         }
         else {

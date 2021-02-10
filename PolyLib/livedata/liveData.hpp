@@ -3,6 +3,7 @@
 #include "arp.hpp"
 #include "clock.hpp"
 #include "liveDataBase.hpp"
+#include "poly.hpp"
 #include "voiceHandler.hpp"
 
 
@@ -23,9 +24,9 @@ class LiveData {
     void keyReleased(uint8_t channel, uint8_t note);
 
     void clockTick();
-
-    void update();
     void clockHandling();
+
+    void serviceRoutine();
     VoiceHandler voiceHandler;
 
     Arpeggiator arpA = Arpeggiator(&voiceHandler);

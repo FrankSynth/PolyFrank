@@ -12,7 +12,6 @@
 #include <functional>
 #include <string>
 
-
 #define FOCUSPANELENTRYS 6
 #define CONFIGPANELENTRYS 5
 #define PATCHPANELENTRYS 7
@@ -221,8 +220,9 @@ class Patch_PanelElement {
     }
     void Draw();
     void addPatchEntry(PatchElementInOut *patch) { this->patch = patch; }
-    void addEntry(BasePatch *entry) {
 
+    void addEntry(BasePatch *entry, uint8_t showModuleName = 0) {
+        this->showModuleName = showModuleName;
         this->entry = entry;
         active = 1;
     }
@@ -231,6 +231,7 @@ class Patch_PanelElement {
     uint8_t active = 0;
     uint8_t select = 0;
     uint16_t panelAbsX;
+    uint8_t showModuleName = 0;
 
     BasePatch *entry = nullptr;
 

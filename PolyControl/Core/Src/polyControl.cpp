@@ -106,7 +106,7 @@ void PolyControlRun() { // Here the party starts
 
         mididevice.read();
 
-        liveData.update();
+        liveData.serviceRoutine();
 
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
@@ -117,6 +117,7 @@ void PolyControlRun() { // Here the party starts
         }
 
         layerCom[0].beginSendTransmission();
+        // layerCom[1].beginSendTransmission();
     };
 }
 
