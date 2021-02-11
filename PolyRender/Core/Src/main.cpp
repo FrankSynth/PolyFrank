@@ -146,12 +146,12 @@ int main(void) {
     PolyRenderInit();
 
     // some example LED Brightness
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 1);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 2);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 4);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 6);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 8);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 10);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 0);
 
     // start main programm
     PolyRenderRun();

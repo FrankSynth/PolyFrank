@@ -23,10 +23,9 @@
 extern "C" {
 #endif
 
-#define CVTIMERINTERVALUS 500
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "render/renderCVDef.h"
 
 /* USER CODE BEGIN Includes */
 

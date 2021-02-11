@@ -5,7 +5,10 @@ LiveData liveData;
 extern COMinterChip layerCom[2];
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
-    // TODO zu Midi Modul weiterleiten
+    // TODO zu Midi Modul weiterleiten,
+    // mod(cc1), pitchbend (cc2) - pitchbend hat eine eigene function, weil native 14 bit
+
+    // TODO NRPN implementation
 
     // Sustain liegt im voiceHandler
     // Sustain muss auch in den Arp

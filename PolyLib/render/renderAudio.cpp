@@ -1,6 +1,7 @@
 #ifdef POLYRENDER
 
 #include "renderAudio.hpp"
+#include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
 #include "rng.h"
 
@@ -86,6 +87,20 @@ void initAudioRendering() {
     switchOscBWavetableB(wavetable_nylonGuitar01);
 }
 
+inline float bitcrush(float sample, float bitcrush) {
+    if ((uint32_t)bitcrush == 0)
+        return sample;
+
+    float crushedSample;
+    uint32_t moveAmount = 24 - (uint32_t)bitcrush;
+
+    uint32_t mult = 0 | (1 << moveAmount);
+
+    crushedSample = roundf((float)mult * sample) / (float)mult;
+
+    return crushedSample;
+}
+
 float getNoiseSample(uint16_t voice) {
     float &bitcrusher = layerA.noise.bitcrusher.currentSample[voice];
 
@@ -108,6 +123,7 @@ float getNoiseSample(uint16_t voice) {
 float getSubSample(uint16_t voice) {
 
     const float &stepWavetableA = layerA.oscA.stepWavetableA[voice];
+    const float &bitcrusher = layerA.sub.bitcrusher.currentSample[voice];
     const float shape = layerA.sub.shape.currentSample[voice] == 0 ? 0.0001f : layerA.sub.shape.currentSample[voice];
 
     float sample;
@@ -119,14 +135,16 @@ float getSubSample(uint16_t voice) {
 
     float phase = checkWavetableLength / (float)MINWAVETABLELENGTH;
 
+    // TODO sub maybe needs fixing - audio check
+
     if (phase < 0.5f) {
-        sample = testFloat(phase * (2 / shape), -1, 1) - 1;
+        sample = testFloat(phase * (2 / shape) - 1, -1, 1);
     }
     else {
-        sample = (testFloat((phase - 0.5) * (2 / shape), -1, 1) - 1) * -1;
+        sample = testFloat((phase - 0.5) * (2 / shape) - 1, -1, 1) * -1;
     }
 
-    // TODO bitcrushing
+    sample = bitcrush(sample, bitcrusher);
 
     return sample;
 }
@@ -137,6 +155,8 @@ float getOscASample(uint16_t voice) {
     float &stepWavetableB = layerA.oscA.stepWavetableB[voice];
     const float &morph = layerA.oscA.morph.currentSample[voice];
     const float &noteStep = layerA.oscA.note.currentSample[voice];
+    const float &bitcrusher = layerA.oscA.bitcrusher.currentSample[voice];
+
     float sample;
 
     // make sure to be in the right step range
@@ -152,7 +172,7 @@ float getOscASample(uint16_t voice) {
     stepWavetableA += noteStep;
     stepWavetableB += noteStep;
 
-    // TODO bitcrushing
+    sample = bitcrush(sample, bitcrusher);
 
     return sample;
 }
@@ -170,6 +190,7 @@ float getOscBSample(uint16_t voice) {
 
     const float &morph = layerA.oscB.morph.currentSample[voice];
     const float &noteStep = layerA.oscB.note.currentSample[voice];
+    const float &bitcrusher = layerA.oscB.bitcrusher.currentSample[voice];
 
     float sample;
     float checkWavetableLength;
@@ -200,12 +221,11 @@ float getOscBSample(uint16_t voice) {
     stepWavetableA += noteStep;
     stepWavetableB += noteStep;
 
-    // TODO bitcrushing
+    sample = bitcrush(sample, bitcrusher);
 
     return sample;
 }
 
-// TODO Audio rendering, split into render voice, with output assignement, also render into module outs
 /**
  * @brief render specific voice
  *
@@ -265,7 +285,7 @@ void renderVoice(int32_t *renderDest, uint16_t samples, uint16_t voice, uint16_t
         }
     }
 }
-
+// elapsedMicros timer = 0;
 /**
  * @brief render all Audio Samples
  *
@@ -273,10 +293,13 @@ void renderVoice(int32_t *renderDest, uint16_t samples, uint16_t voice, uint16_t
  * @param samples amount of samples to render
  */
 void renderAudio(int32_t *renderDest, uint16_t samples) {
+
+    // TODO output assigment
+
     // render voice 1
-    renderVoice(renderDest, samples, 0, 2, 3);
+    renderVoice(renderDest, samples, 0, 0, 1);
     // render voice 2
-    renderVoice(renderDest, samples, 1, 0, 1);
+    renderVoice(renderDest, samples, 1, 2, 3);
     // render voice 3
     renderVoice(renderDest, samples, 2, 4, 5);
     // render voice 4

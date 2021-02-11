@@ -91,13 +91,16 @@ class MCP4728 {
     // transmit data in fastMode
     inline void fastUpdate() {
         // pData[0] |= 0b01000000; // enable FastMode
-
+        uint32_t *dataAsInt = (uint32_t *)data;
         // each half word needs to be swapped, because of reasons
         // uint8_t sendOut[8];
-        ((uint32_t *)data)[0] = __REV16(((uint32_t *)data)[0]);
-        ((uint32_t *)data)[1] = __REV16(((uint32_t *)data)[1]);
+        dataAsInt[0] = __REV16(dataAsInt[0]);
+        dataAsInt[1] = __REV16(dataAsInt[1]);
 
-        fast_copy_f32((uint32_t *)data, (uint32_t *)dmabuffer, 2);
+        uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
+
+        bufferAsInt[0] = dataAsInt[0];
+        bufferAsInt[1] = dataAsInt[1];
 
         // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
         if (HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8) != HAL_OK) {

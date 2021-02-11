@@ -39,7 +39,8 @@ void PolyRenderInit() {
     // TODO copy wavetables to RAM D1
     initAudioRendering();
 
-    initCVRendering();
+    // probably obsolete
+    // initCVRendering();
 
     // CV DACs
     cvDacA.init();
@@ -107,6 +108,10 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE);
 }
 
+void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
+    PolyError_Handler("SAI error callback");
+}
+
 // reception from Control SPI
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
@@ -129,14 +134,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
-        // println("timer interrupt: ", micros());
         if (FlagHandler::cvDacCFinished) {
-            // println("dac rendering was done");
             FlagHandler::cvDacCFinished = false;
             cvDacA.resetLatchPin();
             cvDacB.resetLatchPin();
             cvDacC.resetLatchPin();
-            FlagHandler::renderNewCV = true;
         }
+        FlagHandler::renderNewCV = true;
     }
 }

@@ -173,8 +173,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
         /* USER CODE BEGIN TIM13_MspPostInit 0 */
 
         /* USER CODE END TIM13_MspPostInit 0 */
-
         __HAL_RCC_GPIOF_CLK_ENABLE();
+#ifdef POLYCONTROL
         /**TIM13 GPIO Configuration
         PF8     ------> TIM13_CH1
         */
@@ -184,7 +184,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF9_TIM13;
         HAL_GPIO_Init(Display_PWM_GPIO_Port, &GPIO_InitStruct);
-
+#endif
         /* USER CODE BEGIN TIM13_MspPostInit 1 */
 
         /* USER CODE END TIM13_MspPostInit 1 */

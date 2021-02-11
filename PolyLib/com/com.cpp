@@ -639,7 +639,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         currentByte = (inBufferPointer[currentBufferSelect])[i];
-        // println("currentByte: ", currentByte);
 
         switch (currentByte & CMD_TYPEMASK) {
 

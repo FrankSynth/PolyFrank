@@ -23,6 +23,7 @@ class BaseModule {
     inline std::vector<Analog *> &getPotis() { return knobs; }
     inline std::vector<Digital *> &getSwitches() { return switches; }
     inline std::vector<Setting *> &getSettings() { return settings; }
+    inline std::vector<RenderBuffer *> &getRenderBuffer() { return renderBuffer; }
 
     uint8_t id;
     uint8_t layerId;
@@ -33,6 +34,7 @@ class BaseModule {
     std::vector<Analog *> knobs;
     std::vector<Digital *> switches;
     std::vector<Setting *> settings;
+    std::vector<RenderBuffer *> renderBuffer;
 
     inline virtual void resetPhase(uint16_t voice) {}
 
@@ -124,15 +126,13 @@ class OSC_A : public BaseModule {
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
 
     // render shizzle
-
-    std::vector<RenderBuffer *> renderBuffer;
 
     RenderBuffer note;
     RenderBuffer morph;
@@ -144,9 +144,7 @@ class OSC_A : public BaseModule {
     float stepWavetableA[VOICESPERCHIP] = {0};
     float stepWavetableB[VOICESPERCHIP] = {0};
 
-    inline void gateOn(uint16_t voice) {
-        // TODO gate on OSC A
-    }
+    inline void gateOn(uint16_t voice) {}
 };
 
 class OSC_B : public BaseModule {
@@ -189,7 +187,7 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0.5, true, logMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
@@ -198,8 +196,6 @@ class OSC_B : public BaseModule {
     Digital dSync = Digital("SYNC OSC A", 0, 1, 0, true, &nlOnOff);
 
     // render shizzle
-
-    std::vector<RenderBuffer *> renderBuffer;
 
     RenderBuffer note;
     RenderBuffer morph;
@@ -212,9 +208,7 @@ class OSC_B : public BaseModule {
     float stepWavetableA[VOICESPERCHIP] = {0};
     float stepWavetableB[VOICESPERCHIP] = {0};
 
-    inline void gateOn(uint16_t voice) {
-        // TODO gate on OSC B
-    }
+    inline void gateOn(uint16_t voice) {}
 };
 
 class Sub : public BaseModule {
@@ -245,14 +239,12 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
 
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
 
     // render shizzle
-
-    std::vector<RenderBuffer *> renderBuffer;
 
     RenderBuffer shape;
     RenderBuffer levelSteiner;
@@ -290,8 +282,6 @@ class Noise : public BaseModule {
 
     // render shizzle
 
-    std::vector<RenderBuffer *> renderBuffer;
-
     RenderBuffer levelSteiner;
     RenderBuffer levelLadder;
     RenderBuffer bitcrusher;
@@ -307,8 +297,14 @@ class Steiner : public BaseModule {
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
         knobs.push_back(&aLevel);
+        knobs.push_back(&aParSer);
 
         switches.push_back(&dMode);
+
+        renderBuffer.push_back(&resonance);
+        renderBuffer.push_back(&level);
+        renderBuffer.push_back(&cutoff);
+        renderBuffer.push_back(&toLadder);
     }
     Input iCutoff = Input("CUTOFF");
     Input iResonance = Input("RESONANCE");
@@ -317,8 +313,16 @@ class Steiner : public BaseModule {
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
+
+    // render shizzle
+
+    RenderBuffer resonance;
+    RenderBuffer level;
+    RenderBuffer cutoff;
+    RenderBuffer toLadder;
 };
 
 class Ladder : public BaseModule {
@@ -331,9 +335,12 @@ class Ladder : public BaseModule {
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
         knobs.push_back(&aLevel);
-        knobs.push_back(&aParSer);
 
         switches.push_back(&dSlope);
+
+        renderBuffer.push_back(&resonance);
+        renderBuffer.push_back(&level);
+        renderBuffer.push_back(&cutoff);
     }
 
     Input iCutoff = Input("CUTOFF");
@@ -343,23 +350,32 @@ class Ladder : public BaseModule {
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
-    Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
+
+    // render shizzle
+
+    RenderBuffer resonance;
+    RenderBuffer level;
+    RenderBuffer cutoff;
 };
 
 class Distortion : public BaseModule {
   public:
     Distortion(const char *name) : BaseModule(name) { // call subclass
 
-        inputs.push_back(&iDrive);
+        inputs.push_back(&iDistort);
 
-        knobs.push_back(&aDrive);
+        knobs.push_back(&aDistort);
+
+        renderBuffer.push_back(&distort);
     }
 
-    Input iDrive = Input("DRIVE");
+    Input iDistort = Input("DRIVE");
 
-    Analog aDrive = Analog("DRIVE", 0, 1, 0, true, logMap, &iDrive);
+    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, logMap, &iDistort);
+
+    RenderBuffer distort;
 };
 
 class LFO : public BaseModule {
@@ -545,6 +561,9 @@ class GlobalModule : public BaseModule {
         knobs.push_back(&aPan);
         knobs.push_back(&aSpread);
         knobs.push_back(&aDetune);
+
+        renderBuffer.push_back(&left);
+        renderBuffer.push_back(&right);
     }
 
     Input iVCA = Input("VCA");
@@ -555,4 +574,7 @@ class GlobalModule : public BaseModule {
     Analog aPan = Analog("PAN", 0, 1, 0, true, logMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
+
+    RenderBuffer left;
+    RenderBuffer right;
 };
