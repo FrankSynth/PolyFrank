@@ -93,13 +93,26 @@ void LiveData::clockHandling() {
             }
 
             // LFO Sync
-            if (allLayers[i]->lfoA.dClockSync.valueMapped &&
-                !(clock.counter % allLayers[i]->lfoA.dClockStep.valueMapped)) {
+
+            uint32_t clockTicksPerStepLFOA = clockTicksPerStep[allLayers[i]->lfoA.dClockStep.valueMapped];
+
+            if (allLayers[i]->lfoA.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOA)) {
                 layerCom[i].sendRetrigger(allLayers[i]->lfoA.id, 8); // all voices = 8
+
+                if (clock.counter % allLayers[i]->lfoA.dFreqSnap.valueMapped) {
+                    float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOA / 60.;
+                    allLayers[i]->lfoA.aFreq.setValueWithoutMapping(freq);
+                }
             }
-            if (allLayers[i]->lfoB.dClockSync.valueMapped &&
-                !(clock.counter % allLayers[i]->lfoB.dClockStep.valueMapped)) {
+
+            uint32_t clockTicksPerStepLFOB = clockTicksPerStep[allLayers[i]->lfoB.dClockStep.valueMapped];
+            if (allLayers[i]->lfoB.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOB)) {
                 layerCom[i].sendRetrigger(allLayers[i]->lfoB.id, 8); // all voices = 8
+
+                if (clock.counter % allLayers[i]->lfoB.dFreqSnap.valueMapped) {
+                    float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOB;
+                    allLayers[i]->lfoB.aFreq.setValueWithoutMapping(freq);
+                }
             }
             // ADSR Sync
             // if (allLayers[i]->adsrA.dClockSync.value && !(clock.counter % allLayers[i]->adsrA.dClock.value)) {

@@ -163,8 +163,6 @@ void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint
     if (name != nullptr) {
         drawRectangleChampfered(cGrey, x, y, w, h, 1);
 
-        // get text
-
         // Draw Name
         if (select) {
             drawRectangleChampfered(cWhite, x, y, w, h, 1);
@@ -178,16 +176,30 @@ void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint
 }
 
 void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
-                          uint8_t patched) {
+                          uint8_t patched, uint8_t showModuleName) {
 
+    uint32_t colorFont;
     if (select) {
         drawRectangleChampfered(cWhite, x, y, w, h, 1);
-        drawString(element->name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        colorFont = cFont_Select;
     }
     else {
         drawRectangleChampfered(cGrey, x, y, w, h, 1);
 
-        drawString(element->name, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        colorFont = cFont_Deselect;
+    }
+
+    if (showModuleName) {
+
+        uint8_t layerID = element->layerId;
+        uint8_t moduleID = element->moduleId;
+
+        drawString(allLayers[layerID]->getModules()[moduleID]->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2,
+                   fontMedium, LEFT);
+        drawString(element->name, colorFont, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+    }
+    else {
+        drawString(element->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
     }
 
     if (patched == 1) {
@@ -203,20 +215,32 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
 }
 
 void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, uint16_t y, uint16_t w, uint16_t h,
-                          uint8_t select, uint8_t patched) {
+                          uint8_t select, uint8_t patched, uint8_t showModuleName) {
 
     int valueBarHeigth = 6;
 
+    uint32_t colorFont;
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h - valueBarHeigth - 1, 1);
-        drawString(element->name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - valueBarHeigth / 2,
-                   fontMedium, CENTER);
+        drawRectangleChampfered(cWhite, x, y, w, h - valueBarHeigth - 2, 1);
+        colorFont = cFont_Select;
     }
     else {
         drawRectangleChampfered(cGrey, x, y, w, h, 1);
 
-        drawString(element->name, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - valueBarHeigth / 2,
-                   fontMedium, CENTER);
+        colorFont = cFont_Deselect;
+    }
+
+    if (showModuleName) {
+
+        uint8_t layerID = element->layerId;
+        uint8_t moduleID = element->moduleId;
+
+        drawString(allLayers[layerID]->getModules()[moduleID]->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2,
+                   fontMedium, LEFT);
+        drawString(element->name, colorFont, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+    }
+    else {
+        drawString(element->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
     }
 
     if (patched == 1) {
@@ -253,11 +277,11 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
 
     if (select) {
         drawRectangleChampfered(cWhite, x, y, w, h, 1);
-        drawString(element->name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        drawString(element->name, cFont_Select, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
         drawRectangleChampfered(cGrey, x, y, w, h, 1);
-        drawString(element->name, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        drawString(element->name, cFont_Deselect, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
 
     if (patched == 1) {
@@ -486,7 +510,7 @@ void Patch_PanelElement::Draw() {
             return;
         }
         if (patch == nullptr) {
-            drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+            drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched, showModuleName);
         }
         else {
 
@@ -496,7 +520,8 @@ void Patch_PanelElement::Draw() {
                     {std::bind(&PatchElementInOut::changeAmount, patch, -0.05), "AMOUNT"},
                     {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
             }
-            drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+            drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
+                                 showModuleName);
         }
     }
     // reset Marker
