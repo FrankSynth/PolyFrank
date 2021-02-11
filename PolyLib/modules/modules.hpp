@@ -311,8 +311,8 @@ class Steiner : public BaseModule {
     Input iLevel = Input("LEVEL");
 
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
@@ -348,8 +348,8 @@ class Ladder : public BaseModule {
     Input iLevel = Input("LEVEL");
 
     Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
-    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, logMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
 
@@ -373,7 +373,7 @@ class Distortion : public BaseModule {
 
     Input iDistort = Input("DRIVE");
 
-    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, logMap, &iDistort);
+    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
 
     RenderBuffer distort;
 };
@@ -569,9 +569,9 @@ class GlobalModule : public BaseModule {
     Input iVCA = Input("VCA");
     Input iPan = Input("LEVEL");
 
-    Analog aVCA = Analog("VCA", 0, 1, 0, true, logMap, &iVCA);
+    Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);
-    Analog aPan = Analog("PAN", 0, 1, 0, true, logMap, &iPan);
+    Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
 

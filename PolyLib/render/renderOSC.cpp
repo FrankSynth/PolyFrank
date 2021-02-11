@@ -23,6 +23,8 @@ inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
 }
 
 inline float accumulateNote(OSC_A &osc_a, uint16_t voice) {
+    // TODO glide missing
+    // TODO detune missing
     float note;
 
     // A0 = 0, A1 = 1, ...

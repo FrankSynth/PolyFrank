@@ -4,12 +4,14 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include "renderADSR.hpp"
 #include "renderDistort.hpp"
+#include "renderGlobal.hpp"
 #include "renderLFO.hpp"
 #include "renderLadder.hpp"
 #include "renderNoise.hpp"
 #include "renderOSC.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
+
 
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
@@ -52,14 +54,6 @@ void renderMidiModule(Midi midi) {
         midi.oNote.nextSample[voice] = (float)midi.rawNote[voice] / 127.0f;
         midi.oVeloctiy.nextSample[voice] = (float)midi.rawVelocity[voice] / 127.0f;
         midi.oGate.nextSample[voice] = midi.rawGate[voice];
-    }
-}
-
-void renderGlobalModule(GlobalModule globalModule) {
-
-    // TODO render global
-
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
     }
 }
 
