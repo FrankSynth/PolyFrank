@@ -235,7 +235,7 @@ void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
     this->id = id;
     this->pathVisible = pathVisible;
 
-    uint16_t elementSpaceX = 40;
+    uint16_t elementSpaceX = 35;
     // elements Sizes
     uint16_t elementWidth = (width - 2 * elementSpaceX) / 3;
     uint16_t elementSpaceY = 3;

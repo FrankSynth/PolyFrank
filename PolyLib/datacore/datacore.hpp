@@ -169,7 +169,6 @@ class Analog : public DataElement {
         }
 #endif
     }
-    inline void setValueWithoutMapping(uint8_t *newValue) { value = *(float *)newValue; }
 
     const std::string &getValueAsString();
 
