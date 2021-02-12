@@ -288,6 +288,8 @@ class Noise : public BaseModule {
 };
 
 class Steiner : public BaseModule {
+    // TODO Steiner ADSR knob
+
   public:
     Steiner(const char *name) : BaseModule(name) { // call subclass
         inputs.push_back(&iCutoff);
@@ -315,7 +317,7 @@ class Steiner : public BaseModule {
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
 
-    Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
+    Digital dMode = Digital("MODE", 0, 3, 3, true, &nlSteinerModes);
 
     // render shizzle
 
@@ -326,6 +328,7 @@ class Steiner : public BaseModule {
 };
 
 class Ladder : public BaseModule {
+    // TODO Ladder ADSR knob
   public:
     Ladder(const char *name) : BaseModule(name) { // call subclass
         inputs.push_back(&iCutoff);
@@ -351,7 +354,7 @@ class Ladder : public BaseModule {
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
-    Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
+    Digital dSlope = Digital("SLOPE", 0, 0, 0, true, &nlLadderSlopes);
 
     // render shizzle
 
@@ -421,7 +424,7 @@ class LFO : public BaseModule {
             resetAllPhases();
         }
         else {
-            currentTime[voice] = 0;
+            currentTime[voice] = 1;
             newPhase[voice] = true;
         }
     }
@@ -550,6 +553,8 @@ class ADSR : public BaseModule {
 };
 
 class GlobalModule : public BaseModule {
+    // TODO VCA ADSR knob
+
   public:
     GlobalModule(const char *name) : BaseModule(name) { // call subclass
 
@@ -567,7 +572,7 @@ class GlobalModule : public BaseModule {
     }
 
     Input iVCA = Input("VCA");
-    Input iPan = Input("LEVEL");
+    Input iPan = Input("PAN");
 
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);

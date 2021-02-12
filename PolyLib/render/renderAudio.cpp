@@ -92,9 +92,9 @@ inline float bitcrush(float sample, float bitcrush) {
         return sample;
 
     float crushedSample;
-    uint32_t moveAmount = 24 - (uint32_t)bitcrush;
+    uint32_t moveAmount = 23 - (uint32_t)bitcrush;
 
-    uint32_t mult = 0 | (1 << moveAmount);
+    uint32_t mult = 1 | (1 << moveAmount);
 
     crushedSample = roundf((float)mult * sample) / (float)mult;
 
@@ -297,13 +297,13 @@ void renderAudio(int32_t *renderDest, uint16_t samples) {
     // TODO output assigment
 
     // render voice 1
-    renderVoice(renderDest, samples, 0, 0, 1);
+    renderVoice(renderDest, samples, 0, 3, 4);
     // render voice 2
-    renderVoice(renderDest, samples, 1, 2, 3);
+    renderVoice(renderDest, samples, 1, 5, 2);
     // render voice 3
-    renderVoice(renderDest, samples, 2, 4, 5);
+    renderVoice(renderDest, samples, 2, 1, 0);
     // render voice 4
-    renderVoice(renderDest, samples, 3, 6, 7);
+    renderVoice(renderDest, samples, 3, 7, 6);
 }
 
 #endif

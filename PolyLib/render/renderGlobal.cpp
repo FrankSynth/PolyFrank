@@ -2,6 +2,8 @@
 
 #include "renderGlobal.hpp"
 
+LogCurve panningAntiLog(16, 0.9);
+
 inline float accumulatePan(GlobalModule globalModule, uint16_t voice) {
     return testFloat(globalModule.iPan.currentSample[voice] + globalModule.aPan.valueMapped, globalModule.aPan.min,
                      globalModule.aPan.max);
@@ -27,8 +29,8 @@ void renderGlobalModule(GlobalModule globalModule) {
         float panRight = (pan + 1) * 0.5f;
         float panLeft = (-1 * pan + 1) * 0.5f;
 
-        float left = vca * panLeft;
-        float right = vca * panRight;
+        float left = vca * panningAntiLog.mapValue(panLeft);
+        float right = vca * panningAntiLog.mapValue(panRight);
 
         outLeft[voice] = testFloat(left, 0, 1);
         outRight[voice] = testFloat(right, 0, 1);

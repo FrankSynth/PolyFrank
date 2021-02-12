@@ -5,8 +5,7 @@
 #define INPUTWEIGHTING 1
 
 inline float accumulateLevel(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iLevel.currentSample[voice] + steiner.aLevel.valueMapped, steiner.aLevel.min,
-                     steiner.aLevel.max);
+    return testFloat(steiner.iLevel.currentSample[voice] + steiner.aLevel.valueMapped, 0, 1);
 }
 inline float accumulateCutoff(Steiner &steiner, uint16_t voice) {
     return testFloat(steiner.iCutoff.currentSample[voice] * steiner.aCutoff.valueMapped * INPUTWEIGHTING +
@@ -16,7 +15,7 @@ inline float accumulateCutoff(Steiner &steiner, uint16_t voice) {
 inline float accumulateResonance(Steiner &steiner, uint16_t voice) {
     return testFloat(steiner.iResonance.currentSample[voice] * steiner.aResonance.valueMapped * INPUTWEIGHTING +
                          steiner.aResonance.valueMapped,
-                     steiner.aResonance.min, steiner.aResonance.max);
+                     0, 1);
 }
 
 void renderSteiner(Steiner &steiner) {
@@ -29,7 +28,7 @@ void renderSteiner(Steiner &steiner) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         outLevel[voice] = accumulateLevel(steiner, voice);
         outResonance[voice] = accumulateResonance(steiner, voice);
-        outCutoff[voice] = accumulateCutoff(steiner, voice);
+        outCutoff[voice] = accumulateCutoff(steiner, voice) / 20000;
         outToLadder[voice] = steiner.aParSer.valueMapped;
     }
 }

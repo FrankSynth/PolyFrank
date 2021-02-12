@@ -772,6 +772,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                         layerA.getModules()[modul]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
 
+                        // println("setting Int: ", amountInt);
+
                         break;
                     case UPDATESETTINGFLOAT:
                         setting = currentByte & CMD_SETTINGSMASK;
@@ -779,6 +781,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         i += sizeof(float) - 1;
 
                         layerA.getModules()[modul]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
+
+                        // println("setting float: ", amountFloat);
 
                         break;
                     case RETRIGGER: layerA.getModules()[modul]->resetPhase(voice); break;

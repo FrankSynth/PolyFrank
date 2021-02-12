@@ -5,8 +5,7 @@
 #define INPUTWEIGHTING 1
 
 inline float accumulateDistort(Distortion &distort, uint16_t voice) {
-    return testFloat(distort.iDistort.currentSample[voice] + distort.aDistort.valueMapped, distort.aDistort.min,
-                     distort.aDistort.max);
+    return testFloat(distort.iDistort.currentSample[voice] + distort.aDistort.valueMapped, 0, 1);
 }
 
 void renderDistort(Distortion &distort) {

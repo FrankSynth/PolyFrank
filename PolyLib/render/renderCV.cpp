@@ -12,7 +12,6 @@
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
 
-
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
 extern MCP4728 cvDacC;
@@ -61,20 +60,75 @@ void writeDataToDACBuffer() {
 
     // TODO output assigment
 
-    cvDacA.data[0] = layerA.ladder.resonance.currentSample[0] * 4095;
-    cvDacA.data[1] = layerA.distort.distort.currentSample[0] * 4095;
-    cvDacA.data[2] = layerA.ladder.cutoff.currentSample[0] * 4095;
-    cvDacA.data[3] = layerA.globalModule.right.currentSample[0] * 4095;
+    // static elapsedMillis timer = 0;
+
+    cvDacA.data[0] = (1 - layerA.ladder.resonance.currentSample[0]) * 4095;
+    cvDacA.data[1] = (1 - layerA.distort.distort.currentSample[0]) * 4095;
+    cvDacA.data[2] = (1 - layerA.ladder.cutoff.currentSample[0]) * 4095;
+    cvDacA.data[3] = (1 - layerA.globalModule.right.currentSample[0]) * 4095;
 
     cvDacB.data[0] = 0;
-    cvDacB.data[1] = layerA.globalModule.left.currentSample[0] * 4095;
+    cvDacB.data[1] = (1 - layerA.globalModule.left.currentSample[0]) * 4095;
     cvDacB.data[2] = layerA.steiner.cutoff.currentSample[0] * 4095;
-    cvDacB.data[3] = layerA.ladder.level.currentSample[0] * 4095;
+    cvDacB.data[3] = (1 - layerA.ladder.level.currentSample[0]) * 4095;
 
-    cvDacC.data[0] = layerA.steiner.level.currentSample[0] * 4095;
-    cvDacC.data[1] = layerA.steiner.resonance.currentSample[0] * 4095;
-    cvDacC.data[2] = layerA.steiner.toLadder.currentSample[0] * 4095;
+    cvDacC.data[0] = (1 - layerA.steiner.level.currentSample[0]) * 4095;
+    cvDacC.data[1] = (1 - layerA.steiner.resonance.currentSample[0]) * 4095;
+    cvDacC.data[2] = (1 - layerA.steiner.toLadder.currentSample[0]) * 4095;
     cvDacC.data[3] = 0;
+
+    // if (timer > 1000) {
+    //     timer = 0;
+    //     println("laddercutoff");
+    // }
+}
+
+void setSwitches() {
+
+    const int32_t &steinerMode = layerA.steiner.dMode.valueMapped;
+    const int32_t &ladderMode = layerA.ladder.dSlope.valueMapped;
+
+    switch (steinerMode) {
+        case 0:
+            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
+            break;
+        case 1:
+            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
+            break;
+        case 2:
+            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
+            break;
+        case 3:
+            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
+            break;
+
+        default: PolyError_Handler("renderCV | setSwitches | wrong steinerMode"); break;
+    }
+
+    switch (ladderMode) {
+        case 0:
+            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
+            break;
+        case 1:
+            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
+            break;
+        case 2:
+            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
+            break;
+        case 3:
+            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
+            break;
+
+        default: PolyError_Handler("renderCV | setSwitches | wrong ladderMode"); break;
+    }
 }
 
 void setLEDs() {
@@ -88,6 +142,12 @@ void setLEDs() {
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, fastMapLEDBrightness(layerA.lfoB.out.currentSample[0] + 1) * 511);
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, fastMapLEDBrightness(0));
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, fastMapLEDBrightness(0));
+}
+
+void closeDacLines() {
+    cvDacA.resetLatchPin();
+    cvDacB.resetLatchPin();
+    cvDacC.resetLatchPin();
 }
 
 // elapsedMicros rendertimecv;
@@ -114,6 +174,7 @@ void renderCVs() {
     updateAllOutputSamples();
 
     writeDataToDACBuffer();
+    setSwitches();
 
     // uint32_t time = rendertimecv;
     // println(time);

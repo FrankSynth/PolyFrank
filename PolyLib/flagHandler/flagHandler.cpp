@@ -110,6 +110,7 @@ bool cvDacAStarted;
 bool cvDacBStarted;
 bool cvDacCStarted;
 bool cvDacCFinished;
+// std::function<void()> cvDacCFinishedFunc;
 
 bool renderNewCV;
 std::function<void()> renderNewCVFunc;
@@ -210,7 +211,7 @@ void handleFlags() {
 #elif POLYRENDER
 
     if (renderNewCV) {
-        FlagHandler::renderNewCV = false;
+        renderNewCV = false;
         renderNewCVFunc();
     }
 

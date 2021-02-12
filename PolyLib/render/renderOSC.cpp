@@ -28,7 +28,7 @@ inline float accumulateNote(OSC_A &osc_a, uint16_t voice) {
     float note;
 
     // A0 = 0, A1 = 1, ...
-    note = (layerA.midi.rawNote[voice] - 21) / 12;
+    note = (float)(layerA.midi.rawNote[voice] - 21) / (float)12.0f;
 
     // TODO settings pitchbend range missing
     note += layerA.midi.oPitchbend.currentSample[voice];
@@ -98,7 +98,8 @@ inline float accumulateNote(OSC_B &osc_b, uint16_t voice) {
     float note;
 
     // A0 = 0, A1 = 1, ...
-    note = (layerA.midi.rawNote[voice] - 21) / 12;
+    // TODO can be done for both osc at once
+    note = (float)(layerA.midi.rawNote[voice] - 21) / (float)12.0f;
 
     // TODO settings pitchbend range missing
     note += layerA.midi.oPitchbend.currentSample[voice];
@@ -111,6 +112,8 @@ inline float accumulateNote(OSC_B &osc_b, uint16_t voice) {
 }
 
 void renderOSC_B(OSC_B &osc_B) {
+
+    // TODO sine wave out for testing
 
     float *outNote = osc_B.note.nextSample;
     float *outMorph = osc_B.morph.nextSample;

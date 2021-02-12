@@ -147,14 +147,18 @@ void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
 }
 
 void Input::collectCurrentSample() {
+
+    // TODO Log input amount
     currentSample[0] = 0;
     currentSample[1] = 0;
     currentSample[2] = 0;
     currentSample[3] = 0;
     for (PatchElementInOut *patch : patchesInOut) {
-        currentSample[0] += patch->sourceOut->currentSample[0] * patch->getAmount();
-        currentSample[1] += patch->sourceOut->currentSample[1] * patch->getAmount();
-        currentSample[2] += patch->sourceOut->currentSample[2] * patch->getAmount();
-        currentSample[3] += patch->sourceOut->currentSample[3] * patch->getAmount();
+        Output *sourceOut = patch->sourceOut;
+        float amount = patch->getAmount();
+        currentSample[0] += sourceOut->currentSample[0] * amount;
+        currentSample[1] += sourceOut->currentSample[1] * amount;
+        currentSample[2] += sourceOut->currentSample[2] * amount;
+        currentSample[3] += sourceOut->currentSample[3] * amount;
     }
 }

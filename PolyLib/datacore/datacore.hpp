@@ -300,6 +300,8 @@ class Input : public BasePatch {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
     }
+
+    // TODO give lin/log ability
     float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
 
     // calculate all inputs with their attached patchesInOut

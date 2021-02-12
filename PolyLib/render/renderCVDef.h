@@ -1,3 +1,3 @@
 #pragma once
 
-#define CVTIMERINTERVALUS 250
+#define CVTIMERINTERVALUS 200

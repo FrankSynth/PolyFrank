@@ -5,8 +5,7 @@
 #define INPUTWEIGHTING 1
 
 inline float accumulateLevel(Ladder &ladder, uint16_t voice) {
-    return testFloat(ladder.iLevel.currentSample[voice] + ladder.aLevel.valueMapped, ladder.aLevel.min,
-                     ladder.aLevel.max);
+    return testFloat(ladder.iLevel.currentSample[voice] + ladder.aLevel.valueMapped, 0, 1);
 }
 inline float accumulateCutoff(Ladder &ladder, uint16_t voice) {
     return testFloat(ladder.iCutoff.currentSample[voice] * ladder.aCutoff.valueMapped * INPUTWEIGHTING +
@@ -16,7 +15,7 @@ inline float accumulateCutoff(Ladder &ladder, uint16_t voice) {
 inline float accumulateResonance(Ladder &ladder, uint16_t voice) {
     return testFloat(ladder.iResonance.currentSample[voice] * ladder.aResonance.valueMapped * INPUTWEIGHTING +
                          ladder.aResonance.valueMapped,
-                     ladder.aResonance.min, ladder.aResonance.max);
+                     0, 1);
 }
 
 void renderLadder(Ladder &ladder) {
@@ -27,7 +26,7 @@ void renderLadder(Ladder &ladder) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         outLevel[voice] = accumulateLevel(ladder, voice);
         outResonance[voice] = accumulateResonance(ladder, voice);
-        outCutoff[voice] = accumulateCutoff(ladder, voice);
+        outCutoff[voice] = accumulateCutoff(ladder, voice) / 20000;
     }
 }
 

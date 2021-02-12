@@ -54,13 +54,12 @@ void renderLFO(LFO &lfo) {
         float &currentSample = lfo.out.currentSample[voice];
         bool &newPhase = lfo.newPhase[voice];
 
-        phase += speed * secondsPerCVRender;
-        if (phase > 1) {
-            phase -= 1;
-            newPhase = true;
-        }
-        else {
-            newPhase = false;
+        if (newPhase == false) {
+            phase += speed * secondsPerCVRender;
+            if (phase > 1) {
+                phase -= 1;
+                newPhase = true;
+            }
         }
 
         if (shape < 1) {
@@ -104,6 +103,8 @@ void renderLFO(LFO &lfo) {
             }
             break;
         }
+
+        newPhase = false;
     }
 }
 

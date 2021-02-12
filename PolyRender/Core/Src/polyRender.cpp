@@ -95,6 +95,11 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     else if (FlagHandler::cvDacCStarted) {
         FlagHandler::cvDacCStarted = false;
         FlagHandler::cvDacCFinished = true;
+        cvDacA.resetLatchPin();
+        cvDacB.resetLatchPin();
+        cvDacC.resetLatchPin();
+
+        // TODO check if lines go down
     }
 }
 // void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
@@ -136,9 +141,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
         if (FlagHandler::cvDacCFinished) {
             FlagHandler::cvDacCFinished = false;
-            cvDacA.resetLatchPin();
-            cvDacB.resetLatchPin();
-            cvDacC.resetLatchPin();
+            cvDacA.setLatchPin();
+            cvDacB.setLatchPin();
+            cvDacC.setLatchPin();
+
+            // out DacB and DacC gets automatially triggered by flags when transmission is done
+            cvDacA.fastUpdate();
+            FlagHandler::cvDacAStarted = true;
+        }
+        else {
+            PolyError_Handler("polyRender | timerCallback | cvDacCFinished = false");
         }
         FlagHandler::renderNewCV = true;
     }
