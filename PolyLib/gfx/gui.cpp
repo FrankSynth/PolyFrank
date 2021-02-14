@@ -294,10 +294,15 @@ void GUI::Draw() {
     setRenderState(RENDER_WAIT);
 }
 void GUI::setFocus(location newFocus) {
-
+    if (focus.modul != newFocus.modul || focus.layer != newFocus.layer || focus.id != newFocus.id) {
+        oldActivePanelID = activePanelID;
+        activePanel = panels[4];
+        activePanelID = 4;
+    }
+    else {
+        setPanelActive(4); // back to last panel
+    }
     focus = newFocus;
-
-    setPanelActive(4); // activate Focus Panel
 }
 
 // PanelSelect

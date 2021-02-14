@@ -38,6 +38,9 @@ extern std::function<void()> Panel_0_EOC_ISR;
 extern bool Panel_1_EOC_Interrupt;
 extern std::function<void()> Panel_1_EOC_ISR;
 
+extern bool interChipA_READY[2];
+extern bool interChipB_READY[2];
+
 // Display
 extern bool renderingDoneSwitchBuffer;
 

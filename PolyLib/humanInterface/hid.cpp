@@ -74,7 +74,7 @@ void initHID() {
 
     switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
-    HAL_Delay(1000);
+    HAL_Delay(250);
 
     // init Panel touch ICS
     for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
@@ -271,7 +271,7 @@ void initPotiMapping() { // TODO fill mapping
     potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aCutoff), std::placeholders::_1);
     potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aLevel), std::placeholders::_1);
     potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aResonance), std::placeholders::_1);
-    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.a), std::placeholders::_1);
+    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->globalModule.aVCA), std::placeholders::_1);
 }
 void updatePatchLED() {
 

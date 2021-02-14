@@ -50,20 +50,18 @@ void PolyControlInit() {
     // enable Panel
     HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET); // Enable Panel Board
 
-    // Init Encoder, Touchbuttons,..
-    initHID();
-
     // init EEPROM
     initPreset();
 
+    // Init Encoder, Touchbuttons,..
+    initHID();
+
     // init UI, Display
     ui.Init();
-
     // enable display
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
 
     ////////Sofware init////////
-
     // init communication to render chip
     layerCom[0].initOutTransmission(
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
@@ -98,7 +96,7 @@ uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
 
 void PolyControlRun() { // Here the party starts
 
-    location tempFocus = {0, allLayers[0]->adsrA.id, 0, FOCUSMODULE};
+    location tempFocus = {0, allLayers[0]->steiner.id, 0, FOCUSMODULE};
 
     // temp set focus
     ui.setFocus(tempFocus);
@@ -231,6 +229,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         case GPIO_PIN_11: FlagHandler::Panel_0_EOC_Interrupt = true; break;     // Panel 1 -> EOC
 
         case GPIO_PIN_2: FlagHandler::Control_Touch_Interrupt = true; break; // touch
+
+        case GPIO_PIN_3: break; // Layer 2 Ready 1
+        case GPIO_PIN_4: break; // Layer 2 Ready 2
+        case GPIO_PIN_6:
+            if (HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin)) {
+
+                println("setReady");
+                FlagHandler::interChipA_READY[0] = true;
+            }
+            break;              // Layer 1 Ready 1
+        case GPIO_PIN_7: break; // Layer 1 Ready 2
 
         default: break;
     }

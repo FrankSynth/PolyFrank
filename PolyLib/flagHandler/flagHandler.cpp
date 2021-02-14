@@ -86,6 +86,8 @@ std::function<void()> Panel_0_Touch_ISR;
 bool Panel_1_Touch_Interrupt;
 std::function<void()> Panel_1_Touch_ISR;
 
+bool interChipA_READY[2];
+bool interChipB_READY[2];
 // Display
 bool renderingDoneSwitchBuffer;
 
