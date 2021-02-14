@@ -210,7 +210,7 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
             index++;
         }
         for (Digital *i : m->getSwitches()) {
-            buffer[index] = i->value;
+            buffer[index] = i->valueMapped;
             index++;
         }
     }
@@ -279,7 +279,7 @@ void Layer::loadLayerFromPreset(uint32_t presetID) {
             index++;
         }
         for (Digital *i : m->getSwitches()) {
-            i->setValue(buffer[index]);
+            i->setValueWithoutMapping(buffer[index]);
             index++;
         }
     }

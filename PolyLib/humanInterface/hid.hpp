@@ -102,8 +102,8 @@ class PanelTouch {
                 case 7: break;
                 case 8: break;
                 case 9: break;
-                case 10: evaluateOutput(&allLayers[layerID]->lfoA.out, event); break;
-                case 11: evaluateInput(&allLayers[layerID]->adsrA.iAttack, event); break;
+                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
+                case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
             }
 
             return;
@@ -218,6 +218,16 @@ class PanelTouch {
             }
         }
     }
+
+    void evaluateModul(BaseModule *pModule, uint8_t event) {
+
+        if (event) { // push Event
+            activeOutput = nullptr;
+            activeInput = nullptr;
+            setModulFocus(pModule);
+        }
+    }
+
     void evaluateSetting(Digital *pSwitch) { pSwitch->nextValue(); }
 
     void setInputFocus(Input *pInput) {
@@ -236,6 +246,12 @@ class PanelTouch {
             location focus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
             ui.setFocus(focus);
         }
+    }
+
+    void setModulFocus(BaseModule *pModule) {
+
+        location focus = {pModule->layerId, pModule->id, 0, FOCUSMODULE};
+        ui.setFocus(focus);
     }
 
     Output *activeOutput = nullptr;

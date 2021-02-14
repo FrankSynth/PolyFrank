@@ -32,7 +32,9 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t panelAbsY = 0;
     location oldLocation;
 
-    Scroller scroll = Scroller(CONFIGPANELENTRYS);
+    Scroller scrollModules = Scroller(FOCUSPANELENTRYS);
+    Scroller scrollLayer = Scroller(FOCUSPANELENTRYS);
+    Scroller scroll = Scroller(FOCUSPANELENTRYS);
 
     location newFocusLocation;
 

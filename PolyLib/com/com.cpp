@@ -111,13 +111,12 @@ uint8_t COMinterChip::beginSendTransmission() {
         return ERRORCODE_SENDBLOCK;
     }
 
-    if (!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin)
-          // TODO enable other layers when ready, or Pull Ups on not used pins
-          //   && HAL_GPIO_ReadPin(Layer_1_READY_2_GPIO_Port, Layer_1_READY_2_Pin) &&
-          //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
-          //   HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin)
-          )) {
-        // println("ERRORCODE_RECEPTORNOTREADY");
+    if (FlagHandler::interChipA_READY[layer] == false /*|| FlagHandler::interChipB_READY[layer] == false*/) {
+        // TODO enable other layers when ready, or Pull Ups on not used pins
+        //   && HAL_GPIO_ReadPin(Layer_1_READY_2_GPIO_Port, Layer_1_READY_2_Pin) &&
+        //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
+        //   HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin)
+        // println("not Ready");
 
         return ERRORCODE_RECEPTORNOTREADY;
     }
@@ -147,6 +146,8 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     FlagHandler::interChipA_MDMA_Started[layer] = 1;
     FlagHandler::interChipA_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startFirstDMA, this);
+    FlagHandler::interChipA_READY[layer] = false;
+    // FlagHandler::interChipB_READY[layer] = false;
 
     switchBuffer();
 
@@ -321,9 +322,10 @@ uint8_t COMinterChip::invokeBufferFullSend() {
         uint32_t timer = millis();
         while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) { // wait...
             if ((millis() - timer) > 5) {                                         // transmission takes longer than 5ms
-                PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 5ms ");
+                // PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 5ms ");
             }
-            FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen bleiben
+            FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen
+                                        // bleiben
             ret = beginSendTransmission();
         }
     }

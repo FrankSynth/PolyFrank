@@ -126,8 +126,8 @@ class OSC_A : public BaseModule {
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
     Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
@@ -187,12 +187,12 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 0, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 1, true, &nlVCFDest);
     Digital dSync = Digital("SYNC OSC A", 0, 1, 0, true, &nlOnOff);
 
     // render shizzle
@@ -239,10 +239,10 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
 
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
 
     // render shizzle
 
@@ -276,9 +276,9 @@ class Noise : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
 
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
 
     // render shizzle
 
@@ -310,12 +310,12 @@ class Steiner : public BaseModule {
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
-    Analog aParSer = Analog("PAR/SER", 0, 1, 1, true, linMap);
+    Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
 
-    Digital dMode = Digital("MODE", 0, 3, 0, false, &nlSteinerModes);
+    Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
 
     // render shizzle
 
@@ -347,11 +347,11 @@ class Ladder : public BaseModule {
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, logMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
-    Digital dSlope = Digital("SLOPE", 0, 3, 0, false, &nlLadderSlopes);
+    Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
 
     // render shizzle
 
@@ -409,7 +409,7 @@ class LFO : public BaseModule {
     Digital dGateSync = Digital("SYNC GATE", 0, 1, 0, true, &nlOnOff);
     Digital dClockSync = Digital("SYNC CLOCK", 0, 1, 0, false, &nlOnOff);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
-    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, false, &nlOnOff);
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
     // render shizzle
 
@@ -569,7 +569,7 @@ class GlobalModule : public BaseModule {
     Input iVCA = Input("VCA");
     Input iPan = Input("LEVEL");
 
-    Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
+    Analog aVCA = Analog("VCA", 0, 1, 1, true, linMap, &iVCA);
     Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);

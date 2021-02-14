@@ -47,7 +47,7 @@ void VoiceHandler::playNote(Key &key) {
 
         layerCom[v->layerID].sendNewNote(v->voiceID, v->note, v->velocity);
 
-        // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
+        println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
 
         playIDCounter++; // increase playID
     }
