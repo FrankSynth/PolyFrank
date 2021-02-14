@@ -348,7 +348,7 @@ void HAL_PCD_ISOINIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
 #if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
 static void PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 #else
-void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
+__weak void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
     USBD_LL_DevConnected((USBD_HandleTypeDef *)hpcd->pData);

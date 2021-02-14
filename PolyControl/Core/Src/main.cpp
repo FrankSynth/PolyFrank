@@ -98,7 +98,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(100); // !!
+    HAL_Delay(10); // !!
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
@@ -107,7 +107,7 @@ int main(void) {
     MX_GPIO_Init();
 
     MX_USB_DEVICE_Init();
-    HAL_Delay(200); // !!
+    //    HAL_Delay(50); // !!
 
     MX_DMA_Init();
     MX_MDMA_Init();
@@ -144,7 +144,7 @@ int main(void) {
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
 
     // println("Hi, this is Frank!");
-    HAL_Delay(200); // !!
+    // HAL_Delay(200); // !!
 
     PolyControlInit();
     PolyControlRun();

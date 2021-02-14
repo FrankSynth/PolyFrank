@@ -86,8 +86,25 @@ std::function<void()> Panel_0_Touch_ISR;
 bool Panel_1_Touch_Interrupt;
 std::function<void()> Panel_1_Touch_ISR;
 
-bool interChipA_READY[2];
-bool interChipB_READY[2];
+/* interChipx_state:
+    state == 0 -> Transmitted
+    state == 1 -> Received
+    state == 2 -> DMA copied
+    state == 3 -> Checksum
+    state == 4 -> READY
+
+
+*/
+uint8_t interChipA_State[] = {2, 2}; // init State wait for ready
+uint8_t interChipB_State[] = {2, 2}; // init State wait for ready
+
+elapsedMicros interChipA_StateTimeout[] = {0, 0};
+
+elapsedMicros interChipB_StateTimeout[] = {0, 0};
+
+bool USB_HS_CONNECTED = false;
+bool USB_FS_CONNECTED = false;
+
 // Display
 bool renderingDoneSwitchBuffer;
 
@@ -170,6 +187,30 @@ void handleFlags() {
                 interChipB_DMA_Finished[i] = 0;
             }
         }
+    }
+    for (uint8_t i = 0; i < 1; i++) {
+        if (interChipA_StateTimeout[i] > 5000) {
+            if (interChipA_State[i] == 0) {
+                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+            }
+            else if (interChipA_State[i] == 2) {
+                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed  / failed Startup");
+            }
+        }
+        // if (interChipB_StateTimeout[i] > 5000) {
+        //     if (interChipB_State[i] == 0) {
+        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> no reponse");
+        //     }
+        //     else if (interChipB_State[i] == 1) {
+        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> dma copy failed");
+        //     }
+        //     else if (interChipB_State[i] == 2) {
+        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> Checksum failed ");
+        //     }
+        //     else if (interChipB_State[i] == 3) {
+        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> crashed on Startup? ");
+        //     }
+        // }
     }
     if (Control_Encoder_Interrupt) {
         Control_Encoder_Interrupt = 0;

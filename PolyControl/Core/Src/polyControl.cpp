@@ -75,7 +75,7 @@ void PolyControlInit() {
 
     // resetLayer to default Value (must be called in runtime!)
 
-    allLayers[0]->resetLayer();
+    // allLayers[0]->resetLayer();
     // for (Layer *l : allLayers) {
     //     l->resetLayer();
     // };
@@ -89,6 +89,7 @@ void PolyControlInit() {
     // load global Settings
     globalSettings.loadGlobalSettings();
 
+    HAL_Delay(1000);
     println("Hi, Frank here!");
 }
 
@@ -115,8 +116,9 @@ void PolyControlRun() { // Here the party starts
         }
 
         layerCom[0].beginSendTransmission();
+
         // layerCom[1].beginSendTransmission();
-    };
+    }
 }
 
 ///////////////////////////////////////////////// LAYER SPECIFIC HANDLING
@@ -228,19 +230,60 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         case GPIO_PIN_12: FlagHandler::Control_Encoder_Interrupt = true; break; // ioExpander -> encoder
         case GPIO_PIN_11: FlagHandler::Panel_0_EOC_Interrupt = true; break;     // Panel 1 -> EOC
 
-        case GPIO_PIN_2: FlagHandler::Control_Touch_Interrupt = true; break; // touch
+        case GPIO_PIN_2:
+            FlagHandler::Control_Touch_Interrupt = true;
+            break; // touch
 
-        case GPIO_PIN_3: break; // Layer 2 Ready 1
-        case GPIO_PIN_4: break; // Layer 2 Ready 2
-        case GPIO_PIN_6:
-            if (HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin)) {
+        // case GPIO_PIN_3: // Layer 2 Ready 1
+        //     FlagHandler::interChipA_StateTimeout[1] = 0;
+        //     FlagHandler::interChipA_State[1]++;
+        //     break;
 
-                println("setReady");
-                FlagHandler::interChipA_READY[0] = true;
+        // case GPIO_PIN_4: // Layer 2 Ready 2
+        //     FlagHandler::interChipB_StateTimeout[1] = 0;
+        //     FlagHandler::interChipB_State[1]++;
+
+        //     break;
+        case GPIO_PIN_6: // Layer 1 Ready 1
+            if (FlagHandler::interChipA_State[0] == 0) {
+                FlagHandler::interChipA_State[0] = 2;
+                FlagHandler::interChipA_StateTimeout[0] = 0;
             }
-            break;              // Layer 1 Ready 1
-        case GPIO_PIN_7: break; // Layer 1 Ready 2
+            if (FlagHandler::interChipA_State[0] == 2) {
+                FlagHandler::interChipA_State[0] = 4;
+                FlagHandler::interChipA_StateTimeout[0] = 0;
+            }
+
+            // else {
+            //     if (FlagHandler::interChipA_State[0] == 0 || FlagHandler::interChipA_State[0] == 2) {
+            //         FlagHandler::interChipA_State[0]++;
+            //         FlagHandler::interChipA_StateTimeout[0] = 0;
+            //     }
+            // }
+            break;
+
+            // case GPIO_PIN_7: // Layer 1 Ready 2
+            //     FlagHandler::interChipB_StateTimeout[0] = 0;
+            //     FlagHandler::interChipB_State[0]++;
+
+            //     break;
 
         default: break;
+    }
+}
+
+/**
+ * @brief  Connection event callback.
+ * @param  hpcd PCD handle
+ * @retval None
+ */
+void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
+    /* Prevent unused argument(s) compilation warning */
+    if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
+        FlagHandler::USB_FS_CONNECTED = true;
+    }
+
+    if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // FS Connected
+        FlagHandler::USB_HS_CONNECTED = true;
     }
 }

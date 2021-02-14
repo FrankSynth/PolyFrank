@@ -1,5 +1,6 @@
 #pragma once
 
+#include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 
 namespace FlagHandler {
@@ -38,8 +39,14 @@ extern std::function<void()> Panel_0_EOC_ISR;
 extern bool Panel_1_EOC_Interrupt;
 extern std::function<void()> Panel_1_EOC_ISR;
 
-extern bool interChipA_READY[2];
-extern bool interChipB_READY[2];
+extern uint8_t interChipA_State[];
+extern uint8_t interChipB_State[];
+
+extern elapsedMicros interChipA_StateTimeout[];
+extern elapsedMicros interChipB_StateTimeout[];
+
+extern bool USB_HS_CONNECTED;
+extern bool USB_FS_CONNECTED;
 
 // Display
 extern bool renderingDoneSwitchBuffer;

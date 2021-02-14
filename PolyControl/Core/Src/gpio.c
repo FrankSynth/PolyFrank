@@ -175,7 +175,7 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pins : PIPin PIPin */
     GPIO_InitStruct.Pin = Layer_1_READY_1_Pin | Layer_1_READY_2_Pin; // FIXME Layer 1 ready pins as standard inputs
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
@@ -189,7 +189,7 @@ void MX_GPIO_Init(void) {
     HAL_NVIC_SetPriority(EXTI4_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 2, 0);

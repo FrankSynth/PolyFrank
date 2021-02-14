@@ -1,12 +1,23 @@
 #include "debughelper.hpp"
+
 #if DEBUG
+
+elapsedMicros USBHSTIMEOUT;
 
 void printViaSTLink(const char *arg) {
     std::string str;
     str.append(arg);
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
@@ -20,7 +31,14 @@ void printViaSTLink(const unsigned char *arg) {
     str.append((const char *)arg);
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
@@ -34,7 +52,14 @@ void printViaSTLink(char *arg) {
     str.append(arg);
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
@@ -48,7 +73,14 @@ void printViaSTLink(unsigned char *arg) {
     str.append((char *)arg);
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
@@ -60,7 +92,14 @@ void printViaSTLink(unsigned char *arg) {
 void printViaSTLink(const std::string &arg) {
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < arg.size(); i++) {
@@ -72,7 +111,14 @@ void printViaSTLink(const std::string &arg) {
 void printViaSTLink(std::string &arg) {
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < arg.size(); i++) {

@@ -74,7 +74,7 @@ void initHID() {
 
     switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
-    HAL_Delay(250);
+    HAL_Delay(50);
 
     // init Panel touch ICS
     for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
