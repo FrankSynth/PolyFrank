@@ -23,7 +23,7 @@ extern Layer layerA;
 //     //
 // }
 
-void collectAllCurrentInputs() {
+inline void collectAllCurrentInputs() {
     for (BaseModule *m : layerA.modules) {
         for (Input *i : m->inputs) {
             i->collectCurrentSample();
@@ -31,7 +31,7 @@ void collectAllCurrentInputs() {
     }
 }
 
-void updateAllOutputSamples() {
+inline void updateAllOutputSamples() {
 
     for (BaseModule *m : layerA.modules) {
         for (Output *o : m->outputs) {
@@ -45,7 +45,7 @@ void updateAllOutputSamples() {
 
 // Render Functions
 
-void renderMidiModule(Midi midi) {
+inline void renderMidiModule(Midi midi) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         midi.oMod.nextSample[voice] = midi.aMod.valueMapped;
         midi.oAftertouch.nextSample[voice] = midi.aAftertouch.valueMapped;
@@ -56,26 +56,26 @@ void renderMidiModule(Midi midi) {
     }
 }
 
-void writeDataToDACBuffer() {
+inline void writeDataToDACBuffer() {
 
     // TODO output assigment
 
     // static elapsedMillis timer = 0;
 
-    cvDacA.data[0] = (1 - layerA.ladder.resonance.currentSample[0]) * 4095;
-    cvDacA.data[1] = (1 - layerA.distort.distort.currentSample[0]) * 4095;
-    cvDacA.data[2] = (1 - layerA.ladder.cutoff.currentSample[0]) * 4095;
-    cvDacA.data[3] = (1 - layerA.globalModule.right.currentSample[0]) * 4095;
+    cvDacA.data.nextSample[0] = (1 - layerA.ladder.resonance.currentSample[0]) * 4095;
+    cvDacA.data.nextSample[1] = (1 - layerA.distort.distort.currentSample[0]) * 4095;
+    cvDacA.data.nextSample[2] = (1 - layerA.ladder.cutoff.currentSample[0]) * 4095;
+    cvDacA.data.nextSample[3] = (1 - layerA.globalModule.right.currentSample[0]) * 4095;
 
-    cvDacB.data[0] = 0;
-    cvDacB.data[1] = (1 - layerA.globalModule.left.currentSample[0]) * 4095;
-    cvDacB.data[2] = layerA.steiner.cutoff.currentSample[0] * 4095;
-    cvDacB.data[3] = (1 - layerA.ladder.level.currentSample[0]) * 4095;
+    cvDacB.data.nextSample[0] = 0;
+    cvDacB.data.nextSample[1] = (1 - layerA.globalModule.left.currentSample[0]) * 4095;
+    cvDacB.data.nextSample[2] = layerA.steiner.cutoff.currentSample[0] * 4095;
+    cvDacB.data.nextSample[3] = (1 - layerA.ladder.level.currentSample[0]) * 4095;
 
-    cvDacC.data[0] = (1 - layerA.steiner.level.currentSample[0]) * 4095;
-    cvDacC.data[1] = (1 - layerA.steiner.resonance.currentSample[0]) * 4095;
-    cvDacC.data[2] = (1 - layerA.steiner.toLadder.currentSample[0]) * 4095;
-    cvDacC.data[3] = 0;
+    cvDacC.data.nextSample[0] = (1 - layerA.steiner.level.currentSample[0]) * 4095;
+    cvDacC.data.nextSample[1] = (1 - layerA.steiner.resonance.currentSample[0]) * 4095;
+    cvDacC.data.nextSample[2] = (1 - layerA.steiner.toLadder.currentSample[0]) * 4095;
+    cvDacC.data.nextSample[3] = 0;
 
     // if (timer > 1000) {
     //     timer = 0;
@@ -83,7 +83,7 @@ void writeDataToDACBuffer() {
     // }
 }
 
-void setSwitches() {
+inline void setSwitches() {
 
     const int32_t &steinerMode = layerA.steiner.dMode.valueMapped;
     const int32_t &ladderMode = layerA.ladder.dSlope.valueMapped;
@@ -131,7 +131,7 @@ void setSwitches() {
     }
 }
 
-void setLEDs() {
+inline void setLEDs() {
     // max brightness 1023
 
     // TODO LED assigment
@@ -144,14 +144,9 @@ void setLEDs() {
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, fastMapLEDBrightness(0));
 }
 
-void closeDacLines() {
-    cvDacA.resetLatchPin();
-    cvDacB.resetLatchPin();
-    cvDacC.resetLatchPin();
-}
-
 // elapsedMicros rendertimecv;
 void renderCVs() {
+    // cvDacA.setLatchPin();
 
     // rendertimecv = 0;
 
@@ -172,22 +167,15 @@ void renderCVs() {
     renderGlobalModule(layerA.globalModule);
 
     updateAllOutputSamples();
-
     writeDataToDACBuffer();
-    setSwitches();
 
     // uint32_t time = rendertimecv;
     // println(time);
 
-    cvDacA.setLatchPin();
-    cvDacB.setLatchPin();
-    cvDacC.setLatchPin();
-
-    // out DacB and DacC gets automatially triggered by flags when transmission is done
-    cvDacA.fastUpdate();
-    FlagHandler::cvDacAStarted = true;
-
+    setSwitches();
     setLEDs();
+
+    // cvDacA.resetLatchPin();
 }
 
 #endif

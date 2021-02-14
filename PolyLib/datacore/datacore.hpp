@@ -430,6 +430,28 @@ class RenderBuffer {
     float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
+class I2CBuffer {
+  public:
+    I2CBuffer() {
+        currentSample = bufferCurrentSample;
+        nextSample = bufferNextSample;
+    }
+
+    // set next calculatedSample as current sample
+    void updateToNextSample() {
+        uint16_t *tempPointer = currentSample;
+        currentSample = nextSample;
+        nextSample = tempPointer;
+    }
+
+    uint16_t *currentSample;
+    uint16_t *nextSample;
+
+  private:
+    uint16_t bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    uint16_t bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
+};
+
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
 inline void PatchElementInOut::changeAmount(float change) {

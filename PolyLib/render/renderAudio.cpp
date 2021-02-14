@@ -79,12 +79,12 @@ void switchOscBWavetableB(wavetable wavetable) {
  */
 void initAudioRendering() {
     // Osc A
-    switchOscAWavetableA(wavetable_strings01);
+    switchOscAWavetableA(wavetable_sinus01);
     switchOscAWavetableB(wavetable_nylonGuitar01);
 
     // Osc B
-    switchOscBWavetableA(wavetable_strings01);
-    switchOscBWavetableB(wavetable_nylonGuitar01);
+    switchOscBWavetableA(wavetable_sinus01);
+    switchOscBWavetableB(wavetable_wurli02);
 }
 
 inline float bitcrush(float sample, float bitcrush) {
@@ -102,7 +102,7 @@ inline float bitcrush(float sample, float bitcrush) {
 }
 
 float getNoiseSample(uint16_t voice) {
-    float &bitcrusher = layerA.noise.bitcrusher.currentSample[voice];
+    uint32_t bitcrusher = layerA.noise.bitcrusher.currentSample[voice];
 
     uint32_t randomNumber;
 
@@ -110,14 +110,17 @@ float getNoiseSample(uint16_t voice) {
         PolyError_Handler("ERROR | FATAL | Audio Rendering RNG");
     }
 
-    uint32_t bitcrushBits = bitcrusher;
+    // TODO very low effect
 
-    randomNumber = randomNumber << bitcrushBits;
+    if (bitcrusher > 0) {
+        uint32_t bitcrushBits = 0xFFFFFFFF << bitcrusher;
 
+        randomNumber = randomNumber & bitcrushBits;
+    }
     randomNumber = randomNumber & 0x00FFFFFF;
 
     // map to -1, 1
-    return (float)((double)randomNumber / (double)(0x00FFFFFF / 2)) - 1;
+    return (float)((double)randomNumber / (double)(0x00FFFFFF)) * 2.0f - 1.0f;
 }
 
 float getSubSample(uint16_t voice) {
@@ -167,7 +170,7 @@ float getOscASample(uint16_t voice) {
         stepWavetableB -= (float)oscAwavetableBSize;
     }
 
-    sample = oscAwavetableA[(uint32_t)stepWavetableA] * morph + oscAwavetableB[(uint32_t)stepWavetableB] * (1 - morph);
+    sample = oscAwavetableA[(uint32_t)stepWavetableA] * (1 - morph) + oscAwavetableB[(uint32_t)stepWavetableB] * morph;
 
     stepWavetableA += noteStep;
     stepWavetableB += noteStep;
@@ -209,14 +212,14 @@ float getOscBSample(uint16_t voice) {
     cacheOscAstep = checkWavetableLength;
 
     // make sure to be in the right step range
-    while (stepWavetableA >= oscAwavetableASize) {
-        stepWavetableA -= (float)oscAwavetableASize;
+    while (stepWavetableA >= oscBwavetableASize) {
+        stepWavetableA -= (float)oscBwavetableASize;
     }
-    while (stepWavetableB >= (float)oscAwavetableBSize) {
-        stepWavetableB -= (float)oscAwavetableBSize;
+    while (stepWavetableB >= (float)oscBwavetableBSize) {
+        stepWavetableB -= (float)oscBwavetableBSize;
     }
 
-    sample = oscAwavetableA[(uint32_t)stepWavetableA] * morph + oscAwavetableB[(uint32_t)stepWavetableB] * (1 - morph);
+    sample = oscBwavetableA[(uint32_t)stepWavetableA] * (1 - morph) + oscBwavetableB[(uint32_t)stepWavetableB] * morph;
 
     stepWavetableA += noteStep;
     stepWavetableB += noteStep;
@@ -236,20 +239,20 @@ float getOscBSample(uint16_t voice) {
  */
 void renderVoice(int32_t *renderDest, uint16_t samples, uint16_t voice, uint16_t outSteiner, uint16_t outLadder) {
 
-    float &noiseLevelLadder = layerA.noise.levelLadder.currentSample[voice];
-    float &noiseLevelSteiner = layerA.noise.levelSteiner.currentSample[voice];
+    float noiseLevelLadder = layerA.noise.levelLadder.currentSample[voice];
+    float noiseLevelSteiner = layerA.noise.levelSteiner.currentSample[voice];
     float &noiseOut = layerA.noise.out.nextSample[voice];
 
-    float &subLevelLadder = layerA.sub.levelLadder.currentSample[voice];
-    float &subLevelSteiner = layerA.sub.levelSteiner.currentSample[voice];
+    float subLevelLadder = layerA.sub.levelLadder.currentSample[voice];
+    float subLevelSteiner = layerA.sub.levelSteiner.currentSample[voice];
     float &subOut = layerA.sub.out.nextSample[voice];
 
-    float &oscALevelLadder = layerA.oscA.levelLadder.currentSample[voice];
-    float &oscALevelSteiner = layerA.oscA.levelSteiner.currentSample[voice];
+    float oscALevelLadder = layerA.oscA.levelLadder.currentSample[voice];
+    float oscALevelSteiner = layerA.oscA.levelSteiner.currentSample[voice];
     float &oscAOut = layerA.oscA.out.nextSample[voice];
 
-    float &oscBLevelLadder = layerA.oscB.levelLadder.currentSample[voice];
-    float &oscBLevelSteiner = layerA.oscB.levelSteiner.currentSample[voice];
+    float oscBLevelLadder = layerA.oscB.levelLadder.currentSample[voice];
+    float oscBLevelSteiner = layerA.oscB.levelSteiner.currentSample[voice];
     float &oscBOut = layerA.oscB.out.nextSample[voice];
 
     for (uint32_t sample = 0; sample < samples; sample++) {
@@ -258,6 +261,19 @@ void renderVoice(int32_t *renderDest, uint16_t samples, uint16_t voice, uint16_t
         float subSample = getSubSample(voice);
         float oscASample = getOscASample(voice);
         float oscBSample = getOscBSample(voice);
+
+        float dampSteiner = 1;
+        float dampLadder = 1;
+
+        float maxVol = noiseLevelSteiner + subLevelSteiner + oscALevelSteiner + oscBLevelSteiner;
+        if (maxVol > MAXPOSSIBLEVOLUME) {
+            dampSteiner = MAXPOSSIBLEVOLUME / maxVol;
+        }
+
+        maxVol = noiseLevelLadder + subLevelLadder + oscALevelLadder + oscBLevelLadder;
+        if (maxVol > MAXPOSSIBLEVOLUME) {
+            dampLadder = MAXPOSSIBLEVOLUME / maxVol;
+        }
 
         float sampleSteiner = noiseSample * noiseLevelSteiner;
         float sampleLadder = noiseSample * noiseLevelLadder;
@@ -271,8 +287,8 @@ void renderVoice(int32_t *renderDest, uint16_t samples, uint16_t voice, uint16_t
         sampleSteiner += oscBSample * oscBLevelSteiner;
         sampleLadder += oscBSample * oscBLevelLadder;
 
-        int32_t intSampleSteiner = convertAudioSample(sampleSteiner * MAXVOLUMEPERMODULE);
-        int32_t intSampleLadder = convertAudioSample(sampleLadder * MAXVOLUMEPERMODULE);
+        int32_t intSampleSteiner = convertAudioSample(sampleSteiner * MAXVOLUMEPERMODULE * dampSteiner);
+        int32_t intSampleLadder = convertAudioSample(sampleLadder * MAXVOLUMEPERMODULE * dampLadder);
 
         renderDest[outSteiner + sample * AUDIOCHANNELS] = intSampleSteiner;
         renderDest[outLadder + sample * AUDIOCHANNELS] = intSampleLadder;

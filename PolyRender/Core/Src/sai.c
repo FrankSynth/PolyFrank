@@ -60,7 +60,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef *hsai) {
             __HAL_RCC_SAI1_CLK_ENABLE();
 
             /* Peripheral interrupt init*/
-            HAL_NVIC_SetPriority(SAI1_IRQn, 2, 0);
+            HAL_NVIC_SetPriority(SAI1_IRQn, 3, 0);
             HAL_NVIC_EnableIRQ(SAI1_IRQn);
         }
         SAI1_client++;
@@ -80,7 +80,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef *hsai) {
 
         /* Peripheral DMA init*/
 
-        hdma_sai1_a.Instance = DMA2_Stream0;
+        hdma_sai1_a.Instance = DMA1_Stream1;
         hdma_sai1_a.Init.Request = DMA_REQUEST_SAI1_A;
         hdma_sai1_a.Init.Direction = DMA_MEMORY_TO_PERIPH;
         hdma_sai1_a.Init.PeriphInc = DMA_PINC_DISABLE;

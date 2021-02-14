@@ -24,10 +24,28 @@ RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCH
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
-
-    layerA.resetLayer();
     // general inits
     initPoly();
+
+    // init allLayers
+    allLayers.push_back(&layerA);
+    // layerA.resetLayer();
+
+    HAL_Delay(200);
+    // TODO copy wavetables to RAM D1
+    initAudioRendering();
+
+    // empty buffers
+    uint32_t emptyData = 0;
+    fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
+    fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
+
+    // interChipCom
+    layerCom.initInTransmission(
+        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+        std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
+    HAL_Delay(50);
+    layerCom.beginReceiveTransmission();
 
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
@@ -36,9 +54,6 @@ void PolyRenderInit() {
     HAL_Delay(200);
     audioDacA.init();
 
-    // TODO copy wavetables to RAM D1
-    initAudioRendering();
-
     // probably obsolete
     // initCVRendering();
 
@@ -46,27 +61,18 @@ void PolyRenderInit() {
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
+    HAL_Delay(50);
+
     FlagHandler::renderNewCVFunc = renderCVs;
 
     // Ladder stuff
     switchLadder.disableChannels();
-
-    // empty buffers
-    uint32_t emptyData = 0;
-    fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
-    fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
-
-    // init allLayers
-    allLayers.push_back(&layerA);
-
-    // interChipCom
-    layerCom.initInTransmission(
-        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
-        std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
-    layerCom.beginReceiveTransmission();
 }
 
 void PolyRenderRun() {
+
+    // timer cv DAC latch
+    HAL_TIM_Base_Start_IT(&htim15);
 
     // init Sai, first fill buffer once
     renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS);
@@ -95,9 +101,6 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     else if (FlagHandler::cvDacCStarted) {
         FlagHandler::cvDacCStarted = false;
         FlagHandler::cvDacCFinished = true;
-        cvDacA.resetLatchPin();
-        cvDacB.resetLatchPin();
-        cvDacC.resetLatchPin();
 
         // TODO check if lines go down
     }
@@ -132,26 +135,48 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     // reception Line from Control
-    if (pin == GPIO_PIN_8)
+    if (pin == GPIO_PIN_8) {
+        // disable reception line
+        println("EXTI callback, transmission done");
+        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
+        // rising flank
         FlagHandler::interChipReceive_DMA_Finished = true;
+    }
+}
+
+inline void sendDACs() {
+    cvDacA.switchIC2renderBuffer();
+    cvDacB.switchIC2renderBuffer();
+    cvDacC.switchIC2renderBuffer();
+
+    cvDacA.setLatchPin();
+    cvDacB.setLatchPin();
+    cvDacC.setLatchPin();
+
+    // out DacB and DacC gets automatially triggered by flags when transmission is done
+    cvDacA.fastUpdate();
+    FlagHandler::cvDacAStarted = true;
 }
 
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
-        if (FlagHandler::cvDacCFinished) {
-            FlagHandler::cvDacCFinished = false;
-            cvDacA.setLatchPin();
-            cvDacB.setLatchPin();
-            cvDacC.setLatchPin();
 
-            // out DacB and DacC gets automatially triggered by flags when transmission is done
-            cvDacA.fastUpdate();
-            FlagHandler::cvDacAStarted = true;
-        }
-        else {
+        cvDacA.resetLatchPin();
+        cvDacB.resetLatchPin();
+        cvDacC.resetLatchPin();
+        if (FlagHandler::cvDacCFinished == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacCFinished = false");
         }
+
         FlagHandler::renderNewCV = true;
+        FlagHandler::cvDacCFinished = false;
+
+        // waste just a little bit of time for ldacs to update properly
+        volatile uint32_t count = 0;
+        for (uint32_t i = 0; i < 8; i++) {
+            count++;
+        }
+        sendDACs();
     }
 }

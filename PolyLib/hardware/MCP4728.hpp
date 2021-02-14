@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/dataHelperFunctions.hpp"
+#include "datacore/datacore.hpp"
 #include "debughelper/debughelper.hpp"
 #include "i2c.h"
 #include "tim.h"
@@ -65,7 +66,8 @@ class MCP4728 {
         HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET);
 
         uint32_t zeros = 0;
-        fastMemset(&zeros, (uint32_t *)data, 2);
+        fastMemset(&zeros, (uint32_t *)data.currentSample, 2);
+        fastMemset(&zeros, (uint32_t *)data.nextSample, 2);
 
         uint8_t initData;
 
@@ -91,7 +93,7 @@ class MCP4728 {
     // transmit data in fastMode
     inline void fastUpdate() {
         // pData[0] |= 0b01000000; // enable FastMode
-        uint32_t *dataAsInt = (uint32_t *)data;
+        uint32_t *dataAsInt = (uint32_t *)data.currentSample;
         // each half word needs to be swapped, because of reasons
         // uint8_t sendOut[8];
         dataAsInt[0] = __REV16(dataAsInt[0]);
@@ -109,6 +111,8 @@ class MCP4728 {
         }
     }
 
+    inline void switchIC2renderBuffer() { data.updateToNextSample(); }
+
     inline void setLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET); }
     inline void resetLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET); }
 
@@ -120,7 +124,8 @@ class MCP4728 {
     uint8_t i2cDeviceCode = 0xC0; // default address
     uint8_t i2cDeviceAddressing = 0;
 
-    uint16_t data[4];
+    I2CBuffer data;
+    // uint16_t data[4];
 
     uint16_t latchPin;
     GPIO_TypeDef *latchPort;

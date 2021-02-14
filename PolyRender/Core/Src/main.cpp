@@ -126,8 +126,7 @@ int main(void) {
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
-    // timer cv DAC latch
-    HAL_TIM_Base_Start_IT(&htim15);
+    
 
     // timer micros()
     HAL_TIM_Base_Start(&htim2);

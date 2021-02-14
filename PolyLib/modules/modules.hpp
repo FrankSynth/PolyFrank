@@ -239,7 +239,7 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
 
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, linMap, &iBitcrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 0, true, &nlVCFDest);

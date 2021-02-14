@@ -20,3 +20,5 @@ typedef struct {
 
 extern const wavetable wavetable_strings01;
 extern const wavetable wavetable_nylonGuitar01;
+extern const wavetable wavetable_sinus01;
+extern const wavetable wavetable_wurli02;

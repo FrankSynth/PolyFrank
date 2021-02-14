@@ -578,9 +578,6 @@ uint8_t COMinterChip::beginReceiveTransmission() {
 
 uint8_t COMinterChip::copyReceivedInBuffer() {
 
-    // disable reception line
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
-
     // as receive DMA is probably still running, disable it here
     stopReceiveViaDMA();
 
@@ -804,7 +801,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // we should always exit with LASTBYTE
-    PolyError_Handler("no LASTBYTE received");
+    // PolyError_Handler("no LASTBYTE received");
 
     return 1;
 }

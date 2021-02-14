@@ -113,8 +113,6 @@ inline float accumulateNote(OSC_B &osc_b, uint16_t voice) {
 
 void renderOSC_B(OSC_B &osc_B) {
 
-    // TODO sine wave out for testing
-
     float *outNote = osc_B.note.nextSample;
     float *outMorph = osc_B.morph.nextSample;
     float *outBitcrusher = osc_B.bitcrusher.nextSample;
