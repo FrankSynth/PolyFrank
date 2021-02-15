@@ -2335,6 +2335,6 @@ const float wavetabledata_strings01[6982] = { // start wavetable
     -4.2139079596381634e-05, 0.0002248468081234023, 0.0002391668822383508
 };
 
-const wavetable wavetable_strings01 = {6982, wavetabledata_strings01};
+const wavetable wavetable_strings01 = {6982, 2, wavetabledata_strings01};
 
 #endif

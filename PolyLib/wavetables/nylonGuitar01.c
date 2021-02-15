@@ -4663,6 +4663,6 @@ const float wavetabledata_nylonGuitar01[13964] = { // start wavetable
     0.0018015617970377207
 };
 
-const wavetable wavetable_nylonGuitar01 = {13964, wavetabledata_nylonGuitar01};
+const wavetable wavetable_nylonGuitar01 = {13964, 4, wavetabledata_nylonGuitar01};
 
 #endif

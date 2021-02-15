@@ -96,18 +96,27 @@ class MCP4728 {
         uint32_t *dataAsInt = (uint32_t *)data.currentSample;
         // each half word needs to be swapped, because of reasons
         // uint8_t sendOut[8];
-        dataAsInt[0] = __REV16(dataAsInt[0]);
-        dataAsInt[1] = __REV16(dataAsInt[1]);
-
         uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
 
-        bufferAsInt[0] = dataAsInt[0];
-        bufferAsInt[1] = dataAsInt[1];
+        bufferAsInt[0] = __REV16(dataAsInt[0]);
+        bufferAsInt[1] = __REV16(dataAsInt[1]);
 
         // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
         if (HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8) != HAL_OK) {
             Error_Handler();
             println("I2C DMA Transmit Error");
+        }
+    }
+
+    inline void sendCurrentBuffer() {
+        uint32_t *dataAsInt = (uint32_t *)data.currentSample;
+
+        dataAsInt[0] = __REV16(dataAsInt[0]);
+        dataAsInt[1] = __REV16(dataAsInt[1]);
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, (uint8_t *)data.currentSample, 8, 50) != HAL_OK) {
+            Error_Handler();
+            println("I2C Dac Transmit Error");
         }
     }
 

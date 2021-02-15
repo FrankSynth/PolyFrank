@@ -359,6 +359,6 @@ const float wavetabledata_sinus01[3491] = {
     -0.019797, -0.017997, -0.016198, -0.014398, -0.012598, -0.010799, -0.008999, -0.007199, -0.005400, -0.003599,
     -0.001800};
 
-const wavetable wavetable_sinus01 = {3491, wavetabledata_sinus01};
+const wavetable wavetable_sinus01 = {3491, 1, wavetabledata_sinus01};
 
 #endif

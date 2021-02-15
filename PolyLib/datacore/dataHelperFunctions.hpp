@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tim.h"
+#include <cmath>
 #include <stdint.h>
 
 #ifndef ALWAYS_INLINE
@@ -17,8 +18,8 @@
  * @param clampChange = true
  * @return ALWAYS_INLINE
  */
-ALWAYS_INLINE inline int32_t changeInt(const int32_t value, const int32_t change, const int32_t minimum,
-                                       const int32_t maximum, const bool clampChange = true) {
+ALWAYS_INLINE inline const int32_t changeInt(const int32_t value, const int32_t change, const int32_t minimum,
+                                             const int32_t maximum, const bool clampChange = true) {
 
     if (value + change > maximum) { // test max
 
@@ -41,8 +42,8 @@ ALWAYS_INLINE inline int32_t changeInt(const int32_t value, const int32_t change
  * @param maximum
  * @return ALWAYS_INLINE
  */
-ALWAYS_INLINE inline int32_t changeIntLoop(const int32_t value, const int32_t change, const int32_t minimum,
-                                           const int32_t maximum) {
+ALWAYS_INLINE inline const int32_t changeIntLoop(const int32_t value, const int32_t change, const int32_t minimum,
+                                                 const int32_t maximum) {
     int32_t changed = value + change;
 
     if (changed > maximum) { // test max
@@ -65,7 +66,7 @@ ALWAYS_INLINE inline int32_t changeIntLoop(const int32_t value, const int32_t ch
  * @param maximum
  * @return ALWAYS_INLINE
  */
-ALWAYS_INLINE inline int32_t testInt(const int32_t value, const int32_t minimum, const int32_t maximum) {
+ALWAYS_INLINE inline const int32_t testInt(const int32_t value, const int32_t minimum, const int32_t maximum) {
     if (value > maximum) {
         return maximum;
     }
@@ -86,8 +87,8 @@ ALWAYS_INLINE inline int32_t testInt(const int32_t value, const int32_t minimum,
  * @param maximum
  * @return ALWAYS_INLINE
  */
-ALWAYS_INLINE inline float changeFloat(const float value, const float change, const float minimum,
-                                       const float maximum) {
+ALWAYS_INLINE inline const float changeFloat(const float value, const float change, const float minimum,
+                                             const float maximum) {
 
     float changed = value + change;
 
@@ -111,7 +112,7 @@ ALWAYS_INLINE inline float changeFloat(const float value, const float change, co
  * @param maximum
  * @return ALWAYS_INLINE
  */
-ALWAYS_INLINE inline float testFloat(const float value, const float minimum, const float maximum) {
+ALWAYS_INLINE inline const float testFloat(const float value, const float minimum, const float maximum) {
     if (value > maximum) {
         return maximum;
     }

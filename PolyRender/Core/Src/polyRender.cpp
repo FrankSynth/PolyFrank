@@ -24,14 +24,20 @@ RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCH
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
+
+    // CV DACs
+    cvDacA.init();
+    cvDacB.init();
+    cvDacC.init();
+    initCVRendering();
+
     // general inits
     initPoly();
 
     // init allLayers
     allLayers.push_back(&layerA);
-    // layerA.resetLayer();
+    layerA.resetLayer();
 
-    HAL_Delay(200);
     // TODO copy wavetables to RAM D1
     initAudioRendering();
 
@@ -44,24 +50,17 @@ void PolyRenderInit() {
     layerCom.initInTransmission(
         std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
         std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
-    HAL_Delay(50);
+    // HAL_Delay(20);
     layerCom.beginReceiveTransmission();
 
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
-    HAL_Delay(200);
+    // HAL_Delay(20);
     HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
-    HAL_Delay(200);
+    HAL_Delay(1);
     audioDacA.init();
 
     // probably obsolete
-    // initCVRendering();
-
-    // CV DACs
-    cvDacA.init();
-    cvDacB.init();
-    cvDacC.init();
-    HAL_Delay(50);
 
     FlagHandler::renderNewCVFunc = renderCVs;
 
@@ -70,11 +69,13 @@ void PolyRenderInit() {
 }
 
 void PolyRenderRun() {
+    // enable reception line
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
-    // timer cv DAC latch
+    // start cv rendering
     HAL_TIM_Base_Start_IT(&htim15);
 
-    // init Sai, first fill buffer once
+    // start audio rendering
     renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS);
     audioDacA.startSAI();
 
@@ -101,8 +102,6 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     else if (FlagHandler::cvDacCStarted) {
         FlagHandler::cvDacCStarted = false;
         FlagHandler::cvDacCFinished = true;
-
-        // TODO check if lines go down
     }
 }
 // void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
@@ -137,7 +136,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     // reception Line from Control
     if (pin == GPIO_PIN_8) {
         // disable reception line
-        println("EXTI callback, transmission done");
+        // println("EXTI callback, transmission done");
         HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
         // rising flank
         FlagHandler::interChipReceive_DMA_Finished = true;
@@ -165,9 +164,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         cvDacA.resetLatchPin();
         cvDacB.resetLatchPin();
         cvDacC.resetLatchPin();
-        if (FlagHandler::cvDacCFinished == false) {
-            PolyError_Handler("polyRender | timerCallback | cvDacCFinished = false");
-        }
+        // if (FlagHandler::cvDacCFinished == false) {
+        //     PolyError_Handler("polyRender | timerCallback | cvDacCFinished = false");
+        // }
 
         FlagHandler::renderNewCV = true;
         FlagHandler::cvDacCFinished = false;

@@ -1172,6 +1172,6 @@ const float wavetabledata_wurli02[3491] = { // start wavetable
     -0.004194588866084814
 };
 
-const wavetable wavetable_wurli02 = {3491, wavetabledata_wurli02};
+const wavetable wavetable_wurli02 = {3491, 4, wavetabledata_wurli02};
 
 #endif

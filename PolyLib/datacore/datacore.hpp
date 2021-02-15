@@ -215,7 +215,7 @@ class Digital : public DataElement {
     void setValue(int32_t newValue);
     void nextValue();
     void previousValue();
-    void resetValue() { setValueWithoutMapping(defaultValue); }
+    inline void resetValue() { setValueWithoutMapping(defaultValue); }
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
@@ -296,8 +296,9 @@ class BasePatch {
 
 class Input : public BasePatch {
   public:
-    Input(const char *name) {
+    Input(const char *name, typeLinLog mapping = linMap) {
         this->name = name;
+        this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
     }
 
@@ -306,6 +307,9 @@ class Input : public BasePatch {
 
     // calculate all inputs with their attached patchesInOut
     void collectCurrentSample();
+    typeLinLog mapping;
+
+  protected:
 };
 
 class Output : public BasePatch {
@@ -320,7 +324,7 @@ class Output : public BasePatch {
     }
 
     // set next calculatedSample as current sample
-    void updateToNextSample() {
+    inline void updateToNextSample() {
         float *tempPointer = currentSample;
         currentSample = nextSample;
         nextSample = tempPointer;
@@ -416,7 +420,7 @@ class RenderBuffer {
     }
 
     // set next calculatedSample as current sample
-    void updateToNextSample() {
+    inline void updateToNextSample() {
         float *tempPointer = currentSample;
         currentSample = nextSample;
         nextSample = tempPointer;
@@ -438,7 +442,7 @@ class I2CBuffer {
     }
 
     // set next calculatedSample as current sample
-    void updateToNextSample() {
+    inline void updateToNextSample() {
         uint16_t *tempPointer = currentSample;
         currentSample = nextSample;
         nextSample = tempPointer;
@@ -455,46 +459,31 @@ class I2CBuffer {
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
 inline void PatchElementInOut::changeAmount(float change) {
-    amount = changeFloat(amount, change, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, amount);
-#endif
-}
-inline void PatchElementInOut::setAmount(float amount) {
-    this->amount = testFloat(amount, -1, 1);
+    setAmount(amount + change);
 #ifdef POLYCONTROL
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
 #endif
 }
+
 inline void PatchElementOutOut::changeAmount(float change) {
-    amount = changeFloat(amount, change, -1, 1);
+    setAmount(amount + change);
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 #endif
 }
-inline void PatchElementOutOut::setAmount(float amount) {
-    this->amount = testFloat(amount, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, offset);
-#endif
-}
+
 inline void PatchElementOutOut::changeOffset(float change) {
-    offset = changeFloat(offset, change, -1, 1);
+    setOffset(offset + change);
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 #endif
 }
-inline void PatchElementOutOut::setOffset(float offset) {
-    offset = testFloat(offset, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, amount, offset);
-#endif
-}
+
 inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
-    this->amount = testFloat(amount, -1, 1);
-    offset = testFloat(offset, -1, 1);
+    setAmount(amount);
+    setOffset(offset);
 #ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, offset);
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 #endif
 }
 inline void BasePatch::clearPatches() {

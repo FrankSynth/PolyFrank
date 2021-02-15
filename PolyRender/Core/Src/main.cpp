@@ -96,7 +96,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(100); // !!
+    HAL_Delay(10); // !!
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
@@ -126,8 +126,6 @@ int main(void) {
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
-    
-
     // timer micros()
     HAL_TIM_Base_Start(&htim2);
 
@@ -139,7 +137,7 @@ int main(void) {
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
 
-    HAL_Delay(200);
+    // HAL_Delay(200);
 
     println("PolyRender Init");
     PolyRenderInit();

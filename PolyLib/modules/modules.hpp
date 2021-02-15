@@ -11,6 +11,7 @@ extern const std::vector<std::string> nlSteinerModes;
 extern const std::vector<std::string> nlLadderSlopes;
 extern const std::vector<std::string> nlADSRShapes;
 extern const std::vector<std::string> nlClockSteps;
+extern const std::vector<std::string> nlSubOctaves;
 
 // Basemodule
 class BaseModule {
@@ -141,8 +142,8 @@ class OSC_A : public BaseModule {
     RenderBuffer levelLadder;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float stepWavetableA[VOICESPERCHIP] = {0};
-    float stepWavetableB[VOICESPERCHIP] = {0};
+    float phaseWavetableA[VOICESPERCHIP] = {0};
+    float phaseWavetableB[VOICESPERCHIP] = {0};
 
     inline void gateOn(uint16_t voice) {}
 };
@@ -205,8 +206,8 @@ class OSC_B : public BaseModule {
 
     bool newPhase[VOICESPERCHIP] = {false};
     float cacheOscAstep[VOICESPERCHIP] = {false};
-    float stepWavetableA[VOICESPERCHIP] = {0};
-    float stepWavetableB[VOICESPERCHIP] = {0};
+    float phaseWavetableA[VOICESPERCHIP] = {0};
+    float phaseWavetableB[VOICESPERCHIP] = {0};
 
     inline void gateOn(uint16_t voice) {}
 };
@@ -243,6 +244,7 @@ class Sub : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
+    Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
     // render shizzle
 
@@ -250,6 +252,9 @@ class Sub : public BaseModule {
     RenderBuffer levelSteiner;
     RenderBuffer levelLadder;
     RenderBuffer bitcrusher;
+
+    float phase[VOICESPERCHIP] = {0};
+    float oscApreviousPhase[VOICESPERCHIP] = {0};
 };
 
 class Noise : public BaseModule {

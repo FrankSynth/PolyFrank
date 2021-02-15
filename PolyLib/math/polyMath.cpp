@@ -84,11 +84,11 @@ float fastNoteLin2Log_f32(float x) {
 }
 
 void LogCurve::precomputeTable() {
-    float b = powf((1 / curve) - 1, 2);
+    float b = std::pow((1 / curve) - 1, 2);
     float a = 1 / (b - 1);
 
     for (uint16_t i = 0; i < (size + 1); i++) {
-        logTable[i] = a * powf(b, fastMapCached(i, 0, size, 0, 1)) - a;
+        logTable[i] = a * std::pow(b, fastMapCached(i, 0, size, 0, 1)) - a;
         // logTable.push_back(a * powf(b, fastMap(i, 0, size, 0, 1)) - a);
     }
 }
@@ -126,7 +126,7 @@ float LogCurve::mapValue(float value) {
 }
 
 // audio poti Log style
-LogCurve audioCurve = LogCurve(16, 0.1);
+LogCurve audioCurve(16, 0.1);
 
 float fastMapAudioToLog(float value) {
     return audioCurve.mapValue(value);

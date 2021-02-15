@@ -6,7 +6,7 @@
 #define MAXWAVETABLELENGTH 13964
 
 /**
- * @brief wave table size and data pointer
+ * @brief wave table size, cycles and data pointer
  *
  */
 typedef struct {
@@ -15,6 +15,7 @@ typedef struct {
      *
      */
     const uint32_t size;
+    const uint32_t cycles;
     const float *data;
 } wavetable;
 

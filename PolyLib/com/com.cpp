@@ -569,9 +569,6 @@ void COMinterChip::initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)
 
 uint8_t COMinterChip::beginReceiveTransmission() {
 
-    // enable reception line
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
-
     uint8_t ret = receiveViaDMA(dmaInBufferPointer[!currentBufferSelect], INTERCHIPBUFFERSIZE);
     FlagHandler::interChipReceive_DMA_Started = 1;
     FlagHandler::interChipReceive_DMA_FinishedFunc = std::bind(&COMinterChip::copyReceivedInBuffer, this);
@@ -607,7 +604,11 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
 }
 
 uint8_t COMinterChip::decodeCurrentInBuffer() {
+
     switchBuffer();
+
+    // show that we are decoding the buffer
+
     // println("decode Buffer");
     // necessary decoding vars
     volatile uint8_t outputID = 0;
@@ -620,7 +621,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile uint8_t velocity = 0;
     volatile int32_t amountInt = 0;
     volatile float amountFloat = 0;
-    // volatile float offsetFloat = 0;
+    volatile float offsetFloat = 0;
+
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
 
     beginReceiveTransmission();
 
@@ -631,9 +634,15 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
         PolyError_Handler("ERROR | FATAL | com buffer too big");
-
         return 1;
     }
+
+    if ((inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1] != (LASTBYTE | PATCHCMDTYPE)) {
+        PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
+        return 1;
+    }
+
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
@@ -674,37 +683,37 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         layerA.removePatchInOutById(outputID, inputID);
 
                         break;
-                        // case UPDATEOUTOUTPATCH:
-                        // outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        // inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        // amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        // i += sizeof(float) - 1;
-                        // offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        // i += sizeof(float) - 1;
+                    case UPDATEOUTOUTPATCH:
+                        outputID = (inBufferPointer[currentBufferSelect])[++i];
+                        inputID = (inBufferPointer[currentBufferSelect])[++i];
+                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        i += sizeof(float) - 1;
+                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        i += sizeof(float) - 1;
 
-                        // layerA.updatePatchOutOutById(outputID, inputID, amountFloat);
+                        layerA.updatePatchOutOutById(outputID, inputID, amountFloat);
 
-                        // break;
+                        break;
 
-                        // case CREATEOUTOUTPATCH:
-                        // outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        // inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        // amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        // i += sizeof(float) - 1;
-                        // offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        // i += sizeof(float) - 1;
+                    case CREATEOUTOUTPATCH:
+                        outputID = (inBufferPointer[currentBufferSelect])[++i];
+                        inputID = (inBufferPointer[currentBufferSelect])[++i];
+                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        i += sizeof(float) - 1;
+                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                        i += sizeof(float) - 1;
 
-                        // layerA.addPatchOutOutById(outputID, inputID, amountFloat);
+                        layerA.addPatchOutOutById(outputID, inputID, amountFloat);
 
-                        // break;
+                        break;
 
-                    // case DELETEOUTOUTPATCH:
-                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
+                    case DELETEOUTOUTPATCH:
+                        outputID = (inBufferPointer[currentBufferSelect])[++i];
+                        inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                    //     layerA.removePatchOutOutById(outputID, inputID);
+                        layerA.removePatchOutOutById(outputID, inputID);
 
-                    //     break;
+                        break;
                     case DELETEALLPATCHES:
                         // delete all patchesInOut at once
                         layerA.clearPatches();
@@ -741,6 +750,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         break;
 
                     case LASTBYTE:
+
                         // transmission complete
                         // println("decode success!");
                         return 0;
@@ -803,7 +813,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // we should always exit with LASTBYTE
-    // PolyError_Handler("no LASTBYTE received");
+    PolyError_Handler("no LASTBYTE received");
 
     return 1;
 }
@@ -870,6 +880,8 @@ void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
 #elif POLYRENDER
 
     if (FlagHandler::interChipReceive_MDMA_Started == 1) {
+        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
+
         FlagHandler::interChipReceive_MDMA_Started = 0;
         FlagHandler::interChipReceive_MDMA_Finished = 1;
     }

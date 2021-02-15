@@ -7,8 +7,7 @@
 #include "tim.h"
 #include <stdint.h>
 
-// probably obsolete
-// void initCVRendering();
+void initCVRendering();
 
 void renderCVs();
 

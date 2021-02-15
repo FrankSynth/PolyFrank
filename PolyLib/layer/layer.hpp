@@ -28,19 +28,19 @@ class Layer {
   public:
     Layer(uint32_t id) : id(id) {
         // add Modules
-        modules.push_back(&steiner);
-        modules.push_back(&midi);
         modules.push_back(&oscA);
         modules.push_back(&oscB);
         modules.push_back(&sub);
         modules.push_back(&noise);
+        modules.push_back(&steiner);
         modules.push_back(&ladder);
-        modules.push_back(&distort);
-        modules.push_back(&lfoA);
-        modules.push_back(&lfoB);
         modules.push_back(&adsrA);
         modules.push_back(&adsrB);
+        modules.push_back(&lfoA);
+        modules.push_back(&lfoB);
+        modules.push_back(&distort);
         modules.push_back(&globalModule);
+        modules.push_back(&midi);
         // skip layer settings?
 
         initID();
@@ -105,8 +105,6 @@ class Layer {
 
 #endif
 
-    // ID for
-
     uint8_t id;
 
     Midi midi = Midi("MIDI");
@@ -130,9 +128,4 @@ class Layer {
     std::list<PatchElementOutOut> patchesOutOut;
 
   private:
-    // sendout?
-
-    // modules, don't forget them to push into modules vector in constructor
-    // LFO lfo_1 = LFO("LFO1");
-    // LFO lfo_2 = LFO("LFO2");
 };

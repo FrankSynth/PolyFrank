@@ -60,7 +60,7 @@ float fast_sin_f32(float x);
  * @return ALWAYS_INLINE
  */
 ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
-    return a + f * (b - a);
+    return (a * (1.0f - f)) + (b * f);
 }
 
 /**
@@ -127,7 +127,8 @@ inline float fastMapCached(float input, float input_start, float input_end, floa
  * @param output_end out range end
  * @return float mapped input value
  */
-inline float fastMap(float input, float input_start, float input_end, float output_start, float output_end) {
+ALWAYS_INLINE inline float fastMap(float input, float input_start, float input_end, float output_start,
+                                   float output_end) {
 
     float output = output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
     return output;

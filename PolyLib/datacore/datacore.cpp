@@ -96,7 +96,7 @@ const std::string &Digital::getValueAsString() {
 
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
-    valueMapped = round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
+    valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
 
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
@@ -155,10 +155,53 @@ void Input::collectCurrentSample() {
     currentSample[3] = 0;
     for (PatchElementInOut *patch : patchesInOut) {
         Output *sourceOut = patch->sourceOut;
-        float amount = patch->getAmount();
+        const float &amount = patch->amount;
         currentSample[0] += sourceOut->currentSample[0] * amount;
         currentSample[1] += sourceOut->currentSample[1] * amount;
         currentSample[2] += sourceOut->currentSample[2] * amount;
         currentSample[3] += sourceOut->currentSample[3] * amount;
     }
+}
+
+void PatchElementInOut::setAmount(float amount) {
+
+    if (targetIn->mapping == linMap) {
+        this->amount = testFloat(amount, -1, 1);
+    }
+    else if (targetIn->mapping == logMap) {
+        float newAmount = testFloat(amount, -1, 1);
+
+        if (newAmount < 0) {
+            this->amount = logMapping.mapValue(newAmount * -1.0f) * -1.0f;
+        }
+        else {
+            this->amount = logMapping.mapValue(newAmount);
+        }
+    }
+    else if (targetIn->mapping == antilogMap) {
+        float newAmount = testFloat(amount, -1, 1);
+
+        if (newAmount < 0) {
+            this->amount = antiLogMapping.mapValue(newAmount * -1.0f) * -1.0f;
+        }
+        else {
+            this->amount = antiLogMapping.mapValue(newAmount);
+        }
+    }
+
+#ifdef POLYCONTROL
+    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
+#endif
+}
+void PatchElementOutOut::setAmount(float amount) {
+    this->amount = testFloat(amount, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+#endif
+}
+void PatchElementOutOut::setOffset(float offset) {
+    this->offset = testFloat(offset, -1, 1);
+#ifdef POLYCONTROL
+    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+#endif
 }
