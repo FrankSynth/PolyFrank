@@ -57,6 +57,14 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, u
 void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
                         uint8_t hugeFont = 0);
 
+const char *valueToNote(const byte &noteIn);
+
+const char *valueToOctave(const byte &noteIn);
+
+const char *valueToSharp(const byte &noteIn);
+
+const char *tuningToChar(const byte &tuning);
+
 // GUIHeader Box for Panel Selection
 class Data_PanelElement {
   public:

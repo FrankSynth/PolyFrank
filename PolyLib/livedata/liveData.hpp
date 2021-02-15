@@ -6,7 +6,6 @@
 #include "poly.hpp"
 #include "voiceHandler.hpp"
 
-
 class LiveData {
   public:
     LiveData() {
@@ -25,6 +24,7 @@ class LiveData {
 
     void clockTick();
     void clockHandling();
+
 
     void serviceRoutine();
     VoiceHandler voiceHandler;

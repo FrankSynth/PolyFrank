@@ -69,7 +69,7 @@ void VoiceHandler::freeNote(Key &key) {
 
         findVoices(key.note, voicesB);
         for (voiceStateStruct *v : foundVoices) {
-            if (sustainA) {
+            if (sustainB) {
                 v->status = SUSTAIN;
             }
             else {
@@ -104,6 +104,15 @@ void VoiceHandler::freeNote(Key &key) {
     }
 }
 
+void VoiceHandler::setSustain(uint8_t value, uint8_t layer) {
+    if (value >= 64) {
+        sustainOn(layer);
+    }
+    if (value < 64) {
+        sustainOff(layer);
+    }
+}
+
 void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 
     v->status = FREE;
@@ -114,33 +123,36 @@ void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 void VoiceHandler::sustainOff(uint8_t layer) {
 
     if (livemodeMergeLayer.value == 1) {
-        for (voiceStateStruct v : voicesA) {
-            if (v.status == SUSTAIN) {
-                sendGateOff(&v);
+        if (layer == 0) {
+
+            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+                if (voicesA[i].status == SUSTAIN) {
+                    sendGateOff(&voicesA[i]);
+                }
             }
-        }
-        sustainA = 0;
-        for (voiceStateStruct v : voicesB) {
-            if (v.status == SUSTAIN) {
-                sendGateOff(&v);
+            sustainA = 0;
+            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+                if (voicesB[i].status == SUSTAIN) {
+                    sendGateOff(&voicesB[i]);
+                }
             }
+            sustainB = 0;
         }
-        sustainB = 0;
     }
 
     else {
         if (layer == 0) {
-            for (voiceStateStruct v : voicesA) {
-                if (v.status == SUSTAIN) {
-                    sendGateOff(&v);
+            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+                if (voicesA[i].status == SUSTAIN) {
+                    sendGateOff(&voicesA[i]);
                 }
             }
             sustainA = 0;
         }
         else if (layer == 1) {
-            for (voiceStateStruct v : voicesB) {
-                if (v.status == SUSTAIN) {
-                    sendGateOff(&v);
+            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+                if (voicesB[i].status == SUSTAIN) {
+                    sendGateOff(&voicesB[i]);
                 }
             }
             sustainB = 0;
@@ -189,10 +201,7 @@ void VoiceHandler::getNextVoicesAB(uint8_t numberVoices) {
 
     // to keep in Sync search in voiceA und take same voiceID from B
     for (uint8_t v = 0; v < numberVoices; v++) {
-        searchNextVoice(voicesA);
-    }
-    for (voiceStateStruct *v : foundVoices) {
-        foundVoices.push_back(&voicesB[v->voiceID]);
+        searchNextVoiceAB();
     }
 }
 
@@ -227,6 +236,49 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
 
     voices[oldestVoiceID].status = SELECT;
     foundVoices.push_back(&voices[oldestVoiceID]);
+}
+
+void VoiceHandler::searchNextVoiceAB() {
+
+    voiceStateStruct *nextVoice = nullptr;
+
+    // find oldest FREE Voice
+
+    for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+        if (voicesA[i].status == FREE) {
+            if (voicesA[i].playID <= nextVoice->playID) {
+                nextVoice = &voicesA[i];
+            }
+        }
+        if (voicesB[i].status == FREE) {
+            if (voicesB[i].playID <= nextVoice->playID) {
+                nextVoice = &voicesB[i];
+            }
+        }
+    }
+
+    // no voice free voice found, take the oldest played one
+    if (nextVoice == nullptr) {
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            // found oldest NOTE
+            if (voicesA[i].status != SELECT) {
+                if (voicesA[i].playID <= nextVoice->playID) {
+                    nextVoice = &voicesA[i];
+                }
+            }
+            if (voicesB[i].status != SELECT) {
+                if (voicesB[i].playID <= nextVoice->playID) {
+                    nextVoice = &voicesB[i];
+                }
+            }
+        }
+    }
+    if (nextVoice == nullptr) {
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to much voices?");
+    }
+
+    nextVoice->status = SELECT;
+    foundVoices.push_back(nextVoice);
 }
 
 #endif

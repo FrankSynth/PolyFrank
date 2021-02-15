@@ -27,6 +27,9 @@ class rotary {
     }
     void process(uint16_t pinState);
 
+    void acellaration();
+    uint32_t lastStepTime;
+
   private:
     std::function<void()> functionCW = nullptr;
     std::function<void()> functionCCW = nullptr;

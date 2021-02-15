@@ -29,13 +29,13 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     std::string text;
     // get text
     if (entry->type == PATCHOUTPUT) {
-        text = allLayers[focus.layer]->getModules()[data->sourceOut->moduleId]->getName();
+        text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getName();
     }
     else if (entry->type == PATCHOUTOUT) {
-        text = allLayers[focus.layer]->getModules()[dataOutOut->sourceOut->moduleId]->getName();
+        text = allLayers[currentFocus.layer]->getModules()[dataOutOut->sourceOut->moduleId]->getName();
     }
     else {
-        text = allLayers[focus.layer]->getModules()[data->targetIn->moduleId]->getName();
+        text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getName();
     }
     // Draw Name
     if (select) {
@@ -101,7 +101,6 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     }
 
     if (entry->setting == nullptr) {
-        println("nullpt!");
         return;
     }
     Setting *data = entry->setting;
@@ -516,9 +515,9 @@ void Patch_PanelElement::Draw() {
 
             if (select) {
                 actionHandler.registerActionEncoder4(
-                    {std::bind(&PatchElementInOut::changeAmount, patch, 0.05), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::changeAmount, patch, -0.05), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
+                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                    {std::bind(&PatchElementInOut::setAmountMapped, patch, 0), "RESET"});
             }
             drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
                                  showModuleName);
@@ -603,6 +602,78 @@ void Live_PanelElement::Draw() {
 
     numberEntrys = 0;
     select = 0;
+}
+
+const char *valueToNote(const byte &noteIn) {
+
+    byte note;
+    note = (noteIn + 9) % 12;
+    switch (note) {
+        case 0:
+        case 1: return "C";
+        case 2:
+        case 3: return "D";
+        case 4: return "E";
+        case 5:
+        case 6: return "F";
+        case 7:
+        case 8: return "G";
+        case 9:
+        case 10: return "A";
+        case 11: return "B";
+    }
+    return "";
+}
+
+const char *valueToOctave(const byte &noteIn) {
+
+    byte octave;
+    octave = (noteIn + 9) / 12;
+
+    switch (octave) {
+        case 0: return "-1";
+        case 1: return "0";
+        case 2: return "1";
+        case 3: return "2";
+        case 4: return "3";
+        case 5: return "4";
+        case 6: return "5";
+        case 7: return "6";
+        case 8: return "7";
+        case 9: return "8";
+    }
+    return "";
+}
+
+const char *valueToSharp(const byte &noteIn) {
+    byte note;
+    note = (noteIn + 9) % 12;
+
+    if (note == 1 || note == 3 || note == 6 || note == 8 || note == 10) {
+        return "#";
+    }
+
+    return "";
+}
+
+const char *tuningToChar(const byte &tuning) {
+
+    switch (tuning) {
+        case 1: return "C";
+        case 2: return "C#";
+        case 3: return "D";
+        case 4: return "D#";
+        case 5: return "E";
+        case 6: return "F";
+        case 7: return "F#";
+        case 8: return "G";
+        case 9: return "G#";
+        case 10: return "A";
+        case 11: return "A#";
+        case 12: return "B";
+        case 13: return "F";
+        default: return "-";
+    }
 }
 
 #endif

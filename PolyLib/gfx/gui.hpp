@@ -10,6 +10,7 @@
 #include "guiPanelLive.hpp"
 #include "guiPanelPatch.hpp"
 #include "guiPanelPreset.hpp"
+#include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
 #include "tim.h"
 #include <functional>
@@ -97,7 +98,7 @@ class GUIPanelPath {
   public:
     void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
 
-    void Draw();
+    void Draw(uint8_t onlyLayer = 0);
 
   private:
     // Boxes
@@ -167,7 +168,7 @@ class GUI {
     void Draw();
     void Clear();
 
-    void setFocus(location newFocus);
+    void checkFocusChange();
 
     // PanelSelect
     void setPanelActive(uint8_t panelID);
@@ -182,10 +183,12 @@ class GUI {
     std::vector<Layer *> layers;
 
   private:
-    GUIPanelLive guiPanel_0;
+    GUIPanelLive guiPanelLive;
     GUIPanelPatch guiPanel_1;
     GUIPanelPreset guiPanel_2;
     GUIPanelConfig guiPanel_3;
+
+    GUIPanelVoice guiPanelVoice;
 
     std::vector<GUIPanelBase *> panels;
 
@@ -198,6 +201,8 @@ class GUI {
     GUIHeader guiHeader;
 
     GUIPanelError guiError;
+
+    location oldFocus;
 };
 
 // GUI

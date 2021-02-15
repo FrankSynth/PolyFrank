@@ -238,7 +238,7 @@ class Sub : public BaseModule {
     Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
 
-    Analog aShape = Analog("SHAPE", 0, 1, 0, true, logMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0.001, 1, 0.001, true, linMap, &iShape);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
@@ -571,7 +571,7 @@ class GlobalModule : public BaseModule {
         renderBuffer.push_back(&right);
     }
 
-    Input iVCA = Input("VCA");
+    Input iVCA = Input("VCA", logMap);
     Input iPan = Input("PAN");
 
     Analog aVCA = Analog("VCA", 0, 1, 1, true, linMap, &iVCA);

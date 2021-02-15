@@ -22,6 +22,8 @@ class GUIPanelFocus : public GUIPanelBase {
 
     uint16_t entrys = FOCUSPANELENTRYS;
 
+    location newPanelFocus;
+
     uint16_t SwitchEntrysPerElement = 3;
     uint16_t AnalogEntrysPerElement = 1;
     uint16_t PatchEntrysPerElement = 1;
@@ -35,8 +37,6 @@ class GUIPanelFocus : public GUIPanelBase {
     Scroller scrollModules = Scroller(FOCUSPANELENTRYS);
     Scroller scrollLayer = Scroller(FOCUSPANELENTRYS);
     Scroller scroll = Scroller(FOCUSPANELENTRYS);
-
-    location newFocusLocation;
 
     Data_PanelElement panelElements[FOCUSPANELENTRYS];
 };

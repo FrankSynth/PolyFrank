@@ -234,8 +234,7 @@ class PanelTouch {
         if (activeInput == nullptr && activeOutput == nullptr) {
             activeInput = pInput;
 
-            location focus = {pInput->layerId, pInput->moduleId, pInput->id, FOCUSINPUT};
-            ui.setFocus(focus);
+            newFocus = {pInput->layerId, pInput->moduleId, pInput->id, FOCUSINPUT};
         }
     }
 
@@ -243,16 +242,11 @@ class PanelTouch {
         if (activeInput == nullptr && activeOutput == nullptr) {
             activeOutput = pOutput;
 
-            location focus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
-            ui.setFocus(focus);
+            newFocus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
         }
     }
 
-    void setModulFocus(BaseModule *pModule) {
-
-        location focus = {pModule->layerId, pModule->id, 0, FOCUSMODULE};
-        ui.setFocus(focus);
-    }
+    void setModulFocus(BaseModule *pModule) { newFocus = {pModule->layerId, pModule->id, 0, FOCUSMODULE}; }
 
     Output *activeOutput = nullptr;
     Input *activeInput = nullptr;

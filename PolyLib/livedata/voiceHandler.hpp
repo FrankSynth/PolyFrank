@@ -32,6 +32,9 @@ class VoiceHandler {
     void getNextVoicesAB(uint8_t numberVoices);
 
     void searchNextVoice(voiceStateStruct *voices);
+    void searchNextVoiceAB();
+
+    void setSustain(uint8_t value, uint8_t layer);
 
     std::vector<voiceStateStruct *> foundVoices;
     uint8_t layerID = 0;

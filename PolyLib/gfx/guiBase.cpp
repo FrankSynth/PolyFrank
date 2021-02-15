@@ -2,7 +2,8 @@
 
 #include "guiBase.hpp"
 
-location focus;
+location currentFocus;
+location newFocus;
 
 // colors
 uint32_t cSelect = 0xD0FFFFFF;
@@ -20,7 +21,7 @@ uint32_t cGrey = 0x10808080;
 
 uint32_t cWhite = 0xFFFFFFFF;
 uint32_t cWhiteMedium = 0x20FFFFFF;
-
+uint32_t cWhiteBright = 0x80FFFFFF;
 uint32_t cWhiteLight = 0x10FFFFFF;
 uint32_t cHighlight = 0xF0db0000;
 
@@ -51,29 +52,32 @@ void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint
 void Todo(){};
 
 void nextLayer() {
-    focus.layer = changeIntLoop(focus.layer, 1, 0, 1); // anzahl der Layer festgelegt
+    currentFocus.layer = changeIntLoop(currentFocus.layer, 1, 0, 1); // anzahl der Layer festgelegt
 }
 
 void focusUp() {
 
-    if (focus.type == FOCUSINPUT || focus.type == FOCUSOUTPUT) {
-        focus.type = FOCUSMODULE;
+    if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSOUTPUT) {
+        newFocus = currentFocus;
+        newFocus.type = FOCUSMODULE;
     }
-    else if (focus.type == FOCUSMODULE) {
-        focus.type = FOCUSLAYER;
+    else if (currentFocus.type == FOCUSMODULE) {
+        newFocus = currentFocus;
+        newFocus.type = FOCUSLAYER;
     }
 }
 
-void focusDown(location newFocus) {
-    if (newFocus.type == NOFOCUS) {
+void focusDown(location focus) {
+
+    if (focus.type == NOFOCUS) {
         return;
     }
 
-    focus.type = newFocus.type;
-    if (newFocus.type == FOCUSINPUT) {
-        focus.id = newFocus.id;
+    newFocus.type = focus.type;
+    newFocus.modul = focus.modul;
+    if (focus.type == FOCUSINPUT) {
+        newFocus.id = focus.id;
     }
-    focus.modul = newFocus.modul;
 }
 
 void Scroller::scroll(int16_t change) {

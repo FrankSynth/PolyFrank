@@ -6,7 +6,6 @@ RAM2_DMA volatile uint8_t interChipDMABufferLayerB[2 * INTERCHIPBUFFERSIZE];
 
 // USB
 midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
-// CDC USB DEVICE missing
 
 // Layer
 ID layerId;
@@ -18,48 +17,43 @@ COMinterChip layerCom[2];
 
 // function pointers
 void initMidi();
-// uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, uint8_t *amount);
-
-// uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-// uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-// uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
-// uint8_t sendDeleteAllPatches(uint8_t layerId);
 
 uint8_t test = 0;
 
 // poly control init
 void PolyControlInit() {
     ////////Layer init////////
+
+    // Init for Control and Layer Chips
     initPoly();
 
+    // Prepare Layer
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
 
-    // initHID();
     ////////Hardware init////////
 
-    // enable Layer
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET); // Enable Layer Board
+    // Enable Layer Board
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
 
-    // mult tmp
-    HAL_GPIO_WritePin(Panel_ADC_Mult_A_GPIO_Port, Panel_ADC_Mult_A_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, GPIO_PIN_RESET);
+    // Enable Panel Board
+    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
 
-    ////////Sofware init////////
-    // enable Panel
-    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET); // Enable Panel Board
+    // Enable Control Panel Board
+    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // init EEPROM
     initPreset();
+    updatePresetList(); // read preset List from EEPROM
 
     // Init Encoder, Touchbuttons,..
     initHID();
 
     // init UI, Display
     ui.Init();
-    // enable display
-    HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
+
+    // Set UI Default Focus
+    newFocus = {0, allLayers[0]->steiner.id, 0, FOCUSMODULE};
 
     ////////Sofware init////////
     // init communication to render chip
@@ -73,9 +67,8 @@ void PolyControlInit() {
             (uint8_t *)interChipDMABufferLayerB, 1);
     }
 
-    // resetLayer to default Value (must be called in runtime!)
-
-    // allLayers[0]->resetLayer();
+    // Reset all Layer to default configuration,
+    allLayers[0]->resetLayer();
     // for (Layer *l : allLayers) {
     //     l->resetLayer();
     // };
@@ -83,24 +76,21 @@ void PolyControlInit() {
     // init midi
     initMidi();
 
-    // read Preset List from EEPROM
-    updatePresetList();
-
     // load global Settings
     globalSettings.loadGlobalSettings();
 
+    // Sit back and relax for a moment
     HAL_Delay(1000);
-    println("Hi, Frank here!");
-}
 
-uint16_t *testbuffer = (uint16_t *)pFrameBuffer;
+    // Say hello
+    println("Hi, Frank here!");
+
+    // And turn the Display on
+    HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
+}
 
 void PolyControlRun() { // Here the party starts
 
-    location tempFocus = {0, allLayers[0]->steiner.id, 0, FOCUSMODULE};
-
-    // temp set focus
-    ui.setFocus(tempFocus);
     while (1) {
 
         mididevice.read();
@@ -110,19 +100,15 @@ void PolyControlRun() { // Here the party starts
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
-
-            // TODO updatePatchLED an wenn chip dran
-            // updatePatchLED();
+            // TODO updatePatchLED an wenn chip dran updatePatchLED();
         }
 
         layerCom[0].beginSendTransmission();
-
         // layerCom[1].beginSendTransmission();
     }
 }
 
-///////////////////////////////////////////////// LAYER SPECIFIC HANDLING
-////////////////////////////////////////////////
+//////////////LAYER SPECIFIC HANDLING////////////
 
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
     return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
@@ -199,6 +185,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 // Midi Handling
+
 inline void midiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
     liveData.keyPressed(channel, note, velocity);
 }
@@ -229,21 +216,29 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     switch (pin) {
         case GPIO_PIN_12: FlagHandler::Control_Encoder_Interrupt = true; break; // ioExpander -> encoder
         case GPIO_PIN_11: FlagHandler::Panel_0_EOC_Interrupt = true; break;     // Panel 1 -> EOC
+        case GPIO_PIN_2: FlagHandler::Control_Touch_Interrupt = true; break;    // touch
 
-        case GPIO_PIN_2:
-            FlagHandler::Control_Touch_Interrupt = true;
-            break; // touch
+        case GPIO_PIN_3: // Layer 2 Ready 1
+            if (FlagHandler::interChipA_State[1] == 0) {
+                FlagHandler::interChipA_State[1] = 2;
+                FlagHandler::interChipA_StateTimeout[1] = 0;
+            }
+            if (FlagHandler::interChipA_State[1] == 2) {
+                FlagHandler::interChipA_State[1] = 4;
+                FlagHandler::interChipA_StateTimeout[1] = 0;
+            }
+            break;
 
-        // case GPIO_PIN_3: // Layer 2 Ready 1
-        //     FlagHandler::interChipA_StateTimeout[1] = 0;
-        //     FlagHandler::interChipA_State[1]++;
-        //     break;
-
-        // case GPIO_PIN_4: // Layer 2 Ready 2
-        //     FlagHandler::interChipB_StateTimeout[1] = 0;
-        //     FlagHandler::interChipB_State[1]++;
-
-        //     break;
+        case GPIO_PIN_4: // Layer 2 Ready 2
+            if (FlagHandler::interChipB_State[1] == 0) {
+                FlagHandler::interChipB_State[1] = 2;
+                FlagHandler::interChipB_StateTimeout[1] = 0;
+            }
+            if (FlagHandler::interChipB_State[1] == 2) {
+                FlagHandler::interChipB_State[1] = 4;
+                FlagHandler::interChipB_StateTimeout[1] = 0;
+            }
+            break;
         case GPIO_PIN_6: // Layer 1 Ready 1
             if (FlagHandler::interChipA_State[0] == 0) {
                 FlagHandler::interChipA_State[0] = 2;
@@ -253,24 +248,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                 FlagHandler::interChipA_State[0] = 4;
                 FlagHandler::interChipA_StateTimeout[0] = 0;
             }
-
-            // else {
-            //     if (FlagHandler::interChipA_State[0] == 0 || FlagHandler::interChipA_State[0] == 2) {
-            //         FlagHandler::interChipA_State[0]++;
-            //         FlagHandler::interChipA_StateTimeout[0] = 0;
-            //     }
-            // }
             break;
 
-            // case GPIO_PIN_7: // Layer 1 Ready 2
-            //     FlagHandler::interChipB_StateTimeout[0] = 0;
-            //     FlagHandler::interChipB_State[0]++;
-
-            //     break;
-
-        default: break;
+        case GPIO_PIN_7: // Layer 1 Ready 2
+            if (FlagHandler::interChipA_State[0] == 0) {
+                FlagHandler::interChipA_State[0] = 2;
+                FlagHandler::interChipA_StateTimeout[0] = 0;
+            }
+            if (FlagHandler::interChipA_State[0] == 2) {
+                FlagHandler::interChipA_State[0] = 4;
+                FlagHandler::interChipA_StateTimeout[0] = 0;
+            }
+            break;
     }
 }
+
+// USB Connect detection
 
 /**
  * @brief  Connection event callback.

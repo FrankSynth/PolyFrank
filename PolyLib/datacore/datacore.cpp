@@ -162,3 +162,32 @@ void Input::collectCurrentSample() {
         currentSample[3] += sourceOut->currentSample[3] * amount;
     }
 }
+
+void PatchElementInOut::changeAmountEncoderAccelerationMapped(bool direction) {
+
+    if (direction == 0) {
+        amountRaw = changeFloat(amountRaw, -0.5 * ROTARYENCODERACELLARATION, -1, 1);
+    }
+    if (direction == 1) {
+        amountRaw = changeFloat(amountRaw, 0.5 * ROTARYENCODERACELLARATION, -1, 1);
+    }
+
+    setAmount(amountRaw);
+}
+void PatchElementInOut::setAmountMapped(float amountRaw) {
+    this->amountRaw = testFloat(amountRaw, -1, 1);
+
+    if (targetIn->mapping == linMap) {
+        amount = amountRaw;
+    }
+    else if (targetIn->mapping == logMap) {
+        amount = logMapping.mapValue(amountRaw);
+    }
+    else if (targetIn->mapping == antilogMap) {
+        amount = antiLogMapping.mapValue(amountRaw);
+    }
+
+#ifdef POLYCONTROL
+    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
+#endif
+}

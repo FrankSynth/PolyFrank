@@ -22,6 +22,7 @@ extern uint32_t cWhite;
 extern uint32_t cWhiteLight;
 extern uint32_t cWhiteMedium;
 extern uint32_t cHighlight;
+extern uint32_t cWhiteBright;
 
 // responsive sizes
 #define HEADERHEIGHT 36
@@ -31,6 +32,8 @@ extern uint32_t cHighlight;
 #define SCROLLBARWIDTH 4
 
 #define BOARDERWIDTH 80
+#define VOICEHEIGHT 100
+
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
 #define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER - SPACER
 
@@ -132,4 +135,5 @@ void focusDown(location newFocus);
 
 void Todo();
 
-extern location focus;
+extern location currentFocus;
+extern location newFocus;

@@ -44,8 +44,8 @@ void GUIPanelPreset::registerPanelSettings() {
 
     // register Panel Seetings Rigth
     actionHandler.registerActionRight(
-        {std::bind(&Layer::loadLayerFromPreset, (allLayers[focus.layer]), scrollPreset.position), "LOAD"},
-        {std::bind(&Layer::saveLayerToPreset, (allLayers[focus.layer]), scrollPreset.position,
+        {std::bind(&Layer::loadLayerFromPreset, (allLayers[currentFocus.layer]), scrollPreset.position), "LOAD"},
+        {std::bind(&Layer::saveLayerToPreset, (allLayers[currentFocus.layer]), scrollPreset.position,
                    firstName[scrollFirstName.position], secondName[scrollSecondName.position]),
          "SAVE"},
         {std::bind(&removePreset, scrollPreset.position), "CLEAR"});

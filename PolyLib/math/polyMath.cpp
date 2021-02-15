@@ -100,6 +100,17 @@ void LogCurve::precomputeTable() {
  * @return float
  */
 float LogCurve::mapValue(float value) {
+    uint8_t sign;
+    
+    if (value >= 0) {
+        sign = 0;
+    }
+    else {
+        sign = 1;
+    }
+
+    value = abs(value);
+
     float ret, fract; /* Temporary variables for input, output */
     uint16_t index;   /* Index variable */
     float a, b;       /* Two nearest output values */
@@ -122,7 +133,12 @@ float LogCurve::mapValue(float value) {
     ret = fast_lerp_f32(a, b, fract);
 
     /* Return the output value */
-    return (ret);
+    if (sign == 0) {
+        return ret;
+    }
+    else {
+        return -ret;
+    }
 }
 
 // audio poti Log style
