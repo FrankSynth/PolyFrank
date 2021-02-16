@@ -17,8 +17,7 @@
 #include <functional>
 
 extern midi::MidiInterface<midiUSB::COMusb> mididevice;
-extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+
 
 void PolyControlInit();
 void PolyControlRun();
