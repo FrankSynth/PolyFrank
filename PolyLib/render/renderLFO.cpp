@@ -24,16 +24,27 @@ inline float calcTriangle(float phase) {
     }
 }
 
-inline float calcSquare(float phase) {
-    return phase < 0.5f ? -1 : 1;
+inline float calcSquare(float phase, float shape) {
+    if (shape < 4) {
+        return phase < 0.5f ? 1 : -1;
+    }
+    else if (shape < 5) {
+        shape -= floor(shape);
+        return phase < (0.5f - shape / 2.0f) ? 1 : -1;
+    }
+    else {
+        return -1;
+    }
 }
 
 inline float calcRandom() {
     uint32_t randomNumber;
 
     randomNumber = std::rand();
-    // map number between -1 and 1 float
-    return ((float)((double)randomNumber / (double)RAND_MAX)) * 2 - 1;
+    randomNumber = randomNumber & 0x00FFFFFF;
+
+    // map to -1, 1
+    return ((float)randomNumber / 8388607.0f) - 1.0f;
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
@@ -48,10 +59,11 @@ void renderLFO(LFO &lfo) {
     int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        float &currentRandom = lfo.currentRandom[voice];
         float &phase = lfo.currentTime[voice];
         float speed = accumulateSpeed(lfo, voice);
         float &nextSample = lfo.out.nextSample[voice];
-        float &currentSample = lfo.out.currentSample[voice];
+        // float &currentSample = lfo.out.currentSample[voice];
         bool &newPhase = lfo.newPhase[voice];
 
         if (newPhase == false) {
@@ -62,22 +74,32 @@ void renderLFO(LFO &lfo) {
             }
         }
 
+        float fract = shape - std::floor(shape);
+
+        // calcSin(phase)
+        // calcRamp(phase)
+        // calcTriangle(phase)
+        // calcInvRamp(phase)
+        // calcSquare(phase)
+        // random
+
         if (shape < 1) {
-            nextSample = calcSin(phase);
+            nextSample = fast_lerp_f32(calcSin(phase), calcRamp(phase), fract);
         }
         else if (shape < 2) {
-            nextSample = calcRamp(phase);
+            nextSample = fast_lerp_f32(calcRamp(phase), calcTriangle(phase), fract);
         }
         else if (shape < 3) {
-            nextSample = calcInvRamp(phase);
+            nextSample = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
         }
         else if (shape < 4) {
-            nextSample = calcTriangle(phase);
+            nextSample = fast_lerp_f32(calcInvRamp(phase), calcSquare(phase, shape), fract);
         }
         else if (shape < 5) {
-            nextSample = calcSquare(phase);
+            nextSample = calcSquare(phase, shape);
         }
         else {
+            float random;
             if (newPhase) {
                 if (voice == 0) {
                     // re-seed once when they should be aligned
@@ -90,11 +112,17 @@ void renderLFO(LFO &lfo) {
                         alignedRandom = false;
                     }
                 }
-                nextSample = calcRandom();
+                random = calcRandom();
+                currentRandom = random;
             }
             else
-                nextSample = currentSample;
+                random = currentRandom;
+            if (shape == 6.0f)
+                nextSample = random;
+            else
+                nextSample = fast_lerp_f32(-1.0f, random, fract);
         }
+
         // check if all voices should output the same LFO
         if (alignLFOs) {
             for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++) {

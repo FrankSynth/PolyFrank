@@ -17,8 +17,8 @@ void renderGlobalModule(GlobalModule globalModule) {
 
     float *outLeft = globalModule.left.nextSample;
     float *outRight = globalModule.right.nextSample;
-    // TODO spread
 
+    // TODO spread
     const float &spread = globalModule.aSpread.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {

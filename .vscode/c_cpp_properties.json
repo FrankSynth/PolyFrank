@@ -32,7 +32,12 @@
         "PolyLib/globalsettings",
         "PolyLib/flagHandler",
         "PolyLib/modules",
+        "PolyLib/math",
         "PolyLib/debughelper",
+        "PolyLib/preset",
+        "PolyLib/wavetables",
+        "PolyLib/livedata",
+        "PolyLib/render",
         "PolyLib/humanInterface",
         "PolyLib/hardware"
       ],

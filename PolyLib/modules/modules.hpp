@@ -409,7 +409,7 @@ class LFO : public BaseModule {
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
 
-    Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
@@ -423,6 +423,7 @@ class LFO : public BaseModule {
 
     float currentTime[VOICESPERCHIP] = {0};
     bool newPhase[VOICESPERCHIP] = {false};
+    float currentRandom[VOICESPERCHIP] = {0};
 
     inline void resetPhase(uint16_t voice) {
         if (voice == 4) {
