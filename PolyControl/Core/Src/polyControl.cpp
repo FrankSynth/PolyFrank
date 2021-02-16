@@ -1,5 +1,10 @@
 #include "polyControl.hpp"
 
+// GUI
+extern GUI ui;
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+
 // Buffer for InterChip Com
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
 RAM2_DMA volatile uint8_t interChipDMABufferLayerB[2 * INTERCHIPBUFFERSIZE];
