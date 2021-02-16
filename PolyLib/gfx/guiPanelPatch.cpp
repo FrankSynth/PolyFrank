@@ -16,7 +16,7 @@ void GUIPanelPatch::registerElements() {
 
         if (dataIndex < entrysModule) {
 
-            panelElementsModule[elementIndex].addEntry(allLayers[focus.layer]->getModules()[dataIndex]);
+            panelElementsModule[elementIndex].addEntry(allLayers[currentFocus.layer]->getModules()[dataIndex]);
             dataIndex++;
         }
         else {
@@ -37,7 +37,8 @@ void GUIPanelPatch::registerElements() {
 
         if (dataIndex < entrysSource) {
 
-            panelElementsSource[elementIndex].addEntry((BasePatch *)allLayers[focus.layer]->outputs[dataIndex], 1);
+            panelElementsSource[elementIndex].addEntry((BasePatch *)allLayers[currentFocus.layer]->outputs[dataIndex],
+                                                       1);
             dataIndex++;
         }
         else {
@@ -58,8 +59,9 @@ void GUIPanelPatch::registerElements() {
 
         if (dataIndex < entrysTarget) {
 
-            panelElementsTarget[elementIndex].addEntry(
-                (BasePatch *)allLayers[focus.layer]->getModules()[scrollModule.position]->getInputs()[dataIndex]);
+            panelElementsTarget[elementIndex].addEntry((BasePatch *)allLayers[currentFocus.layer]
+                                                           ->getModules()[scrollModule.position]
+                                                           ->getInputs()[dataIndex]);
             dataIndex++;
         }
         else {
@@ -143,9 +145,9 @@ void GUIPanelPatch::registerElements() {
 }
 
 void GUIPanelPatch::updateEntrys() {
-    entrysModule = allLayers[focus.layer]->getModules().size();
-    entrysTarget = allLayers[focus.layer]->getModules()[scrollModule.position]->getInputs().size();
-    entrysSource = allLayers[focus.layer]->outputs.size();
+    entrysModule = allLayers[currentFocus.layer]->getModules().size();
+    entrysTarget = allLayers[currentFocus.layer]->getModules()[scrollModule.position]->getInputs().size();
+    entrysSource = allLayers[currentFocus.layer]->outputs.size();
     // check ScrollPosition
     scrollModule.entrys = entrysModule;
     scrollTarget.entrys = entrysTarget;
@@ -191,26 +193,26 @@ void GUIPanelPatch::Draw() {
 void GUIPanelPatch::registerPanelSettings() {
     if (flipView) {
 
-        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "SCROLL"},
-                                             {nullptr, ""});
-        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "SCROLL"},
-                                             {nullptr, ""});
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "SCROLL"},
-                                             {nullptr, ""});
+        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "MODULES"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "MODULES"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "INPUT"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "INPUT"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "OUTPUT"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "OUTPUT"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "SCROLL"},
-                                             {nullptr, ""});
-        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "SCROLL"},
-                                             {nullptr, ""});
-        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "SCROLL"},
-                                             {nullptr, ""});
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "MODULES"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "MODULES"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "INPUT"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "INPUT"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "OUTPUT"},
+                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "OUTPUT"},
+                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     // register Panel Seetings Left
     actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
@@ -255,19 +257,19 @@ void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 }
 
 void GUIPanelPatch::addCurrentPatch() {
-    allLayers[focus.layer]->addPatchInOutById(
+    allLayers[currentFocus.layer]->addPatchInOutById(
         panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
         panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
 }
 
 void GUIPanelPatch::removeCurrentPatch() {
-    allLayers[focus.layer]->removePatchInOutById(
+    allLayers[currentFocus.layer]->removePatchInOutById(
         panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
         panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
 }
 
 void GUIPanelPatch::clearPatches() {
-    allLayers[focus.layer]->clearPatches();
+    allLayers[currentFocus.layer]->clearPatches();
 }
 
 #endif

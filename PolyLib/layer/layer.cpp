@@ -90,14 +90,14 @@ void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     addPatchInOut(*(outputs[outputId]), *(inputs[inputId]), amount);
 }
 
-void Layer::updatePatchInOut(PatchElementInOut &patch, float amount) {
-    patch.setAmount(amount);
+void Layer::updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount) {
+    patch.setAmountWithoutMapping(amount);
 }
 
-void Layer::updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
+void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
     for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
-            updatePatchInOut(*p, amount);
+            this->updatePatchInOutWithoutMapping(*p, amount);
             return;
         }
     }
@@ -135,7 +135,6 @@ void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, f
     patchesOutOut.push_back(PatchElementOutOut(sourceOut, targetOut, id, amount, offset));
     sourceOut.addPatchOutOut(patchesOutOut.back());
     targetOut.addPatchOutOut(patchesOutOut.back());
-    patchesInOut.back().setAmount(amount);
 
 #ifdef POLYCONTROL
     sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->idGlobal, patchesOutOut.back().targetOut->idGlobal,
@@ -147,14 +146,15 @@ void Layer::addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float am
     addPatchOutOut(*outputs[outputOutId], *outputs[outputInId], amount);
 }
 
-void Layer::updatePatchOutOut(PatchElementOutOut &patch, float amount, float offset) {
-    patch.setAmountAndOffset(amount, offset);
+void Layer::updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount, float offset) {
+    patch.setAmountWithoutMapping(amount);
+    patch.setOffsetWithoutMapping(amount);
 }
 
-void Layer::updatePatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+void Layer::updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
     for (PatchElementOutOut *p : outputs[outputOutId]->getPatchesOutOut()) {
         if (p->targetOut == outputs[outputInId]) {
-            updatePatchOutOut(*p, amount, offset);
+            updatePatchOutOutWithoutMapping(*p, amount, offset);
             return;
         }
     }

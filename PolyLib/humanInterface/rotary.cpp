@@ -9,7 +9,9 @@
 
 // Use the full-step state table (emits a code at 00 only)
 
-#include "Rotary.hpp"
+#include "rotary.hpp"
+
+float ROTARYENCODERACELLARATION = 0; // store the current Encoder Acceleration for calculation changes
 
 const unsigned char ttable[7][4] = {
     // R_START
@@ -52,17 +54,26 @@ void rotary::process(uint16_t pinState) {
     state = ttable[state & 0xf][pinstate];
     // Return emit bits, ie the generated event.
     if ((state & 0x30) == DIR_CW) {
+        acellaration();
 
         if (functionCW != nullptr) {
             functionCW();
         }
+        lastStepTime = millis();
     }
     else if ((state & 0x30) == DIR_CCW) {
+        acellaration();
 
         if (functionCCW != nullptr) {
             functionCCW();
         }
+
+        lastStepTime = millis();
     }
+}
+
+void rotary::acellaration() {
+    ROTARYENCODERACELLARATION = testFloat(1. / (millis() - lastStepTime), 0.001, 1);
 }
 
 #endif

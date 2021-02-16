@@ -59,9 +59,6 @@ void SwitchFrameBuffer() {
         LTDC_LAYER(&hltdc, 0)->CFBAR = (uint32_t)FrameBufferA;
     }
 
-    //__HAL_LTDC_RELOAD_CONFIG(&hltdc, hltdc.LayerCfg, 0); // update layer config
-
-    // __HAL_LTDC_RELOAD_IMMEDIATE_CONFIG(&hltdc);
     __HAL_LTDC_RELOAD_CONFIG(&hltdc);
 
     toggle = !toggle;
@@ -89,23 +86,16 @@ void IRQHandler(void) {
 }
 
 void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc) {
-    // if (FlagHandler::renderingDoneSwitchBuffer) {
     SwitchFrameBuffer();
     setRenderState(RENDER_DONE);
-
-    // FlagHandler::renderingDoneSwitchBuffer = false;
-    // }
 }
-void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc) {
-    // HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-}
+void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc) {}
 
 void TransferError(DMA2D_HandleTypeDef *hdma2d) {
-    // HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    PolyError_Handler("ERROR | LTDC | Transfer Callback");
 }
 
 void TransferComplete(DMA2D_HandleTypeDef *hdma2d) {
-    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     callNextTask();
 }
 

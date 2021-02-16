@@ -1,6 +1,7 @@
 #pragma once
 
 #include "guiPanelBase.hpp"
+#include "livedata/liveData.hpp"
 
 class GUIPanelLive : public GUIPanelBase {
   public:

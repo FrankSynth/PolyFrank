@@ -62,15 +62,16 @@ class Layer {
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void updatePatchInOut(PatchElementInOut &patch, float amount = 0);
-    void updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
+    void updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount = 0);
+    void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
     void removePatchInOut(PatchElementInOut &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
     void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
     void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
-    void updatePatchOutOut(PatchElementOutOut &patch, float amount = 0, float offset = 0);
-    void updatePatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
+    void updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount = 0, float offset = 0);
+    void updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount = 0,
+                                             float offset = 0);
     void removePatchOutOut(PatchElementOutOut &patch);
     void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
 

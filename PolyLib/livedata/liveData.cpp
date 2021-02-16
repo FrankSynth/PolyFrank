@@ -5,6 +5,19 @@ LiveData liveData;
 extern COMinterChip layerCom[2];
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
+
+    if (channel == globalSettings.midiLayerAChannel.value) {
+        switch (cc) {
+            case 64: voiceHandler.setSustain(value, 0); break;
+        }
+    }
+
+    if (channel == globalSettings.midiLayerBChannel.value) {
+        switch (cc) {
+            case 64: voiceHandler.setSustain(value, 1); break;
+        }
+    }
+
     // TODO zu Midi Modul weiterleiten,
     // mod(cc1), pitchbend (cc2) - pitchbend hat eine eigene function, weil native 14 bit
 

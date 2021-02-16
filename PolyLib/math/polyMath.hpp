@@ -198,6 +198,7 @@ class LogCurve {
     }
 
     float mapValue(float value);
+    float mapValueSigned(float value);
     void precomputeTable();
 
   private:

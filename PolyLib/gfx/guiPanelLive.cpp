@@ -44,7 +44,7 @@ void GUIPanelLive::updateEntrys() {
         pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &liveData.arps[focus.layer]->__liveSettingsArp;
+        pCategory = &liveData.arps[currentFocus.layer]->__liveSettingsArp;
     }
     if (subPanelSelect == 2) {
         pCategory = &liveData.__liveSettingsLivemode;
@@ -84,11 +84,18 @@ void GUIPanelLive::registerPanelSettings() {
     // register Panel Seetings Rigth
     actionHandler.registerActionRight(
         {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 1), liveData.arps[focus.layer]->__liveSettingsArp.category},
+        {std::bind(&GUIPanelLive::selectSubPanel, this, 1),
+         liveData.arps[currentFocus.layer]->__liveSettingsArp.category},
         {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
     // register Panel Seetings Left
-    actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
-                                     {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
+    if (liveData.voiceHandler.livemodeMergeLayer.value == 0) {
+        actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
+                                         {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
+    }
+    else {
+        actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
+                                         {nullptr, ""}, {nullptr, ""});
+    }
 }
 
 void GUIPanelLive::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,

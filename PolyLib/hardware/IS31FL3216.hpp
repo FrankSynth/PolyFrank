@@ -158,8 +158,8 @@ class IS31FL3216 {
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, commandUpdate, 2, 50) != HAL_OK) {
             PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
-
-            memset(pwmValue, 0, 16);
+            uint32_t zero = 0;
+            fastMemset(&zero, (uint32_t *)pwmValue, 4);
         }
     }
 

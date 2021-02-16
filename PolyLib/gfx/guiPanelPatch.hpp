@@ -1,6 +1,7 @@
 #pragma once
 
 #include "guiPanelBase.hpp"
+
 class GUIPanelPatch : public GUIPanelBase {
   public:
     void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0,
@@ -17,7 +18,28 @@ class GUIPanelPatch : public GUIPanelBase {
     void removeCurrentPatch();
     void clearPatches();
 
+    void setFocus(FOCUSMODE focusMode) {
+
+        newFocus.type = focusMode;
+        if (focusMode == FOCUSMODULE) {
+            newFocus.modul = panelElementsModule[scrollModule.position - scrollModule.offset].entry->id;
+            newFocus.layer = panelElementsModule[scrollModule.position - scrollModule.offset].entry->layerId;
+        }
+
+        else if (focusMode == FOCUSOUTPUT) {
+            newFocus.id = panelElementsSource[scrollSource.position - scrollModule.offset].entry->id;
+            newFocus.modul = panelElementsSource[scrollSource.position - scrollModule.offset].entry->moduleId;
+            newFocus.layer = panelElementsSource[scrollSource.position - scrollModule.offset].entry->layerId;
+        }
+        else if (focusMode == FOCUSINPUT) {
+            newFocus.id = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->id;
+            newFocus.modul = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->moduleId;
+            newFocus.layer = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->layerId;
+        }
+    }
+
     void toggleFlipView() { flipView = !flipView; }
+    void toggleFilterdView() { filteredView = !filteredView; }
 
   private:
     // Boxes
@@ -40,6 +62,8 @@ class GUIPanelPatch : public GUIPanelBase {
     Scroller scrollTarget = Scroller(PATCHPANELENTRYS);
 
     uint8_t flipView = 0;
+    uint8_t filteredView = 0;
+
     uint16_t absXPositions[3];
 
     Patch_PanelElement panelElementsSource[PATCHPANELENTRYS];

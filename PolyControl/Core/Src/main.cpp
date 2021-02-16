@@ -98,35 +98,27 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(100); // !!
+    HAL_Delay(10); //
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-
     MX_USB_DEVICE_Init();
-    HAL_Delay(200); // !!
-
     MX_DMA_Init();
     MX_MDMA_Init();
-    // MX_DMA2D_Init(); // in gfx Lib
     MX_FMC_Init();
-
     BSP_SDRAM_Initialization_sequence(REFRESH_COUNT);
-
     MX_I2C1_Init();
     MX_I2C2_Init();
     MX_I2C3_Init();
-    // MX_LTDC_Init(); // in gfx Lib
     MX_SPI1_Init();
     MX_SPI2_Init();
     MX_SPI4_Init();
     MX_SPI5_Init();
     MX_SPI6_Init();
     MX_UART5_Init();
-
     MX_TIM13_Init();
     MX_I2C4_Init();
     MX_TIM3_Init();
@@ -143,9 +135,6 @@ int main(void) {
     HAL_TIM_Base_Start(&htim13);
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
 
-    // println("Hi, this is Frank!");
-    HAL_Delay(200); // !!
-
     PolyControlInit();
     PolyControlRun();
     /* USER CODE END 2 */
@@ -154,8 +143,7 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
-        // HAL_Delay(10);
-
+        PolyError_Handler("ERROR | EXIT PolyControlRun!");
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */

@@ -100,6 +100,7 @@ void LogCurve::precomputeTable() {
  * @return float
  */
 float LogCurve::mapValue(float value) {
+
     float ret, fract; /* Temporary variables for input, output */
     uint16_t index;   /* Index variable */
     float a, b;       /* Two nearest output values */
@@ -122,7 +123,55 @@ float LogCurve::mapValue(float value) {
     ret = fast_lerp_f32(a, b, fract);
 
     /* Return the output value */
-    return (ret);
+
+    return ret;
+}
+
+/**
+ * @brief map values between -1 and 1 to specific log curve
+ *
+ * @param value
+ * @return float
+ */
+float LogCurve::mapValueSigned(float value) {
+    uint8_t sign;
+
+    if (value < 0) {
+        sign = 1;
+        value = -value;
+    }
+    else {
+        sign = 0;
+    }
+
+    float ret, fract; /* Temporary variables for input, output */
+    uint16_t index;   /* Index variable */
+    float a, b;       /* Two nearest output values */
+    // int32_t n;
+    float findex;
+
+    /* Calculation of index of the table */
+    findex = (float)size * testFloat(value, 0, 1);
+
+    index = ((uint16_t)findex);
+
+    /* fractional value calculation */
+    fract = findex - (float)index;
+
+    /* Read two nearest values of input value from the sin table */
+    a = logTable[index];
+    b = logTable[index + 1];
+
+    /* Linear interpolation process */
+    ret = fast_lerp_f32(a, b, fract);
+
+    /* Return the output value */
+    if (sign == 0) {
+        return ret;
+    }
+    else {
+        return -ret;
+    }
 }
 
 // audio poti Log style

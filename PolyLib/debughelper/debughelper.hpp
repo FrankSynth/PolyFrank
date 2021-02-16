@@ -5,7 +5,12 @@
 #if DEBUG
 
 #ifdef POLYCONTROL
+#include "datacore/dataHelperFunctions.hpp"
+#include "flagHandler/flagHandler.hpp"
 #include "usbd_cdc_if.h"
+
+extern elapsedMicros USBHSTIMEOUT;
+
 #elif POLYRENDER
 #include "main.h"
 #endif
@@ -23,7 +28,14 @@ template <typename T> void printViaSTLink(T &&arg) {
     str.append(std::to_string(arg));
 
 #ifdef POLYCONTROL
-    while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) != USBD_OK) {
+    if (FlagHandler::USB_HS_CONNECTED) {
+        USBHSTIMEOUT = 0;
+        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+            if (USBHSTIMEOUT > 5000) {
+                FlagHandler::USB_HS_CONNECTED = false;
+                return;
+            }
+        }
     }
 #elif POLYRENDER
     for (uint32_t i = 0; i < str.size(); i++) {
@@ -41,12 +53,12 @@ void printViaSTLink(const std::string &arg);
 
 void printViaSTLink(std::string &arg);
 
-template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
+template <typename T, typename... A> void printViaSTLink(T &&arg, A &&... args) {
     printViaSTLink(arg);
     printViaSTLink(args...);
 }
 
-template <typename... T> void printlnViaSTLink(T &&...args) {
+template <typename... T> void printlnViaSTLink(T &&... args) {
     printViaSTLink(args...);
     printViaSTLink("\r\n");
 }

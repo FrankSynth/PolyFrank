@@ -111,7 +111,7 @@ uint8_t COMinterChip::beginSendTransmission() {
         return ERRORCODE_SENDBLOCK;
     }
 
-    if (FlagHandler::interChipA_READY[layer] == false /*|| FlagHandler::interChipB_READY[layer] == false*/) {
+    if (FlagHandler::interChipA_State[layer] != 4 /*|| FlagHandler::interChipB_READY[layer] == false*/) {
         // TODO enable other layers when ready, or Pull Ups on not used pins
         //   && HAL_GPIO_ReadPin(Layer_1_READY_2_GPIO_Port, Layer_1_READY_2_Pin) &&
         //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
@@ -146,7 +146,8 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     FlagHandler::interChipA_MDMA_Started[layer] = 1;
     FlagHandler::interChipA_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startFirstDMA, this);
-    FlagHandler::interChipA_READY[layer] = false;
+    FlagHandler::interChipA_State[layer] = 0;
+    FlagHandler::interChipA_StateTimeout[layer] = 0;
     // FlagHandler::interChipB_READY[layer] = false;
 
     switchBuffer();
@@ -321,8 +322,8 @@ uint8_t COMinterChip::invokeBufferFullSend() {
     if (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) {
         uint32_t timer = millis();
         while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) { // wait...
-            if ((millis() - timer) > 5) {                                         // transmission takes longer than 5ms
-                // PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 5ms ");
+            if ((millis() - timer) > 100) { // transmission takes longer than 500ms
+                PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
             }
             FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen
                                         // bleiben
@@ -661,7 +662,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        layerA.updatePatchInOutById(outputID, inputID, amountFloat);
+                        layerA.updatePatchInOutByIdWithoutMapping(outputID, inputID, amountFloat);
 
                         break;
 
@@ -691,7 +692,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
                         i += sizeof(float) - 1;
 
-                        layerA.updatePatchOutOutById(outputID, inputID, amountFloat);
+                        layerA.updatePatchOutOutByIdWithoutMapping(outputID, inputID, amountFloat);
 
                         break;
 

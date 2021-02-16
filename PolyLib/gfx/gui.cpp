@@ -56,7 +56,7 @@ void GUIPanelPath::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
     panelAbsY = y;
 }
 
-void GUIPanelPath::Draw() {
+void GUIPanelPath::Draw(uint8_t onlyLayer) {
     drawRectangleFill(cClear, panelAbsX, panelAbsY, panelWidth, panelHeight);
     uint16_t relX = 0;
     uint16_t relY = 0;
@@ -65,19 +65,27 @@ void GUIPanelPath::Draw() {
 
     //// Draw Layer Field////
 
-    uint8_t layerID = allLayers[focus.layer]->id;          // get ID
-    std::string text = "LAYER " + std::to_string(layerID); // Layer name
-
+    uint8_t layerID = allLayers[currentFocus.layer]->id; // get ID
+    std::string text;
+    if (layerID == 0) {
+        text = "LAYER A"; // Layer name
+    }
+    else if (layerID == 1) {
+        text = "LAYER B"; // Layer name
+    }
     relX +=
         drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     relX += 1;
 
+    if (onlyLayer) {
+        return;
+    }
     //// Draw Module Field////
-    if (focus.type >= FOCUSMODULE) {
-        if (!allLayers[focus.layer]->getModules().size()) { //  empty
+    if (currentFocus.type >= FOCUSMODULE) {
+        if (!allLayers[currentFocus.layer]->getModules().size()) { //  empty
             return;
         }
-        std::string text = allLayers[focus.layer]->getModules()[focus.modul]->getName(); // Modul name
+        std::string text = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getName(); // Modul name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
@@ -86,24 +94,28 @@ void GUIPanelPath::Draw() {
 
     //// Draw Focus Field////
 
-    if (focus.type == FOCUSOUTPUT) {
-        if (!allLayers[focus.layer]->getModules()[focus.modul]->getOutputs().size()) { //  empty
+    if (currentFocus.type == FOCUSOUTPUT) {
+        if (!allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getOutputs().size()) { //  empty
             return;
         }
-        std::string text =
-            allLayers[focus.layer]->getModules()[focus.modul]->getOutputs()[focus.id]->getName(); // Output name
+        std::string text = allLayers[currentFocus.layer]
+                               ->getModules()[currentFocus.modul]
+                               ->getOutputs()[currentFocus.id]
+                               ->getName(); // Output name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
         relX += 1;
     }
-    else if (focus.type == FOCUSINPUT) {
-        if (!allLayers[focus.layer]->getModules()[focus.modul]->getInputs().size()) { //  empty
+    else if (currentFocus.type == FOCUSINPUT) {
+        if (!allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getInputs().size()) { //  empty
             return;
         }
 
-        std::string text =
-            allLayers[focus.layer]->getModules()[focus.modul]->getInputs()[focus.id]->getName(); // Input name
+        std::string text = allLayers[currentFocus.layer]
+                               ->getModules()[currentFocus.modul]
+                               ->getInputs()[currentFocus.id]
+                               ->getName(); // Input name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
@@ -208,13 +220,17 @@ void GUI::Init() { // add settings pointer
     GFX_Init();
 
     guiPanelFocus.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
-    guiPanel_0.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 0);
+    guiPanelLive.init(CENTERWIDTH, CENTERHEIGHT - VOICEHEIGHT - SPACER, BOARDERWIDTH,
+                      HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 0);
     guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH", 1);
     guiPanel_2.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET", 2);
     guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
 
+    guiPanelVoice.init(CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
+                       HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT, "CONFIG", 3);
+
     // add Panels to vector
-    panels.push_back(&guiPanel_0);
+    panels.push_back(&guiPanelLive);
     panels.push_back(&guiPanel_1);
     panels.push_back(&guiPanel_2);
     panels.push_back(&guiPanel_3);
@@ -255,7 +271,6 @@ void GUI::Clear() {
 }
 
 void GUI::Draw() {
-
     // setDisplayBrightness
     __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
                           globalSettings.dispBrightness.getValue() * 1000); // 6553* 1-10 -> 65530
@@ -267,14 +282,28 @@ void GUI::Draw() {
 
     // Error Occurred?
     if (!globalSettings.error.errorActive) {
+
+        checkFocusChange();
+
         // Draw Panel
         if (activePanel != nullptr) {
             activePanel->Draw();
 
-            // Path Visisble?
-            if (activePanel->pathVisible) {
-                // Draw Path
+            if (activePanel == &guiPanelFocus) { // focus Panel draw complete Path
+
                 guiPath.Draw();
+            }
+
+            else if (activePanel == &guiPanelLive) { // focus Panel draw complete Path
+
+                guiPanelVoice.Draw();
+            }
+            else {
+                // Path Visisble?
+                if (activePanel->pathVisible) { // other Panel only show path to layer
+                    // Draw Path
+                    guiPath.Draw(1);
+                }
             }
         }
 
@@ -293,16 +322,22 @@ void GUI::Draw() {
 
     setRenderState(RENDER_WAIT);
 }
-void GUI::setFocus(location newFocus) {
-    if (focus.modul != newFocus.modul || focus.layer != newFocus.layer || focus.id != newFocus.id) {
-        oldActivePanelID = activePanelID;
-        activePanel = panels[4];
-        activePanelID = 4;
+void GUI::checkFocusChange() {
+
+    if (newFocus.type != NOFOCUS) { // check new focus set and activate Focus Panel
+        if (currentFocus.id != newFocus.id || currentFocus.modul != newFocus.modul ||
+            currentFocus.layer != newFocus.layer || currentFocus.type != newFocus.type) { // something changed?
+            oldActivePanelID = activePanelID;
+            activePanel = panels[4];
+            activePanelID = 4;
+            currentFocus = newFocus;
+            newFocus.type = NOFOCUS;
+        }
+        else { // nothing change -> same button pressed twice ->back to last Panel
+            setPanelActive(4);
+            newFocus.type = NOFOCUS;
+        }
     }
-    else {
-        setPanelActive(4); // back to last panel
-    }
-    focus = newFocus;
 }
 
 // PanelSelect

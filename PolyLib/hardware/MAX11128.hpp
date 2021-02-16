@@ -53,7 +53,7 @@ class MAX11128 {
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&resetCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            println("Error MAX11128 SPI Transmit");
+            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -64,7 +64,7 @@ class MAX11128 {
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&commandConfigRegister32, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            println("Error MAX11128 SPI Transmit ");
+            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -74,7 +74,7 @@ class MAX11128 {
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&standardSampleCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            println("Error MAX11128 SPI Transmit");
+            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
             Error_Handler();
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
@@ -83,7 +83,9 @@ class MAX11128 {
     void fetchNewData() {
 
         // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
-        memset(command, 0, (nChannels - 1) * 2);
+        uint32_t zero = 0;
+        fastMemset(&zero, command, nChannels - 1);
+
         command[nChannels - 1] = standardSampleCommand;
 
         // receive new samples and send sample command
@@ -92,7 +94,7 @@ class MAX11128 {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
             if (HAL_SPI_TransmitReceive(spi, (uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1, 50) != HAL_OK) {
                 HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-                println("Error MAX11128 SPI Receive");
+                PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI RECEIVE");
                 Error_Handler();
                 return;
             }

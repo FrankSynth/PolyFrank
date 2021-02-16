@@ -33,7 +33,7 @@ void removePreset(uint16_t blockID) {
     // write empty entry to table
     presetStruct newEntry;
     newEntry.usageState = 0;
-    newEntry.name[PRESET_NAMELENGTH] = '\0';
+    newEntry.name[0] = '\0';
 
     uint32_t address = TABLE_STARTADDRESS + blockID * sizeof(presetStruct);
 

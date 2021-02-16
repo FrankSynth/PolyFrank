@@ -17,6 +17,8 @@
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
 
+extern float ROTARYENCODERACELLARATION;
+
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
 enum typeLinLog { linMap, logMap, antilogMap };
@@ -160,6 +162,15 @@ class Analog : public DataElement {
     int32_t reverseMapping(float newValue);
 
     inline void changeValue(int32_t change) { setValue(value + change); }
+    inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
+        if (direction == 0) {
+            setValue(value - 2000 * ROTARYENCODERACELLARATION);
+        }
+        if (direction == 1) {
+            setValue(value + 2000 * ROTARYENCODERACELLARATION);
+        }
+    }
+
     inline void setValueWithoutMapping(float newValue) {
         valueMapped = newValue;
 #ifdef POLYCONTROL
@@ -289,6 +300,8 @@ class BasePatch {
     uint8_t idGlobal;
     std::string name;
 
+    typeLinLog mapping = linMap;
+
   protected:
     std::vector<PatchElementInOut *> patchesInOut;
     std::vector<PatchElementOutOut *> patchesOutOut;
@@ -300,9 +313,9 @@ class Input : public BasePatch {
         this->name = name;
         this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
+        this->mapping = mapping;
     }
 
-    // TODO give lin/log ability
     float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
 
     // calculate all inputs with their attached patchesInOut
@@ -342,15 +355,9 @@ class PatchElement {
   public:
     inline float getAmount() { return amount; }
 
-    // void setAmount(float value);
-    // void resetAmount() { value = defaultValue; }
-    // virtual void changeAmount(float change);
-
-    // void setOffset(float offset);
-    // void changeOffset(float change);
-
     float offset;
     float amount;
+
     uint8_t layerId;
 };
 
@@ -364,18 +371,14 @@ class PatchElementInOut : public PatchElement {
     }
 
     void setAmount(float amount);
+    void setAmountWithoutMapping(float amount);
     void changeAmount(float change);
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
-
-    // inline float getAmount() { return amount; }
-    // void setAmount(float amount);
-
-    // void changeAmount(float change);
-    // void resetAmount() { amount = defaultamount; }
+    void changeAmountEncoderAccelerationMapped(bool direction); // create Mapped
 
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
+    float amountRaw;
 };
 
 class PatchElementOutOut : public PatchElement {
@@ -390,11 +393,12 @@ class PatchElementOutOut : public PatchElement {
     inline float getOffset() { return offset; }
 
     void setAmount(float amount);
+    void setAmountWithoutMapping(float amount);
     void changeAmount(float change);
     void setOffset(float offset);
+    void setOffsetWithoutMapping(float offset);
     void changeOffset(float change);
     void setAmountAndOffset(float amount, float offset);
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendUpdatePatchInOut;
 
     bool remove = false;
     Output *sourceOut;
