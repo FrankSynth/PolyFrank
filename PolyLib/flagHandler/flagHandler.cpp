@@ -189,7 +189,7 @@ void handleFlags() {
         }
     }
     for (uint8_t i = 0; i < 1; i++) {
-        if (interChipA_StateTimeout[i] > 5000) {
+        if (interChipA_StateTimeout[i] > 10000) {
             if (interChipA_State[i] == 0) {
                 PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
             }

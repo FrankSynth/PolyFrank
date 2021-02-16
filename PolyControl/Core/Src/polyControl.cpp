@@ -47,6 +47,9 @@ void PolyControlInit() {
     // Enable Control Panel Board
     HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
+    // let the layer start
+    HAL_Delay(100);
+
     // init EEPROM
     initPreset();
     updatePresetList(); // read preset List from EEPROM
@@ -101,7 +104,6 @@ void PolyControlRun() { // Here the party starts
         mididevice.read();
 
         liveData.serviceRoutine();
-
         FlagHandler::handleFlags();
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
@@ -255,16 +257,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             }
             break;
 
-        case GPIO_PIN_7: // Layer 1 Ready 2
-            if (FlagHandler::interChipA_State[0] == 0) {
-                FlagHandler::interChipA_State[0] = 2;
-                FlagHandler::interChipA_StateTimeout[0] = 0;
-            }
-            if (FlagHandler::interChipA_State[0] == 2) {
-                FlagHandler::interChipA_State[0] = 4;
-                FlagHandler::interChipA_StateTimeout[0] = 0;
-            }
-            break;
+            // case GPIO_PIN_7: // Layer 1 Ready 2
+            //     if (FlagHandler::interChipA_State[0] == 0) {
+            //         FlagHandler::interChipA_State[0] = 2;
+            //         FlagHandler::interChipA_StateTimeout[0] = 0;
+            //     }
+            //     if (FlagHandler::interChipA_State[0] == 2) {
+            //         FlagHandler::interChipA_State[0] = 4;
+            //         FlagHandler::interChipA_StateTimeout[0] = 0;
+            //     }
+            //     break;
     }
 }
 

@@ -3,6 +3,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 
+
 namespace FlagHandler {
 
 #ifdef POLYCONTROL

@@ -232,6 +232,10 @@ EepromOperations EEPROM_SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, ui
  * @retval None
  */
 EepromOperations EEPROM_SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead) {
+
+    println("ReadBuffer");
+    println("Pointer : ", (uint32_t)pBuffer);
+
     while (EEPROM_SPI->State != HAL_SPI_STATE_READY) {
         HAL_Delay(1);
     }
@@ -244,14 +248,17 @@ EepromOperations EEPROM_SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint
     uint16_t nbBytes;
     uint8_t *pToBuffer;
 
-    for (uint8_t i = 0; i < nReadCommands; i++) {
-        if (NumByteToRead - i * 0xFFFF > 0xFFFF) {
+    for (uint16_t i = 0; i < nReadCommands; i++) {
+        if ((NumByteToRead - i * 0xFFFF) > 0xFFFF) {
             nbBytes = 0xFFFF;
         }
         else {
             nbBytes = (uint16_t)(NumByteToRead - i * 0xFFFF);
         }
 
+        if (nbBytes == 0) {
+            return EEPROM_STATUS_COMPLETE;
+        }
         pToBuffer = (uint8_t *)pBuffer + 0xFFFF * i;
 
         uint32_t address = ReadAddr + 0xFFFF * i;
