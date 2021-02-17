@@ -14,6 +14,10 @@ inline float accumulateBitcrusher(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iBitcrusher.currentSample[voice] + osc_a.aBitcrusher.valueMapped, osc_a.aBitcrusher.min,
                      osc_a.aBitcrusher.max);
 }
+inline float accumulateSamplecrusher(OSC_A &osc_a, uint16_t voice) {
+    return testFloat(osc_a.iSamplecrusher.currentSample[voice] + osc_a.aSamplecrusher.valueMapped,
+                     osc_a.aSamplecrusher.min, osc_a.aSamplecrusher.max);
+}
 inline float accumulateMorph(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iMorph.currentSample[voice] + osc_a.aMorph.valueMapped, osc_a.aMorph.min, osc_a.aMorph.max);
 }
@@ -51,6 +55,7 @@ void renderOSC_A(OSC_A &osc_A) {
     static float *outNote = osc_A.note.nextSample;
     static float *outMorph = osc_A.morph.nextSample;
     static float *outBitcrusher = osc_A.bitcrusher.nextSample;
+    static float *outSamplecrusher = osc_A.samplecrusher.nextSample;
     static float *outLevelSteiner = osc_A.levelSteiner.nextSample;
     static float *outLevelLadder = osc_A.levelLadder.nextSample;
     static int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
@@ -62,6 +67,8 @@ void renderOSC_A(OSC_A &osc_A) {
         outMorph[voice] = accumulateMorph(osc_A, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(osc_A, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        outSamplecrusher[voice] = accumulateSamplecrusher(osc_A, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         level[voice] = accumulateLevel(osc_A, voice);
 

@@ -50,7 +50,8 @@ float fast_sin_f32(float x) {
 float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
 void precomputeNoteLin2LogTable() {
     for (uint32_t i = 0; i < FAST_NOTELIN2LOG_TABLE_SIZE + 1; i++) {
-        noteLin2LogTable_f32[i] = powf(2.0, fastMap(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
+        noteLin2LogTable_f32[i] =
+            std::pow(2.0f, fastMap(i, 0, FAST_NOTELIN2LOG_TABLE_SIZE, noteLin2logMIN, noteLin2logMAX));
     }
 }
 

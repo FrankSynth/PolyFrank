@@ -8,32 +8,32 @@ inline float calcSin(float phase) {
 }
 
 inline float calcRamp(float phase) {
-    return phase * 2 - 1;
+    return phase * 2.0f - 1.0f;
 }
 
 inline float calcInvRamp(float phase) {
-    return calcRamp(phase) * -1;
+    return calcRamp(phase) * -1.0f;
 }
 
 inline float calcTriangle(float phase) {
     if (phase < 0.5f) {
-        return calcRamp(phase * 2);
+        return calcRamp(phase * 2.0f);
     }
     else {
-        return calcInvRamp((phase - 0.5) * 2);
+        return calcInvRamp((phase - 0.5f) * 2.0f);
     }
 }
 
 inline float calcSquare(float phase, float shape) {
     if (shape < 4) {
-        return phase < 0.5f ? 1 : -1;
+        return phase < 0.5f ? 1.0f : -1.0f;
     }
     else if (shape < 5) {
         shape -= floor(shape);
-        return phase < (0.5f - shape / 2.0f) ? 1 : -1;
+        return phase < (0.5f - shape / 2.0f) ? 1.0f : -1.0f;
     }
     else {
-        return -1;
+        return -1.0f;
     }
 }
 
@@ -72,8 +72,8 @@ void renderLFO(LFO &lfo) {
 
         if (newPhase == false) {
             phase += speed * secondsPerCVRender;
-            if (phase > 1) {
-                phase -= 1;
+            if (phase > 1.0f) {
+                phase -= 1.0f;
                 newPhase = true;
             }
         }
