@@ -30,7 +30,7 @@ void renderSteiner(Steiner &steiner) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outResonance[voice] = accumulateResonance(steiner, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        outCutoff[voice] = accumulateCutoff(steiner, voice) / 20000;
+        outCutoff[voice] = accumulateCutoff(steiner, voice) / 20000.0f;
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outToLadder[voice] = steiner.aParSer.valueMapped;
 }

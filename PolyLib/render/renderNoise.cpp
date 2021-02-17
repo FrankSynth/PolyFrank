@@ -10,11 +10,16 @@ inline float accumulateBitcrusher(Noise &noise, uint16_t voice) {
     return testFloat(noise.iBitcrusher.currentSample[voice] + noise.aBitcrusher.valueMapped, noise.aBitcrusher.min,
                      noise.aBitcrusher.max);
 }
+inline float accumulateSamplecrusher(Noise &noise, uint16_t voice) {
+    return testFloat(noise.iSamplecrusher.currentSample[voice] + noise.aSamplecrusher.valueMapped,
+                     noise.aSamplecrusher.min, noise.aSamplecrusher.max);
+}
 
 void renderNoise(Noise &noise) {
     static float *outLevelSteiner = noise.levelSteiner.nextSample;
     static float *outLevelLadder = noise.levelLadder.nextSample;
     static float *outBitcrusher = noise.bitcrusher.nextSample;
+    static float *outSamplecrusher = noise.samplecrusher.nextSample;
     static int32_t &filterSwitch = noise.dVcfDestSwitch.valueMapped;
 
     float level[VOICESPERCHIP];
@@ -23,6 +28,8 @@ void renderNoise(Noise &noise) {
         level[voice] = accumulateLevel(noise, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(noise, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        outSamplecrusher[voice] = accumulateSamplecrusher(noise, voice);
 
     switch (filterSwitch) {
         case 0:

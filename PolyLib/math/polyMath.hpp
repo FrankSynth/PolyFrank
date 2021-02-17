@@ -90,7 +90,7 @@ ALWAYS_INLINE inline void fast_lerp_f32(const float *a, const float *b, const fl
  * @return float
  */
 inline float fastPowLin2Exp(float x, float min, float max) {
-    return min + (powf(max + 1., x / max) - 1) * (max - min) / max;
+    return min + (powf(max + 1.0f, x / max) - 1.0f) * (max - min) / max;
 }
 
 /**
@@ -101,7 +101,7 @@ inline float fastPowLin2Exp(float x, float min, float max) {
  * @return float
  */
 inline float fastPowLin2Exp(float x, float max) {
-    return powf(max + 1, x / max) - 1;
+    return std::pow(max + 1.0f, x / max) - 1.0f;
 }
 
 /**

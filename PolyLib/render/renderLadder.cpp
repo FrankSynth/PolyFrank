@@ -28,7 +28,7 @@ void renderLadder(Ladder &ladder) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outResonance[voice] = accumulateResonance(ladder, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        outCutoff[voice] = accumulateCutoff(ladder, voice) / 20000;
+        outCutoff[voice] = accumulateCutoff(ladder, voice) / 20000.0f;
 }
 
 #endif
