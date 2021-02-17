@@ -47,7 +47,7 @@ void initFlagHandler() {
     cvDacCStarted = false;
     cvDacCFinished = false;
 
-    renderNewCV = true;
+    renderNewCV = false;
     renderNewCVFunc = nullptr;
 #endif
 }

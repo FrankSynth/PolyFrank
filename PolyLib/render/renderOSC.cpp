@@ -5,7 +5,7 @@
 
 extern Layer layerA;
 
-#define INPUTWEIGHTING 1
+#define INPUTWEIGHTING 1.0f
 
 inline float accumulateLevel(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iLevel.currentSample[voice] + osc_a.aLevel.valueMapped, osc_a.aLevel.min, osc_a.aLevel.max);
@@ -22,57 +22,74 @@ inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
                    osc_a.dOctave.min, osc_a.dOctave.max);
 }
 
-inline float accumulateNote(OSC_A &osc_a, uint16_t voice) {
+static float noteConverted[VOICESPERCHIP];
+
+inline void accumulateNote(OSC_A &osc_a, float *note) {
     // TODO glide missing
     // TODO detune missing
-    float note;
-
-    // A0 = 0, A1 = 1, ...
-    note = (float)(layerA.midi.rawNote[voice] - 21) / (float)12.0f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / (float)12.0f;
 
     // TODO settings pitchbend range missing
-    note += layerA.midi.oPitchbend.currentSample[voice];
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        noteConverted[i] += layerA.midi.oPitchbend.currentSample[i];
 
-    note += accumulateOctave(osc_a, voice);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = noteConverted[i];
 
-    note += osc_a.iFM.currentSample[voice];
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += accumulateOctave(osc_a, i);
 
-    return fastNoteLin2Log_f32(note);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += osc_a.iFM.currentSample[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = fastNoteLin2Log_f32(note[i]);
 }
 
 void renderOSC_A(OSC_A &osc_A) {
-    float *outNote = osc_A.note.nextSample;
-    float *outMorph = osc_A.morph.nextSample;
-    float *outBitcrusher = osc_A.bitcrusher.nextSample;
-    float *outLevelSteiner = osc_A.levelSteiner.nextSample;
-    float *outLevelLadder = osc_A.levelLadder.nextSample;
-    int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
+    static float *outNote = osc_A.note.nextSample;
+    static float *outMorph = osc_A.morph.nextSample;
+    static float *outBitcrusher = osc_A.bitcrusher.nextSample;
+    static float *outLevelSteiner = osc_A.levelSteiner.nextSample;
+    static float *outLevelLadder = osc_A.levelLadder.nextSample;
+    static int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
+    float level[VOICESPERCHIP];
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    accumulateNote(osc_A, outNote);
 
-        outNote[voice] = accumulateNote(osc_A, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outMorph[voice] = accumulateMorph(osc_A, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(osc_A, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        level[voice] = accumulateLevel(osc_A, voice);
 
-        float level = accumulateLevel(osc_A, voice);
-        switch (filterSwitch) {
-            case 0:
-                outLevelSteiner[voice] = level;
+    switch (filterSwitch) {
+        case 0:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-            case 1:
+            break;
+        case 1:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
-                outLevelLadder[voice] = level;
-                break;
-            case 2:
-                outLevelSteiner[voice] = level;
-                outLevelLadder[voice] = level;
-                break;
-            case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 2:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-        }
+            break;
     }
 }
 
@@ -94,57 +111,65 @@ inline int32_t accumulateOctave(OSC_B &osc_b, uint16_t voice) {
                    osc_b.dOctave.min, osc_b.dOctave.max);
 }
 
-inline float accumulateNote(OSC_B &osc_b, uint16_t voice) {
-    float note;
+inline void accumulateNote(OSC_B &osc_b, float *note) {
 
-    // A0 = 0, A1 = 1, ...
-    // TODO can be done for both osc at once
-    note = (float)(layerA.midi.rawNote[voice] - 21) / (float)12.0f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = noteConverted[i];
 
-    // TODO settings pitchbend range missing
-    note += layerA.midi.oPitchbend.currentSample[voice];
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += accumulateOctave(osc_b, i);
 
-    note += accumulateOctave(osc_b, voice);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += osc_b.iFM.currentSample[i];
 
-    note += osc_b.iFM.currentSample[voice];
-
-    return fastNoteLin2Log_f32(note);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = fastNoteLin2Log_f32(note[i]);
 }
 
 void renderOSC_B(OSC_B &osc_B) {
 
-    float *outNote = osc_B.note.nextSample;
-    float *outMorph = osc_B.morph.nextSample;
-    float *outBitcrusher = osc_B.bitcrusher.nextSample;
-    float *outLevelSteiner = osc_B.levelSteiner.nextSample;
-    float *outLevelLadder = osc_B.levelLadder.nextSample;
-    int32_t &filterSwitch = osc_B.dVcfDestSwitch.valueMapped;
+    static float *outNote = osc_B.note.nextSample;
+    static float *outMorph = osc_B.morph.nextSample;
+    static float *outBitcrusher = osc_B.bitcrusher.nextSample;
+    static float *outLevelSteiner = osc_B.levelSteiner.nextSample;
+    static float *outLevelLadder = osc_B.levelLadder.nextSample;
+    static int32_t &filterSwitch = osc_B.dVcfDestSwitch.valueMapped;
+    float level[VOICESPERCHIP];
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    accumulateNote(osc_B, outNote);
 
-        outNote[voice] = accumulateNote(osc_B, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outMorph[voice] = accumulateMorph(osc_B, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(osc_B, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        level[voice] = accumulateLevel(osc_B, voice);
 
-        float level = accumulateLevel(osc_B, voice);
-        switch (filterSwitch) {
-            case 0:
-                outLevelSteiner[voice] = level;
+    switch (filterSwitch) {
+        case 0:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-            case 1:
+            break;
+        case 1:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
-                outLevelLadder[voice] = level;
-                break;
-            case 2:
-                outLevelSteiner[voice] = level;
-                outLevelLadder[voice] = level;
-                break;
-            case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 2:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-        }
+            break;
     }
 }
 

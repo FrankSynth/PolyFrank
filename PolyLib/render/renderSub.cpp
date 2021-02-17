@@ -17,36 +17,46 @@ inline float accumulateBitcrusher(Sub &sub, uint16_t voice) {
 
 void renderSub(Sub &sub) {
 
-    float *shapeOut = sub.shape.nextSample;
-    float *outLevelSteiner = sub.levelSteiner.nextSample;
-    float *outLevelLadder = sub.levelLadder.nextSample;
-    float *outBitcrusher = sub.bitcrusher.nextSample;
-    int32_t &filterSwitch = sub.dVcfDestSwitch.valueMapped;
+    static float *shapeOut = sub.shape.nextSample;
+    static float *outLevelSteiner = sub.levelSteiner.nextSample;
+    static float *outLevelLadder = sub.levelLadder.nextSample;
+    static float *outBitcrusher = sub.bitcrusher.nextSample;
+    static int32_t &filterSwitch = sub.dVcfDestSwitch.valueMapped;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    float level[VOICESPERCHIP];
 
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         shapeOut[voice] = accumulateShape(sub, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(sub, voice);
-        float level = accumulateLevel(sub, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        level[voice] = accumulateLevel(sub, voice);
 
-        switch (filterSwitch) {
-            case 0:
-                outLevelSteiner[voice] = level;
+    switch (filterSwitch) {
+        case 0:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-            case 1:
+            break;
+        case 1:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
-                outLevelLadder[voice] = level;
-                break;
-            case 2:
-                outLevelSteiner[voice] = level;
-                outLevelLadder[voice] = level;
-                break;
-            case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 2:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelSteiner[voice] = level[voice];
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+                outLevelLadder[voice] = level[voice];
+            break;
+        case 3:
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelSteiner[voice] = 0;
+            for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
                 outLevelLadder[voice] = 0;
-                break;
-        }
+            break;
     }
 }
 

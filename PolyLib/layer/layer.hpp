@@ -89,8 +89,8 @@ class Layer {
         lfoB.gateOn(voice);
         adsrA.gateOn(voice);
         adsrB.gateOn(voice);
-        oscA.gateOn(voice);
-        oscB.gateOn(voice);
+        // oscA.gateOn(voice);
+        // oscB.gateOn(voice);
         midi.gateOn(voice);
     }
 

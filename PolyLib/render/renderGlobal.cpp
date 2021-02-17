@@ -15,26 +15,42 @@ inline float accumulateVCA(GlobalModule globalModule, uint16_t voice) {
 
 void renderGlobalModule(GlobalModule globalModule) {
 
-    float *outLeft = globalModule.left.nextSample;
-    float *outRight = globalModule.right.nextSample;
+    static float *outLeft = globalModule.left.nextSample;
+    static float *outRight = globalModule.right.nextSample;
+    float vca[VOICESPERCHIP];
+    float pan[VOICESPERCHIP];
+    float panRight[VOICESPERCHIP];
+    float panLeft[VOICESPERCHIP];
+    float left[VOICESPERCHIP];
+    float right[VOICESPERCHIP];
 
     // TODO spread
-    const float &spread = globalModule.aSpread.valueMapped;
+    static const float &spread = globalModule.aSpread.valueMapped;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        vca[i] = accumulateVCA(globalModule, i);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        pan[i] = accumulatePan(globalModule, i);
 
-        float vca = accumulateVCA(globalModule, voice);
-        float pan = accumulatePan(globalModule, voice);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        panRight[i] = (pan[i] + 1) * 0.5f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        panLeft[i] = (-1 * pan[i] + 1) * 0.5f;
 
-        float panRight = (pan + 1) * 0.5f;
-        float panLeft = (-1 * pan + 1) * 0.5f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        panLeft[i] = panningAntiLog.mapValue(panLeft[i]);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        panRight[i] = panningAntiLog.mapValue(panRight[i]);
 
-        float left = vca * panningAntiLog.mapValue(panLeft);
-        float right = vca * panningAntiLog.mapValue(panRight);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        left[i] = vca[i] * panLeft[i];
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        right[i] = vca[i] * panRight[i];
 
-        outLeft[voice] = testFloat(left, 0, 1);
-        outRight[voice] = testFloat(right, 0, 1);
-    }
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        outLeft[i] = testFloat(left[i], 0, 1);
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        outRight[i] = testFloat(right[i], 0, 1);
 }
 
 #endif

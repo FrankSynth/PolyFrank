@@ -6,7 +6,9 @@
 #include <cmath>
 #include <functional>
 #include <list>
+#include <valarray>
 #include <vector>
+
 #ifdef POLYCONTROL
 #include <string>
 #endif

@@ -7,4 +7,4 @@
 #include <stdint.h>
 
 void initAudioRendering();
-void renderAudio(int32_t *renderDest, uint16_t samples);
+void renderAudio(int32_t *renderDest);

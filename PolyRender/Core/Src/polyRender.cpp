@@ -73,10 +73,12 @@ void PolyRenderRun() {
     HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
     // start cv rendering
+    renderCVs();
     HAL_TIM_Base_Start_IT(&htim15);
 
     // start audio rendering
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS);
+    renderAudio((int32_t *)saiBuffer);
+    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
 
     // run loop
@@ -108,11 +110,11 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]), SAIDMABUFFERSIZE);
+    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    renderAudio((int32_t *)saiBuffer, SAIDMABUFFERSIZE);
+    renderAudio((int32_t *)saiBuffer);
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {

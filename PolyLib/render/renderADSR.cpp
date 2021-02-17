@@ -52,6 +52,7 @@ void renderADSR(ADSR &adsr) {
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
+        float &nextSample = adsr.out.nextSample[voice];
         float &currentLevel = adsr.currentLevel[voice];
         float &currentTime = adsr.currentTime[voice];
         float &gate = layerA.midi.oGate.currentSample[voice];
@@ -163,25 +164,22 @@ void renderADSR(ADSR &adsr) {
 
         if (shape < 1) {
             // shape between 0 and 1, 1 is linear
-            adsr.out.nextSample[voice] = fast_lerp_f32(adsrConvertLog.mapValue(currentLevel), currentLevel, shape);
+            nextSample = fast_lerp_f32(adsrConvertLog.mapValue(currentLevel), currentLevel, shape);
         }
         else {
             // shape between 1 and 2, 1 is linear
-            adsr.out.nextSample[voice] =
-                fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
+            nextSample = fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
         }
 
         // midi velocity
-        adsr.out.nextSample[voice] = fast_lerp_f32(
-            adsr.out.nextSample[voice], adsr.out.nextSample[voice] * layerA.midi.oVeloctiy.currentSample[voice],
-            adsr.aVelocity.valueMapped);
+        nextSample = fast_lerp_f32(nextSample, nextSample * layerA.midi.oVeloctiy.currentSample[voice],
+                                   adsr.aVelocity.valueMapped);
 
         // keytrack
-        adsr.out.nextSample[voice] = fast_lerp_f32(adsr.out.nextSample[voice],
-                                                   adsr.out.nextSample[voice] * layerA.midi.oNote.currentSample[voice],
-                                                   adsr.aKeytrack.valueMapped);
+        nextSample =
+            fast_lerp_f32(nextSample, nextSample * layerA.midi.oNote.currentSample[voice], adsr.aKeytrack.valueMapped);
 
-        adsr.out.nextSample[voice] = adsr.out.nextSample[voice] * adsr.aAmount.valueMapped;
+        nextSample = nextSample * adsr.aAmount.valueMapped;
     }
 }
 

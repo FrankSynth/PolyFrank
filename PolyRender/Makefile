@@ -22,7 +22,7 @@ TARGET = PolyRender
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -O3
+OPT = -Ofast
 
 
 #######################################
@@ -141,9 +141,9 @@ C_INCLUDES =  \
 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -Wno-volatile
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections 
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
@@ -154,7 +154,7 @@ endif
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 CXXFLAGS?=
-CXXFLAGS += -feliminate-unused-debug-types -std=c++2a
+CXXFLAGS += -feliminate-unused-debug-types -std=c++2a -Wno-volatile
 
 #######################################
 # LDFLAGS

@@ -3,6 +3,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include "stdint.h"
 #include <cmath>
+#include <valarray>
 #include <vector>
 
 // #include "string.h"
@@ -61,6 +62,23 @@ float fast_sin_f32(float x);
  */
 ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
     return (a * (1.0f - f)) + (b * f);
+}
+
+/**
+ * @brief fast lerp with pointer float
+ *
+ * @param a value a
+ * @param b value a
+ * @param f fraction between a and b
+ * @param dst dst pointer
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline void fast_lerp_f32(const float *a, const float *b, const float *f, float *dst) {
+    for (uint32_t i = 0; i < 4; i++)
+        dst[i] = a[i] * (1.0f - f[i]);
+
+    for (uint32_t i = 0; i < 4; i++)
+        dst[i] += b[i] * f[i];
 }
 
 /**

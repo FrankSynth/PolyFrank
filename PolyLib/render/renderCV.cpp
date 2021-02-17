@@ -63,14 +63,18 @@ inline void updateAllOutputSamples() {
 // Render Functions
 
 inline void renderMidiModule(Midi midi) {
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oMod.nextSample[voice] = midi.aMod.valueMapped;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oAftertouch.nextSample[voice] = midi.aAftertouch.valueMapped;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oPitchbend.nextSample[voice] = midi.aPitchbend.valueMapped;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oNote.nextSample[voice] = (float)midi.rawNote[voice] / 127.0f;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oVeloctiy.nextSample[voice] = (float)midi.rawVelocity[voice] / 127.0f;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oGate.nextSample[voice] = midi.rawGate[voice];
-    }
 }
 
 inline void writeDataToDACBuffer() {
@@ -157,6 +161,8 @@ inline void setLEDs() {
 // elapsedMicros rendertimecv;
 void renderCVs() {
     // cvDacA.setLatchPin();
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PINo_SET);
 
     // rendertimecv = 0;
 
@@ -184,6 +190,7 @@ void renderCVs() {
 
     setSwitches();
     setLEDs();
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 
     // cvDacA.resetLatchPin();
 }

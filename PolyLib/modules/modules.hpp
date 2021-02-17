@@ -85,7 +85,7 @@ class Midi : public BaseModule {
         rawVelocity[voice] = velocity;
     }
     inline void resetAllNotes() {
-        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             setNote(voice, 21, 64);
         }
     }
@@ -131,7 +131,7 @@ class OSC_A : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 0, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 1, true, &nlVCFDest);
 
     // render shizzle
 
@@ -145,7 +145,7 @@ class OSC_A : public BaseModule {
     float phaseWavetableA[VOICESPERCHIP] = {0};
     float phaseWavetableB[VOICESPERCHIP] = {0};
 
-    inline void gateOn(uint16_t voice) {}
+    // inline void gateOn(uint16_t voice) {}
 };
 
 class OSC_B : public BaseModule {
@@ -188,7 +188,7 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
@@ -209,7 +209,7 @@ class OSC_B : public BaseModule {
     float phaseWavetableA[VOICESPERCHIP] = {0};
     float phaseWavetableB[VOICESPERCHIP] = {0};
 
-    inline void gateOn(uint16_t voice) {}
+    // inline void gateOn(uint16_t voice) {}
 };
 
 class Sub : public BaseModule {
@@ -392,6 +392,7 @@ class LFO : public BaseModule {
         outputs.push_back(&out);
 
         inputs.push_back(&iFreq);
+        inputs.push_back(&iShape);
 
         knobs.push_back(&aFreq);
         knobs.push_back(&aShape);
@@ -406,10 +407,10 @@ class LFO : public BaseModule {
     Output out = Output("OUT");
 
     Input iFreq = Input("FM");
+    Input iShape = Input("SHAPE");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
-
-    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap, &iShape);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
