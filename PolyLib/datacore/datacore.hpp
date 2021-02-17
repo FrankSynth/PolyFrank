@@ -137,18 +137,44 @@ class Analog : public DataElement {
 
         this->min = min;
         this->max = max;
+        this->minInputValue = MIN_VALUE_12BIT;
+        this->maxInputValue = MAX_VALUE_12BIT;
+
         this->minMaxDifference = max - min;
-
         this->mapping = mapping;
-
         this->defaultValueMapped = defaultValue;
 
         this->name = name;
-
         this->sendOutViaCom = sendOutViaCom;
         this->displayVis = displayVis;
 
         this->input = input;
+
+        this->inputRange = this->maxInputValue - this->minInputValue;
+    }
+    Analog(const char *name, float min = 0, float max = 1,
+           int32_t minInputValue = MIN_VALUE_12BIT, // contructor for MIDI
+           int32_t maxInputValue = MAX_VALUE_12BIT, float defaultValue = 0, bool sendOutViaCom = true,
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
+        this->value = minInputValue;
+        this->valueMapped = min;
+
+        this->min = min;
+        this->max = max;
+        this->minInputValue = minInputValue;
+        this->maxInputValue = maxInputValue;
+
+        this->minMaxDifference = max - min;
+        this->mapping = mapping;
+        this->defaultValueMapped = defaultValue;
+
+        this->name = name;
+        this->sendOutViaCom = sendOutViaCom;
+        this->displayVis = displayVis;
+
+        this->input = input;
+
+        this->inputRange = this->maxInputValue - this->minInputValue;
     }
 
     void setValue(int32_t newValue);
@@ -164,10 +190,14 @@ class Analog : public DataElement {
     inline void changeValue(int32_t change) { setValue(value + change); }
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
-            setValue(value - 2000 * ROTARYENCODERACELLARATION);
+            setValue(
+                value -
+                (testInt(
+                    inputRange / 2 * ROTARYENCODERACELLARATION, 1,
+                    maxInputValue))); // use Acellaration and test for min step of 1 -> for low resolution analog inputs
         }
         if (direction == 1) {
-            setValue(value + 2000 * ROTARYENCODERACELLARATION);
+            setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACELLARATION, 1, maxInputValue)));
         }
     }
 
@@ -195,6 +225,10 @@ class Analog : public DataElement {
     float minMaxDifference;
     bool displayVis;
     Input *input;
+
+    int32_t minInputValue;
+    int32_t maxInputValue;
+    uint32_t inputRange;
 
   protected:
     typeLinLog mapping;

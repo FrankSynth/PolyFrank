@@ -72,10 +72,8 @@ bool Control_Encoder_Interrupt;
 std::function<void()> Control_Encoder_ISR;
 
 bool Panel_0_EOC_Interrupt;
-std::function<void()> Panel_0_EOC_ISR;
-
 bool Panel_1_EOC_Interrupt;
-std::function<void()> Panel_1_EOC_ISR;
+std::function<void()> Panel_EOC_ISR;
 
 bool Control_Touch_Interrupt;
 std::function<void()> Control_Touch_ISR;
@@ -95,8 +93,8 @@ std::function<void()> Panel_1_Touch_ISR;
 
 
 */
-uint8_t interChipA_State[] = {2, 2}; // init State wait for ready
-uint8_t interChipB_State[] = {2, 2}; // init State wait for ready
+interChipState interChipA_State[] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
+interChipState interChipB_State[] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
 
 elapsedMicros interChipA_StateTimeout[] = {0, 0};
 
@@ -190,11 +188,11 @@ void handleFlags() {
     }
     for (uint8_t i = 0; i < 1; i++) {
         if (interChipA_StateTimeout[i] > 10000) {
-            if (interChipA_State[i] == 0) {
+            if (interChipA_State[i] == WAITFORRESPONSE) {
                 PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
             }
-            else if (interChipA_State[i] == 2) {
-                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed  / failed Startup");
+            else if (interChipA_State[i] == DATARECEIVED) {
+                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
             }
         }
         // if (interChipB_StateTimeout[i] > 5000) {
@@ -238,16 +236,12 @@ void handleFlags() {
             Panel_1_Touch_ISR();
         }
     }
-    if (Panel_0_EOC_Interrupt) {
+    if (Panel_0_EOC_Interrupt && Panel_1_EOC_Interrupt) {
         Panel_0_EOC_Interrupt = 0;
-        if (Panel_0_EOC_ISR != nullptr) {
-            Panel_0_EOC_ISR();
-        }
-    }
-    if (Panel_1_EOC_Interrupt) {
         Panel_1_EOC_Interrupt = 0;
-        if (Panel_1_EOC_ISR != nullptr) {
-            Panel_1_EOC_ISR();
+
+        if (Panel_EOC_ISR != nullptr) {
+            Panel_EOC_ISR();
         }
     }
 

@@ -100,6 +100,10 @@ void comMDMACallbackError(MDMA_HandleTypeDef *_hmdma);
 #ifdef POLYCONTROL
 
 uint8_t COMinterChip::beginSendTransmission() {
+
+    if (sendViaDMA == nullptr) {
+        return 0;
+    }
     // buffers empty
     if ((outBufferChipA[currentBufferSelect].size() + outBufferChipB[currentBufferSelect].size()) < 5) {
         // println("buffer empty, skip send");
@@ -111,31 +115,13 @@ uint8_t COMinterChip::beginSendTransmission() {
         return ERRORCODE_SENDBLOCK;
     }
 
-    if (FlagHandler::interChipA_State[layer] != 4 /*|| FlagHandler::interChipB_READY[layer] == false*/) {
-        // TODO enable other layers when ready, or Pull Ups on not used pins
-        //   && HAL_GPIO_ReadPin(Layer_1_READY_2_GPIO_Port, Layer_1_READY_2_Pin) &&
-        //   HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
-        //   HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin)
-        // println("not Ready");
-
+    if (FlagHandler::interChipA_State[layer] != READY ||
+        FlagHandler::interChipB_State[layer] != READY) { // layer not Ready
         return ERRORCODE_RECEPTORNOTREADY;
     }
 
-    // TODO enable later
-    // second Layer active?
-    // if (globalSettings.amountLayers.value) {
-    //     if (!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
-    //           HAL_GPIO_ReadPin(Layer_2_READY_2_GPIO_Port, Layer_2_READY_2_Pin))) {
-    //         return ERRORCODE_RECEPTORNOTREADY;
-    //     }
-    // }
-
     // close both buffers
     appendLastByte();
-
-    // size rounded up to word length
-    // dmaOutCurrentBufferASize = (outBufferChipA[currentBufferSelect].size() | 0x0004) + 1;
-    // dmaOutCurrentBufferBSize = (outBufferChipB[currentBufferSelect].size() | 0x0004) + 1;
 
     dmaOutCurrentBufferASize = outBufferChipA[currentBufferSelect].size();
 
@@ -146,9 +132,10 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     FlagHandler::interChipA_MDMA_Started[layer] = 1;
     FlagHandler::interChipA_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startFirstDMA, this);
-    FlagHandler::interChipA_State[layer] = 0;
+
+    // set Interchip state and wait for response
+    FlagHandler::interChipA_State[layer] = WAITFORRESPONSE;
     FlagHandler::interChipA_StateTimeout[layer] = 0;
-    // FlagHandler::interChipB_READY[layer] = false;
 
     switchBuffer();
 
@@ -219,6 +206,10 @@ uint8_t COMinterChip::startSecondMDMA() {
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
     FlagHandler::interChipB_MDMA_Started[layer] = 1;
     FlagHandler::interChipB_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondDMA, this);
+
+    FlagHandler::interChipB_State[layer] = WAITFORRESPONSE;
+    FlagHandler::interChipB_StateTimeout[layer] = 0;
+
     uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipB[!currentBufferSelect].data(),
                                     (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize, 1);
     if (ret) {
@@ -827,7 +818,6 @@ void COMinterChip::prepareMDMAHandle() {
     hmdma_mdma_channel40_sw_0.Init.TransferTriggerMode = MDMA_FULL_TRANSFER;
     hmdma_mdma_channel40_sw_0.Init.Priority = MDMA_PRIORITY_HIGH;
     hmdma_mdma_channel40_sw_0.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
-    // FIXME polycontrol compatibility
 #ifdef POLYRENDER
     hmdma_mdma_channel40_sw_0.Init.SourceInc = MDMA_SRC_INC_WORD;
     hmdma_mdma_channel40_sw_0.Init.DestinationInc = MDMA_DEST_INC_WORD;

@@ -329,7 +329,7 @@ class COMinterChip {
     // buffer full, send now
     uint8_t invokeBufferFullSend();
 
-    std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA;
+    std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA = nullptr;
 
     uint8_t *dmaOutBufferPointer[2];
 

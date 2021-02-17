@@ -1,30 +1,41 @@
 #ifdef POLYCONTROL
 #include "liveData.hpp"
+#include "midiInterface/midi_Defs.h"
+
+#define MIDIRESOLUTION7 127
+#define MIDIRESOLUTION14 16383
 
 LiveData liveData;
 extern COMinterChip layerCom[2];
 
-void LiveData::controlChange(uint8_t channel, uint8_t cc, uint8_t value) {
+void LiveData::controlChange(uint8_t channel, uint8_t cc, int16_t value) {
 
-    if (channel == globalSettings.midiLayerAChannel.value) {
-        switch (cc) {
-            case 64: voiceHandler.setSustain(value, 0); break;
-        }
+    if (channel == globalSettings.midiLayerAChannel.value) { // Check Midi Channel Layer A
+        distributeCC(cc, value, 0);
     }
 
-    if (channel == globalSettings.midiLayerBChannel.value) {
-        switch (cc) {
-            case 64: voiceHandler.setSustain(value, 1); break;
-        }
+    if (channel == globalSettings.midiLayerBChannel.value) { // Check Midi Channel Layer A
+        distributeCC(cc, value, 1);
     }
-
-    // TODO zu Midi Modul weiterleiten,
-    // mod(cc1), pitchbend (cc2) - pitchbend hat eine eigene function, weil native 14 bit
 
     // TODO NRPN implementation
+}
+void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
 
-    // Sustain liegt im voiceHandler
-    // Sustain muss auch in den Arp
+    switch (cc) {
+        case midi::ModulationWheel: allLayers[layer]->midi.aMod.setValue(value); break;
+        case midi::Sustain:
+            if (arps[layer]->arpEnable.value) {    // check arp is on?
+                arps[layer]->setSustain(value);    // set arp Sustain
+                voiceHandler.setSustain(0, layer); // disable voiceHandler Sustain
+            }
+            else {
+                voiceHandler.setSustain(value, layer); // enable VoiceHandler Sustain
+            }
+            break;
+        case midi::AfterTouchChannel: allLayers[layer]->midi.aAftertouch.setValue(value); break;
+        case midi::PitchBend: allLayers[layer]->midi.aPitchbend.setValue(value); break;
+    }
 }
 
 // functions
@@ -94,8 +105,6 @@ void LiveData::serviceRoutine() {
 }
 
 void LiveData::clockHandling() {
-    // TODO LFO
-
     if (clock.ticked) {
         for (uint8_t i = 0; i < NUMBERLAYER; i++) {
 

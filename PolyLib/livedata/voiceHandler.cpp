@@ -20,10 +20,7 @@ void VoiceHandler::playNote(Key &key) {
     else if (livemodeVoiceMode.value == 3) { // 8Voices
         numberVoices = 8;
     }
-    else if (livemodeVoiceMode.value == 4) { // AUTO
-        // TODO Auto number of voice select
-        numberVoices = 1;
-    }
+
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
     }

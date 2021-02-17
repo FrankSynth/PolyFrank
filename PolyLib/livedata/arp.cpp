@@ -52,7 +52,6 @@ void Arpeggiator::keyReleased(Key &key) {
 
 void Arpeggiator::pressKey(Key key) {
 
-
     lifetime(key); // calculate lifespan
 
     voiceHandler->playNote(key); // play new note
@@ -104,6 +103,15 @@ void Arpeggiator::release() {
         else {
             it++;
         }
+    }
+}
+
+void Arpeggiator::setSustain(uint8_t sustain) {
+    if (sustain >= 64) {
+        arpSustain = 1;
+    }
+    if (sustain < 64) {
+        arpSustain = 0;
     }
 }
 

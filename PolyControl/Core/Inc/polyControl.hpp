@@ -18,6 +18,5 @@
 
 extern midi::MidiInterface<midiUSB::COMusb> mididevice;
 
-
 void PolyControlInit();
 void PolyControlRun();

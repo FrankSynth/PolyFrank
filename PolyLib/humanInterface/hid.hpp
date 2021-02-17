@@ -12,8 +12,8 @@
 #define LEDBRIGHTNESS_MEDIUM 100
 #define LEDBRIGHTNESS_MAX 220
 #define NUMBERENCODERS 4
-#define NUMBER_PANELTOUCHICS 1
-#define NUMBER_LEDDRIVER 2
+#define NUMBER_PANELTOUCHICS 4
+#define NUMBER_LEDDRIVER 4
 
 typedef enum {
     TOUCH_IO_PIN_0,
@@ -42,7 +42,7 @@ void eventPanelTouch(uint16_t touchState, uint8_t port);
 void eventControlTouch(uint16_t touchState);
 
 void initPotiMapping();
-void processPanelPotis(uint8_t layerID);
+void processPanelPotis();
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
 uint16_t patchLEDMapping(FOCUSMODE type, uint32_t id);

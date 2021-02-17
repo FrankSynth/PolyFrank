@@ -233,9 +233,6 @@ EepromOperations EEPROM_SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, ui
  */
 EepromOperations EEPROM_SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead) {
 
-    println("ReadBuffer");
-    println("Pointer : ", (uint32_t)pBuffer);
-
     while (EEPROM_SPI->State != HAL_SPI_STATE_READY) {
         HAL_Delay(1);
     }

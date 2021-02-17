@@ -215,9 +215,16 @@ void GUIPanelPatch::registerPanelSettings() {
                                              {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     // register Panel Seetings Left
-    actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
-                                     {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"},
-                                     {std::bind(nextLayer), "LAYER"});
+
+    if (globalSettings.multiLayer.value == 1) {
+        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
+                                         {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"},
+                                         {std::bind(nextLayer), "LAYER"});
+    }
+    else {
+        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
+                                         {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, {nullptr, ""});
+    }
 
     // register Panel Seetings Rigth
     actionHandler.registerActionRight({std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"}, // SAVE

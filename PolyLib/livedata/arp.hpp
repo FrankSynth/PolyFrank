@@ -42,6 +42,7 @@ class Arpeggiator {
     void pressKey(Key key);
     void lifetime(Key &key);
 
+    void setSustain(uint8_t sustain);
     void checkLatch();
     void ratched();
     void release();

@@ -30,7 +30,6 @@ class GUI {
     // PanelSelect
     void setPanelActive(uint8_t panelID);
 
-    void setActivePanel(uint8_t id);
 
     GUIPanelBase *activePanel = nullptr;
 

@@ -88,7 +88,8 @@ void GUIPanelLive::registerPanelSettings() {
          liveData.arps[currentFocus.layer]->__liveSettingsArp.category},
         {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
     // register Panel Seetings Left
-    if (liveData.voiceHandler.livemodeMergeLayer.value == 0) {
+
+    if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
         actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
                                          {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
     }

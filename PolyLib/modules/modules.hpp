@@ -68,9 +68,9 @@ class Midi : public BaseModule {
     Output oGate = Output("GATE");
     Output oNote = Output("NOTE");
 
-    Analog aMod = Analog("MOD", 0, 1, 0, true, linMap);
-    Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, true, linMap);
-    Analog aPitchbend = Analog("PITCHBEND", -1, 1, 0, true, linMap);
+    Analog aMod = Analog("MOD", 0, 1, 0, 127, 0, true, linMap);
+    Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, 127, 0, true, linMap);
+    Analog aPitchbend = Analog("PITCHBEND", -1, 1, -8191, 8191, 0, true, linMap);
 
     // Digital dGate = Digital("GATE", 0, 1, 0, true);
 

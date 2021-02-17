@@ -374,7 +374,8 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     // valueBar
     // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
-    valueBarWidth = (float)valueBarWidth * (data->value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT);
+    valueBarWidth =
+        (float)valueBarWidth * (data->value - data->minInputValue) / (float)(data->maxInputValue - data->minInputValue);
 
     drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 }

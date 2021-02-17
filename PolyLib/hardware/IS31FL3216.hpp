@@ -7,17 +7,18 @@
 
 class IS31FL3216 {
   public:
-    IS31FL3216(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddresse, uint8_t i2cBusSwitchAddress) {
+    IS31FL3216(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddresse, uint8_t i2cBusSwitchAddress, uint8_t layerID) {
 
         this->i2cHandle = i2cHandle;
         this->i2cBusSwitchAddress = i2cBusSwitchAddress;
         this->i2cDeviceAddress = i2cDeviceCode | (i2cAddresse << 1);
+        this->layerID = layerID;
     }
 
     void init() {
 
         // Switch bus
-        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         // enable Chip
 
@@ -45,7 +46,7 @@ class IS31FL3216 {
 
     void setPWM(uint8_t pwm) {
         // Switch bus
-        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         uint8_t data[17]; // pwm
         data[0] = 0x10;   // write to register 0x10 - 0x1F
@@ -72,7 +73,7 @@ class IS31FL3216 {
     void setPWM(uint8_t pwm, uint8_t pin) {
 
         // Switch bus
-        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         if (pin > 16) {
             return;
@@ -100,7 +101,7 @@ class IS31FL3216 {
     void setPWM(uint8_t pwm, uint16_t pinRegister) {
 
         // Switch bus
-        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         uint8_t data[17];
 
@@ -130,7 +131,7 @@ class IS31FL3216 {
     void updateLEDs() {
         uint8_t changed = 0;
         // Switch bus
-        i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         for (int x = 0; x < 16; x++) {
             if (data[x + 1] != pwmValue[x]) {
@@ -170,6 +171,7 @@ class IS31FL3216 {
     uint8_t i2cBusSwitchAddress = 0;
     uint8_t i2cDeviceCode = 0xE8;
     uint8_t i2cDeviceAddress = 0;
+    uint8_t layerID = 0;
 };
 
 #endif

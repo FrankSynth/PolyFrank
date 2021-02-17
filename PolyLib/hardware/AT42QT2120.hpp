@@ -7,12 +7,13 @@
 
 class AT42QT2120 {
   public:
-    AT42QT2120(I2C_HandleTypeDef *i2cHandle, uint8_t i2cBusSwitchAddress) {
+    AT42QT2120(I2C_HandleTypeDef *i2cHandle, uint8_t i2cBusSwitchAddress, uint8_t layerID) {
 
         this->i2cHandle = i2cHandle;
         this->i2cBusSwitchAddress = i2cBusSwitchAddress; // combine default address with custom adress
 
         busMultiplexer = 1;
+        this->layerID = layerID;
     }
 
     AT42QT2120(I2C_HandleTypeDef *I2C_HandleTypeDef) { // without busMultiplexer
@@ -37,26 +38,24 @@ class AT42QT2120 {
         }
 
         if (busMultiplexer) {
-            i2cBusSwitch.switchTarget(i2cBusSwitchAddress);
+            i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
         }
 
         uint8_t command = 0x02; // read from memory Address 0x02
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, &command, 1, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COM | AT42QT I2C Transmit Failed");
         }
 
         uint8_t newKeyStatus[3];
 
         if (HAL_I2C_Master_Receive(i2cHandle, i2cDeviceAddress, newKeyStatus, 3, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COM | AT42QT I2C Receive Failed");
         }
 
         keyStatus = *(uint16_t *)&newKeyStatus[1];
 
         return *(uint16_t *)&newKeyStatus[1];
-
-        // TODO error status byte handling?
     }
 
     uint16_t keyStatus = 0;
@@ -67,6 +66,7 @@ class AT42QT2120 {
 
     uint8_t initDone = 0;
     uint8_t busMultiplexer = 0;
+    uint8_t layerID = 0;
 };
 
 #endif

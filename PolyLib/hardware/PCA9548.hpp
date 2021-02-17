@@ -21,7 +21,7 @@ class PCA9548 {
 
             if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, &activeAddress, 1, 50) != HAL_OK) {
                 Error_Handler();
-                println("I2C Switch Transmit Error");
+                PolyError_Handler("ERROR | COM | PCA9548 I2C Transmit Failed");
             }
         }
     }
@@ -33,6 +33,6 @@ class PCA9548 {
     uint8_t i2cDeviceAddress = 0;
 };
 
-extern PCA9548 i2cBusSwitch;
+extern PCA9548 i2cBusSwitch[2];
 
 #endif
