@@ -5,8 +5,8 @@
 
 extern Layer layerA;
 
-LogCurve adsrConvertLog(16, 0.1);
-LogCurve adsrConvertAntiLog(16, 0.9);
+LogCurve adsrConvertLog(32, 0.1);
+LogCurve adsrConvertAntiLog(32, 0.9);
 
 #define INPUTWEIGHTING 1
 

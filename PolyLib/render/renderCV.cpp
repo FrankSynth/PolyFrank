@@ -145,17 +145,22 @@ inline void setSwitches() {
     }
 }
 
+LogCurve ledLog(16, 0.1);
+
 inline void setLEDs() {
     // max brightness 1023
 
     // TODO LED assigment
+    // TODO LED Brightness setting?
 
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, fastMapLEDBrightness(layerA.adsrA.out.currentSample[0]) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, fastMapLEDBrightness(layerA.adsrB.out.currentSample[0]) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, fastMapLEDBrightness(layerA.lfoA.out.currentSample[0] + 1) * 511.0f);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, fastMapLEDBrightness(layerA.lfoB.out.currentSample[0] + 1) * 511.0f);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, fastMapLEDBrightness(0));
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, fastMapLEDBrightness(0));
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, ledLog.mapValue(layerA.adsrA.out.currentSample[0]) * 1023.0f);
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, ledLog.mapValue(layerA.adsrB.out.currentSample[0]) * 1023.0f);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3,
+                         ledLog.mapValue(layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4,
+                         ledLog.mapValue(layerA.lfoB.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, ledLog.mapValue(layerA.adsrA.out.currentSample[0]) * 1023.0f);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, ledLog.mapValue(layerA.adsrB.out.currentSample[0]) * 1023.0f);
 }
 
 // elapsedMicros rendertimecv;

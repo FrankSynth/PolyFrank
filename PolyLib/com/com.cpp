@@ -634,8 +634,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         return 1;
     }
 
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
-
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         currentByte = (inBufferPointer[currentBufferSelect])[i];
@@ -742,6 +740,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         break;
 
                     case LASTBYTE:
+                        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
                         // transmission complete
                         // println("decode success!");
