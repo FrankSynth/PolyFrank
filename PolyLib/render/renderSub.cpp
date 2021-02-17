@@ -14,13 +14,19 @@ inline float accumulateBitcrusher(Sub &sub, uint16_t voice) {
     return testFloat(sub.iBitcrusher.currentSample[voice] + sub.aBitcrusher.valueMapped, sub.aBitcrusher.min,
                      sub.aBitcrusher.max);
 }
+inline float accumulateSamplecrusher(Sub &sub, uint16_t voice) {
+    return testFloat(sub.iSamplecrusher.currentSample[voice] * sub.aSamplecrusher.valueMapped +
+                         sub.aSamplecrusher.valueMapped,
+                     sub.aSamplecrusher.min, sub.aSamplecrusher.max);
+}
 
 void renderSub(Sub &sub) {
 
-    static float *shapeOut = sub.shape.nextSample;
-    static float *outLevelSteiner = sub.levelSteiner.nextSample;
-    static float *outLevelLadder = sub.levelLadder.nextSample;
-    static float *outBitcrusher = sub.bitcrusher.nextSample;
+    float *shapeOut = sub.shape.nextSample;
+    float *outLevelSteiner = sub.levelSteiner.nextSample;
+    float *outLevelLadder = sub.levelLadder.nextSample;
+    float *outBitcrusher = sub.bitcrusher.nextSample;
+    float *outSamplecrusher = sub.samplecrusher.nextSample;
     static int32_t &filterSwitch = sub.dVcfDestSwitch.valueMapped;
 
     float level[VOICESPERCHIP];
@@ -29,6 +35,8 @@ void renderSub(Sub &sub) {
         shapeOut[voice] = accumulateShape(sub, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outBitcrusher[voice] = accumulateBitcrusher(sub, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        outSamplecrusher[voice] = accumulateSamplecrusher(sub, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         level[voice] = accumulateLevel(sub, voice);
 

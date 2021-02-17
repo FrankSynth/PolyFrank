@@ -19,10 +19,10 @@ inline float accumulateResonance(Steiner &steiner, uint16_t voice) {
 }
 
 void renderSteiner(Steiner &steiner) {
-    static float *outLevel = steiner.level.nextSample;
-    static float *outResonance = steiner.resonance.nextSample;
-    static float *outCutoff = steiner.cutoff.nextSample;
-    static float *outToLadder = steiner.toLadder.nextSample;
+    float *outLevel = steiner.level.nextSample;
+    float *outResonance = steiner.resonance.nextSample;
+    float *outCutoff = steiner.cutoff.nextSample;
+    float *outToLadder = steiner.toLadder.nextSample;
     // TODO balance with par/ser value
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)

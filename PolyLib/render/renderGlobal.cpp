@@ -15,8 +15,8 @@ inline float accumulateVCA(GlobalModule globalModule, uint16_t voice) {
 
 void renderGlobalModule(GlobalModule globalModule) {
 
-    static float *outLeft = globalModule.left.nextSample;
-    static float *outRight = globalModule.right.nextSample;
+    float *outLeft = globalModule.left.nextSample;
+    float *outRight = globalModule.right.nextSample;
     float vca[VOICESPERCHIP];
     float pan[VOICESPERCHIP];
     float panRight[VOICESPERCHIP];

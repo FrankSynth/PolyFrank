@@ -6,28 +6,29 @@
 inline float accumulateLevel(Noise &noise, uint16_t voice) {
     return testFloat(noise.iLevel.currentSample[voice] + noise.aLevel.valueMapped, noise.aLevel.min, noise.aLevel.max);
 }
-inline float accumulateBitcrusher(Noise &noise, uint16_t voice) {
-    return testFloat(noise.iBitcrusher.currentSample[voice] + noise.aBitcrusher.valueMapped, noise.aBitcrusher.min,
-                     noise.aBitcrusher.max);
-}
+// inline float accumulateBitcrusher(Noise &noise, uint16_t voice) {
+//     return testFloat(noise.iBitcrusher.currentSample[voice] + noise.aBitcrusher.valueMapped, noise.aBitcrusher.min,
+//                      noise.aBitcrusher.max);
+// }
 inline float accumulateSamplecrusher(Noise &noise, uint16_t voice) {
-    return testFloat(noise.iSamplecrusher.currentSample[voice] + noise.aSamplecrusher.valueMapped,
+    return testFloat(noise.iSamplecrusher.currentSample[voice] * noise.aSamplecrusher.valueMapped +
+                         noise.aSamplecrusher.valueMapped,
                      noise.aSamplecrusher.min, noise.aSamplecrusher.max);
 }
 
 void renderNoise(Noise &noise) {
-    static float *outLevelSteiner = noise.levelSteiner.nextSample;
-    static float *outLevelLadder = noise.levelLadder.nextSample;
-    static float *outBitcrusher = noise.bitcrusher.nextSample;
-    static float *outSamplecrusher = noise.samplecrusher.nextSample;
+    float *outLevelSteiner = noise.levelSteiner.nextSample;
+    float *outLevelLadder = noise.levelLadder.nextSample;
+    // float *outBitcrusher = noise.bitcrusher.nextSample;
+    float *outSamplecrusher = noise.samplecrusher.nextSample;
     static int32_t &filterSwitch = noise.dVcfDestSwitch.valueMapped;
 
     float level[VOICESPERCHIP];
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         level[voice] = accumulateLevel(noise, voice);
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        outBitcrusher[voice] = accumulateBitcrusher(noise, voice);
+    // for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+    //     outBitcrusher[voice] = accumulateBitcrusher(noise, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outSamplecrusher[voice] = accumulateSamplecrusher(noise, voice);
 

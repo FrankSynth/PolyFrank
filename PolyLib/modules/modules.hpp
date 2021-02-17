@@ -282,29 +282,29 @@ class Noise : public BaseModule {
         outputs.push_back(&out);
 
         inputs.push_back(&iLevel);
-        inputs.push_back(&iBitcrusher);
+        // inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aLevel);
-        knobs.push_back(&aBitcrusher);
+        // knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
 
         switches.push_back(&dVcfDestSwitch);
 
         renderBuffer.push_back(&levelSteiner);
         renderBuffer.push_back(&levelLadder);
-        renderBuffer.push_back(&bitcrusher);
+        // renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
     }
 
     Output out = Output("OUT");
 
     Input iLevel = Input("LEVEL");
-    Input iBitcrusher = Input("BITCRUSH");
+    // Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
+    // Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
     Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
@@ -313,7 +313,7 @@ class Noise : public BaseModule {
 
     RenderBuffer levelSteiner;
     RenderBuffer levelLadder;
-    RenderBuffer bitcrusher;
+    // RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 };
 
@@ -435,7 +435,7 @@ class LFO : public BaseModule {
     Input iShape = Input("SHAPE");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
-    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
