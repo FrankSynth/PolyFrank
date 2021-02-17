@@ -102,7 +102,7 @@ void MX_SPI4_Init(void) {
     hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi4.Init.NSS = SPI_NSS_SOFT;
-    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
     hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -131,7 +131,7 @@ void MX_SPI5_Init(void) {
     hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi5.Init.NSS = SPI_NSS_SOFT;
-    hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
     hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -230,7 +230,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi1_tx);
 
         /* SPI1 interrupt Init */
-        HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(SPI1_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(SPI1_IRQn);
         /* USER CODE BEGIN SPI1_MspInit 1 */
 
@@ -283,7 +283,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi2_tx);
 
         /* SPI2 interrupt Init */
-        HAL_NVIC_SetPriority(SPI2_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(SPI2_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(SPI2_IRQn);
         /* USER CODE BEGIN SPI2_MspInit 1 */
 
@@ -328,7 +328,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi4_tx);
 
         /* SPI4 interrupt Init */
-        HAL_NVIC_SetPriority(SPI4_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(SPI4_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(SPI4_IRQn);
         /* USER CODE BEGIN SPI4_MspInit 1 */
 
@@ -372,7 +372,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi5_tx);
 
         /* SPI5 interrupt Init */
-        HAL_NVIC_SetPriority(SPI5_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(SPI5_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(SPI5_IRQn);
         /* USER CODE BEGIN SPI5_MspInit 1 */
 

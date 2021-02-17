@@ -22,8 +22,7 @@ TARGET = PolyControl
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -O2
-
+OPT = -O1
 
 #######################################
 # paths

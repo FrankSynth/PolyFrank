@@ -180,7 +180,7 @@ void MX_GPIO_Init(void) {
     /*Configure GPIO pins : PIPin PIPin */
     GPIO_InitStruct.Pin = Layer_1_READY_1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PIPin PIPin */

@@ -28,6 +28,13 @@ uint8_t test = 0;
 // poly control init
 void PolyControlInit() {
 
+    // Init for Control and Layer Chips
+    initPoly();
+
+    // Prepare Layer
+    allLayers.push_back(&layerA);
+    allLayers.push_back(&layerB);
+
     ////////Hardware init////////
 
     // Enable Layer Board
@@ -67,14 +74,6 @@ void PolyControlInit() {
     if (layerA.LayerState.value == 0 && layerB.LayerState.value == 0) {
         PolyError_Handler("ERROR | FATAL | NO Layer Connected!");
     }
-    ////////Layer init////////
-
-    // Init for Control and Layer Chips
-    initPoly();
-
-    // Prepare Layer
-    allLayers.push_back(&layerA);
-    allLayers.push_back(&layerB);
 
     // init EEPROM
     initPreset();
@@ -106,11 +105,6 @@ void PolyControlInit() {
             (uint8_t *)interChipDMABufferLayerB, 1);
     }
 
-    // Reset all Layer to default configuration,
-    for (Layer *l : allLayers) {
-        l->resetLayer();
-    };
-
     // init midi
     initMidi();
 
@@ -120,13 +114,18 @@ void PolyControlInit() {
     // Sit back and relax for a moment
     HAL_Delay(1000);
 
+    // Reset all Layer to default configuration,
+    for (Layer *l : allLayers) {
+        l->resetLayer();
+    };
+
     // Say hello
     println("Hi, Frank here!");
     if (layerA.LayerState.value) {
-        println("Layer A active!");
+        println("Layer A active");
     }
     if (layerB.LayerState.value) {
-        println("Layer B active!");
+        println("Layer B active");
     }
 
     // And turn the Display on
@@ -282,7 +281,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                     FlagHandler::interChipA_State[1] = DATARECEIVED;
                     FlagHandler::interChipA_StateTimeout[1] = 0;
                 }
-                if (FlagHandler::interChipA_State[1] == DATARECEIVED) {
+                else if (FlagHandler::interChipA_State[1] == DATARECEIVED) {
                     FlagHandler::interChipA_State[1] = READY;
                     FlagHandler::interChipA_StateTimeout[1] = 0;
                 }
@@ -295,12 +294,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             }
             else {
                 if (FlagHandler::interChipB_State[1] == WAITFORRESPONSE) {
+                    FlagHandler::interChipB_StateTimeout[1] = 0;
                     FlagHandler::interChipB_State[1] = DATARECEIVED;
-                    FlagHandler::interChipB_StateTimeout[1] = 0;
                 }
-                if (FlagHandler::interChipB_State[1] == DATARECEIVED) {
-                    FlagHandler::interChipB_State[1] = READY;
+                else if (FlagHandler::interChipB_State[1] == DATARECEIVED) {
                     FlagHandler::interChipB_StateTimeout[1] = 0;
+                    FlagHandler::interChipB_State[1] = READY;
                 }
             }
             break;
@@ -311,12 +310,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             }
             else {
                 if (FlagHandler::interChipA_State[0] == WAITFORRESPONSE) {
+                    FlagHandler::interChipA_StateTimeout[0] = 0;
                     FlagHandler::interChipA_State[0] = DATARECEIVED;
-                    FlagHandler::interChipA_StateTimeout[0] = 0;
                 }
-                if (FlagHandler::interChipA_State[0] == DATARECEIVED) {
-                    FlagHandler::interChipA_State[0] = READY;
+                else if (FlagHandler::interChipA_State[0] == DATARECEIVED) {
                     FlagHandler::interChipA_StateTimeout[0] = 0;
+                    FlagHandler::interChipA_State[0] = READY;
                 }
             }
             break;
@@ -327,12 +326,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             }
             else {
                 if (FlagHandler::interChipB_State[0] == WAITFORRESPONSE) {
+                    FlagHandler::interChipB_StateTimeout[0] = 0;
                     FlagHandler::interChipB_State[0] = DATARECEIVED;
-                    FlagHandler::interChipB_StateTimeout[0] = 0;
                 }
-                if (FlagHandler::interChipB_State[0] == DATARECEIVED) {
-                    FlagHandler::interChipB_State[0] = READY;
+                else if (FlagHandler::interChipB_State[0] == DATARECEIVED) {
                     FlagHandler::interChipB_StateTimeout[0] = 0;
+                    FlagHandler::interChipB_State[0] = READY;
                 }
             }
             break;

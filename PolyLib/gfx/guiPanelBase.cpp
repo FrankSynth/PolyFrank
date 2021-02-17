@@ -127,9 +127,8 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
         drawRectangleChampfered(cWhiteLight, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
         drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
-
-        drawString("Disabled", cBlack, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight,
-                   selectedFont,
+        text = "Disable";
+        drawString(text, cBlack, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight, selectedFont,
                    CENTER); // center Text
         return;
     }

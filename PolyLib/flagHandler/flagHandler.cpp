@@ -1,4 +1,5 @@
 #include "flagHandler.hpp"
+#include "debughelper/debughelper.hpp"
 
 namespace FlagHandler {
 
@@ -93,12 +94,11 @@ std::function<void()> Panel_1_Touch_ISR;
 
 
 */
-interChipState interChipA_State[] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
-interChipState interChipB_State[] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
+interChipState interChipA_State[2] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
+interChipState interChipB_State[2] = {NOTCONNECT, NOTCONNECT}; // init State wait for ready
 
-elapsedMicros interChipA_StateTimeout[] = {0, 0};
-
-elapsedMicros interChipB_StateTimeout[] = {0, 0};
+elapsedMillis interChipA_StateTimeout[2] = {0, 0};
+elapsedMillis interChipB_StateTimeout[2] = {0, 0};
 
 bool USB_HS_CONNECTED = false;
 bool USB_FS_CONNECTED = false;
@@ -186,8 +186,8 @@ void handleFlags() {
             }
         }
     }
-    for (uint8_t i = 0; i < 1; i++) {
-        if (interChipA_StateTimeout[i] > 10000) {
+    for (uint8_t i = 0; i < 2; i++) {
+        if (interChipA_StateTimeout[i] > 10) {
             if (interChipA_State[i] == WAITFORRESPONSE) {
                 PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
             }
@@ -195,20 +195,6 @@ void handleFlags() {
                 PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
             }
         }
-        // if (interChipB_StateTimeout[i] > 5000) {
-        //     if (interChipB_State[i] == 0) {
-        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> no reponse");
-        //     }
-        //     else if (interChipB_State[i] == 1) {
-        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> dma copy failed");
-        //     }
-        //     else if (interChipB_State[i] == 2) {
-        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> Checksum failed ");
-        //     }
-        //     else if (interChipB_State[i] == 3) {
-        //         PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> crashed on Startup? ");
-        //     }
-        // }
     }
     if (Control_Encoder_Interrupt) {
         Control_Encoder_Interrupt = 0;

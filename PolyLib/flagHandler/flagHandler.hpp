@@ -39,11 +39,11 @@ extern bool Panel_0_EOC_Interrupt;
 extern bool Panel_1_EOC_Interrupt;
 extern std::function<void()> Panel_EOC_ISR;
 
-extern interChipState interChipA_State[];
-extern interChipState interChipB_State[];
+extern interChipState interChipA_State[2];
+extern interChipState interChipB_State[2];
 
-extern elapsedMicros interChipA_StateTimeout[];
-extern elapsedMicros interChipB_StateTimeout[];
+extern elapsedMillis interChipA_StateTimeout[2];
+extern elapsedMillis interChipB_StateTimeout[2];
 
 extern bool USB_HS_CONNECTED;
 extern bool USB_FS_CONNECTED;

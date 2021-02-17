@@ -122,7 +122,7 @@ class OSC_A : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM");
+    Input iFM = Input("FM", logMap);
     Input iMorph = Input("MORPH");
     Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
@@ -187,7 +187,7 @@ class OSC_B : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM");
+    Input iFM = Input("FM", logMap);
     Input iMorph = Input("MORPH");
     Input iTuning = Input("TUNING");
     Input iLevel = Input("LEVEL");
@@ -241,6 +241,7 @@ class Sub : public BaseModule {
         knobs.push_back(&aSamplecrusher);
 
         switches.push_back(&dVcfDestSwitch);
+        switches.push_back(&dOctaveSwitch);
 
         renderBuffer.push_back(&shape);
         renderBuffer.push_back(&levelSteiner);
@@ -256,7 +257,7 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aShape = Analog("SHAPE", 0.001, 1, 0.001, true, linMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0.01, 1, 0.01, true, linMap, &iShape);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -342,7 +343,7 @@ class Steiner : public BaseModule {
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
@@ -380,7 +381,7 @@ class Ladder : public BaseModule {
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
@@ -431,7 +432,7 @@ class LFO : public BaseModule {
     }
     Output out = Output("OUT");
 
-    Input iFreq = Input("FM");
+    Input iFreq = Input("FM", logMap);
     Input iShape = Input("SHAPE");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
