@@ -19,11 +19,16 @@ void GUIPanelLive::registerSettingsElements() {
 
             if (dataIndex < size) {
                 Setting *settingsElement = (pCategory->settings)[dataIndex];
-
-                panelElements[elementIndex].addSettingsEntry(
-                    settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
-                    {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
-                    {std::bind(&Setting::resetValue, settingsElement), "RESET"});
+                if (settingsElement->disable == 1) {
+                    panelElements[elementIndex].addSettingsEntry(settingsElement, {nullptr, ""}, {nullptr, ""},
+                                                                 {nullptr, ""});
+                }
+                else {
+                    panelElements[elementIndex].addSettingsEntry(
+                        settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
+                        {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
+                        {std::bind(&Setting::resetValue, settingsElement), "RESET"});
+                }
                 dataIndex++;
             }
             else {

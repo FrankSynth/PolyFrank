@@ -28,12 +28,7 @@ void VoiceHandler::playNote(Key &key) {
     }
 
     else {
-        if (key.layerID == 0) {
-            getNextVoicesA(numberVoices);
-        }
-        else if (key.layerID == 1) {
-            getNextVoicesB(numberVoices);
-        }
+        getNextVoices(numberVoices, key.layerID);
     }
 
     for (voiceStateStruct *v : foundVoices) {
@@ -134,20 +129,11 @@ void VoiceHandler::findVoices(uint8_t note, voiceStateStruct *voices) {
     }
 }
 
-void VoiceHandler::getNextVoicesA(uint8_t numberVoices) {
+void VoiceHandler::getNextVoices(uint8_t numberVoices, uint8_t layer) {
     foundVoices.clear();
 
     for (uint8_t v = 0; v < numberVoices; v++) {
-        searchNextVoice(voices[0]);
-    }
-}
-
-void VoiceHandler::getNextVoicesB(uint8_t numberVoices) {
-
-    foundVoices.clear();
-
-    for (uint8_t v = 0; v < numberVoices; v++) {
-        searchNextVoice(voices[1]);
+        searchNextVoice(voices[layer]);
     }
 }
 
@@ -160,21 +146,21 @@ void VoiceHandler::getNextVoicesAB(uint8_t numberVoices) {
     }
 }
 
-void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
+void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
 
     uint8_t oldestVoiceID = 0xFF;
 
     // find oldest FREE Voice
 
     for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-        if (voices[i].status == FREE) {
+        if (voiceLayer[i].status == FREE) {
             if (oldestVoiceID != 0xFF) { // compare
-                if (voices[i].playID <= voices[oldestVoiceID].playID) {
-                    oldestVoiceID = voices[i].voiceID;
+                if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                    oldestVoiceID = voiceLayer[i].voiceID;
                 }
             }
             else { // first found
-                oldestVoiceID = voices[i].voiceID;
+                oldestVoiceID = voiceLayer[i].voiceID;
             }
         }
     }
@@ -183,14 +169,14 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE
-            if (voices[i].status != SELECT) {
+            if (voiceLayer[i].status != SELECT) {
                 if (oldestVoiceID != 0xFF) { // compare
-                    if (voices[i].playID <= voices[oldestVoiceID].playID) {
-                        oldestVoiceID = voices[i].voiceID;
+                    if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                        oldestVoiceID = voiceLayer[i].voiceID;
                     }
                 }
                 else { // first found
-                    oldestVoiceID = voices[i].voiceID;
+                    oldestVoiceID = voiceLayer[i].voiceID;
                 }
             }
         }
@@ -200,8 +186,8 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
         return;
     }
 
-    voices[oldestVoiceID].status = SELECT;
-    foundVoices.push_back(&voices[oldestVoiceID]);
+    voiceLayer[oldestVoiceID].status = SELECT;
+    foundVoices.push_back(&voiceLayer[oldestVoiceID]);
 }
 
 void VoiceHandler::searchNextVoiceAB() {
@@ -210,10 +196,12 @@ void VoiceHandler::searchNextVoiceAB() {
 
     // find oldest FREE Voice
     for (uint8_t i = 0; i < 2; i++) {
-        for (uint8_t x = 0; x < NUMBERVOICES; x++) {
-            if (voices[i][x].status == FREE) {
-                if (voices[i][x].playID <= nextVoice->playID) {
-                    nextVoice = &voices[i][x];
+        if (allLayers[i]->LayerState.value == 1) { // check layerState
+            for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                if (voices[i][x].status == FREE) {
+                    if (voices[i][x].playID <= nextVoice->playID) {
+                        nextVoice = &voices[i][x];
+                    }
                 }
             }
         }
@@ -221,12 +209,15 @@ void VoiceHandler::searchNextVoiceAB() {
 
     // no voice free voice found, take the oldest played one
     if (nextVoice == nullptr) {
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            // find oldest NOTE
-            for (uint8_t x = 0; x < NUMBERVOICES; x++) {
-                if (voices[i][x].status == SELECT) { // not already selected
-                    if (voices[i][x].playID <= nextVoice->playID) {
-                        nextVoice = &voices[i][x];
+
+        for (uint8_t i = 0; i < 2; i++) {
+            if (allLayers[i]->LayerState.value == 1) { // check layerState
+                // find oldest NOTE
+                for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                    if (voices[i][x].status == SELECT) { // not already selected
+                        if (voices[i][x].playID <= nextVoice->playID) {
+                            nextVoice = &voices[i][x];
+                        }
                     }
                 }
             }

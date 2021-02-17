@@ -435,7 +435,7 @@ class LFO : public BaseModule {
     Input iShape = Input("SHAPE");
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
-    Analog aShape = Analog("SHAPE", 0, 5, 0, true, linMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);

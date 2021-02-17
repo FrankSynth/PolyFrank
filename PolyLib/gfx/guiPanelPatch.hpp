@@ -22,19 +22,19 @@ class GUIPanelPatch : public GUIPanelBase {
 
         newFocus.type = focusMode;
         if (focusMode == FOCUSMODULE) {
-            newFocus.modul = panelElementsModule[scrollModule.position - scrollModule.offset].entry->id;
-            newFocus.layer = panelElementsModule[scrollModule.position - scrollModule.offset].entry->layerId;
+            newFocus.modul = panelElementsModule[scrollModule.relPosition].entry->id;
+            newFocus.layer = panelElementsModule[scrollModule.relPosition].entry->layerId;
         }
 
         else if (focusMode == FOCUSOUTPUT) {
-            newFocus.id = panelElementsSource[scrollSource.position - scrollModule.offset].entry->id;
-            newFocus.modul = panelElementsSource[scrollSource.position - scrollModule.offset].entry->moduleId;
-            newFocus.layer = panelElementsSource[scrollSource.position - scrollModule.offset].entry->layerId;
+            newFocus.id = panelElementsSource[scrollSource.relPosition].entry->id;
+            newFocus.modul = panelElementsSource[scrollSource.relPosition].entry->moduleId;
+            newFocus.layer = panelElementsSource[scrollSource.relPosition].entry->layerId;
         }
         else if (focusMode == FOCUSINPUT) {
-            newFocus.id = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->id;
-            newFocus.modul = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->moduleId;
-            newFocus.layer = panelElementsTarget[scrollTarget.position - scrollModule.offset].entry->layerId;
+            newFocus.id = panelElementsTarget[scrollTarget.relPosition].entry->id;
+            newFocus.modul = panelElementsTarget[scrollTarget.relPosition].entry->moduleId;
+            newFocus.layer = panelElementsTarget[scrollTarget.relPosition].entry->layerId;
         }
     }
 

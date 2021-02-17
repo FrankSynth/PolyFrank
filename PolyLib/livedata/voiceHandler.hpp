@@ -8,7 +8,7 @@ class VoiceHandler {
         // init Voices
         for (size_t i = 0; i < 2; i++) {
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
-                voices[i][x].voiceID = i;
+                voices[i][x].voiceID = x;
                 voices[i][x].layerID = i;
             }
         }
@@ -22,9 +22,8 @@ class VoiceHandler {
 
     void findVoices(uint8_t note, voiceStateStruct *voices);
 
-    void getNextVoicesA(uint8_t numberVoices);
+    void getNextVoices(uint8_t numberVoices, uint8_t layer);
 
-    void getNextVoicesB(uint8_t numberVoices);
     void getNextVoicesAB(uint8_t numberVoices);
 
     void searchNextVoice(voiceStateStruct *voices);

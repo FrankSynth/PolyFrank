@@ -123,7 +123,17 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     // get text
     std::string text = data->getName();
 
-    // Draw Name
+    if (data->disable) {
+        drawRectangleChampfered(cWhiteLight, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
+        drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
+                   selectedFont, CENTER);
+
+        drawString("Disabled", cBlack, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight,
+                   selectedFont,
+                   CENTER); // center Text
+        return;
+    }
+
     if (select) {
         drawRectangleChampfered(cWhite, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
@@ -506,22 +516,23 @@ void Data_PanelElement::Draw() {
 void Patch_PanelElement::Draw() {
     if (entry != nullptr) {
 
-        if (!active) {
-            return;
-        }
-        if (patch == nullptr) {
-            drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched, showModuleName);
-        }
-        else {
+        if (active) {
 
-            if (select) {
-                actionHandler.registerActionEncoder4(
-                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
+            if (patch == nullptr) {
+                drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
+                                     showModuleName);
             }
-            drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
-                                 showModuleName);
+            else {
+
+                if (select) {
+                    actionHandler.registerActionEncoder4(
+                        {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
+                }
+                drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
+                                     showModuleName);
+            }
         }
     }
     // reset Marker

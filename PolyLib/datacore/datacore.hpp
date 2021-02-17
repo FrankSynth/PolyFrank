@@ -106,6 +106,7 @@ class Setting : public DataElement {
     int32_t defaultValue; // init value
     int32_t min;
     int32_t max;
+    uint8_t disable;
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
@@ -414,7 +415,7 @@ class PatchElementInOut : public PatchElement {
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
-    float amountRaw;
+    float amountRaw = 0;
 };
 
 class PatchElementOutOut : public PatchElement {

@@ -106,43 +106,45 @@ void LiveData::serviceRoutine() {
 
 void LiveData::clockHandling() {
     if (clock.ticked) {
-        for (uint8_t i = 0; i < NUMBERLAYER; i++) {
+        for (uint8_t i = 0; i < 2; i++) {
+            if (allLayers[i]->LayerState.value == 1) { // check layer state
 
-            // ARP Steps
-            if (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsA.value]) ||
-                (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsB.value]) && arps[i]->arpPolyrythm.value)) {
-                arps[i]->nextStep();
-            }
-
-            // LFO Sync
-
-            uint32_t clockTicksPerStepLFOA = clockTicksPerStep[allLayers[i]->lfoA.dClockStep.valueMapped];
-
-            if (allLayers[i]->lfoA.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOA)) {
-                layerCom[i].sendRetrigger(allLayers[i]->lfoA.id, 8); // all voices = 8
-
-                if (clock.counter % allLayers[i]->lfoA.dFreqSnap.valueMapped) {
-                    float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOA / 60.;
-                    allLayers[i]->lfoA.aFreq.setValueWithoutMapping(freq);
+                // ARP Steps
+                if (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsA.value]) ||
+                    (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsB.value]) && arps[i]->arpPolyrythm.value)) {
+                    arps[i]->nextStep();
                 }
-            }
 
-            uint32_t clockTicksPerStepLFOB = clockTicksPerStep[allLayers[i]->lfoB.dClockStep.valueMapped];
-            if (allLayers[i]->lfoB.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOB)) {
-                layerCom[i].sendRetrigger(allLayers[i]->lfoB.id, 8); // all voices = 8
+                // LFO Sync
 
-                if (clock.counter % allLayers[i]->lfoB.dFreqSnap.valueMapped) {
-                    float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOB;
-                    allLayers[i]->lfoB.aFreq.setValueWithoutMapping(freq);
+                uint32_t clockTicksPerStepLFOA = clockTicksPerStep[allLayers[i]->lfoA.dClockStep.valueMapped];
+
+                if (allLayers[i]->lfoA.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOA)) {
+                    layerCom[i].sendRetrigger(allLayers[i]->lfoA.id, 8); // all voices = 8
+
+                    if (clock.counter % allLayers[i]->lfoA.dFreqSnap.valueMapped) {
+                        float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOA / 60.;
+                        allLayers[i]->lfoA.aFreq.setValueWithoutMapping(freq);
+                    }
                 }
+
+                uint32_t clockTicksPerStepLFOB = clockTicksPerStep[allLayers[i]->lfoB.dClockStep.valueMapped];
+                if (allLayers[i]->lfoB.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOB)) {
+                    layerCom[i].sendRetrigger(allLayers[i]->lfoB.id, 8); // all voices = 8
+
+                    if (clock.counter % allLayers[i]->lfoB.dFreqSnap.valueMapped) {
+                        float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOB;
+                        allLayers[i]->lfoB.aFreq.setValueWithoutMapping(freq);
+                    }
+                }
+                // ADSR Sync
+                // if (allLayers[i]->adsrA.dClockSync.value && !(clock.counter % allLayers[i]->adsrA.dClock.value)) {
+                //     layerCom[i].sendRetrigger(allLayers[i]->adsrA.id, 8); // all voices = 8
+                // }
+                // if (allLayers[i]->adsrB.dClockSync.value && !(clock.counter % allLayers[i]->adsrB.dClock.value)) {
+                //     layerCom[i].sendRetrigger(allLayers[i]->adsrB.id, 8); // all voices = 8
+                // }
             }
-            // ADSR Sync
-            // if (allLayers[i]->adsrA.dClockSync.value && !(clock.counter % allLayers[i]->adsrA.dClock.value)) {
-            //     layerCom[i].sendRetrigger(allLayers[i]->adsrA.id, 8); // all voices = 8
-            // }
-            // if (allLayers[i]->adsrB.dClockSync.value && !(clock.counter % allLayers[i]->adsrB.dClock.value)) {
-            //     layerCom[i].sendRetrigger(allLayers[i]->adsrB.id, 8); // all voices = 8
-            // }
         }
         clock.ticked = 0;
     }

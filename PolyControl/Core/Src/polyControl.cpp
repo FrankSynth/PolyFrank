@@ -46,12 +46,22 @@ void PolyControlInit() {
     if (FlagHandler::interChipA_State[0] == READY && FlagHandler::interChipB_State[0] == READY) { // Layer A alive
         layerA.LayerState.value = 1;
     }
+    else {
+        globalSettings.midiLayerAChannel.disable = 1;
+    }
     if (FlagHandler::interChipA_State[1] == READY && FlagHandler::interChipB_State[1] == READY) { // Layer B alive
         layerB.LayerState.value = 1;
+    }
+    else {
+        globalSettings.midiLayerBChannel.disable = 1;
     }
 
     if (layerA.LayerState.value && layerB.LayerState.value) {
         globalSettings.multiLayer.value = 1;
+    }
+    else {                                                    // disable multilayerSettings
+        liveData.livemodeKeysplit.disable = 1;                // disable Key splitting
+        liveData.voiceHandler.livemodeMergeLayer.disable = 1; // disable merge Layers
     }
 
     if (layerA.LayerState.value == 0 && layerB.LayerState.value == 0) {
