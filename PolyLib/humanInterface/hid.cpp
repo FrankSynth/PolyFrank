@@ -2,6 +2,9 @@
 
 #include "hid.hpp"
 
+#define PANELACTIVE 0
+
+// ControlPanel
 // PCA9555 -> Bus expander for the Encoder
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 
@@ -9,51 +12,51 @@ PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9)};
 tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11)};
 
-// create Panel Touch Objects
-AT42QT2120 touchPanel[NUMBER_PANELTOUCHICS] = {AT42QT2120(&hi2c4, 0)};
-
 // create Controller Touch Objects
-AT42QT2120 touchControl = AT42QT2120(&hi2c4, 0); // TODO anderen Constructor nehmne
+AT42QT2120 touchControl = AT42QT2120(&hi2c4, 0, 0);
 
-// TODO ledDriver zu Display
-IS31FL3216 ledDriverA[] = {IS31FL3216(&hi2c4, 0, 7), IS31FL3216(&hi2c4, 0, 6)};
-IS31FL3216 ledDriverB[] = {IS31FL3216(&hi2c3, 0, 7), IS31FL3216(&hi2c3, 0, 6)};
+// LayerPanel
+// create Panel Touch Objects
+AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {
+    {AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 2, 0), AT42QT2120(&hi2c4, 3, 0)},
+    {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1), AT42QT2120(&hi2c3, 2, 1), AT42QT2120(&hi2c3, 4, 1)}};
 
-// IS31FL3216 ledDriverB = IS31FL3216(&hi2c4, 0, 6);
+IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 4, 0), IS31FL3216(&hi2c4, 0, 5, 0),
+                                              IS31FL3216(&hi2c4, 0, 6, 0), IS31FL3216(&hi2c4, 0, 7, 0)},
+                                             {IS31FL3216(&hi2c3, 0, 4, 1), IS31FL3216(&hi2c3, 0, 5, 1),
+                                              IS31FL3216(&hi2c3, 0, 6, 1), IS31FL3216(&hi2c3, 0, 7, 1)}};
 
-PanelTouch touchEvaluteLayer0(0);
-PanelTouch touchEvaluteLayer1(1);
+PanelTouch touchEvaluteLayer[2] = {PanelTouch(0), PanelTouch(1)};
 
 // Potentiomer ADC
+MAX11128 adc[] = {MAX11128(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin),
+                  MAX11128(&hspi2, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin)};
 
-MAX11128 adcA(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-
-//
-TS3A5017D multiplexerA = TS3A5017D(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
-                                   Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
+// 2 multiplexer connectec at the same control lines
+TS3A5017D multiplexer(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
+                      Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
 
 // array for functionPoint for Poti mapping
-std::function<void(uint16_t amount)> potiFunctionPointerA0[16];
-std::function<void(uint16_t amount)> potiFunctionPointerA1[16];
-std::function<void(uint16_t amount)> potiFunctionPointerA2[16];
-std::function<void(uint16_t amount)> potiFunctionPointerA3[16];
+std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16]; // number layer, number multplex, number channels
 
 void initHID() {
 
-    //
-
     // register flagHandler functions
+
+    // Control
     FlagHandler::Control_Touch_ISR = std::bind(processControlTouch);
-    FlagHandler::Panel_0_Touch_ISR = std::bind(processPanelTouch, 0);
-    FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
     FlagHandler::Control_Encoder_ISR = std::bind(processEncoder);
 
-    FlagHandler::Panel_0_EOC_ISR = std::bind(processPanelPotis, 0);
-    FlagHandler::Panel_1_EOC_ISR = std::bind(processPanelPotis, 1);
+    // Panels
+    FlagHandler::Panel_EOC_ISR = std::bind(processPanelPotis);
+    FlagHandler::Panel_0_Touch_ISR = std::bind(processPanelTouch, 0);
+    FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
 
-    ioExpander.init();
+    initPotiMapping();
 
+    // ControlBoard controls
     // register encoder
+    ioExpander.init();
     encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
                                        std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
@@ -74,28 +77,34 @@ void initHID() {
 
     switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
-    HAL_Delay(50);
-
-    // init Panel touch ICS
-    for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
-        touchPanel[x].init();
-    }
     // init Control touch IC
-    touchControl.init();
 
-    for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-        // TODO sobald was am Bus haengt aktivieren
-
-        // ledDriverA[x].init();
-        // ledDriverB[x].init();
+    // touchControl.init();  //TODO temp einmal switchen bitte wenn Control Panel dran
+    if (allLayers[0]->LayerState.value == 1) {
+        touchControl.init();
     }
+    // HAL_Delay(50);
 
-    // init ADC, Multiplexer
+    // Panel Controls:
 
-    initPotiMapping();
+    // init Panels
+    for (size_t i = 0; i < 2; i++) {
+        if (allLayers[i]->LayerState.value == 1) {
+            for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
+                if (PANELACTIVE) {
+                    touchPanel[i][x].init(); // init Touch ICS
+                }
+            }
+            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+                if (PANELACTIVE) {
 
-    adcA.init();
-    multiplexerA.enableChannels();
+                    ledDriver[i][x].init(); // init LED driver}
+                }
+            }
+            adc[i].init(); // ini analog-digital converter
+        }
+    }
+    multiplexer.enableChannels(); // multiplexer for both layer
 }
 
 void processEncoder() {
@@ -109,76 +118,71 @@ void processEncoder() {
     }
 }
 
-void processPanelTouch(uint8_t layerID) { // TODO split event with layerID
-
-    // println("Process Panel Touch");
-
+void processPanelTouch(uint8_t layerID) {
     for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
-
-        uint16_t touchState = touchPanel[x].readTouchStatus();
-        // println("-->TouchState: ", touchState);
+        uint16_t touchState = touchPanel[layerID][x].readTouchStatus();
 
         if (layerID == 0) {
 
-            // println("---> layer ID 0");
-
-            touchEvaluteLayer0.event(touchState, x);
-            if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port, Panel_1_Change_Pin)) { // interrupt cleared?
+            touchEvaluteLayer[0].event(touchState, x);
+            if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port,
+                                 Panel_1_Change_Pin)) { // interrupt cleared?
                 return;
             }
         }
-
         else if (layerID == 1) {
 
-            touchEvaluteLayer1.event(touchState, x);
-            if (HAL_GPIO_ReadPin(Panel_2_Change_GPIO_Port, Panel_2_Change_Pin)) { // interrupt cleared?
+            touchEvaluteLayer[1].event(touchState, x);
+            if (HAL_GPIO_ReadPin(Panel_2_Change_GPIO_Port,
+                                 Panel_2_Change_Pin)) { // interrupt cleared?
                 return;
             }
         }
     }
 }
 
-void processPanelPotis(uint8_t layerID) { // TODO split event with layerID
+void processPanelPotis() {
 
-    // threshold for jitter reduction
-    static uint16_t treshold = 3;
+    static uint16_t sampleDataStates[2][4][16]; // number layer, number multiplex, number channels
+
+    static uint16_t treshold = 3; // threshold for jitter reduction
 
     // store for current sample data for the 4x16 Multiplexed ADC Values
-    static int16_t sampleDataStateA0[16];
-    static int16_t sampleDataStateA1[16];
-    static int16_t sampleDataStateA2[16];
-    static int16_t sampleDataStateA3[16];
 
-    static int16_t *sampleDataStates[] = {sampleDataStateA0, sampleDataStateA1, sampleDataStateA2, sampleDataStateA3};
+    uint16_t multiplex = multiplexer.currentChannel;
 
-    uint16_t activeChannel = multiplexerA.currentChannel;
-    int16_t *activeSampleDataState = sampleDataStates[activeChannel];
+    multiplexer.nextChannel();
 
-    multiplexerA.nextChannel();
-    adcA.fetchNewData();
+    for (size_t id = 0; id < 2; id++) {                           // for every layer
+        if (allLayers[id]->LayerState.value == 1) {               // check layer active state
+            adc[id].fetchNewData();                               // fetch ADC data
+            for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
+                                                                  // channel changed -> get new Value
+                if (abs((sampleDataStates[id][multiplex][channel] -
+                         (int16_t)((adc[id].adcData[channel] >> 1) & 0xFFF))) >= treshold) {
+                    sampleDataStates[id][multiplex][channel] = (int16_t)(adc[id].adcData[channel] >> 1) & 0xFFF;
 
-    // TODO umbau auf SIMD instuction
-    for (uint16_t i = 0; i < 1; i++) { // TODO increase to 16
-        if (abs((activeSampleDataState[i] - (int16_t)((adcA.adcData[i] >> 1) & 0xFFF))) >= treshold) {
-            activeSampleDataState[i] = (int16_t)(adcA.adcData[i] >> 1) & 0xFFF;
-
-            mapPanelPotis(activeChannel, i, activeSampleDataState[i]);
+                    if (potiFunctionPointer[id][multiplex][channel] != nullptr) { // call function
+                        potiFunctionPointer[id][multiplex][channel](sampleDataStates[id][multiplex][channel]);
+                    }
+                }
+            }
         }
     }
 }
 
 void processControlTouch() {
-
-    // println("Process Control Touch");
-
     eventControlTouch(touchControl.readTouchStatus());
 
-    if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port, Panel_1_Change_Pin)) { // interrupt cleared?
-        return;
-    }
+    // if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port, Panel_1_Change_Pin)) { // interrupt cleared?
+    //       PolyError_Handler("ERROR | COM | HID -> ControlTouch -> interrupt not cleared");
+    // }
 }
 
 void eventControlTouch(uint16_t touchState) {
+
+    touchEvaluteLayer[0].event(touchState, TOUCH_IO_PORT_A); // TODO sobald panel da weg damit
+
     static uint16_t oldTouchState;
 
     if (!touchState) { // all touch buttons released
@@ -226,113 +230,78 @@ void eventControlTouch(uint16_t touchState) {
     oldTouchState = touchState;
 }
 
-void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value) { // TODO interpolation
-
-    // println("value : ", value);
-
-    if (activeChannel == 0) {
-        if (potiFunctionPointerA0[ID] != nullptr) {
-            potiFunctionPointerA0[ID](value);
-        }
-        return;
-    }
-
-    if (activeChannel == 1) {
-        if (potiFunctionPointerA1[ID] != nullptr) {
-            potiFunctionPointerA1[ID](value);
-        }
-        return;
-    }
-
-    if (activeChannel == 2) {
-        if (potiFunctionPointerA2[ID] != nullptr) {
-            potiFunctionPointerA2[ID](value);
-        }
-        return;
-    }
-
-    if (activeChannel == 3) {
-        if (potiFunctionPointerA3[ID] != nullptr) {
-            potiFunctionPointerA3[ID](value);
-        }
-        return;
-    }
-}
-
 void initPotiMapping() { // TODO fill mapping
 
-    // potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aBitcrusher),
-    // std::placeholders::_1);
-    // potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aDetune),
-    // std::placeholders::_1); potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aFM),
-    // std::placeholders::_1);
-    // potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->oscA.aLevel), std::placeholders::_1);
-
-    potiFunctionPointerA0[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aCutoff), std::placeholders::_1);
-    potiFunctionPointerA1[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aLevel), std::placeholders::_1);
-    potiFunctionPointerA2[0] = std::bind(&Analog::setValue, &(allLayers[0]->steiner.aResonance), std::placeholders::_1);
-    potiFunctionPointerA3[0] = std::bind(&Analog::setValue, &(allLayers[0]->globalModule.aVCA), std::placeholders::_1);
+    for (size_t i = 0; i < 2; i++) { // register potis for both layer
+        potiFunctionPointer[i][0][0] =
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+        potiFunctionPointer[i][1][0] =
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
+        potiFunctionPointer[i][2][0] =
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+        potiFunctionPointer[i][3][0] =
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
+    }
 }
 void updatePatchLED() {
 
-    static location focusCompare = {0, 0, 0, FOCUSLAYER};
+    if (PANELACTIVE) {
 
-    // nothing changed?
-    if (currentFocus.id == focusCompare.id && currentFocus.layer == focusCompare.layer && currentFocus.modul == focusCompare.modul &&
-        currentFocus.type == focusCompare.type) {
-        return;
-    }
+        static location focusCompare = {0, 0, 0, FOCUSLAYER};
 
-    if (currentFocus.type == FOCUSOUTPUT) {
-        Output *output = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
-
-        uint16_t sourceID = output->idGlobal;
-        patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
-
-        for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-            uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-            patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+        // nothing changed?
+        if (currentFocus.id == focusCompare.id && currentFocus.layer == focusCompare.layer &&
+            currentFocus.modul == focusCompare.modul && currentFocus.type == focusCompare.type) {
+            return;
         }
 
-        for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
-            uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-            patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+        if (currentFocus.type == FOCUSOUTPUT) {
+            Output *output = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+
+            uint16_t sourceID = output->idGlobal;
+            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
+
+            for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
+                uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+                patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+            }
+
+            for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
+                uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+                patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+            }
         }
-    }
-    else if (currentFocus.type == FOCUSINPUT) {
+        else if (currentFocus.type == FOCUSINPUT) {
 
-        Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-        uint16_t inputID = input->idGlobal;
-        patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
+            Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+            uint16_t inputID = input->idGlobal;
+            patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
 
-        for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-            uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
-            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+            for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
+                uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
+                patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+            }
         }
-    }
 
-    // mapping Switch settings to LEDs
-    switchLEDMapping();
-    // update LEDDriver Outputs
-    for (int i = 0; i < NUMBER_LEDDRIVER; i++) {
-        ledDriverA[i].updateLEDs();
-        ledDriverB[i].updateLEDs();
-    }
+        // mapping Switch settings to LEDs
+        switchLEDMapping();
 
-    focusCompare = currentFocus;
+        // update LEDDriver Outputs
+        for (int i = 0; i < 2; i++) {                  // for both Layer
+            if (allLayers[i]->LayerState.value == 1) { // check layer State
+                for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+                    ledDriver[i][x].updateLEDs();
+                    ledDriver[i][x].updateLEDs();
+                }
+            }
+        }
+        focusCompare = currentFocus;
+    }
 }
 
-void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm) { // type 0 -> Output | type 1 -> Input
+void patchLEDMapping(FOCUSMODE type, uint32_t id,
+                     uint8_t pwm) { // type 0 -> Output | type 1 -> Input
     // TODO mapping fertig machen sobald platine klar
-
-    static IS31FL3216 *ledDriver;
-    // Zwischen den Layern wechseln
-    if (allLayers[currentFocus.layer] == 0) {
-        ledDriver = ledDriverA;
-    }
-    else {
-        ledDriver = ledDriverB;
-    }
 
     uint16_t mappedID = 0xFFFF;
     if (type == FOCUSOUTPUT) {
@@ -366,7 +335,7 @@ void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm) { // type 0 -> Ou
     }
 
     if (mappedID != 0xFFFF) {
-        ledDriver[mappedID % 16].pwmValue[(uint8_t)(mappedID - ((mappedID % 16) * 16))] = pwm;
+        ledDriver[currentFocus.layer][mappedID % 16].pwmValue[(uint8_t)(mappedID - ((mappedID % 16) * 16))] = pwm;
     }
 }
 

@@ -20,10 +20,6 @@ void VoiceHandler::playNote(Key &key) {
     else if (livemodeVoiceMode.value == 3) { // 8Voices
         numberVoices = 8;
     }
-    else if (livemodeVoiceMode.value == 4) { // AUTO
-        // TODO Auto number of voice select
-        numberVoices = 1;
-    }
 
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
@@ -47,7 +43,7 @@ void VoiceHandler::playNote(Key &key) {
 
         layerCom[v->layerID].sendNewNote(v->voiceID, v->note, v->velocity);
 
-        println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
+        // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
 
         playIDCounter++; // increase playID
     }
@@ -213,7 +209,12 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
 
     for (uint8_t i = 0; i < NUMBERVOICES; i++) {
         if (voices[i].status == FREE) {
-            if (voices[i].playID <= voicesA[oldestVoiceID].playID) {
+            if (oldestVoiceID != 0xFF) { // compare
+                if (voices[i].playID <= voices[oldestVoiceID].playID) {
+                    oldestVoiceID = voices[i].voiceID;
+                }
+            }
+            else { // first found
                 oldestVoiceID = voices[i].voiceID;
             }
         }
@@ -224,14 +225,20 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voices) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE
             if (voices[i].status != SELECT) {
-                if (voices[i].playID <= voicesA[oldestVoiceID].playID) {
+                if (oldestVoiceID != 0xFF) { // compare
+                    if (voices[i].playID <= voices[oldestVoiceID].playID) {
+                        oldestVoiceID = voices[i].voiceID;
+                    }
+                }
+                else { // first found
                     oldestVoiceID = voices[i].voiceID;
                 }
             }
         }
     }
     if (oldestVoiceID == 0xFF) {
-        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to much voices?");
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to many voices?");
+        return;
     }
 
     voices[oldestVoiceID].status = SELECT;
@@ -274,7 +281,8 @@ void VoiceHandler::searchNextVoiceAB() {
         }
     }
     if (nextVoice == nullptr) {
-        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to much voices?");
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to many voices?");
+        return;
     }
 
     nextVoice->status = SELECT;

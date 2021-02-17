@@ -31,20 +31,17 @@ const std::string &Setting::getValueAsString() {
 }
 
 void Analog::setValue(int32_t newValue) {
-    value = testInt(newValue, MIN_VALUE_12BIT, MAX_VALUE_12BIT);
+    value = testInt(newValue, minInputValue, maxInputValue);
 
     if (mapping == linMap) {
-        valueMapped =
-            fast_lerp_f32(min, max, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+        valueMapped = fast_lerp_f32(min, max, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
     }
     else if (mapping == logMap) {
-        valueMapped =
-            fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+        valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
         valueMapped = logMapping.mapValue(valueMapped) * (max - min) + min;
     }
     else if (mapping == antilogMap) {
-        valueMapped =
-            fast_lerp_f32(0, 1, (float)(value - MIN_VALUE_12BIT) / (float)(MAX_VALUE_12BIT - MIN_VALUE_12BIT));
+        valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
         valueMapped = antiLogMapping.mapValue(valueMapped) * (max - min) + min;
     }
 
@@ -60,21 +57,19 @@ int32_t Analog::reverseMapping(float newValue) {
 
     newValue = testFloat(newValue, min, max);
 
-    int32_t reverseMapped = MIN_VALUE_12BIT;
+    int32_t reverseMapped = minInputValue;
 
     if (mapping == linMap) {
         newValue = (newValue - min) / (max - min);
-        reverseMapped = (int32_t)(newValue * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+        reverseMapped = (int32_t)(newValue * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == antilogMap) {
         newValue = (newValue - min) / (max - min);
-        reverseMapped =
-            (int32_t)(logMapping.mapValue(newValue) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+        reverseMapped = (int32_t)(logMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == logMap) {
         newValue = (newValue - min) / (max - min);
-        reverseMapped =
-            (int32_t)(antiLogMapping.mapValue(newValue) * (MAX_VALUE_12BIT - MIN_VALUE_12BIT) + MIN_VALUE_12BIT);
+        reverseMapped = (int32_t)(antiLogMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
     return reverseMapped;
 }
@@ -148,7 +143,6 @@ void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
 
 void Input::collectCurrentSample() {
 
-    // TODO Log input amount
     currentSample[0] = 0;
     currentSample[1] = 0;
     currentSample[2] = 0;

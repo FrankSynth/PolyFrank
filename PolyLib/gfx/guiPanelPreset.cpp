@@ -40,8 +40,13 @@ void GUIPanelPreset::registerPanelSettings() {
         {std::bind(&Scroller::scroll, &(this->scrollSecondName), -1), ""}, {nullptr, "SCROLL"});
 
     // register Panel Seetings Left
-    actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
+    if (globalSettings.multiLayer.value == 1) {
 
+        actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
+    }
+    else {
+        actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+    }
     // register Panel Seetings Rigth
     actionHandler.registerActionRight(
         {std::bind(&Layer::loadLayerFromPreset, (allLayers[currentFocus.layer]), scrollPreset.position), "LOAD"},

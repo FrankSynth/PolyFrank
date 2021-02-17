@@ -269,8 +269,9 @@ void Layer::loadLayerFromPreset(uint32_t presetID) {
     if (presets[presetID].usageState != PRESETBLOCKUSED) {
         return;
     }
-    readPreset(presetID);
-    int32_t *buffer = (int32_t *)blockBuffer;
+
+    int32_t *buffer = (int32_t *)readPreset(presetID);
+
     uint32_t index = 0;
     for (BaseModule *m : modules) { //  all modules
 

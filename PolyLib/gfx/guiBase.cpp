@@ -20,7 +20,7 @@ uint32_t cGreyDark = 0x60202020;
 uint32_t cGrey = 0x10808080;
 
 uint32_t cWhite = 0xFFFFFFFF;
-uint32_t cWhiteMedium = 0x20FFFFFF;
+uint32_t cWhiteMedium = 0x40FFFFFF;
 uint32_t cWhiteBright = 0x80FFFFFF;
 uint32_t cWhiteLight = 0x10FFFFFF;
 uint32_t cHighlight = 0xF0db0000;

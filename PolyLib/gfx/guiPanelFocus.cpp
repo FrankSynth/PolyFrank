@@ -34,8 +34,14 @@ void GUIPanelFocus::registerPanelSettings() {
     }
 
     // register Panel Seetings Left
-    actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
-                                     {std::bind(nextLayer), "LAYER"});          // Layer Switch
+    if (globalSettings.multiLayer.value == 1) {
+        actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
+                                         {std::bind(nextLayer), "LAYER"});          // Layer Switch
+    }
+    else {
+        actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
+                                         {nullptr, ""});
+    }
 
     // register Panel Seetings Rigth
     actionHandler.registerActionRight({nullptr, ""}, {std::bind(Todo), "RESET"}, {std::bind(Todo), "PATCH"});

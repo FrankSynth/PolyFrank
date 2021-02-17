@@ -128,5 +128,7 @@ class Layer {
     std::list<PatchElementInOut> patchesInOut;
     std::list<PatchElementOutOut> patchesOutOut;
 
+    Setting LayerState = Setting("LayerState", 0, 1, 10, false, binary);
+
   private:
 };

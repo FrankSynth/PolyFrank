@@ -115,14 +115,18 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /*Configure GPIO pin : PtPin */
-    GPIO_InitStruct.Pin = Layer_2_READY_1_Pin; // FIXME Layer 2 ready pins as standard inputs, not IT
+    GPIO_InitStruct.Pin = Layer_2_READY_1_Pin; //  // TODO TEMP PULLDOWN
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(Layer_2_READY_1_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PCPin PCPin PCPin */
-    GPIO_InitStruct.Pin =
-        Layer_2_READY_2_Pin | Panel_2_Change_Pin | Sync_IN_Pin; // FIXME Layer 2 ready pins as standard inputs, not IT
+    GPIO_InitStruct.Pin = Layer_2_READY_2_Pin; // TODO TEMP PULLDOWN
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = Panel_2_Change_Pin | Sync_IN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -174,9 +178,15 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_Init(Control_Touch_Change_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PIPin PIPin */
-    GPIO_InitStruct.Pin = Layer_1_READY_1_Pin | Layer_1_READY_2_Pin; // FIXME Layer 1 ready pins as standard inputs
+    GPIO_InitStruct.Pin = Layer_1_READY_1_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : PIPin PIPin */
+    GPIO_InitStruct.Pin = Layer_1_READY_2_Pin; // TODO TEMP PULLDOWN
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
     /* EXTI interrupt init*/

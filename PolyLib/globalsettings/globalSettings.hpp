@@ -16,7 +16,7 @@ class GlobalSettings {
         // push all settings here
 
         __globSettingsSystem.category = "SYSTEM";
-        __globSettingsSystem.settings.push_back(&amountLayers);
+        __globSettingsSystem.settings.push_back(&multiLayer);
 
         __globSettingsMIDI.category = "MIDI";
         __globSettingsMIDI.settings.push_back(&midiSource);
@@ -102,7 +102,7 @@ class GlobalSettings {
     categoryStruct __globSettingsDisplay;
 
     // all Settings, don't forget to push to __globSettings vector of this class
-    Setting amountLayers = Setting("LAYER", 0, 0, 1, false, binary, &amountLayerNameList);
+    Setting multiLayer = Setting("LAYER", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Setting midiSource = Setting("MIDI", 0, 0, 1, false, binary, &midiTypeNameList);
     Setting midiSend = Setting("SEND", 0, 0, 1, false, binary, &offOnNameList);
@@ -115,7 +115,7 @@ class GlobalSettings {
     Error error;
 
   private:
-    const std::vector<std::string> amountLayerNameList = {"A", "A+B"};
+    const std::vector<std::string> amountLayerNameList = {"OFF", "ON"};
     const std::vector<std::string> midiTypeNameList = {"USB", "DIN"};
     const std::vector<std::string> offOnNameList = {"OFF", "ON"};
     const std::vector<std::string> colorThemeNameList = {"DEFAULT", "NICE"};

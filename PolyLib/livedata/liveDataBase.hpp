@@ -8,7 +8,7 @@
 #include <vector>
 
 #define NUMBERLAYER 2
-#define NUMBERVOICES 8
+#define NUMBERVOICES 1
 #define NUMBERCLOCKSTATES 23
 #define NOTERANGE 88 // Supported Midi Note Range
 

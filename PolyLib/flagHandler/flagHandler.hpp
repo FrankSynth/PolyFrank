@@ -3,6 +3,8 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 
+typedef enum { NOTCONNECT, WAITFORRESPONSE, DATARECEIVED, READY } interChipState;
+
 namespace FlagHandler {
 
 #ifdef POLYCONTROL
@@ -34,13 +36,11 @@ extern bool Panel_1_Touch_Interrupt;
 extern std::function<void()> Panel_1_Touch_ISR;
 
 extern bool Panel_0_EOC_Interrupt;
-extern std::function<void()> Panel_0_EOC_ISR;
-
 extern bool Panel_1_EOC_Interrupt;
-extern std::function<void()> Panel_1_EOC_ISR;
+extern std::function<void()> Panel_EOC_ISR;
 
-extern uint8_t interChipA_State[];
-extern uint8_t interChipB_State[];
+extern interChipState interChipA_State[];
+extern interChipState interChipB_State[];
 
 extern elapsedMicros interChipA_StateTimeout[];
 extern elapsedMicros interChipB_StateTimeout[];

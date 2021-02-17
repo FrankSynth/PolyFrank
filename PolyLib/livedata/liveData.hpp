@@ -16,7 +16,8 @@ class LiveData {
     }
     ~LiveData() {}
 
-    void controlChange(uint8_t channel, uint8_t cc, uint8_t value);
+    void controlChange(uint8_t channel, uint8_t cc, int16_t value);
+    void distributeCC(uint8_t cc, int16_t value, uint8_t layer);
 
     // functions
     void keyPressed(uint8_t channel, uint8_t note, uint8_t velocity);
@@ -24,7 +25,6 @@ class LiveData {
 
     void clockTick();
     void clockHandling();
-
 
     void serviceRoutine();
     VoiceHandler voiceHandler;

@@ -43,7 +43,7 @@ class Footer_PanelBox {
 
   private:
     const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift24_FontInfo;
-    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; // TODO mittlere schriftgröße noch exporten
+    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; 
 
     actionHandle *main;
     actionHandle *secondary;
