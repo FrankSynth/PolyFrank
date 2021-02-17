@@ -4,8 +4,8 @@
 
 #if DEBUG
 
-#ifdef POLYCONTROL
 #include "datacore/dataHelperFunctions.hpp"
+#ifdef POLYCONTROL
 #include "flagHandler/flagHandler.hpp"
 #include "usbd_cdc_if.h"
 
@@ -53,12 +53,12 @@ void printViaSTLink(const std::string &arg);
 
 void printViaSTLink(std::string &arg);
 
-template <typename T, typename... A> void printViaSTLink(T &&arg, A &&... args) {
+template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
     printViaSTLink(arg);
     printViaSTLink(args...);
 }
 
-template <typename... T> void printlnViaSTLink(T &&... args) {
+template <typename... T> void printlnViaSTLink(T &&...args) {
     printViaSTLink(args...);
     printViaSTLink("\r\n");
 }
