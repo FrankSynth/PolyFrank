@@ -2,7 +2,7 @@
 
 #include "renderGlobal.hpp"
 
-LogCurve panningAntiLog(16, 0.9);
+LogCurve panningAntiLog(32, 0.94);
 
 inline float accumulatePan(GlobalModule globalModule, uint16_t voice) {
     return testFloat(globalModule.iPan.currentSample[voice] + globalModule.aPan.valueMapped, globalModule.aPan.min,

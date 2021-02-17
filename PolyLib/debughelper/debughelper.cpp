@@ -1,9 +1,9 @@
 #include "debughelper.hpp"
 
 #if DEBUG
-
+#ifdef POLYCONTROL
 elapsedMicros USBHSTIMEOUT;
-
+#endif
 void printViaSTLink(const char *arg) {
     std::string str;
     str.append(arg);

@@ -241,6 +241,7 @@ class Sub : public BaseModule {
         knobs.push_back(&aSamplecrusher);
 
         switches.push_back(&dVcfDestSwitch);
+        switches.push_back(&dOctaveSwitch);
 
         renderBuffer.push_back(&shape);
         renderBuffer.push_back(&levelSteiner);
@@ -256,7 +257,7 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aShape = Analog("SHAPE", 0.001, 1, 0.001, true, linMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0.01, 1, 0.01, true, linMap, &iShape);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -318,7 +319,6 @@ class Noise : public BaseModule {
 };
 
 class Steiner : public BaseModule {
-    // TODO Steiner ADSR knob
 
   public:
     Steiner(const char *name) : BaseModule(name) { // call subclass
@@ -328,6 +328,7 @@ class Steiner : public BaseModule {
 
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
+        knobs.push_back(&aADSR);
         knobs.push_back(&aLevel);
         knobs.push_back(&aParSer);
 
@@ -338,14 +339,16 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&cutoff);
         renderBuffer.push_back(&toLadder);
     }
+    // TODO Steiner ADSR knob
     Input iCutoff = Input("CUTOFF");
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
+    Analog aADSR = Analog("ADSR", 0, 1, 1, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
 
@@ -358,7 +361,6 @@ class Steiner : public BaseModule {
 };
 
 class Ladder : public BaseModule {
-    // TODO Ladder ADSR knob
   public:
     Ladder(const char *name) : BaseModule(name) { // call subclass
         inputs.push_back(&iCutoff);
@@ -367,6 +369,7 @@ class Ladder : public BaseModule {
 
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
+        knobs.push_back(&aADSR);
         knobs.push_back(&aLevel);
 
         switches.push_back(&dSlope);
@@ -375,14 +378,17 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&level);
         renderBuffer.push_back(&cutoff);
     }
+    // TODO ADSR knob -1:1, render
+    // TODO ADSR knob -1:1, new UI stuff for knobs with that range?
 
     Input iCutoff = Input("CUTOFF");
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
 
-    Analog aCutoff = Analog("CUTOFF", 0, 20000, 20000, true, linMap, &iCutoff);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
+    Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
 
@@ -418,9 +424,11 @@ class LFO : public BaseModule {
 
         inputs.push_back(&iFreq);
         inputs.push_back(&iShape);
+        inputs.push_back(&iAmount);
 
         knobs.push_back(&aFreq);
         knobs.push_back(&aShape);
+        knobs.push_back(&aAmount);
 
         // switches.push_back(&dFreq);
         switches.push_back(&dFreqSnap);
@@ -429,13 +437,18 @@ class LFO : public BaseModule {
         switches.push_back(&dClockStep);
         switches.push_back(&dAlignLFOs);
     }
+    // TODO Amount knob render
     Output out = Output("OUT");
 
     Input iFreq = Input("FM");
     Input iShape = Input("SHAPE");
+    Input iAmount = Input("AMOUNT");
+
+    // TODO ADSR Freq Modulation? lin/log afterwards?
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
+    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
@@ -517,7 +530,7 @@ class ADSR : public BaseModule {
     Analog aDecay = Analog("DECAY", 0.001, 10, 0.5, true, logMap, &iDecay);
     Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap, &iSustain);
     Analog aRelease = Analog("RELEASE", 0.001, 10, 0.5, true, logMap, &iRelease);
-    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, logMap, &iAmount);
+    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
@@ -585,7 +598,7 @@ class ADSR : public BaseModule {
 };
 
 class GlobalModule : public BaseModule {
-    // TODO VCA ADSR knob
+    // TODO VCA ADSR knob render
 
   public:
     GlobalModule(const char *name) : BaseModule(name) { // call subclass
@@ -594,6 +607,7 @@ class GlobalModule : public BaseModule {
         inputs.push_back(&iPan);
 
         knobs.push_back(&aVCA);
+        knobs.push_back(&aADSR);
         knobs.push_back(&aGlide);
         knobs.push_back(&aPan);
         knobs.push_back(&aSpread);
@@ -607,6 +621,7 @@ class GlobalModule : public BaseModule {
     Input iPan = Input("PAN");
 
     Analog aVCA = Analog("VCA", 0, 1, 1, true, linMap, &iVCA);
+    Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
     Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);

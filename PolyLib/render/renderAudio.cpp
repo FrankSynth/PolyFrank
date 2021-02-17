@@ -89,7 +89,7 @@ void initAudioRendering() {
     switchOscBWavetableB(wavetable_wurli02);
 }
 
-static inline void bitcrush(float *dst, const float *bitcrush) {
+inline void bitcrush(float *dst, const float *bitcrush) {
 
     uint32_t moveAmount[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -109,7 +109,7 @@ static inline void bitcrush(float *dst, const float *bitcrush) {
         dst[i] = dst[i] / mult[i];
 }
 
-static inline void getNoiseSample(float *sample) {
+inline void getNoiseSample(float *sample) {
     // uint32_t bitcrusher[VOICESPERCHIP];
     uint32_t randomNumber[VOICESPERCHIP];
     // uint32_t bitcrushBits[VOICESPERCHIP];
@@ -141,7 +141,7 @@ static inline void getNoiseSample(float *sample) {
         }
 }
 
-static inline void getSubSample(float *sample) {
+inline void getSubSample(float *sample) {
 
     float oscAphase[VOICESPERCHIP];
 
@@ -149,14 +149,11 @@ static inline void getSubSample(float *sample) {
     const float *samplecrusher = layerA.sub.samplecrusher.currentSample;
     const float *shape = layerA.sub.shape.currentSample;
 
-    static const uint32_t &octave = layerA.sub.dOctaveSwitch.valueMapped;
+    const uint32_t &octave = layerA.sub.dOctaveSwitch.valueMapped;
 
     static float *phase = layerA.sub.phase;
     static float *oscApreviousPhase = layerA.sub.oscApreviousPhase;
-    static float newSample[VOICESPERCHIP];
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        oscAphase[i] = layerA.oscA.phaseWavetableA[i];
+    float newSample[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (phase[i] >= 1.0f)
@@ -165,13 +162,17 @@ static inline void getSubSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
             newSample[i] = phase[i] * (4.0f / shape[i]) - 1.0f;
-            std::min(newSample[i], 1.0f);
+            if (newSample[i] > 1.0f)
+                newSample[i] = 1.0f;
         }
         else {
-            newSample[i] = ((phase[i] - 0.5f) * (-4.0f / shape[i]) + 1.0f);
-            std::max(newSample[i], -1.0f);
+            newSample[i] = (phase[i] - 0.5f) * (-4.0f / shape[i]) + 1.0f;
+            if (newSample[i] < -1.0f)
+                newSample[i] = -1.0f;
         }
     }
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     newSample[i] = testFloat(newSample[i], -1.0f, 1.0f);
 
     bitcrush(newSample, bitcrusher);
 
@@ -186,6 +187,9 @@ static inline void getSubSample(float *sample) {
         }
 
     float phaseLength = octave == 0 ? 0.5f : 0.25f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        oscAphase[i] = layerA.oscA.phaseWavetableA[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (oscAphase[i] >= 1.0f)
@@ -206,7 +210,7 @@ static inline void getSubSample(float *sample) {
         phase[i] += phaseDifferenceOscA[i] * phaseLength;
 }
 
-static inline void getOscASample(float *sample) {
+inline void getOscASample(float *sample) {
     static float *phaseWavetableA = layerA.oscA.phaseWavetableA;
     static float *phaseWavetableB = layerA.oscA.phaseWavetableB;
     const float *morph = layerA.oscA.morph.currentSample;
@@ -284,7 +288,7 @@ static inline void getOscASample(float *sample) {
         }
 }
 
-static inline void getOscBSample(float *sample) {
+inline void getOscBSample(float *sample) {
 
     // cache step of osc A, if smaller, new phase has begun.
     static const float *oscAphaseWavetableA = layerA.oscA.phaseWavetableA;
@@ -450,12 +454,6 @@ void renderAudio(int32_t *renderDest) {
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             maxVolLadder[i] += oscBLevelLadder[i];
 
-        // static std::valarray<bool> checkDampSteiner[VOICESPERCHIP];
-        // static std::valarray<bool> checkDampLadder[VOICESPERCHIP];
-
-        // checkDampSteiner = maxVolSteiner > MAXPOSSIBLEVOLUME;
-        // checkDampLadder = maxVolLadder > MAXPOSSIBLEVOLUME;
-
         for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
             if (maxVolSteiner[i] > MAXPOSSIBLEVOLUME) {
                 dampSteiner[i] = MAXPOSSIBLEVOLUME / maxVolSteiner[i];
@@ -516,12 +514,12 @@ void renderAudio(int32_t *renderDest) {
             intSampleLadder[i] = sampleLadder[i];
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            renderDest[sample * AUDIOCHANNELS + i] = intSampleSteiner[i];
-        renderDest[sample * AUDIOCHANNELS + 3] = intSampleSteiner[0]; // FIXME temp
+            renderDest[sample * AUDIOCHANNELS + i * 2 + 1] = intSampleSteiner[i];
+        renderDest[sample * AUDIOCHANNELS + 7] = intSampleSteiner[0]; // FIXME temp voice test
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            renderDest[sample * AUDIOCHANNELS + i] = intSampleLadder[i];
-        renderDest[sample * AUDIOCHANNELS + 4] = intSampleLadder[0]; // FIXME temp
+            renderDest[sample * AUDIOCHANNELS + i * 2] = intSampleLadder[i];
+        // renderDest[sample * AUDIOCHANNELS + 0] = intSampleLadder[0]; // FIXME temp voice test
 
         if (sample == 0) {
             for (uint32_t i = 0; i < VOICESPERCHIP; i++)

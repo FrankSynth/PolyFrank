@@ -1,7 +1,7 @@
 #include "datacore.hpp"
 
-LogCurve logMapping(16, 0.1);
-LogCurve antiLogMapping(16, 0.9);
+LogCurve logMapping(32, 0.1);
+LogCurve antiLogMapping(32, 0.9);
 
 void Setting::setValue(int32_t newValue) {
     value = testInt(newValue, min, max);
@@ -131,6 +131,8 @@ void BasePatch::removePatchInOut(PatchElementInOut &patch) {
         }
     }
 }
+
+// TODO remove all out out patch stuff
 
 void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
     for (uint32_t i = 0; i < patchesOutOut.size(); i++) {
