@@ -127,6 +127,7 @@ class Scroller {
     uint16_t offset;
     uint16_t entrys;
     uint16_t maxEntrysVisible;
+    uint16_t relPosition;
 };
 
 void nextLayer();

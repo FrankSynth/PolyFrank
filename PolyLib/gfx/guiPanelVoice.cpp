@@ -36,29 +36,19 @@ void GUIPanelVoice::Draw() {
     // register Panel Seetings.settings.
 
     for (uint16_t v = 0; v < NUMBERVOICES; v++) {
-        drawVoiceStatus(&liveData.voiceHandler.voicesA[v], panelAbsX + relX + 1, panelAbsY, elementWidth - 2,
+        drawVoiceStatus(&liveData.voiceHandler.voices[layerID][v], panelAbsX + relX + 1, panelAbsY, elementWidth - 2,
                         elementHeigth);
         relX += panelWidth / NUMBERVOICES;
     }
-
-    relX = 0;
-
-    for (uint16_t v = 0; v < NUMBERVOICES; v++) {
-        drawVoiceStatus(&liveData.voiceHandler.voicesB[v], panelAbsX + relX + 1, panelAbsY + elementHeigth,
-                        elementWidth - 2, elementHeigth);
-
-        relX += panelWidth / NUMBERVOICES;
-    }
 }
-
-void GUIPanelVoice::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,
-                         uint8_t pathVisible) {
+void GUIPanelVoice::init(uint8_t layerID, uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
     elementWidth = width / NUMBERVOICES;
-    elementHeigth = height / NUMBERLAYER;
+    elementHeigth = height;
+    this->layerID = layerID;
 }
 
 #endif

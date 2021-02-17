@@ -25,7 +25,7 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsModule[scrollModule.position - scrollModule.offset].select = 1;
+    panelElementsModule[scrollModule.relPosition].select = 1;
 
     elementIndex = 0;
     dataIndex = scrollSource.offset;
@@ -47,7 +47,7 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsSource[scrollSource.position - scrollSource.offset].select = 1;
+    panelElementsSource[scrollSource.relPosition].select = 1;
 
     elementIndex = 0;
     dataIndex = scrollTarget.offset;
@@ -70,7 +70,7 @@ void GUIPanelPatch::registerElements() {
 
         elementIndex++;
     }
-    panelElementsTarget[scrollTarget.position - scrollTarget.offset].select = 1;
+    panelElementsTarget[scrollTarget.relPosition].select = 1;
 
     // register PatchMarker
     if (flipView) {
@@ -85,8 +85,7 @@ void GUIPanelPatch::registerElements() {
             }
 
             if (i < entrysModule) {
-                for (PatchElementInOut *p :
-                     panelElementsSource[scrollSource.position - scrollSource.offset].entry->getPatchesInOut()) {
+                for (PatchElementInOut *p : panelElementsSource[scrollSource.relPosition].entry->getPatchesInOut()) {
 
                     if (panelElementsModule[i].entry->id == p->targetIn->moduleId) {
                         panelElementsModule[i].patched = 1;
@@ -100,13 +99,11 @@ void GUIPanelPatch::registerElements() {
 
                 for (PatchElementInOut *p : panelElementsTarget[i].entry->getPatchesInOut()) {
 
-                    if (panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal ==
-                        p->sourceOut->idGlobal) {
+                    if (panelElementsSource[scrollSource.relPosition].entry->idGlobal == p->sourceOut->idGlobal) {
                         panelElementsTarget[i].patched = 1;
 
-                        if (panelElementsModule[scrollModule.position - scrollModule.offset].entry->id ==
-                            p->targetIn->moduleId) {
-                            panelElementsModule[scrollModule.position - scrollModule.offset].patched = 3;
+                        if (panelElementsModule[scrollModule.relPosition].entry->id == p->targetIn->moduleId) {
+                            panelElementsModule[scrollModule.relPosition].patched = 3;
                         }
                         panelElementsTarget[i].addPatchEntry(p); // register patchElement
                     }
@@ -129,8 +126,7 @@ void GUIPanelPatch::registerElements() {
             }
         }
         if (entrysTarget != 0) {
-            for (PatchElementInOut *p :
-                 panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->getPatchesInOut()) {
+            for (PatchElementInOut *p : panelElementsTarget[scrollTarget.relPosition].entry->getPatchesInOut()) {
                 for (int i = 0; i < maxEntrys; i++) {
                     if (i < entrysSource) {
                         if (panelElementsSource[i].entry->idGlobal == p->sourceOut->idGlobal) {
@@ -264,15 +260,13 @@ void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 }
 
 void GUIPanelPatch::addCurrentPatch() {
-    allLayers[currentFocus.layer]->addPatchInOutById(
-        panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
-        panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
+    allLayers[currentFocus.layer]->addPatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
+                                                     panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
 }
 
 void GUIPanelPatch::removeCurrentPatch() {
-    allLayers[currentFocus.layer]->removePatchInOutById(
-        panelElementsSource[scrollSource.position - scrollSource.offset].entry->idGlobal,
-        panelElementsTarget[scrollTarget.position - scrollTarget.offset].entry->idGlobal);
+    allLayers[currentFocus.layer]->removePatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
+                                                        panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
 }
 
 void GUIPanelPatch::clearPatches() {

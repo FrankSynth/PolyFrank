@@ -108,6 +108,8 @@ void Scroller::scroll(int16_t change) {
     else if (position < (offset + 1)) {
         offset--;
     }
+
+    relPosition = position - offset;
 }
 
 #endif

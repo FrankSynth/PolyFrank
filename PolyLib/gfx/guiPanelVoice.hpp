@@ -5,8 +5,7 @@
 
 class GUIPanelVoice : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0,
-              uint8_t pathVisible = 1);
+    void init(uint8_t layerID, uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0);
     void Draw();
 
   private:
@@ -18,5 +17,5 @@ class GUIPanelVoice : public GUIPanelBase {
     uint16_t panelAbsY = 0;
     uint16_t elementWidth;
     uint16_t elementHeigth;
+    uint8_t layerID = 0;
 };
-

@@ -1,8 +1,10 @@
 #ifdef POLYCONTROL
 #include "voiceHandler.hpp"
 #include "com/com.hpp"
+#include "layer/layer.hpp"
 
 extern COMinterChip layerCom[2];
+extern std::vector<Layer *> allLayers;
 
 void VoiceHandler::playNote(Key &key) {
 
@@ -51,50 +53,28 @@ void VoiceHandler::playNote(Key &key) {
 
 void VoiceHandler::freeNote(Key &key) {
 
-    if (livemodeMergeLayer.value == 1) {
-
-        findVoices(key.note, voicesA);
-        for (voiceStateStruct *v : foundVoices) {
-            if (sustainA) {
-                v->status = SUSTAIN;
-            }
-            else {
-                sendGateOff(v);
-            }
-        }
-
-        findVoices(key.note, voicesB);
-        for (voiceStateStruct *v : foundVoices) {
-            if (sustainB) {
-                v->status = SUSTAIN;
-            }
-            else {
-                sendGateOff(v);
+    if (livemodeMergeLayer.value == 1) { // layer merged
+        for (size_t i = 0; i < 2; i++) { // loop over 2 Layer
+            findVoices(key.note, voices[i]);
+            for (voiceStateStruct *v : foundVoices) {
+                if (sustain[i]) {
+                    v->status = SUSTAIN;
+                }
+                else {
+                    sendGateOff(v);
+                }
             }
         }
     }
 
     else {
-        if (key.layerID == 0) {
-            findVoices(key.note, voicesA);
-            for (voiceStateStruct *v : foundVoices) {
-                if (sustainA) {
-                    v->status = SUSTAIN;
-                }
-                else {
-                    sendGateOff(v);
-                }
+        findVoices(key.note, voices[key.layerID]);
+        for (voiceStateStruct *v : foundVoices) {
+            if (sustain[key.layerID]) {
+                v->status = SUSTAIN;
             }
-        }
-        else if (key.layerID == 1) {
-            findVoices(key.note, voicesB);
-            for (voiceStateStruct *v : foundVoices) {
-                if (sustainB) {
-                    v->status = SUSTAIN;
-                }
-                else {
-                    sendGateOff(v);
-                }
+            else {
+                sendGateOff(v);
             }
         }
     }
@@ -120,48 +100,28 @@ void VoiceHandler::sustainOff(uint8_t layer) {
 
     if (livemodeMergeLayer.value == 1) {
         if (layer == 0) {
-
-            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-                if (voicesA[i].status == SUSTAIN) {
-                    sendGateOff(&voicesA[i]);
+            for (uint8_t i = 0; i < 2; i++) {
+                for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                    if (voices[i][x].status == SUSTAIN) {
+                        sendGateOff(&voices[i][x]);
+                    }
                 }
+                sustain[i] = 0;
             }
-            sustainA = 0;
-            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-                if (voicesB[i].status == SUSTAIN) {
-                    sendGateOff(&voicesB[i]);
-                }
-            }
-            sustainB = 0;
         }
     }
 
     else {
-        if (layer == 0) {
-            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-                if (voicesA[i].status == SUSTAIN) {
-                    sendGateOff(&voicesA[i]);
-                }
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            if (voices[layer][i].status == SUSTAIN) {
+                sendGateOff(&voices[layer][i]);
             }
-            sustainA = 0;
         }
-        else if (layer == 1) {
-            for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-                if (voicesB[i].status == SUSTAIN) {
-                    sendGateOff(&voicesB[i]);
-                }
-            }
-            sustainB = 0;
-        }
+        sustain[layer] = 0;
     }
 }
 void VoiceHandler::sustainOn(uint8_t layer) {
-    if (layer == 0) {
-        sustainA = 1;
-    }
-    if (layer == 1) {
-        sustainB = 1;
-    }
+    sustain[layer] = 1;
 }
 
 void VoiceHandler::findVoices(uint8_t note, voiceStateStruct *voices) {
@@ -178,7 +138,7 @@ void VoiceHandler::getNextVoicesA(uint8_t numberVoices) {
     foundVoices.clear();
 
     for (uint8_t v = 0; v < numberVoices; v++) {
-        searchNextVoice(voicesA);
+        searchNextVoice(voices[0]);
     }
 }
 
@@ -187,7 +147,7 @@ void VoiceHandler::getNextVoicesB(uint8_t numberVoices) {
     foundVoices.clear();
 
     for (uint8_t v = 0; v < numberVoices; v++) {
-        searchNextVoice(voicesB);
+        searchNextVoice(voices[1]);
     }
 }
 
@@ -195,7 +155,6 @@ void VoiceHandler::getNextVoicesAB(uint8_t numberVoices) {
 
     foundVoices.clear();
 
-    // to keep in Sync search in voiceA und take same voiceID from B
     for (uint8_t v = 0; v < numberVoices; v++) {
         searchNextVoiceAB();
     }
@@ -250,16 +209,12 @@ void VoiceHandler::searchNextVoiceAB() {
     voiceStateStruct *nextVoice = nullptr;
 
     // find oldest FREE Voice
-
-    for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-        if (voicesA[i].status == FREE) {
-            if (voicesA[i].playID <= nextVoice->playID) {
-                nextVoice = &voicesA[i];
-            }
-        }
-        if (voicesB[i].status == FREE) {
-            if (voicesB[i].playID <= nextVoice->playID) {
-                nextVoice = &voicesB[i];
+    for (uint8_t i = 0; i < 2; i++) {
+        for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+            if (voices[i][x].status == FREE) {
+                if (voices[i][x].playID <= nextVoice->playID) {
+                    nextVoice = &voices[i][x];
+                }
             }
         }
     }
@@ -267,15 +222,12 @@ void VoiceHandler::searchNextVoiceAB() {
     // no voice free voice found, take the oldest played one
     if (nextVoice == nullptr) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            // found oldest NOTE
-            if (voicesA[i].status != SELECT) {
-                if (voicesA[i].playID <= nextVoice->playID) {
-                    nextVoice = &voicesA[i];
-                }
-            }
-            if (voicesB[i].status != SELECT) {
-                if (voicesB[i].playID <= nextVoice->playID) {
-                    nextVoice = &voicesB[i];
+            // find oldest NOTE
+            for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                if (voices[i][x].status == SELECT) { // not already selected
+                    if (voices[i][x].playID <= nextVoice->playID) {
+                        nextVoice = &voices[i][x];
+                    }
                 }
             }
         }

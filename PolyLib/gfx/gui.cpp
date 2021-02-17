@@ -14,10 +14,23 @@ void GUI::Init() { // add settings pointer
     guiPanel_2.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET", 2);
     guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
 
-    guiPanelVoice.init(CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
-                       HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT, "CONFIG", 3);
+    // multiLayer detected
+    if (globalSettings.multiLayer.value == 1) {
+        guiPanelVoice.init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
+                           HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
 
-    // add Panels to vector
+        guiPanelVoice.init(1, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
+                           HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT + VOICEHEIGHT / 2);
+    }
+    else {
+        for (uint8_t i = 0; i < 2; i++) {
+            if (allLayers[i]->LayerState.value == 1) {
+                guiPanelVoice.init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
+                                   HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
+            }
+        }
+
+    } // add Panels to vector
     panels.push_back(&guiPanelLive);
     panels.push_back(&guiPanel_1);
     panels.push_back(&guiPanel_2);

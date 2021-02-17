@@ -89,7 +89,7 @@ void GUIPanelPreset::registerElements() {
         }
         elementIndex++;
     }
-    PanelElementPreset[scrollPreset.position - scrollPreset.offset].select = 1;
+    PanelElementPreset[scrollPreset.relPosition].select = 1;
 }
 
 void GUIPanelPreset::Draw() {

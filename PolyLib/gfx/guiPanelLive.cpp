@@ -35,7 +35,7 @@ void GUIPanelLive::registerSettingsElements() {
         if (exit)
             break;
     }
-    panelElements[scroll.position - scroll.offset].select = 1;
+    panelElements[scroll.relPosition].select = 1;
 }
 
 void GUIPanelLive::updateEntrys() {

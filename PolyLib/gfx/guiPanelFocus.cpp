@@ -23,14 +23,13 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 void GUIPanelFocus::registerPanelSettings() {
     // register Scroll
     if (newPanelFocus.type != NOFOCUS) {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"},
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"},
                                              {std::bind(focusDown, newPanelFocus), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"},
-                                             {nullptr, ""});
+        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"}, {nullptr, ""});
     }
 
     // register Panel Seetings Left
@@ -82,12 +81,24 @@ void GUIPanelFocus::Draw() {
         }
     }
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
+    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll->offset,
                   entrys, FOCUSPANELENTRYS);
 }
 
 void GUIPanelFocus::updateEntrys() {
     entrys = 0;
+
+    if (currentFocus.type == FOCUSLAYER) {
+        scroll = &scrollLayer;
+    }
+    else {
+        scroll = &scrollModule;
+    }
+
+    if (oldLocation.modul != currentFocus.modul) {
+        scroll->resetScroll();
+        oldLocation = currentFocus;
+    }
 
     if (currentFocus.type == FOCUSINPUT) {
         entrys = 0; // BaseValue
@@ -136,14 +147,8 @@ void GUIPanelFocus::updateEntrys() {
         entrys = allLayers[currentFocus.layer]->getModules().size(); // all Modules
     }
 
-    scroll.entrys = entrys;
-    scroll.checkScroll();
-
-    if (oldLocation.id != currentFocus.id || oldLocation.modul != currentFocus.modul ||
-        oldLocation.type != currentFocus.type) {
-        scroll.resetScroll();
-        oldLocation = currentFocus;
-    }
+    scroll->entrys = entrys;
+    scroll->checkScroll();
 }
 
 void GUIPanelFocus::registerModuleSettings() {
@@ -154,7 +159,7 @@ void GUIPanelFocus::registerModuleSettings() {
 
     size = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getPotis().size();
 
-    dataIndex = scroll.offset;
+    dataIndex = scroll->offset;
 
     while (true) {
         if (elementIndex >= FOCUSPANELENTRYS) {
@@ -168,7 +173,7 @@ void GUIPanelFocus::registerModuleSettings() {
             if (analogElement->displayVis) { // element Visible
 
                 // register newFocus
-                if ((scroll.position - scroll.offset) == elementIndex) {
+                if ((scroll->relPosition) == elementIndex) {
                     if (analogElement->input != nullptr) {
                         newPanelFocus.id = analogElement->input->id;
                         newPanelFocus.modul = analogElement->input->moduleId;
@@ -220,7 +225,7 @@ void GUIPanelFocus::registerModuleSettings() {
         elementIndex++;
     }
 
-    panelElements[scroll.position - scroll.offset].select = 1;
+    panelElements[scroll->relPosition].select = 1;
 }
 
 void GUIPanelFocus::registerModulePatchIn() {
@@ -237,7 +242,7 @@ void GUIPanelFocus::registerModulePatchIn() {
     while (true) {
         for (unsigned int i = 0; i < FOCUSPANELENTRYS; i++) {
 
-            dataIndex = i + scroll.offset;
+            dataIndex = i + scroll->offset;
             if (dataIndex < size) {
 
                 // println("register PatchElement");
@@ -252,7 +257,7 @@ void GUIPanelFocus::registerModulePatchIn() {
                     {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patchElement, 0), "AMOUNT"},
                     {std::bind(&PatchElementInOut::setAmount, patchElement, 0), "RESET"});
             }
-            if (scroll.position == (i + scroll.offset)) {
+            if (scroll->position == (i + scroll->offset)) {
                 panelElements[i].select = 1;
             }
             else {
@@ -271,7 +276,7 @@ void GUIPanelFocus::registerLayerModules() {
 
     size = allLayers[currentFocus.layer]->getModules().size();
 
-    dataIndex = scroll.offset;
+    dataIndex = scroll->offset;
 
     while (true) {
         if (elementIndex >= FOCUSPANELENTRYS) {
@@ -283,7 +288,7 @@ void GUIPanelFocus::registerLayerModules() {
 
             panelElements[elementIndex].addModuleEntry(moduleElement, {nullptr, ""}, {nullptr, ""}, {nullptr, ""});
 
-            if ((scroll.position - scroll.offset) == elementIndex) {
+            if ((scroll->relPosition) == elementIndex) {
                 newPanelFocus.modul = moduleElement->id;
                 newPanelFocus.type = FOCUSMODULE;
             }
@@ -295,7 +300,7 @@ void GUIPanelFocus::registerLayerModules() {
             break;
         }
     }
-    panelElements[scroll.position - scroll.offset].select = 1;
+    panelElements[scroll->relPosition].select = 1;
 }
 
 void GUIPanelFocus::registerModulePatchOut() {
@@ -310,7 +315,7 @@ void GUIPanelFocus::registerModulePatchOut() {
                ->getPatchesInOut()
                .size();
 
-    dataIndex = scroll.offset;
+    dataIndex = scroll->offset;
 
     while (true) {
         if (elementIndex >= FOCUSPANELENTRYS) {
@@ -369,7 +374,7 @@ void GUIPanelFocus::registerModulePatchOut() {
             break;
         }
     }
-    panelElements[scroll.position - scroll.offset].select = 1;
+    panelElements[scroll->relPosition].select = 1;
 }
 
 #endif

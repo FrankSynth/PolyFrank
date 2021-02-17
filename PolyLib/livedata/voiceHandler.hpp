@@ -6,15 +6,11 @@ class VoiceHandler {
   public:
     VoiceHandler() {
         // init Voices
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            voicesA[i].voiceID = i;
-            voicesA[i].layerID = 0;
-        }
-
-        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
-            voicesB[i].voiceID = i;
-            voicesB[i].layerID = 1;
+        for (size_t i = 0; i < 2; i++) {
+            for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                voices[i][x].voiceID = i;
+                voices[i][x].layerID = i;
+            }
         }
     }
     void playNote(Key &key);
@@ -37,12 +33,10 @@ class VoiceHandler {
     void setSustain(uint8_t value, uint8_t layer);
 
     std::vector<voiceStateStruct *> foundVoices;
-    uint8_t layerID = 0;
 
     uint32_t playIDCounter = 0;
 
-    uint32_t sustainA = 0;
-    uint32_t sustainB = 0;
+    uint32_t sustain[2] = {0, 0};
 
     Setting livemodeVoiceMode = Setting("MODE", 0, 0, 3, false, binary, &polySplitNameList);
     Setting livemodeMergeLayer = Setting("MERGE", 0, 0, 1, false, binary, &polyMergeNameList);
@@ -50,6 +44,5 @@ class VoiceHandler {
     const std::vector<std::string> polySplitNameList = {"1|8", "2|4", "4|2", "8|1"};
     const std::vector<std::string> polyMergeNameList = {"A | B", "A + B"};
 
-    voiceStateStruct voicesA[NUMBERVOICES];
-    voiceStateStruct voicesB[NUMBERVOICES];
+    voiceStateStruct voices[2][NUMBERVOICES];
 };

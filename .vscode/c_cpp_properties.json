@@ -18,7 +18,7 @@
         // "PolyRender/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
         // "PolyRender/Drivers/CMSIS/Include",
         // "PolyRender/Drivers/CMSIS/DSP/Include",
-        // "PolyRender/Drivers/STM32H7xx_HAL_Driver/Inc",
+        // "PolyRender/Drivers/STM32H7xx_HAL_Driver/Inc",<
         // "PolyRender/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
         "PolyLib",
         "PolyLib/circularbuffer",
