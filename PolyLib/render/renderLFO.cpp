@@ -59,7 +59,7 @@ inline float accumulateShape(LFO &lfo, uint16_t voice) {
 void renderLFO(LFO &lfo) {
 
     static bool alignedRandom = false;
-    int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
+    static int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         float &currentRandom = lfo.currentRandom[voice];

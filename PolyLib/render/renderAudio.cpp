@@ -110,27 +110,29 @@ static inline void bitcrush(float *dst, const float *bitcrush) {
 }
 
 static inline void getNoiseSample(float *sample) {
-    uint32_t bitcrusher[VOICESPERCHIP];
+    // uint32_t bitcrusher[VOICESPERCHIP];
     uint32_t randomNumber[VOICESPERCHIP];
-    uint32_t bitcrushBits[VOICESPERCHIP];
+    // uint32_t bitcrushBits[VOICESPERCHIP];
 
     static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleCrushCount[i]++;
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        bitcrusher[i] = layerA.noise.bitcrusher.currentSample[i];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     bitcrusher[i] = layerA.noise.bitcrusher.currentSample[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         HAL_RNG_GenerateRandomNumber(&hrng, &randomNumber[i]);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        bitcrushBits[i] = (0xFFFFFFFF << bitcrusher[i]) & 0x00FFFFFF;
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     bitcrushBits[i] = (0xFFFFFFFF << bitcrusher[i]) & 0x00FFFFFF;
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     randomNumber[i] = randomNumber[i] & bitcrushBits[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        randomNumber[i] = randomNumber[i] & bitcrushBits[i];
+        randomNumber[i] = randomNumber[i] & 0x00FFFFFF;
 
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i]++;
     // map to -1, 1
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (sampleCrushCount[i] > layerA.noise.samplecrusher.currentSample[i]) {
@@ -143,13 +145,15 @@ static inline void getSubSample(float *sample) {
 
     float oscAphase[VOICESPERCHIP];
 
-    static const float *bitcrusher = layerA.sub.bitcrusher.currentSample;
-    static const float *shape = layerA.sub.shape.currentSample;
+    const float *bitcrusher = layerA.sub.bitcrusher.currentSample;
+    const float *samplecrusher = layerA.sub.samplecrusher.currentSample;
+    const float *shape = layerA.sub.shape.currentSample;
 
     static const uint32_t &octave = layerA.sub.dOctaveSwitch.valueMapped;
 
     static float *phase = layerA.sub.phase;
     static float *oscApreviousPhase = layerA.sub.oscApreviousPhase;
+    static float newSample[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         oscAphase[i] = layerA.oscA.phaseWavetableA[i];
@@ -160,16 +164,26 @@ static inline void getSubSample(float *sample) {
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
-            sample[i] = phase[i] * (4.0f / shape[i]) - 1.0f;
-            std::min(sample[i], 1.0f);
+            newSample[i] = phase[i] * (4.0f / shape[i]) - 1.0f;
+            std::min(newSample[i], 1.0f);
         }
         else {
-            sample[i] = ((phase[i] - 0.5f) * (-4.0f / shape[i]) + 1.0f);
-            std::max(sample[i], -1.0f);
+            newSample[i] = ((phase[i] - 0.5f) * (-4.0f / shape[i]) + 1.0f);
+            std::max(newSample[i], -1.0f);
         }
     }
 
-    bitcrush(sample, bitcrusher);
+    bitcrush(newSample, bitcrusher);
+
+    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i]++;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        if (sampleCrushCount[i] > samplecrusher[i]) {
+            sample[i] = newSample[i];
+            sampleCrushCount[i] = 0;
+        }
 
     float phaseLength = octave == 0 ? 0.5f : 0.25f;
 
@@ -195,10 +209,10 @@ static inline void getSubSample(float *sample) {
 static inline void getOscASample(float *sample) {
     static float *phaseWavetableA = layerA.oscA.phaseWavetableA;
     static float *phaseWavetableB = layerA.oscA.phaseWavetableB;
-    static const float *morph = layerA.oscA.morph.currentSample;
-    static const float *noteStep = layerA.oscA.note.currentSample;
-    static const float *bitcrusher = layerA.oscA.bitcrusher.currentSample;
-    static const float *samplecrusher = layerA.oscA.samplecrusher.currentSample;
+    const float *morph = layerA.oscA.morph.currentSample;
+    const float *noteStep = layerA.oscA.note.currentSample;
+    const float *bitcrusher = layerA.oscA.bitcrusher.currentSample;
+    const float *samplecrusher = layerA.oscA.samplecrusher.currentSample;
 
     float sampleA[VOICESPERCHIP];
     float sampleB[VOICESPERCHIP];
@@ -249,7 +263,7 @@ static inline void getOscASample(float *sample) {
     // else {
     //     sampleB = fast_lerp_f32(oscAwavetableB[positionB], oscAwavetableB[0], interSampleB);
     // }
-    float newSample[VOICESPERCHIP];
+    static float newSample[VOICESPERCHIP];
     fast_lerp_f32(sampleA, sampleB, morph, newSample);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -273,16 +287,17 @@ static inline void getOscASample(float *sample) {
 static inline void getOscBSample(float *sample) {
 
     // cache step of osc A, if smaller, new phase has begun.
-    const float *oscAphaseWavetableA = layerA.oscA.phaseWavetableA;
+    static const float *oscAphaseWavetableA = layerA.oscA.phaseWavetableA;
 
-    int32_t &sync = layerA.oscB.dSync.valueMapped;
+    static int32_t &sync = layerA.oscB.dSync.valueMapped;
 
-    float *cacheOscAstep = layerA.oscB.cacheOscAstep;
-    float *phaseWavetableA = layerA.oscB.phaseWavetableA;
-    float *phaseWavetableB = layerA.oscB.phaseWavetableB;
+    static float *cacheOscAstep = layerA.oscB.cacheOscAstep;
+    static float *phaseWavetableA = layerA.oscB.phaseWavetableA;
+    static float *phaseWavetableB = layerA.oscB.phaseWavetableB;
     const float *morph = layerA.oscB.morph.currentSample;
     const float *noteStep = layerA.oscB.note.currentSample;
     const float *bitcrusher = layerA.oscB.bitcrusher.currentSample;
+    const float *samplecrusher = layerA.oscB.samplecrusher.currentSample;
 
     float sampleA[VOICESPERCHIP];
     float sampleB[VOICESPERCHIP];
@@ -348,14 +363,25 @@ static inline void getOscBSample(float *sample) {
     //     sampleB = fast_lerp_f32(oscBwavetableB[positionB], oscBwavetableB[0], interSampleB);
     // }
 
-    fast_lerp_f32(sampleA, sampleB, morph, sample);
+    static float newSample[VOICESPERCHIP];
+    fast_lerp_f32(sampleA, sampleB, morph, newSample);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableA[i] += noteStep[i] * 0.0002537427f; // 1.0f / (float)MINWAVETABLELENGTH)
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableB[i] += noteStep[i] * 0.0002537427f; // 1.0f / (float)MINWAVETABLELENGTH)
 
-    bitcrush(sample, bitcrusher);
+    bitcrush(newSample, bitcrusher);
+
+    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i]++;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        if (sampleCrushCount[i] > samplecrusher[i]) {
+            sample[i] = newSample[i];
+            sampleCrushCount[i] = 0;
+        }
 }
 
 /**
@@ -366,26 +392,26 @@ static inline void getOscBSample(float *sample) {
 void renderAudio(int32_t *renderDest) {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
 
-    static const float *noiseLevelLadder = layerA.noise.levelLadder.currentSample;
-    static const float *noiseLevelSteiner = layerA.noise.levelSteiner.currentSample;
-    static float *noiseOut = layerA.noise.out.nextSample;
+    const float *noiseLevelLadder = layerA.noise.levelLadder.currentSample;
+    const float *noiseLevelSteiner = layerA.noise.levelSteiner.currentSample;
+    float *noiseOut = layerA.noise.out.nextSample;
 
-    static const float *subLevelLadder = layerA.sub.levelLadder.currentSample;
-    static const float *subLevelSteiner = layerA.sub.levelSteiner.currentSample;
-    static float *subOut = layerA.sub.out.nextSample;
+    const float *subLevelLadder = layerA.sub.levelLadder.currentSample;
+    const float *subLevelSteiner = layerA.sub.levelSteiner.currentSample;
+    float *subOut = layerA.sub.out.nextSample;
 
-    static const float *oscALevelLadder = layerA.oscA.levelLadder.currentSample;
-    static const float *oscALevelSteiner = layerA.oscA.levelSteiner.currentSample;
-    static float *oscAOut = layerA.oscA.out.nextSample;
+    const float *oscALevelLadder = layerA.oscA.levelLadder.currentSample;
+    const float *oscALevelSteiner = layerA.oscA.levelSteiner.currentSample;
+    float *oscAOut = layerA.oscA.out.nextSample;
 
-    static const float *oscBLevelLadder = layerA.oscB.levelLadder.currentSample;
-    static const float *oscBLevelSteiner = layerA.oscB.levelSteiner.currentSample;
-    static float *oscBOut = layerA.oscB.out.nextSample;
+    const float *oscBLevelLadder = layerA.oscB.levelLadder.currentSample;
+    const float *oscBLevelSteiner = layerA.oscB.levelSteiner.currentSample;
+    float *oscBOut = layerA.oscB.out.nextSample;
 
-    static float oscASample[VOICESPERCHIP];
-    static float oscBSample[VOICESPERCHIP];
-    static float noiseSample[VOICESPERCHIP];
-    static float subSample[VOICESPERCHIP];
+    static float oscASample[VOICESPERCHIP] = {0};
+    static float oscBSample[VOICESPERCHIP] = {0};
+    static float noiseSample[VOICESPERCHIP] = {0};
+    static float subSample[VOICESPERCHIP] = {0};
 
     float dampSteiner[VOICESPERCHIP];
     float dampLadder[VOICESPERCHIP];
@@ -491,11 +517,11 @@ void renderAudio(int32_t *renderDest) {
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             renderDest[sample * AUDIOCHANNELS + i] = intSampleSteiner[i];
-        renderDest[sample * AUDIOCHANNELS + 4] = intSampleSteiner[0]; // FIXME temp
+        renderDest[sample * AUDIOCHANNELS + 3] = intSampleSteiner[0]; // FIXME temp
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             renderDest[sample * AUDIOCHANNELS + i] = intSampleLadder[i];
-        renderDest[sample * AUDIOCHANNELS + 3] = intSampleLadder[0]; // FIXME temp
+        renderDest[sample * AUDIOCHANNELS + 4] = intSampleLadder[0]; // FIXME temp
 
         if (sample == 0) {
             for (uint32_t i = 0; i < VOICESPERCHIP; i++)

@@ -9,7 +9,7 @@ inline float accumulateDistort(Distortion &distort, uint16_t voice) {
 }
 
 void renderDistort(Distortion &distort) {
-    static float *outDistort = distort.distort.nextSample;
+    float *outDistort = distort.distort.nextSample;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outDistort[voice] = accumulateDistort(distort, voice);
