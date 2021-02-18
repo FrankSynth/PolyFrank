@@ -51,7 +51,10 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "cstring": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ranges": "cpp"
     },
     "todo-tree.tree.showBadges": true
 }

@@ -3,7 +3,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 
-typedef enum { NOTCONNECT, WAITFORRESPONSE, DATARECEIVED, READY } interChipState;
+typedef enum { DISABLED, NOTCONNECT, WAITFORRESPONSE, DATARECEIVED, READY } interChipState;
 
 namespace FlagHandler {
 
