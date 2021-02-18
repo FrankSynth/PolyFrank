@@ -300,9 +300,6 @@ void Layer::loadLayerFromPreset(uint32_t presetID) {
     int32_t numberPatchesInOut = buffer[index];
     index++;
 
-    int32_t numberPatchesOutOut = buffer[index];
-    index++;
-
     patchSaveStruct *bufferPatch;
     bufferPatch = (patchSaveStruct *)&(buffer[index]);
     index = 0;

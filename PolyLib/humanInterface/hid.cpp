@@ -183,9 +183,6 @@ void eventControlTouch(uint16_t touchState) {
     uint16_t pushEvent = ~oldTouchState & touchState;
     uint16_t releaseEvent = oldTouchState & ~touchState;
 
-    println("pushEvent   :", pushEvent);
-    println("releaseEvent   :", releaseEvent);
-
     // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
     if (pushEvent) {
         if (pushEvent & (1 << 6)) {
