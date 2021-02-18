@@ -29,7 +29,7 @@ enum typeLinLog { linMap, logMap, antilogMap };
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
 uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset);
+// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset);
 #endif
 
 class DataElement {
@@ -313,8 +313,8 @@ class NameElement {
     std::string name;
 };
 
-class PatchElementInOut;  // define class to fix no declaration error from Input and Output Class
-class PatchElementOutOut; // define class to fix no declaration error from Input and Output Class
+class PatchElementInOut; // define class to fix no declaration error from Input and Output Class
+// class PatchElementOutOut; // define class to fix no declaration error from Input and Output Class
 
 // input patchesInOut
 class BasePatch {
@@ -322,13 +322,13 @@ class BasePatch {
     void clearPatches();
 
     void addPatchInOut(PatchElementInOut &patch);
-    void addPatchOutOut(PatchElementOutOut &patch);
+    // void addPatchOutOut(PatchElementOutOut &patch);
     void removePatchInOut(PatchElementInOut &patch);
-    void removePatchOutOut(PatchElementOutOut &patch);
+    // void removePatchOutOut(PatchElementOutOut &patch);
 
     inline const std::string &getName() { return name; };
     inline std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
-    inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
+    // inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
@@ -341,7 +341,7 @@ class BasePatch {
 
   protected:
     std::vector<PatchElementInOut *> patchesInOut;
-    std::vector<PatchElementOutOut *> patchesOutOut;
+    // std::vector<PatchElementOutOut *> patchesOutOut;
 };
 
 class Input : public BasePatch {
@@ -367,7 +367,7 @@ class Output : public BasePatch {
     Output(const char *name) {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-        patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
+        // patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
 
         currentSample = bufferCurrentSample;
         nextSample = bufferNextSample;
@@ -418,32 +418,32 @@ class PatchElementInOut : public PatchElement {
     float amountRaw = 0;
 };
 
-class PatchElementOutOut : public PatchElement {
-  public:
-    PatchElementOutOut(Output &source, Output &targetOut, uint8_t layerId, float amount = 0, float offset = 0) {
-        this->sourceOut = &source;
-        this->targetOut = &targetOut;
-        this->amount = amount;
-        this->offset = offset;
-        this->layerId = layerId;
-    }
-    inline float getOffset() { return offset; }
+// class PatchElementOutOut : public PatchElement {
+//   public:
+//     PatchElementOutOut(Output &source, Output &targetOut, uint8_t layerId, float amount = 0, float offset = 0) {
+//         this->sourceOut = &source;
+//         this->targetOut = &targetOut;
+//         this->amount = amount;
+//         this->offset = offset;
+//         this->layerId = layerId;
+//     }
+//     inline float getOffset() { return offset; }
 
-    void setAmount(float amount);
-    void setAmountWithoutMapping(float amount);
-    void changeAmount(float change);
-    void setOffset(float offset);
-    void setOffsetWithoutMapping(float offset);
-    void changeOffset(float change);
-    void setAmountAndOffset(float amount, float offset);
+//     void setAmount(float amount);
+//     void setAmountWithoutMapping(float amount);
+//     void changeAmount(float change);
+//     void setOffset(float offset);
+//     void setOffsetWithoutMapping(float offset);
+//     void changeOffset(float change);
+//     void setAmountAndOffset(float amount, float offset);
 
-    bool remove = false;
-    Output *sourceOut;
-    Output *targetOut;
+//     bool remove = false;
+//     Output *sourceOut;
+//     Output *targetOut;
 
-  private:
-    float offset;
-};
+//   private:
+//     float offset;
+// };
 
 class ID {
   public:
@@ -506,38 +506,38 @@ inline void PatchElementInOut::changeAmount(float change) {
 #endif
 }
 
-inline void PatchElementOutOut::changeAmount(float change) {
-    setAmount(amount + change);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// inline void PatchElementOutOut::changeAmount(float change) {
+//     setAmount(amount + change);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-inline void PatchElementOutOut::changeOffset(float change) {
-    setOffset(offset + change);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// inline void PatchElementOutOut::changeOffset(float change) {
+//     setOffset(offset + change);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
-    setAmount(amount);
-    setOffset(offset);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
+//     setAmount(amount);
+//     setOffset(offset);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 inline void BasePatch::clearPatches() {
     patchesInOut.clear();
-    patchesOutOut.clear();
+    // patchesOutOut.clear();
 }
 
 inline void BasePatch::addPatchInOut(PatchElementInOut &patch) {
     patchesInOut.push_back(&patch);
 }
-inline void BasePatch::addPatchOutOut(PatchElementOutOut &patch) {
-    patchesOutOut.push_back(&patch);
-}
+// inline void BasePatch::addPatchOutOut(PatchElementOutOut &patch) {
+//     patchesOutOut.push_back(&patch);
+// }
 
 inline void Setting::reset() {
     value = defaultValue;

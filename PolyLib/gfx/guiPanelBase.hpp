@@ -48,7 +48,7 @@ void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, u
 
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawPatchOutOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+// void drawPatchOutOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
 void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
@@ -124,15 +124,16 @@ class Data_PanelElement {
         numberEntrys++;
         visible = 1;
     }
-    void addPatchOutOutEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
-                             actionHandle functionPush) {
+    // void addPatchOutOutEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
+    //                          actionHandle functionPush) {
 
-        entrys[numberEntrys] =
-            entryStruct{PATCHOUTOUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
+    //     entrys[numberEntrys] =
+    //         entryStruct{PATCHOUTOUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW,
+    //         functionPush};
 
-        numberEntrys++;
-        visible = 1;
-    }
+    //     numberEntrys++;
+    //     visible = 1;
+    // }
     void addPatchOutputEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
                              actionHandle functionPush) {
 

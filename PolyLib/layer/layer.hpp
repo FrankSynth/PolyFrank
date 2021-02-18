@@ -12,11 +12,11 @@ extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t i
 extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
 extern uint8_t sendDeleteAllPatches(uint8_t layerId);
 
-extern uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
-                                     float offset);
-extern uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
-                                     float offset);
-extern uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId);
+// extern uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
+//                                      float offset);
+// extern uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
+//                                      float offset);
+// extern uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId);
 
 typedef struct {
     uint8_t sourceID;
@@ -67,13 +67,13 @@ class Layer {
     void removePatchInOut(PatchElementInOut &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
-    void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
-    void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
-    void updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount = 0, float offset = 0);
-    void updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount = 0,
-                                             float offset = 0);
-    void removePatchOutOut(PatchElementOutOut &patch);
-    void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
+    // void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
+    // void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
+    // void updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount = 0, float offset = 0);
+    // void updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount = 0,
+    //                                          float offset = 0);
+    // void removePatchOutOut(PatchElementOutOut &patch);
+    // void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
 
 #ifdef POLYCONTROL
     void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName);
@@ -81,7 +81,7 @@ class Layer {
 #endif
 
     inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
-    inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
+    // inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
 
 #ifdef POLYRENDER
     inline void gateOn(uint16_t voice) {
@@ -126,7 +126,7 @@ class Layer {
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
     std::list<PatchElementInOut> patchesInOut;
-    std::list<PatchElementOutOut> patchesOutOut;
+    // std::list<PatchElementOutOut> patchesOutOut;
 
     Setting LayerState = Setting("LayerState", 0, 1, 10, false, binary);
 

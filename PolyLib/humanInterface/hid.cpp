@@ -279,10 +279,10 @@ void updatePatchLED() {
                 patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
             }
 
-            for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
-                uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-                patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
-            }
+            // for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
+            //     uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+            //     patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+            // }
         }
         else if (currentFocus.type == FOCUSINPUT) {
 

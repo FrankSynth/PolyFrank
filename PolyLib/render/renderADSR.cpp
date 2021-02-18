@@ -8,32 +8,23 @@ extern Layer layerA;
 LogCurve adsrConvertLog(32, 0.1);
 LogCurve adsrConvertAntiLog(32, 0.9);
 
-#define INPUTWEIGHTING 1
-
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDelay.currentSample[voice] * adsr.aDelay.valueMapped * INPUTWEIGHTING +
-                         adsr.aDelay.valueMapped,
-                     adsr.aDelay.min, adsr.aDelay.max * 2);
+    return testFloat(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
 inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAttack.currentSample[voice] * adsr.aAttack.valueMapped * INPUTWEIGHTING +
-                         adsr.aAttack.valueMapped,
-                     adsr.aAttack.min, adsr.aAttack.max * 2);
+    return testFloat(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
+                     adsr.aAttack.max * 2);
 }
 inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDecay.currentSample[voice] * adsr.aDecay.valueMapped * INPUTWEIGHTING +
-                         adsr.aDecay.valueMapped,
-                     adsr.aDecay.min, adsr.aDecay.max * 2);
+    return testFloat(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
 inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iSustain.currentSample[voice] * adsr.aSustain.valueMapped * INPUTWEIGHTING +
-                         adsr.aSustain.valueMapped,
-                     adsr.aSustain.min, adsr.aSustain.max);
+    return testFloat(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
+                     adsr.aSustain.max);
 }
 inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iRelease.currentSample[voice] * adsr.aRelease.valueMapped * INPUTWEIGHTING +
-                         adsr.aRelease.valueMapped,
-                     adsr.aRelease.min, adsr.aRelease.max * 2);
+    return testFloat(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
+                     adsr.aRelease.max * 2);
 }
 inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);

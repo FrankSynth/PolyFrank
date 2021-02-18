@@ -196,14 +196,14 @@ class PanelTouch {
                 allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
                 // println("-------------> patch OUTIN");
             }
-            else if (activeOutput != nullptr) {
+            // else if (activeOutput != nullptr) {
 
-                if (activeOutput != pOutput) {
+            //     if (activeOutput != pOutput) {
 
-                    allLayers[layerID]->addPatchOutOutById(pOutput->idGlobal, activeOutput->idGlobal, 1);
-                    // println("-------------> patch OUTOUT");
-                }
-            }
+            //         allLayers[layerID]->addPatchOutOutById(pOutput->idGlobal, activeOutput->idGlobal, 1);
+            //         // println("-------------> patch OUTOUT");
+            //     }
+            // }
             else {
                 setOutputFocus(pOutput);
                 // println("-------------> create Focus OUT");

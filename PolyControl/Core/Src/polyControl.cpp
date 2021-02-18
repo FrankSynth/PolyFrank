@@ -172,15 +172,15 @@ uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId,
 uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
     return layerCom[layerId].sendDeletePatchInOut(outputId, inputId);
 }
-uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
-    return layerCom[layerId].sendCreatePatchOutOut(outputOutId, outputInId, amount, offset);
-}
-uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
-    return layerCom[layerId].sendUpdatePatchOutOut(outputOutId, outputInId, amount, offset);
-}
-uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId) {
-    return layerCom[layerId].sendDeletePatchOutOut(outputOutId, outputInId);
-}
+// uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+//     return layerCom[layerId].sendCreatePatchOutOut(outputOutId, outputInId, amount, offset);
+// }
+// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+//     return layerCom[layerId].sendUpdatePatchOutOut(outputOutId, outputInId, amount, offset);
+// }
+// uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId) {
+//     return layerCom[layerId].sendDeletePatchOutOut(outputOutId, outputInId);
+// }
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom[layerId].sendDeleteAllPatches();
 }

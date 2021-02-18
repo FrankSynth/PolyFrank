@@ -281,9 +281,9 @@ class COMinterChip {
     uint8_t sendCreatePatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
     uint8_t sendUpdatePatchInOut(uint8_t outputId, uint8_t inputId, float amount);
     uint8_t sendDeletePatchInOut(uint8_t outputId, uint8_t inputId);
-    uint8_t sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
-    uint8_t sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
-    uint8_t sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId);
+    // uint8_t sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
+    // uint8_t sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
+    // uint8_t sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId);
     uint8_t sendDeleteAllPatches();
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, float amount);

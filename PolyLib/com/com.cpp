@@ -361,42 +361,42 @@ uint8_t COMinterChip::sendDeletePatchInOut(uint8_t outputId, uint8_t inputId) {
     return 0;
 }
 
-uint8_t COMinterChip::sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
-    uint8_t comCommand[CREATEOUTOUTPATCHCMDSIZE];
-    comCommand[0] = PATCHCMDTYPE | CREATEOUTOUTPATCH;
-    comCommand[1] = outputOutId;
-    comCommand[2] = OutputInId;
-    *(float *)(&comCommand[3]) = amount;
-    *(float *)(&comCommand[7]) = offset;
+// uint8_t COMinterChip::sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
+//     uint8_t comCommand[CREATEOUTOUTPATCHCMDSIZE];
+//     comCommand[0] = PATCHCMDTYPE | CREATEOUTOUTPATCH;
+//     comCommand[1] = outputOutId;
+//     comCommand[2] = OutputInId;
+//     *(float *)(&comCommand[3]) = amount;
+//     *(float *)(&comCommand[7]) = offset;
 
-    pushOutBufferChipA(comCommand, CREATEOUTOUTPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, CREATEOUTOUTPATCHCMDSIZE);
-    return 0;
-}
+//     pushOutBufferChipA(comCommand, CREATEOUTOUTPATCHCMDSIZE);
+//     pushOutBufferChipB(comCommand, CREATEOUTOUTPATCHCMDSIZE);
+//     return 0;
+// }
 
-uint8_t COMinterChip::sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
-    uint8_t comCommand[UPDATEOUTOUTPATCHCMDSIZE];
-    comCommand[0] = PATCHCMDTYPE | UPDATEOUTOUTPATCH;
-    comCommand[1] = outputOutId;
-    comCommand[2] = OutputInId;
-    *(float *)(&comCommand[3]) = amount;
-    *(float *)(&comCommand[7]) = offset;
+// uint8_t COMinterChip::sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
+//     uint8_t comCommand[UPDATEOUTOUTPATCHCMDSIZE];
+//     comCommand[0] = PATCHCMDTYPE | UPDATEOUTOUTPATCH;
+//     comCommand[1] = outputOutId;
+//     comCommand[2] = OutputInId;
+//     *(float *)(&comCommand[3]) = amount;
+//     *(float *)(&comCommand[7]) = offset;
 
-    pushOutBufferChipA(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
-    return 0;
-}
+//     pushOutBufferChipA(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
+//     pushOutBufferChipB(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
+//     return 0;
+// }
 
-uint8_t COMinterChip::sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId) {
-    uint8_t comCommand[DELETEPATCHCMDSIZE];
-    comCommand[0] = PATCHCMDTYPE | DELETEOUTOUTPATCH;
-    comCommand[1] = outputOutId;
-    comCommand[2] = OutputInId;
+// uint8_t COMinterChip::sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId) {
+//     uint8_t comCommand[DELETEPATCHCMDSIZE];
+//     comCommand[0] = PATCHCMDTYPE | DELETEOUTOUTPATCH;
+//     comCommand[1] = outputOutId;
+//     comCommand[2] = OutputInId;
 
-    pushOutBufferChipA(comCommand, DELETEPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
-    return 0;
-}
+//     pushOutBufferChipA(comCommand, DELETEPATCHCMDSIZE);
+//     pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
+//     return 0;
+// }
 
 uint8_t COMinterChip::sendDeleteAllPatches() {
     uint8_t comCommand[DELETEALLPATCHESCMDSIZE];
@@ -615,8 +615,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile float amountFloat = 0;
     volatile float offsetFloat = 0;
 
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
-
     beginReceiveTransmission();
 
     // assemble size
@@ -633,6 +631,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
         return 1;
     }
+
+    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
@@ -673,37 +673,37 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         layerA.removePatchInOutById(outputID, inputID);
 
                         break;
-                    case UPDATEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
-                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
+                    // case UPDATEOUTOUTPATCH:
+                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                    //     i += sizeof(float) - 1;
+                    //     offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                    //     i += sizeof(float) - 1;
 
-                        layerA.updatePatchOutOutByIdWithoutMapping(outputID, inputID, amountFloat);
+                    //     layerA.updatePatchOutOutByIdWithoutMapping(outputID, inputID, amountFloat);
 
-                        break;
+                    //     break;
 
-                    case CREATEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
-                        amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
-                        offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                        i += sizeof(float) - 1;
+                    // case CREATEOUTOUTPATCH:
+                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                    //     i += sizeof(float) - 1;
+                    //     offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
+                    //     i += sizeof(float) - 1;
 
-                        layerA.addPatchOutOutById(outputID, inputID, amountFloat);
+                    //     layerA.addPatchOutOutById(outputID, inputID, amountFloat);
 
-                        break;
+                    //     break;
 
-                    case DELETEOUTOUTPATCH:
-                        outputID = (inBufferPointer[currentBufferSelect])[++i];
-                        inputID = (inBufferPointer[currentBufferSelect])[++i];
+                    // case DELETEOUTOUTPATCH:
+                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
+                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
 
-                        layerA.removePatchOutOutById(outputID, inputID);
+                    //     layerA.removePatchOutOutById(outputID, inputID);
 
-                        break;
+                    //     break;
                     case DELETEALLPATCHES:
                         // delete all patchesInOut at once
                         layerA.clearPatches();
@@ -740,7 +740,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         break;
 
                     case LASTBYTE:
-                        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
 
                         // transmission complete
                         // println("decode success!");
@@ -870,8 +869,6 @@ void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
 #elif POLYRENDER
 
     if (FlagHandler::interChipReceive_MDMA_Started == 1) {
-        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
-
         FlagHandler::interChipReceive_MDMA_Started = 0;
         FlagHandler::interChipReceive_MDMA_Finished = 1;
     }

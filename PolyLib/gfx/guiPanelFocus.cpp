@@ -118,11 +118,11 @@ void GUIPanelFocus::updateEntrys() {
                       ->getPatchesInOut()
                       .size(); // all Input patches to this output
 
-        entrys += allLayers[currentFocus.layer]
-                      ->getModules()[currentFocus.modul]
-                      ->getOutputs()[currentFocus.id]
-                      ->getPatchesOutOut()
-                      .size(); // all Output patches to this output
+        // entrys += allLayers[currentFocus.layer]
+        //               ->getModules()[currentFocus.modul]
+        //               ->getOutputs()[currentFocus.id]
+        //               ->getPatchesOutOut()
+        //               .size(); // all Output patches to this output
         // println("entrys Output", entrys);
     }
     else if (currentFocus.type == FOCUSMODULE) {
@@ -342,38 +342,38 @@ void GUIPanelFocus::registerModulePatchOut() {
         }
     }
 
-    dataIndex = 0;
+    // dataIndex = 0;
 
-    size = allLayers[currentFocus.layer]
-               ->getModules()[currentFocus.modul]
-               ->getOutputs()[currentFocus.id]
-               ->getPatchesOutOut()
-               .size();
+    // size = allLayers[currentFocus.layer]
+    //            ->getModules()[currentFocus.modul]
+    //            ->getOutputs()[currentFocus.id]
+    //            ->getPatchesOutOut()
+    //            .size();
 
-    while (true) {
-        if (elementIndex >= FOCUSPANELENTRYS) {
-            break;
-        }
+    // while (true) {
+    //     if (elementIndex >= FOCUSPANELENTRYS) {
+    //         break;
+    //     }
 
-        if (dataIndex < size) {
+    //     if (dataIndex < size) {
 
-            PatchElementOutOut *patchElement = allLayers[currentFocus.layer]
-                                                   ->getModules()[currentFocus.modul]
-                                                   ->getOutputs()[currentFocus.id]
-                                                   ->getPatchesOutOut()[dataIndex];
+    //         PatchElementOutOut *patchElement = allLayers[currentFocus.layer]
+    //                                                ->getModules()[currentFocus.modul]
+    //                                                ->getOutputs()[currentFocus.id]
+    //                                                ->getPatchesOutOut()[dataIndex];
 
-            panelElements[elementIndex].addPatchOutOutEntry(
-                patchElement, {std::bind(&PatchElementOutOut::changeAmount, patchElement, 0.02), "AMOUNT"},
-                {std::bind(&PatchElementOutOut::changeAmount, patchElement, -0.02), "AMOUNT"},
-                {std::bind(&PatchElementOutOut::setAmount, patchElement, 0), "RESET"});
+    //         panelElements[elementIndex].addPatchOutOutEntry(
+    //             patchElement, {std::bind(&PatchElementOutOut::changeAmount, patchElement, 0.02), "AMOUNT"},
+    //             {std::bind(&PatchElementOutOut::changeAmount, patchElement, -0.02), "AMOUNT"},
+    //             {std::bind(&PatchElementOutOut::setAmount, patchElement, 0), "RESET"});
 
-            dataIndex++;
-            elementIndex++;
-        }
-        else {
-            break;
-        }
-    }
+    //         dataIndex++;
+    //         elementIndex++;
+    //     }
+    //     else {
+    //         break;
+    //     }
+    // }
     panelElements[scroll->relPosition].select = 1;
 }
 
