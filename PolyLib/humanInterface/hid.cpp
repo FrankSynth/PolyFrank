@@ -173,58 +173,71 @@ void processPanelPotis() {
 
 void processControlTouch() {
     eventControlTouch(touchControl.readTouchStatus());
-
-    // if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port, Panel_1_Change_Pin)) { // interrupt cleared?
-    //       PolyError_Handler("ERROR | COM | HID -> ControlTouch -> interrupt not cleared");
-    // }
 }
 
 void eventControlTouch(uint16_t touchState) {
+    static uint16_t oldTouchState;
 
     touchEvaluteLayer[0].event(touchState, TOUCH_IO_PORT_A); // TODO sobald panel da weg damit
 
-    static uint16_t oldTouchState;
-
-    if (!touchState) { // all touch buttons released
-        oldTouchState = touchState;
-        return;
-    }
-
-    uint16_t event = oldTouchState ^ touchState;
-
-    event = event & touchState;
+    uint16_t pushEvent = (oldTouchState ^ touchState) & touchState;
+    uint16_t releaseEvent = (oldTouchState ^ touchState) ^ touchState;
 
     // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
+    if (pushEvent) {
+        if (pushEvent & (1 << 6)) {
+            actionHandler.callActionHeader1();
+        }
+        if (pushEvent & (1 << 7)) {
+            actionHandler.callActionHeader2();
+        }
+        if (pushEvent & (1 << 8)) {
+            actionHandler.callActionHeader3();
+        }
+        if (pushEvent & (1 << 9)) {
+            actionHandler.callActionHeader4();
+        }
+        if (pushEvent & (1 << 5)) {
+            actionHandler.callActionLeft1();
+        }
+        if (pushEvent & (1 << 3)) {
+            actionHandler.callActionLeft2();
+        }
+        if (pushEvent & (1 << 1)) {
+            actionHandler.callActionLeft3();
+        }
+        if (pushEvent & (1 << 4)) {
+            actionHandler.callActionRight1();
+        }
+        if (pushEvent & (1 << 2)) {
+            actionHandler.callActionRight2();
+        }
+        if (pushEvent & (1 << 0)) {
+            actionHandler.callActionRight3();
+        }
+    }
 
-    if (event & (1 << 6)) {
-        actionHandler.callActionHeader1();
-    }
-    if (event & (1 << 7)) {
-        actionHandler.callActionHeader2();
-    }
-    if (event & (1 << 8)) {
-        actionHandler.callActionHeader3();
-    }
-    if (event & (1 << 9)) {
-        actionHandler.callActionHeader4();
-    }
-    if (event & (1 << 5)) {
-        actionHandler.callActionLeft1();
-    }
-    if (event & (1 << 3)) {
-        actionHandler.callActionLeft2();
-    }
-    if (event & (1 << 1)) {
-        actionHandler.callActionLeft3();
-    }
-    if (event & (1 << 4)) {
-        actionHandler.callActionRight1();
-    }
-    if (event & (1 << 2)) {
-        actionHandler.callActionRight2();
-    }
-    if (event & (1 << 0)) {
-        actionHandler.callActionRight3();
+    if (releaseEvent) {
+        if (releaseEvent & (1 << 6)) {
+        }
+        if (releaseEvent & (1 << 7)) {
+        }
+        if (releaseEvent & (1 << 8)) {
+        }
+        if (releaseEvent & (1 << 9)) {
+        }
+        if (releaseEvent & (1 << 5)) {
+        }
+        if (releaseEvent & (1 << 3)) {
+        }
+        if (releaseEvent & (1 << 1)) {
+        }
+        if (releaseEvent & (1 << 4)) {
+        }
+        if (releaseEvent & (1 << 2)) {
+        }
+        if (releaseEvent & (1 << 0)) {
+        }
     }
 
     oldTouchState = touchState;
