@@ -53,7 +53,7 @@ typedef enum {
     MODULE,
     PATCHINPUT,
     PATCHOUTPUT,
-    PATCHOUTOUT,
+    // PATCHOUTOUT,
     EMPTY,
     SETTING
 

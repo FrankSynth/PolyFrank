@@ -134,14 +134,14 @@ void BasePatch::removePatchInOut(PatchElementInOut &patch) {
 
 // TODO remove all out out patch stuff
 
-void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
-    for (uint32_t i = 0; i < patchesOutOut.size(); i++) {
-        if (patchesOutOut[i] == &patch) {
-            patchesOutOut.erase(patchesOutOut.begin() + i);
-            return;
-        }
-    }
-}
+// void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
+//     for (uint32_t i = 0; i < patchesOutOut.size(); i++) {
+//         if (patchesOutOut[i] == &patch) {
+//             patchesOutOut.erase(patchesOutOut.begin() + i);
+//             return;
+//         }
+//     }
+// }
 
 void Input::collectCurrentSample() {
 
@@ -197,30 +197,30 @@ void PatchElementInOut::setAmountWithoutMapping(float amountRaw) {
 #endif
 }
 
-void PatchElementOutOut::setAmountWithoutMapping(float amount) {
-    this->amount = testFloat(amount, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setAmountWithoutMapping(float amount) {
+//     this->amount = testFloat(amount, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setAmount(float amount) {
-    this->amount = testFloat(amount, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setAmount(float amount) {
+//     this->amount = testFloat(amount, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
-    this->offset = testFloat(offset, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
+//     this->offset = testFloat(offset, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setOffset(float offset) {
-    this->offset = testFloat(offset, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setOffset(float offset) {
+//     this->offset = testFloat(offset, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }

@@ -7,17 +7,17 @@ const GUI_FONTINFO *fontMedium = &GUI_FontBahnschrift24_FontInfo;
 const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift32_FontInfo;
 
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
-    PatchElementOutOut *dataOutOut = nullptr;
+    // PatchElementOutOut *dataOutOut = nullptr;
     PatchElementInOut *data = nullptr;
-    uint8_t outOutFlag = 0;
+    // uint8_t outOutFlag = 0;
 
-    if (entry->type == PATCHOUTOUT) {
-        dataOutOut = (PatchElementOutOut *)entry->patch;
-        outOutFlag = 1;
-    }
-    else {
-        data = (PatchElementInOut *)entry->patch;
-    }
+    // if (entry->type == PATCHOUTOUT) {
+    //     dataOutOut = (PatchElementOutOut *)entry->patch;
+    //     outOutFlag = 1;
+    // }
+    // else {
+    data = (PatchElementInOut *)entry->patch;
+    // }
     uint16_t nameWidth = 140;
 
     uint16_t spaceLeftRightBar = 50;
@@ -31,9 +31,9 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     if (entry->type == PATCHOUTPUT) {
         text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getName();
     }
-    else if (entry->type == PATCHOUTOUT) {
-        text = allLayers[currentFocus.layer]->getModules()[dataOutOut->sourceOut->moduleId]->getName();
-    }
+    // else if (entry->type == PATCHOUTOUT) {
+    //     text = allLayers[currentFocus.layer]->getModules()[dataOutOut->sourceOut->moduleId]->getName();
+    // }
     else {
         text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getName();
     }
@@ -59,13 +59,13 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
 
     int16_t valueBaroffsetCenter = 0;
     float amount;
-    if (entry->type == PATCHOUTOUT) {
+    // if (entry->type == PATCHOUTOUT) {
 
-        amount = dataOutOut->getAmount();
-    }
-    else {
-        amount = data->getAmount();
-    }
+    //     amount = dataOutOut->getAmount();
+    // }
+    // else {
+    amount = data->getAmount();
+    // }
 
     if (amount < 0) {
         valueBaroffsetCenter = (valueBarWidth + (float)valueBarWidth * amount) / 2;
@@ -73,16 +73,15 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     else {
         valueBaroffsetCenter = valueBarWidth / 2;
     }
-    if (outOutFlag) {
-        text = "MULT";
-        drawString(text, cFont_Deselect, x + relX + valueBarWidth + 12, y + (-fontMedium->size + h) / 2, fontMedium,
-                   LEFT);
-    }
-    else {
-        text = "ADD";
-        drawString(text, cFont_Deselect, x + relX + valueBarWidth + 15, y + (-fontMedium->size + h) / 2, fontMedium,
-                   LEFT);
-    }
+    // if (outOutFlag) {
+    //     text = "MULT";
+    //     drawString(text, cFont_Deselect, x + relX + valueBarWidth + 12, y + (-fontMedium->size + h) / 2, fontMedium,
+    //                LEFT);
+    // }
+    // else {
+    text = "ADD";
+    drawString(text, cFont_Deselect, x + relX + valueBarWidth + 15, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
+    // }
 
     drawRectangleChampfered(cWhite, relX + x + valueBaroffsetCenter, relY + y, (float)valueBarWidth / 2 * abs(amount),
                             valueBarHeigth, 1);
@@ -493,9 +492,10 @@ void Data_PanelElement::Draw() {
             else if (entrys[x].type == PATCHOUTPUT) {
                 drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
             }
-            else if (entrys[x].type == PATCHOUTOUT) {
-                drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
+            // else if (entrys[x].type == PATCHOUTOUT) {
+            //     drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight,
+            //     select);
+            // }
             else if (entrys[x].type == MODULE) {
                 drawModuleElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
             }
