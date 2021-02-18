@@ -14,15 +14,15 @@ void actionMapping::registerActionHeader(actionHandle handle1, actionHandle hand
 }
 
 void actionMapping::registerActionLeft(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
-    buttonLeft_1 = handle1;
-    buttonLeft_2 = handle2;
-    buttonLeft_3 = handle3;
+    buttonLeft_1.handle = handle1;
+    buttonLeft_2.handle = handle2;
+    buttonLeft_3.handle = handle3;
 }
 
 void actionMapping::registerActionRight(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
-    buttonRight_1 = handle1;
-    buttonRight_2 = handle2;
-    buttonRight_3 = handle3;
+    buttonRight_1.handle = handle1;
+    buttonRight_2.handle = handle2;
+    buttonRight_3.handle = handle3;
 }
 
 void actionMapping::registerActionEncoder1(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
@@ -67,33 +67,33 @@ void actionMapping::callActionHeader4() {
 };
 
 void actionMapping::callActionLeft1() {
-    if (buttonLeft_1.functionPointer != nullptr)
-        buttonLeft_1.functionPointer();
+    if (buttonLeft_1.handle.functionPointer != nullptr)
+        buttonLeft_1.handle.functionPointer();
 };
 
 void actionMapping::callActionLeft2() {
-    if (buttonLeft_2.functionPointer != nullptr)
-        buttonLeft_2.functionPointer();
+    if (buttonLeft_2.handle.functionPointer != nullptr)
+        buttonLeft_2.handle.functionPointer();
 };
 
 void actionMapping::callActionLeft3() {
-    if (buttonLeft_3.functionPointer != nullptr)
-        buttonLeft_3.functionPointer();
+    if (buttonLeft_3.handle.functionPointer != nullptr)
+        buttonLeft_3.handle.functionPointer();
 };
 
 void actionMapping::callActionRight1() {
-    if (buttonRight_1.functionPointer != nullptr)
-        buttonRight_1.functionPointer();
+    if (buttonRight_1.handle.functionPointer != nullptr)
+        buttonRight_1.handle.functionPointer();
 };
 
 void actionMapping::callActionRight2() {
-    if (buttonRight_2.functionPointer != nullptr)
-        buttonRight_2.functionPointer();
+    if (buttonRight_2.handle.functionPointer != nullptr)
+        buttonRight_2.handle.functionPointer();
 };
 
 void actionMapping::callActionRight3() {
-    if (buttonRight_3.functionPointer != nullptr)
-        buttonRight_3.functionPointer();
+    if (buttonRight_3.handle.functionPointer != nullptr)
+        buttonRight_3.handle.functionPointer();
 };
 
 void actionMapping::callActionEncoder_1_CW() {

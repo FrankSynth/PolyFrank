@@ -8,6 +8,13 @@ typedef struct {
     std::string name = "";
 } actionHandle;
 
+typedef enum { RELEASED, PRESSED } BUTTONSTATE;
+
+typedef struct {
+    actionHandle handle;
+    BUTTONSTATE state = RELEASED;
+} ButtonActionHandle; // for buttons with press state
+
 class actionMapping {
   public:
     void registerActionHeader(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
@@ -73,13 +80,12 @@ class actionMapping {
     actionHandle buttonHeader_3;
     actionHandle buttonHeader_4;
 
-    actionHandle buttonLeft_1;
-    actionHandle buttonLeft_2;
-    actionHandle buttonLeft_3;
-
-    actionHandle buttonRight_1;
-    actionHandle buttonRight_2;
-    actionHandle buttonRight_3;
+    ButtonActionHandle buttonLeft_1;
+    ButtonActionHandle buttonLeft_2;
+    ButtonActionHandle buttonLeft_3;
+    ButtonActionHandle buttonRight_1;
+    ButtonActionHandle buttonRight_2;
+    ButtonActionHandle buttonRight_3;
 
     actionHandle encoder1_CW;
     actionHandle encoder1_CCW;

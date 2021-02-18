@@ -43,7 +43,7 @@ class Footer_PanelBox {
 
   private:
     const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift24_FontInfo;
-    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; 
+    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
 
     actionHandle *main;
     actionHandle *secondary;
@@ -56,8 +56,8 @@ class Footer_PanelBox {
 
 class Side_PanelBox {
   public:
-    Side_PanelBox(actionHandle *Function, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
-        this->main = Function;
+    Side_PanelBox(ButtonActionHandle *actionHandle, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+        this->actionHandle = actionHandle;
 
         this->x = x;
         this->y = y;
@@ -71,7 +71,7 @@ class Side_PanelBox {
     const GUI_FONTINFO *fontBig = &GUI_FontBahnschriftSemiBold28_FontInfo;
     const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift24_FontInfo;
 
-    actionHandle *main;
+    ButtonActionHandle *actionHandle;
     uint16_t x;
     uint16_t y;
     uint16_t width;
