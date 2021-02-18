@@ -2,17 +2,18 @@
 
 #include "renderSteiner.hpp"
 
-#define INPUTWEIGHTING 1.0f
+extern Layer layerA;
 
 inline float accumulateLevel(Steiner &steiner, uint16_t voice) {
     return testFloat(steiner.iLevel.currentSample[voice] + steiner.aLevel.valueMapped, 0, 1);
 }
 inline float accumulateCutoff(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iCutoff.currentSample[voice] * INPUTWEIGHTING + steiner.aCutoff.valueMapped,
+    return testFloat(steiner.iCutoff.currentSample[voice] + steiner.aCutoff.valueMapped +
+                         layerA.adsrB.out.currentSample[voice] * steiner.aADSR.valueMapped,
                      steiner.aCutoff.min, steiner.aCutoff.max);
 }
 inline float accumulateResonance(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iResonance.currentSample[voice] * INPUTWEIGHTING + steiner.aResonance.valueMapped, 0, 1);
+    return testFloat(steiner.iResonance.currentSample[voice] + steiner.aResonance.valueMapped, 0, 1);
 }
 
 void renderSteiner(Steiner &steiner) {

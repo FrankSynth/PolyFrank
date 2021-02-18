@@ -15,9 +15,8 @@ inline float accumulateBitcrusher(Sub &sub, uint16_t voice) {
                      sub.aBitcrusher.max);
 }
 inline float accumulateSamplecrusher(Sub &sub, uint16_t voice) {
-    return testFloat(sub.iSamplecrusher.currentSample[voice] * sub.aSamplecrusher.valueMapped +
-                         sub.aSamplecrusher.valueMapped,
-                     sub.aSamplecrusher.min, sub.aSamplecrusher.max);
+    return testFloat(sub.iSamplecrusher.currentSample[voice] + sub.aSamplecrusher.valueMapped, sub.aSamplecrusher.min,
+                     sub.aSamplecrusher.max);
 }
 
 void renderSub(Sub &sub) {

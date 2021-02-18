@@ -2,6 +2,8 @@
 
 #include "renderGlobal.hpp"
 
+extern Layer layerA;
+
 LogCurve panningAntiLog(32, 0.94);
 
 inline float accumulatePan(GlobalModule globalModule, uint16_t voice) {
@@ -9,8 +11,9 @@ inline float accumulatePan(GlobalModule globalModule, uint16_t voice) {
                      globalModule.aPan.max);
 }
 inline float accumulateVCA(GlobalModule globalModule, uint16_t voice) {
-    return testFloat(globalModule.iVCA.currentSample[voice] + globalModule.aVCA.valueMapped, globalModule.aVCA.min,
-                     globalModule.aVCA.max);
+    return testFloat(globalModule.iVCA.currentSample[voice] + globalModule.aVCA.valueMapped +
+                         globalModule.aADSR.valueMapped * layerA.adsrA.out.currentSample[voice],
+                     globalModule.aVCA.min, globalModule.aVCA.max);
 }
 
 void renderGlobalModule(GlobalModule globalModule) {

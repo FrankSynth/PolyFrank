@@ -48,57 +48,68 @@ inline float calcRandom() {
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
-    return testFloat(lfo.iFreq.currentSample[voice] * lfo.aFreq.valueMapped + lfo.aFreq.valueMapped, lfo.aFreq.min,
-                     lfo.aFreq.max);
+    return testFloat(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline float accumulateShape(LFO &lfo, uint16_t voice) {
-    return testFloat(lfo.iShape.currentSample[voice] * lfo.aShape.valueMapped + lfo.aShape.valueMapped, lfo.aShape.min,
-                     lfo.aShape.max);
+    return testFloat(lfo.iShape.currentSample[voice] + lfo.aShape.valueMapped, lfo.aShape.min, lfo.aShape.max);
+}
+inline float accumulateAmount(LFO &lfo, uint16_t voice) {
+    return testFloat(lfo.iAmount.currentSample[voice] + lfo.aAmount.valueMapped, lfo.aAmount.min, lfo.aAmount.max);
 }
 
 void renderLFO(LFO &lfo) {
 
-    static bool alignedRandom = false;
     static int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
+    static float *currentRandom = lfo.currentRandom;
+    static float *phase = lfo.currentTime;
+    static bool *newPhase = lfo.newPhase;
+    float shape[VOICESPERCHIP];
+    float speed[VOICESPERCHIP];
+    float amount[VOICESPERCHIP];
+    float fract[VOICESPERCHIP];
+    float *nextSample = lfo.out.nextSample;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
-        float &currentRandom = lfo.currentRandom[voice];
-        float &phase = lfo.currentTime[voice];
-        float shape = accumulateShape(lfo, voice);
-        float speed = accumulateSpeed(lfo, voice);
-        float &nextSample = lfo.out.nextSample[voice];
-        // float &currentSample = lfo.out.currentSample[voice];
-        bool &newPhase = lfo.newPhase[voice];
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        shape[voice] = accumulateShape(lfo, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        speed[voice] = accumulateSpeed(lfo, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        amount[voice] = accumulateAmount(lfo, voice);
 
-        if (newPhase == false) {
-            phase += speed * secondsPerCVRender;
-            if (phase > 1.0f) {
-                phase -= 1.0f;
-                newPhase = true;
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        if (newPhase[voice] == false) {
+            phase[voice] += speed[voice] * secondsPerCVRender;
+            if (phase[voice] > 1.0f) {
+                phase[voice] -= 1.0f;
+                newPhase[voice] = true;
             }
         }
 
-        float fract = shape - std::floor(shape);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        fract[voice] = shape[voice] - std::floor(shape[voice]);
 
-        if (shape < 1) {
-            nextSample = fast_lerp_f32(calcSin(phase), calcRamp(phase), fract);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        if (shape[voice] < 1) {
+            nextSample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
         }
-        else if (shape < 2) {
-            nextSample = fast_lerp_f32(calcRamp(phase), calcTriangle(phase), fract);
+        else if (shape[voice] < 2) {
+            nextSample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
         }
-        else if (shape < 3) {
-            nextSample = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
+        else if (shape[voice] < 3) {
+            nextSample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
-        else if (shape < 4) {
-            nextSample = fast_lerp_f32(calcInvRamp(phase), calcSquare(phase, shape), fract);
+        else if (shape[voice] < 4) {
+            nextSample[voice] =
+                fast_lerp_f32(calcInvRamp(phase[voice]), calcSquare(phase[voice], shape[voice]), fract[voice]);
         }
-        else if (shape < 5) {
-            nextSample = calcSquare(phase, shape);
+        else if (shape[voice] < 5) {
+            nextSample[voice] = calcSquare(phase[voice], shape[voice]);
         }
         else {
             float random;
-            if (newPhase) {
+            if (newPhase[voice]) {
                 if (voice == 0) {
+                    static bool alignedRandom = false;
                     // re-seed once when they should be aligned
                     if (alignLFOs && alignedRandom == false) {
                         static uint32_t randSeed = 1;
@@ -110,27 +121,33 @@ void renderLFO(LFO &lfo) {
                     }
                 }
                 random = calcRandom();
-                currentRandom = random;
+                currentRandom[voice] = random;
             }
             else
-                random = currentRandom;
-            if (shape == 6.0f)
-                nextSample = random;
+                random = currentRandom[voice];
+            if (shape[voice] == 6.0f)
+                nextSample[voice] = random;
             else
-                nextSample = fast_lerp_f32(-1.0f, random, fract);
+                nextSample[voice] = fast_lerp_f32(-1.0f, random, fract[voice]);
         }
 
-        // check if all voices should output the same LFO
-        if (alignLFOs) {
-            for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
-                lfo.out.nextSample[otherVoice] = nextSample;
-            for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
-                lfo.newPhase[otherVoice] = newPhase;
+        if (alignLFOs)
             break;
-        }
-
-        newPhase = false;
     }
+
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        newPhase[voice] = false;
+
+    // check if all voices should output the same LFO
+    if (alignLFOs) {
+        for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+            lfo.out.nextSample[otherVoice] = nextSample[0];
+        for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+            lfo.newPhase[otherVoice] = newPhase[0];
+    }
+
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        nextSample[voice] = nextSample[voice] * amount[voice];
 }
 
 #endif

@@ -5,15 +5,12 @@
 
 extern Layer layerA;
 
-#define INPUTWEIGHTING 1.0f
-
 inline float accumulateLevel(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iLevel.currentSample[voice] + osc_a.aLevel.valueMapped, osc_a.aLevel.min, osc_a.aLevel.max);
 }
 inline float accumulateBitcrusher(OSC_A &osc_a, uint16_t voice) {
-    return testFloat(osc_a.iBitcrusher.currentSample[voice] * osc_a.aBitcrusher.valueMapped +
-                         osc_a.aBitcrusher.valueMapped,
-                     osc_a.aBitcrusher.min, osc_a.aBitcrusher.max);
+    return testFloat(osc_a.iBitcrusher.currentSample[voice] + osc_a.aBitcrusher.valueMapped, osc_a.aBitcrusher.min,
+                     osc_a.aBitcrusher.max);
 }
 inline float accumulateSamplecrusher(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iSamplecrusher.currentSample[voice] + osc_a.aSamplecrusher.valueMapped,

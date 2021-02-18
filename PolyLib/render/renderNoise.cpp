@@ -11,8 +11,7 @@ inline float accumulateLevel(Noise &noise, uint16_t voice) {
 //                      noise.aBitcrusher.max);
 // }
 inline float accumulateSamplecrusher(Noise &noise, uint16_t voice) {
-    return testFloat(noise.iSamplecrusher.currentSample[voice] * noise.aSamplecrusher.valueMapped +
-                         noise.aSamplecrusher.valueMapped,
+    return testFloat(noise.iSamplecrusher.currentSample[voice] + noise.aSamplecrusher.valueMapped,
                      noise.aSamplecrusher.min, noise.aSamplecrusher.max);
 }
 
