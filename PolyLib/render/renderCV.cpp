@@ -94,7 +94,7 @@ inline void writeDataToDACBuffer() {
     cvDacC.data.nextSample[0] = (1.0f - layerA.steiner.level.currentSample[0]) * 4095.0f;     // steiner level
     cvDacC.data.nextSample[1] = (1.0f - layerA.steiner.resonance.currentSample[0]) * 4095.0f; // steiner resonance
     cvDacC.data.nextSample[2] = (1.0f - layerA.steiner.toLadder.currentSample[0]) * 4095.0f; // steiner out to ladder in
-    cvDacC.data.nextSample[3] = (layerA.lfoA.out.currentSample[0] + 1) * 2047.0f;            // n/a
+    cvDacC.data.nextSample[3] = (layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 4095.0f;  // n/a
 }
 
 inline void setSwitches() {

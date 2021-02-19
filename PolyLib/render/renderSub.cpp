@@ -26,7 +26,7 @@ void renderSub(Sub &sub) {
     float *outLevelLadder = sub.levelLadder.nextSample;
     float *outBitcrusher = sub.bitcrusher.nextSample;
     float *outSamplecrusher = sub.samplecrusher.nextSample;
-    static int32_t &filterSwitch = sub.dVcfDestSwitch.valueMapped;
+     int32_t &filterSwitch = sub.dVcfDestSwitch.valueMapped;
 
     float level[VOICESPERCHIP];
 

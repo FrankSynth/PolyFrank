@@ -464,6 +464,9 @@ class LFO : public BaseModule {
     bool newPhase[VOICESPERCHIP] = {false};
     float currentRandom[VOICESPERCHIP] = {0};
 
+    bool alignedRandom = false;
+    uint32_t randSeed = 1;
+
     inline void resetPhase(uint16_t voice) {
         if (voice == 4) {
             resetAllPhases();
@@ -536,7 +539,7 @@ class ADSR : public BaseModule {
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 2, 1, true, linMap);
 
-    Digital dLoop = Digital("LOOP", 0, 1, 1, true, &nlOnOff, nullptr);
+    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
 

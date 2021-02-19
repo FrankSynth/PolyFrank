@@ -613,7 +613,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile uint8_t velocity = 0;
     volatile int32_t amountInt = 0;
     volatile float amountFloat = 0;
-    volatile float offsetFloat = 0;
+    // volatile float offsetFloat = 0;
 
     beginReceiveTransmission();
 

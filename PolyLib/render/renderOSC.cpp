@@ -24,7 +24,7 @@ inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
                    osc_a.dOctave.min, osc_a.dOctave.max);
 }
 
-static float noteConverted[VOICESPERCHIP];
+float noteConverted[VOICESPERCHIP];
 
 inline void accumulateNote(OSC_A &osc_a, float *note) {
     // TODO glide missing
@@ -56,7 +56,7 @@ void renderOSC_A(OSC_A &osc_A) {
     float *outSamplecrusher = osc_A.samplecrusher.nextSample;
     float *outLevelSteiner = osc_A.levelSteiner.nextSample;
     float *outLevelLadder = osc_A.levelLadder.nextSample;
-    static int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
+    int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
     float level[VOICESPERCHIP];
 
     accumulateNote(osc_A, outNote);
@@ -144,7 +144,7 @@ void renderOSC_B(OSC_B &osc_B) {
     float *outSamplecrusher = osc_B.samplecrusher.nextSample;
     float *outLevelSteiner = osc_B.levelSteiner.nextSample;
     float *outLevelLadder = osc_B.levelLadder.nextSample;
-    static int32_t &filterSwitch = osc_B.dVcfDestSwitch.valueMapped;
+    int32_t &filterSwitch = osc_B.dVcfDestSwitch.valueMapped;
     float level[VOICESPERCHIP];
 
     accumulateNote(osc_B, outNote);

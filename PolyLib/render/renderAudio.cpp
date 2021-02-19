@@ -5,27 +5,30 @@
 #include "render/renderAudioDef.h"
 #include "rng.h"
 #include <cmath>
-#include <valarray>
+#include <mdma.h>
 
 extern Layer layerA;
 
-RAM1 float oscAwavetableA[MAXWAVETABLELENGTH];
+RAM1 ALIGN_32BYTES(float oscAwavetableA[MAXWAVETABLELENGTH]);
 uint32_t oscAwavetableASize;
 uint32_t oscAwavetableACycles;
 float oscAwavetableASizePerCycle;
-RAM1 float oscAwavetableB[MAXWAVETABLELENGTH];
+RAM1 ALIGN_32BYTES(float oscAwavetableB[MAXWAVETABLELENGTH]);
 uint32_t oscAwavetableBSize;
 uint32_t oscAwavetableBCycles;
 float oscAwavetableBSizePerCycle;
 
-RAM1 float oscBwavetableA[MAXWAVETABLELENGTH];
+RAM1 ALIGN_32BYTES(float oscBwavetableA[MAXWAVETABLELENGTH]);
 uint32_t oscBwavetableASize;
 uint32_t oscBwavetableACycles;
 float oscBwavetableASizePerCycle;
-RAM1 float oscBwavetableB[MAXWAVETABLELENGTH];
+RAM1 ALIGN_32BYTES(float oscBwavetableB[MAXWAVETABLELENGTH]);
 uint32_t oscBwavetableBSize;
 uint32_t oscBwavetableBCycles;
 float oscBwavetableBSizePerCycle;
+
+// TODO check MDMAs
+// TODO implement more switches for all 8 different wavetable positions
 
 /**
  * @brief switch OscA Wavetable Slot B
@@ -36,7 +39,10 @@ void switchOscAWavetableA(wavetable wavetable) {
     oscAwavetableASize = wavetable.size;
     oscAwavetableACycles = wavetable.cycles;
     oscAwavetableASizePerCycle = wavetable.size / wavetable.cycles;
-    fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscAwavetableA, oscAwavetableASize);
+    // fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscAwavetableA, oscAwavetableASize);
+
+    HAL_MDMA_Start(&hmdma_mdma_channel41_sw_0, (uint32_t)wavetable.data, (uint32_t)oscAwavetableA,
+                   oscAwavetableASize * 4, 1);
 }
 
 /**
@@ -48,7 +54,10 @@ void switchOscAWavetableB(wavetable wavetable) {
     oscAwavetableBSize = wavetable.size;
     oscAwavetableBCycles = wavetable.cycles;
     oscAwavetableBSizePerCycle = wavetable.size / wavetable.cycles;
-    fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscAwavetableB, oscAwavetableBSize);
+    // fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscAwavetableB, oscAwavetableBSize);
+
+    HAL_MDMA_Start(&hmdma_mdma_channel42_sw_0, (uint32_t)wavetable.data, (uint32_t)oscAwavetableB,
+                   oscAwavetableBSize * 4, 1);
 }
 
 /**
@@ -60,7 +69,10 @@ void switchOscBWavetableA(wavetable wavetable) {
     oscBwavetableASize = wavetable.size;
     oscBwavetableACycles = wavetable.cycles;
     oscBwavetableASizePerCycle = wavetable.size / wavetable.cycles;
-    fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscBwavetableA, oscBwavetableASize);
+    // fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscBwavetableA, oscBwavetableASize);
+
+    HAL_MDMA_Start(&hmdma_mdma_channel43_sw_0, (uint32_t)wavetable.data, (uint32_t)oscBwavetableA,
+                   oscBwavetableASize * 4, 1);
 }
 
 /**
@@ -72,7 +84,10 @@ void switchOscBWavetableB(wavetable wavetable) {
     oscBwavetableBSize = wavetable.size;
     oscBwavetableBCycles = wavetable.cycles;
     oscBwavetableBSizePerCycle = wavetable.size / wavetable.cycles;
-    fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscBwavetableB, oscBwavetableBSize);
+    // fast_copy_f32((uint32_t *)wavetable.data, (uint32_t *)oscBwavetableB, oscBwavetableBSize);
+
+    HAL_MDMA_Start(&hmdma_mdma_channel44_sw_0, (uint32_t)wavetable.data, (uint32_t)oscBwavetableB,
+                   oscBwavetableBSize * 4, 1);
 }
 
 /**
