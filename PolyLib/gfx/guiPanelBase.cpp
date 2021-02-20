@@ -382,10 +382,31 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     // valueBar
     // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
-    valueBarWidth =
-        (float)valueBarWidth * (data->value - data->minInputValue) / (float)(data->maxInputValue - data->minInputValue);
+    if (data->min < 0) { // Centered ValueBar -> expect symmetric range
 
-    drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+        uint16_t centerX = relX + x + valueBarWidth / 2;
+        drawRectangleChampfered(cWhite, centerX, relY + y + 1, 1, valueBarHeigth - 2, 1); // center
+
+        if (data->value >= ((int32_t)(data->inputRange / 2) + data->minInputValue)) { // positive value
+            valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue - data->inputRange / 2) /
+                            (float)(data->inputRange);
+
+            drawRectangleChampfered(cWhite, centerX, relY + y, valueBarWidth, valueBarHeigth, 1);
+        }
+        else { // negative value
+
+            valueBarWidth = (float)valueBarWidth * ((data->inputRange / 2) - (data->value - data->minInputValue)) /
+                            (float)(data->inputRange);
+
+            drawRectangleChampfered(cWhite, centerX - valueBarWidth, relY + y, valueBarWidth, valueBarHeigth, 1);
+        }
+    }
+    else {
+        valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue) /
+                        (float)(data->maxInputValue - data->minInputValue);
+
+        drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    }
 }
 
 void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {

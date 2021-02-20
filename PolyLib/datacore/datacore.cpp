@@ -1,4 +1,5 @@
 #include "datacore.hpp"
+#include "debughelper/debughelper.hpp"
 
 LogCurve logMapping(32, 0.1);
 LogCurve antiLogMapping(32, 0.9);
@@ -38,11 +39,11 @@ void Analog::setValue(int32_t newValue) {
     }
     else if (mapping == logMap) {
         valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
-        valueMapped = logMapping.mapValue(valueMapped) * (max - min) + min;
+        valueMapped = logMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
     else if (mapping == antilogMap) {
         valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
-        valueMapped = antiLogMapping.mapValue(valueMapped) * (max - min) + min;
+        valueMapped = antiLogMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
 
 #ifdef POLYCONTROL
@@ -57,21 +58,33 @@ int32_t Analog::reverseMapping(float newValue) {
 
     newValue = testFloat(newValue, min, max);
 
+    if (min < 0) { // centered value
+        newValue = (newValue) / ((max - min) / 2);
+    }
+    else {
+        newValue = (newValue - min) / (max - min);
+    }
+
     int32_t reverseMapped = minInputValue;
 
     if (mapping == linMap) {
-        newValue = (newValue - min) / (max - min);
         reverseMapped = (int32_t)(newValue * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == antilogMap) {
-        newValue = (newValue - min) / (max - min);
-        reverseMapped = (int32_t)(logMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
+        reverseMapped =
+            (int32_t)(logMapping.mapValueSigned(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == logMap) {
-        newValue = (newValue - min) / (max - min);
-        reverseMapped = (int32_t)(antiLogMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
+        reverseMapped =
+            (int32_t)(antiLogMapping.mapValueSigned(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
-    return reverseMapped;
+
+    if (min < 0) { // centered value
+        return reverseMapped + inputRange / 2;
+    }
+    else {
+        return reverseMapped;
+    }
 }
 
 const std::string &Digital::getValueAsString() {

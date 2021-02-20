@@ -180,8 +180,8 @@ void eventControlTouch(uint16_t touchState) {
 
     touchEvaluteLayer[0].event(touchState, TOUCH_IO_PORT_A); // TODO sobald panel da weg damit
 
-    uint16_t pushEvent = (oldTouchState ^ touchState) & touchState;
-    uint16_t releaseEvent = (oldTouchState ^ touchState) ^ touchState;
+    uint16_t pushEvent = ~oldTouchState & touchState;
+    uint16_t releaseEvent = oldTouchState & ~touchState;
 
     // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
     if (pushEvent) {
@@ -199,21 +199,27 @@ void eventControlTouch(uint16_t touchState) {
         }
         if (pushEvent & (1 << 5)) {
             actionHandler.callActionLeft1();
+            actionHandler.buttonLeft_1.state = PRESSED;
         }
         if (pushEvent & (1 << 3)) {
             actionHandler.callActionLeft2();
+            actionHandler.buttonLeft_2.state = PRESSED;
         }
         if (pushEvent & (1 << 1)) {
             actionHandler.callActionLeft3();
+            actionHandler.buttonLeft_3.state = PRESSED;
         }
         if (pushEvent & (1 << 4)) {
             actionHandler.callActionRight1();
+            actionHandler.buttonRight_1.state = PRESSED;
         }
         if (pushEvent & (1 << 2)) {
             actionHandler.callActionRight2();
+            actionHandler.buttonRight_2.state = PRESSED;
         }
         if (pushEvent & (1 << 0)) {
             actionHandler.callActionRight3();
+            actionHandler.buttonRight_3.state = PRESSED;
         }
     }
 
@@ -227,16 +233,22 @@ void eventControlTouch(uint16_t touchState) {
         if (releaseEvent & (1 << 9)) {
         }
         if (releaseEvent & (1 << 5)) {
+            actionHandler.buttonLeft_1.state = RELEASED;
         }
         if (releaseEvent & (1 << 3)) {
+            actionHandler.buttonLeft_2.state = RELEASED;
         }
         if (releaseEvent & (1 << 1)) {
+            actionHandler.buttonLeft_3.state = RELEASED;
         }
         if (releaseEvent & (1 << 4)) {
+            actionHandler.buttonRight_1.state = RELEASED;
         }
         if (releaseEvent & (1 << 2)) {
+            actionHandler.buttonRight_2.state = RELEASED;
         }
         if (releaseEvent & (1 << 0)) {
+            actionHandler.buttonRight_3.state = RELEASED;
         }
     }
 

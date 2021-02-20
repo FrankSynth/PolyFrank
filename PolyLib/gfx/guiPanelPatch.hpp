@@ -61,7 +61,7 @@ class GUIPanelPatch : public GUIPanelBase {
     Scroller scrollSource = Scroller(PATCHPANELENTRYS);
     Scroller scrollTarget = Scroller(PATCHPANELENTRYS);
 
-    uint8_t flipView = 0;
+    uint8_t flipView = 1;
     uint8_t filteredView = 0;
 
     uint16_t absXPositions[3];

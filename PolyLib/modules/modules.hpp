@@ -348,7 +348,7 @@ class Steiner : public BaseModule {
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
-    Analog aADSR = Analog("ADSR", 0, 1, 1, true, linMap);
+    Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
 
@@ -388,7 +388,7 @@ class Ladder : public BaseModule {
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
-    Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
+    Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
 

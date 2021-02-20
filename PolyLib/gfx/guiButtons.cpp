@@ -33,15 +33,22 @@ void Footer_PanelBox::Draw() {
 }
 
 void Side_PanelBox::Draw() {
-    std::string mainName = main->name;
+    std::string mainName = actionHandle->handle.name;
 
     if (mainName.empty()) {
         mainName = "-";
     }
 
-    drawRectangleFill(cClear, x, y, width, heigth);
+    if (actionHandle->state == PRESSED) {
+        drawRectangleFill(cWhite, x, y, width, heigth);
 
-    drawString(mainName, cWhite, x + width / 2, y + (-fontSmall->size + heigth) / 2, fontSmall, CENTER);
+        drawString(mainName, cClear, x + width / 2, y + (-fontSmall->size + heigth) / 2, fontSmall, CENTER);
+    }
+    else {
+        drawRectangleFill(cClear, x, y, width, heigth);
+
+        drawString(mainName, cWhite, x + width / 2, y + (-fontSmall->size + heigth) / 2, fontSmall, CENTER);
+    }
 }
 
 void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID, uint16_t width, uint16_t height,
