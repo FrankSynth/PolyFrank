@@ -9,20 +9,20 @@
 
 extern Layer layerA;
 
-RAM1 ALIGN_32BYTES(float oscAwavetableA[MAXWAVETABLELENGTH]);
+RAM1 ALIGN_32BYTES(volatile float oscAwavetableA[MAXWAVETABLELENGTH]);
 uint32_t oscAwavetableASize;
 uint32_t oscAwavetableACycles;
 float oscAwavetableASizePerCycle;
-RAM1 ALIGN_32BYTES(float oscAwavetableB[MAXWAVETABLELENGTH]);
+RAM1 ALIGN_32BYTES(volatile float oscAwavetableB[MAXWAVETABLELENGTH]);
 uint32_t oscAwavetableBSize;
 uint32_t oscAwavetableBCycles;
 float oscAwavetableBSizePerCycle;
 
-RAM1 ALIGN_32BYTES(float oscBwavetableA[MAXWAVETABLELENGTH]);
+RAM1 ALIGN_32BYTES(volatile float oscBwavetableA[MAXWAVETABLELENGTH]);
 uint32_t oscBwavetableASize;
 uint32_t oscBwavetableACycles;
 float oscBwavetableASizePerCycle;
-RAM1 ALIGN_32BYTES(float oscBwavetableB[MAXWAVETABLELENGTH]);
+RAM1 ALIGN_32BYTES(volatile float oscBwavetableB[MAXWAVETABLELENGTH]);
 uint32_t oscBwavetableBSize;
 uint32_t oscBwavetableBCycles;
 float oscBwavetableBSizePerCycle;

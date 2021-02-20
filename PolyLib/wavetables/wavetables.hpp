@@ -4,6 +4,8 @@
 
 #define MINWAVETABLELENGTH 1746
 #define MAXWAVETABLELENGTH 13968
+// #define MINWAVETABLELENGTH 3491
+// #define MAXWAVETABLELENGTH 13964
 
 // TODO new wavetables for new samplerate
 

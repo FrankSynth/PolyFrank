@@ -85,7 +85,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -106,7 +106,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -127,7 +127,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -148,7 +148,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -169,7 +169,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -190,7 +190,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -211,7 +211,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
@@ -232,7 +232,7 @@ void MX_MDMA_Init(void) {
     hmdma_mdma_channel41_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_DOUBLEWORD;
     hmdma_mdma_channel41_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 128;
+    hmdma_mdma_channel41_sw_0.Init.BufferTransferLength = 8;
     hmdma_mdma_channel41_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.DestBurst = MDMA_DEST_BURST_8BEATS;
     hmdma_mdma_channel41_sw_0.Init.SourceBlockAddressOffset = 0;
