@@ -5,7 +5,7 @@
 
 #include "wavetables.hpp"
 
-const float wavetabledata_sinus01[3491] = {
+ALIGN_32BYTES(const float wavetabledata_sinus01[3491]) = {
     // start wavetable
 
     0.000000,  0.001800,  0.003600,  0.005399,  0.007199,  0.008999,  0.010799,  0.012598,  0.014398,  0.016198,

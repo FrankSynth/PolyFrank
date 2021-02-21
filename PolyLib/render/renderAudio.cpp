@@ -27,7 +27,6 @@ uint32_t oscBwavetableBSize;
 uint32_t oscBwavetableBCycles;
 float oscBwavetableBSizePerCycle;
 
-// TODO check MDMAs
 // TODO implement more switches for all 8 different wavetable positions
 
 /**

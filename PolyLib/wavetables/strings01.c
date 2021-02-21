@@ -5,7 +5,7 @@
 
 #include "wavetables.hpp"
 
-const float wavetabledata_strings01[6982] = { // start wavetable
+ALIGN_32BYTES(const float wavetabledata_strings01[6982]) = { // start wavetable
     0.0,
     -0.0002395868068560958,
     -0.00031011481769382954,

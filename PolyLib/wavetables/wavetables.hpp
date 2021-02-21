@@ -1,6 +1,8 @@
 #pragma once
 
+#include <main.h>
 #include <stdint.h>
+
 
 #define MINWAVETABLELENGTH 1746
 #define MAXWAVETABLELENGTH 13968

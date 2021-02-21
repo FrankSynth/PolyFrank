@@ -38,7 +38,6 @@ void PolyRenderInit() {
     allLayers.push_back(&layerA);
     layerA.resetLayer();
 
-    // TODO copy wavetables to RAM D1
     initAudioRendering();
 
     // empty buffers

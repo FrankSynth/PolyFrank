@@ -5,7 +5,7 @@
 
 #include "wavetables.hpp"
 
-const float wavetabledata_nylonGuitar01[13964] = { // start wavetable
+ALIGN_32BYTES(const float wavetabledata_nylonGuitar01[13964]) = { // start wavetable
     0.0, 0.007412806618958712, 0.016039172187447548, 0.025716768577694893, 
     0.03623044490814209, 0.037824466824531555, 0.03901812434196472, 
     0.03978333622217178, 0.040108244866132736, 0.040009934455156326, 
