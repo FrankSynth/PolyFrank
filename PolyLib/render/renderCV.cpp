@@ -15,6 +15,9 @@
 extern MCP4728 cvDacA;
 extern MCP4728 cvDacB;
 extern MCP4728 cvDacC;
+extern MCP4728 cvDacAx;
+extern MCP4728 cvDacBx;
+extern MCP4728 cvDacCx;
 
 extern Layer layerA;
 
@@ -38,6 +41,25 @@ void initCVRendering() {
     cvDacA.sendCurrentBuffer();
     cvDacB.sendCurrentBuffer();
     cvDacC.sendCurrentBuffer();
+
+    cvDacAx.data.currentSample[0] = 4095; // ladder resonance
+    cvDacAx.data.currentSample[1] = 4095; // distort
+    cvDacAx.data.currentSample[2] = 4095; // ladder cutoff
+    cvDacAx.data.currentSample[3] = 4095; // master vol right
+
+    cvDacBx.data.currentSample[0] = 0;    // n/a
+    cvDacBx.data.currentSample[1] = 4095; // master vol left
+    cvDacBx.data.currentSample[2] = 0;    // steiner cutoff
+    cvDacBx.data.currentSample[3] = 4095; // ladder level
+
+    cvDacCx.data.currentSample[0] = 4095; // steiner level
+    cvDacCx.data.currentSample[1] = 4095; // steiner resonance
+    cvDacCx.data.currentSample[2] = 4095; // steiner out to ladder in
+    cvDacCx.data.currentSample[3] = 0;
+
+    cvDacAx.sendCurrentBuffer();
+    cvDacBx.sendCurrentBuffer();
+    cvDacCx.sendCurrentBuffer();
 }
 
 inline void collectAllCurrentInputs() {
@@ -95,6 +117,22 @@ inline void writeDataToDACBuffer() {
     cvDacC.data.nextSample[1] = (1.0f - layerA.steiner.resonance.currentSample[0]) * 4095.0f; // steiner resonance
     cvDacC.data.nextSample[2] = (1.0f - layerA.steiner.toLadder.currentSample[0]) * 4095.0f; // steiner out to ladder in
     cvDacC.data.nextSample[3] = (layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 4095.0f;  // n/a
+
+    cvDacAx.data.nextSample[0] = (1.0f - layerA.ladder.resonance.currentSample[0]) * 4095.0f;   // ladder resonance
+    cvDacAx.data.nextSample[1] = (1.0f - layerA.distort.distort.currentSample[0]) * 4095.0f;    // distort
+    cvDacAx.data.nextSample[2] = (1.0f - layerA.ladder.cutoff.currentSample[0]) * 4095.0f;      // ladder cutoff
+    cvDacAx.data.nextSample[3] = (1.0f - layerA.globalModule.right.currentSample[0]) * 4095.0f; // master vol right
+
+    cvDacBx.data.nextSample[0] = 0;                                                            // n/a
+    cvDacBx.data.nextSample[1] = (1.0f - layerA.globalModule.left.currentSample[0]) * 4095.0f; // master vol left
+    cvDacBx.data.nextSample[2] = layerA.steiner.cutoff.currentSample[0] * 4095.0f;             // steiner cutoff
+    cvDacBx.data.nextSample[3] = (1.0f - layerA.ladder.level.currentSample[0]) * 4095.0f;      // ladder level
+
+    cvDacCx.data.nextSample[0] = (1.0f - layerA.steiner.level.currentSample[0]) * 4095.0f;     // steiner level
+    cvDacCx.data.nextSample[1] = (1.0f - layerA.steiner.resonance.currentSample[0]) * 4095.0f; // steiner resonance
+    cvDacCx.data.nextSample[2] =
+        (1.0f - layerA.steiner.toLadder.currentSample[0]) * 4095.0f;                         // steiner out to ladder in
+    cvDacCx.data.nextSample[3] = (layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 4095.0f; // n/a
 }
 
 inline void setSwitches() {

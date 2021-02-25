@@ -77,14 +77,14 @@ class MCP4728 {
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
             Error_Handler();
-            println("I2C Dac Transmit Error");
+            println("I2C | init | Dac Transmit Error");
         }
 
         initData = 0x8F; // set output reference to internal 2048mV
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
             Error_Handler();
-            println("I2C Dac Transmit Error");
+            println("I2C | init | Dac Transmit Error 2nd");
         }
 
         // HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
@@ -98,13 +98,16 @@ class MCP4728 {
         // uint8_t sendOut[8];
         uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
 
+        // FIXME unsafe, because buffer is in D2 domain? Slow. Move to sendToDAC
+
         bufferAsInt[0] = __REV16(dataAsInt[0]);
         bufferAsInt[1] = __REV16(dataAsInt[1]);
 
         // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
-        if (HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8) != HAL_OK) {
+        HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8);
+        if (ret != HAL_OK) {
             Error_Handler();
-            println("I2C DMA Transmit Error");
+            println("I2C | fastUpdate | DMA Transmit Error ", (uint32_t)ret);
         }
     }
 
@@ -116,7 +119,7 @@ class MCP4728 {
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, (uint8_t *)data.currentSample, 8, 50) != HAL_OK) {
             Error_Handler();
-            println("I2C Dac Transmit Error");
+            println("I2C | sendCurrentBuffer | Dac Transmit Error");
         }
     }
 

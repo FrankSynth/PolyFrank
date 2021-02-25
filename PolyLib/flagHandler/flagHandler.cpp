@@ -48,6 +48,11 @@ void initFlagHandler() {
     cvDacCStarted = false;
     cvDacCFinished = false;
 
+    cvDacAxStarted = false;
+    cvDacBxStarted = false;
+    cvDacCxStarted = false;
+    cvDacCxFinished = false;
+
     renderNewCV = false;
     renderNewCVFunc = nullptr;
 #endif
@@ -127,6 +132,11 @@ bool cvDacAStarted;
 bool cvDacBStarted;
 bool cvDacCStarted;
 bool cvDacCFinished;
+
+bool cvDacAxStarted;
+bool cvDacBxStarted;
+bool cvDacCxStarted;
+bool cvDacCxFinished;
 // std::function<void()> cvDacCFinishedFunc;
 
 bool renderNewCV;

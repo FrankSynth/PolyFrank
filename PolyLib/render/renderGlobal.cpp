@@ -27,7 +27,7 @@ void renderGlobalModule(GlobalModule globalModule) {
     float left[VOICESPERCHIP];
     float right[VOICESPERCHIP];
 
-    // TODO spread
+    // TODO spread, check modules.hpp notes regarding spread
     const float &spread = globalModule.aSpread.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)

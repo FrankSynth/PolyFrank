@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
+#include "wavetables/wavetables.hpp"
 #include <string>
 #include <vector>
 
@@ -130,7 +131,7 @@ class OSC_A : public BaseModule {
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -197,7 +198,7 @@ class OSC_B : public BaseModule {
 
     // Input iSync = Input("SYNC");
 
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
@@ -378,8 +379,6 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&level);
         renderBuffer.push_back(&cutoff);
     }
-    // TODO ADSR knob -1:1, render
-    // TODO ADSR knob -1:1, new UI stuff for knobs with that range?
 
     Input iCutoff = Input("CUTOFF");
     Input iResonance = Input("RESONANCE");
@@ -437,14 +436,12 @@ class LFO : public BaseModule {
         switches.push_back(&dClockStep);
         switches.push_back(&dAlignLFOs);
     }
-    // TODO Amount knob render
     Output out = Output("OUT");
 
+    // TODO check input log rendering
     Input iFreq = Input("FM", logMap);
     Input iShape = Input("SHAPE");
     Input iAmount = Input("AMOUNT");
-
-    // TODO ADSR Freq Modulation? lin/log afterwards?
 
     Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
@@ -601,7 +598,7 @@ class ADSR : public BaseModule {
 };
 
 class GlobalModule : public BaseModule {
-    // TODO VCA ADSR knob render
+    // TODO spread knob as output? Additional different spreading algos, and knob to selet those?
 
   public:
     GlobalModule(const char *name) : BaseModule(name) { // call subclass
