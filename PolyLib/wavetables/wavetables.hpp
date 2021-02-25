@@ -2,7 +2,6 @@
 
 #include <main.h>
 #include <stdint.h>
-#include <string>
 
 // 48k wavetable length
 #define MINWAVETABLELENGTH 1746
@@ -29,7 +28,7 @@ typedef struct {
     uint32_t cycles;
     float sizePerCycle;
     const float *data;
-    std::string name;
+    const char *name;
 
 } WaveTable;
 

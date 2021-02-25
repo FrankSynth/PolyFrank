@@ -30,17 +30,17 @@ PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
     // hi2c1.Instance->CR1 &= 0b1111111111101111;
-    hi2c2.Instance->CR1 &= ~I2C_CR1_NACKIE;
-    hi2c2.Instance->CR1 &= ~I2C_CR1_STOPIE;
-    hi2c2.Instance->CR1 &= ~I2C_CR1_RXIE;
-    hi2c2.Instance->CR1 &= ~I2C_CR1_ERRIE;
-    hi2c2.Instance->CR1 &= ~I2C_CR1_ADDRIE;
-    hi2c2.Instance->CR2 &= ~I2C_CR2_NACK;
+    // hi2c2.Instance->CR1 &= ~I2C_CR1_NACKIE;
+    // hi2c2.Instance->CR1 &= ~I2C_CR1_STOPIE;
+    // hi2c2.Instance->CR1 &= ~I2C_CR1_RXIE;
+    // hi2c2.Instance->CR1 &= ~I2C_CR1_ERRIE;
+    // hi2c2.Instance->CR1 &= ~I2C_CR1_ADDRIE;
+    // hi2c2.Instance->CR2 &= ~I2C_CR2_NACK;
 
     // CV DACs
-    cvDacAx.init();
-    cvDacBx.init();
-    cvDacCx.init();
+    // cvDacAx.init();
+    // cvDacBx.init();
+    // cvDacCx.init();
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
@@ -121,24 +121,24 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
             FlagHandler::cvDacCFinished = true;
         }
     }
-    else if (hi2c->Instance == hi2c2.Instance) {
-        if (FlagHandler::cvDacAxStarted) {
-            cvDacBx.fastUpdate();
+    // else if (hi2c->Instance == hi2c2.Instance) {
+    //     if (FlagHandler::cvDacAxStarted) {
+    //         cvDacBx.fastUpdate();
 
-            FlagHandler::cvDacAxStarted = false;
-            FlagHandler::cvDacBxStarted = true;
-        }
-        else if (FlagHandler::cvDacBxStarted) {
-            cvDacCx.fastUpdate();
+    //         FlagHandler::cvDacAxStarted = false;
+    //         FlagHandler::cvDacBxStarted = true;
+    //     }
+    //     else if (FlagHandler::cvDacBxStarted) {
+    //         cvDacCx.fastUpdate();
 
-            FlagHandler::cvDacBxStarted = false;
-            FlagHandler::cvDacCxStarted = true;
-        }
-        else if (FlagHandler::cvDacCxStarted) {
-            FlagHandler::cvDacCxStarted = false;
-            FlagHandler::cvDacCxFinished = true;
-        }
-    }
+    //         FlagHandler::cvDacBxStarted = false;
+    //         FlagHandler::cvDacCxStarted = true;
+    //     }
+    //     else if (FlagHandler::cvDacCxStarted) {
+    //         FlagHandler::cvDacCxStarted = false;
+    //         FlagHandler::cvDacCxFinished = true;
+    //     }
+    // }
 }
 // void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
 
@@ -183,9 +183,9 @@ inline void sendDACs() {
     cvDacA.switchIC2renderBuffer();
     cvDacB.switchIC2renderBuffer();
     cvDacC.switchIC2renderBuffer();
-    cvDacAx.switchIC2renderBuffer();
-    cvDacBx.switchIC2renderBuffer();
-    cvDacCx.switchIC2renderBuffer();
+    // cvDacAx.switchIC2renderBuffer();
+    // cvDacBx.switchIC2renderBuffer();
+    // cvDacCx.switchIC2renderBuffer();
 
     cvDacA.setLatchPin();
     cvDacB.setLatchPin();
@@ -194,8 +194,8 @@ inline void sendDACs() {
     // out DacB and DacC gets automatially triggered by flags when transmission is done
     cvDacA.fastUpdate();
     FlagHandler::cvDacAStarted = true;
-    cvDacAx.fastUpdate();
-    FlagHandler::cvDacAxStarted = true;
+    // cvDacAx.fastUpdate();
+    // FlagHandler::cvDacAxStarted = true;
 }
 
 // cv rendering timer IRQ

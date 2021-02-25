@@ -40,17 +40,13 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
         case 1: mdmaHandle = &hmdma_mdma_channel42_sw_0; break;
         case 2: mdmaHandle = &hmdma_mdma_channel43_sw_0; break;
         case 3: mdmaHandle = &hmdma_mdma_channel44_sw_0; break;
-        case 4: mdmaHandle = &hmdma_mdma_channel45_sw_0; break;
-        case 5: mdmaHandle = &hmdma_mdma_channel46_sw_0; break;
-        case 6: mdmaHandle = &hmdma_mdma_channel47_sw_0; break;
-        case 7: mdmaHandle = &hmdma_mdma_channel48_sw_0; break;
 
         default: PolyError_Handler("renderAudio | switchOscAWavetable | illegal position"); break;
     }
 
-    while (HAL_MDMA_GetState(mdmaHandle) == HAL_MDMA_STATE_BUSY) {
-        // wait for mdma to finish
-    }
+    // while (HAL_MDMA_GetState(mdmaHandle) == HAL_MDMA_STATE_BUSY) {
+    //     // wait for mdma to finish
+    // }
     HAL_MDMA_Start(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscAwavetableStorage[position],
                    oscAwavetable[position].size * 4, 1);
 }
@@ -69,21 +65,14 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
     MDMA_HandleTypeDef *mdmaHandle = nullptr;
 
     switch (position) {
-        case 0: mdmaHandle = &hmdma_mdma_channel41_sw_0; break;
-        case 1: mdmaHandle = &hmdma_mdma_channel42_sw_0; break;
-        case 2: mdmaHandle = &hmdma_mdma_channel43_sw_0; break;
-        case 3: mdmaHandle = &hmdma_mdma_channel44_sw_0; break;
-        case 4: mdmaHandle = &hmdma_mdma_channel45_sw_0; break;
-        case 5: mdmaHandle = &hmdma_mdma_channel46_sw_0; break;
-        case 6: mdmaHandle = &hmdma_mdma_channel47_sw_0; break;
-        case 7: mdmaHandle = &hmdma_mdma_channel48_sw_0; break;
+        case 0: mdmaHandle = &hmdma_mdma_channel45_sw_0; break;
+        case 1: mdmaHandle = &hmdma_mdma_channel46_sw_0; break;
+        case 2: mdmaHandle = &hmdma_mdma_channel47_sw_0; break;
+        case 3: mdmaHandle = &hmdma_mdma_channel48_sw_0; break;
 
         default: PolyError_Handler("renderAudio | switchOscBWavetable | illegal position"); break;
     }
 
-    while (HAL_MDMA_GetState(mdmaHandle) == HAL_MDMA_STATE_BUSY) {
-        // wait for mdma to finish
-    }
     HAL_MDMA_Start(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscBwavetableStorage[position],
                    oscBwavetable[position].size * 4, 1);
 }
@@ -94,10 +83,17 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  */
 void initAudioRendering() {
     // Osc A
-    // switchOscAWavetableA(wavetable_sinus01);
+    switchOscAWavetable(0, &wavetable_Sine);
+    switchOscAWavetable(1, &wavetable_Sine);
+    switchOscAWavetable(2, &wavetable_Sine);
+    switchOscAWavetable(3, &wavetable_Sine);
     // switchOscAWavetableB(wavetable_nylonGuitar01);
 
     // Osc B
+    switchOscBWavetable(0, &wavetable_Sine);
+    switchOscBWavetable(1, &wavetable_Sine);
+    switchOscBWavetable(2, &wavetable_Sine);
+    switchOscBWavetable(3, &wavetable_Sine);
     // switchOscBWavetableA(wavetable_sinus01);
     // switchOscBWavetableB(wavetable_wurli02);
 }
@@ -236,8 +232,8 @@ inline void getOscASample(float *sample) {
     float stepWavetableA[VOICESPERCHIP];
     float stepWavetableB[VOICESPERCHIP];
 
-    static WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
-    static WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableA[i] = &oscAwavetable[(uint32_t)morph[i]];
@@ -333,9 +329,14 @@ inline void getOscBSample(float *sample) {
     float sampleB[VOICESPERCHIP];
     float stepWavetableA[VOICESPERCHIP];
     float stepWavetableB[VOICESPERCHIP];
-    static WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
-    static WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
     static float checkWavetableLength[VOICESPERCHIP] = {0};
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableA[i] = &oscBwavetable[(uint32_t)morph[i]];
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableB[i] = &oscBwavetable[(uint32_t)std::ceil(morph[i])];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (oscAphaseWavetableA[i] >= 1.0f)
