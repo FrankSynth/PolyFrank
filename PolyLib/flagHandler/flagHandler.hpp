@@ -71,6 +71,11 @@ extern bool cvDacBStarted;
 extern bool cvDacCStarted;
 extern bool cvDacCFinished;
 
+extern bool cvDacAxStarted;
+extern bool cvDacBxStarted;
+extern bool cvDacCxStarted;
+extern bool cvDacCxFinished;
+
 extern bool renderNewCV;
 extern std::function<void()> renderNewCVFunc;
 

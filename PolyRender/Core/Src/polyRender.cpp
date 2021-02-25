@@ -15,6 +15,11 @@ MCP4728 cvDacA(&hi2c1, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMA
 MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABuffer[1]);
 MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABuffer[2]);
 
+RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferx[10][4]);
+MCP4728 cvDacAx(&hi2c2, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABufferx[0]);
+MCP4728 cvDacBx(&hi2c2, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABufferx[1]);
+MCP4728 cvDacCx(&hi2c2, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABufferx[2]);
+
 // Switch Ladder  //andere chip aber selbe logik
 TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port, switch_1_A_Pin,
                                    switch_1_B_GPIO_Port, switch_1_B_Pin);
@@ -24,8 +29,18 @@ RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCH
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
 void PolyRenderInit() {
+    // hi2c1.Instance->CR1 &= 0b1111111111101111;
+    hi2c2.Instance->CR1 &= ~I2C_CR1_NACKIE;
+    hi2c2.Instance->CR1 &= ~I2C_CR1_STOPIE;
+    hi2c2.Instance->CR1 &= ~I2C_CR1_RXIE;
+    hi2c2.Instance->CR1 &= ~I2C_CR1_ERRIE;
+    hi2c2.Instance->CR1 &= ~I2C_CR1_ADDRIE;
+    hi2c2.Instance->CR2 &= ~I2C_CR2_NACK;
 
     // CV DACs
+    cvDacAx.init();
+    cvDacBx.init();
+    cvDacCx.init();
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
@@ -90,19 +105,39 @@ void PolyRenderRun() {
 
 // cv DACs Send Callbacks
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-    if (FlagHandler::cvDacAStarted) {
-        cvDacB.fastUpdate();
-        FlagHandler::cvDacAStarted = false;
-        FlagHandler::cvDacBStarted = true;
+    if (hi2c->Instance == hi2c1.Instance) {
+        if (FlagHandler::cvDacAStarted) {
+            cvDacB.fastUpdate();
+            FlagHandler::cvDacAStarted = false;
+            FlagHandler::cvDacBStarted = true;
+        }
+        else if (FlagHandler::cvDacBStarted) {
+            cvDacC.fastUpdate();
+            FlagHandler::cvDacBStarted = false;
+            FlagHandler::cvDacCStarted = true;
+        }
+        else if (FlagHandler::cvDacCStarted) {
+            FlagHandler::cvDacCStarted = false;
+            FlagHandler::cvDacCFinished = true;
+        }
     }
-    else if (FlagHandler::cvDacBStarted) {
-        cvDacC.fastUpdate();
-        FlagHandler::cvDacBStarted = false;
-        FlagHandler::cvDacCStarted = true;
-    }
-    else if (FlagHandler::cvDacCStarted) {
-        FlagHandler::cvDacCStarted = false;
-        FlagHandler::cvDacCFinished = true;
+    else if (hi2c->Instance == hi2c2.Instance) {
+        if (FlagHandler::cvDacAxStarted) {
+            cvDacBx.fastUpdate();
+
+            FlagHandler::cvDacAxStarted = false;
+            FlagHandler::cvDacBxStarted = true;
+        }
+        else if (FlagHandler::cvDacBxStarted) {
+            cvDacCx.fastUpdate();
+
+            FlagHandler::cvDacBxStarted = false;
+            FlagHandler::cvDacCxStarted = true;
+        }
+        else if (FlagHandler::cvDacCxStarted) {
+            FlagHandler::cvDacCxStarted = false;
+            FlagHandler::cvDacCxFinished = true;
+        }
     }
 }
 // void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
@@ -148,6 +183,9 @@ inline void sendDACs() {
     cvDacA.switchIC2renderBuffer();
     cvDacB.switchIC2renderBuffer();
     cvDacC.switchIC2renderBuffer();
+    cvDacAx.switchIC2renderBuffer();
+    cvDacBx.switchIC2renderBuffer();
+    cvDacCx.switchIC2renderBuffer();
 
     cvDacA.setLatchPin();
     cvDacB.setLatchPin();
@@ -156,6 +194,8 @@ inline void sendDACs() {
     // out DacB and DacC gets automatially triggered by flags when transmission is done
     cvDacA.fastUpdate();
     FlagHandler::cvDacAStarted = true;
+    cvDacAx.fastUpdate();
+    FlagHandler::cvDacAxStarted = true;
 }
 
 // cv rendering timer IRQ
@@ -171,6 +211,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
         FlagHandler::renderNewCV = true;
         FlagHandler::cvDacCFinished = false;
+        FlagHandler::cvDacCxFinished = false;
 
         // waste just a little bit of time for ldacs to update properly
         volatile uint32_t count = 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
+#include "wavetables/wavetables.hpp"
 #include <string>
 #include <vector>
 
@@ -130,7 +131,7 @@ class OSC_A : public BaseModule {
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -197,7 +198,7 @@ class OSC_B : public BaseModule {
 
     // Input iSync = Input("SYNC");
 
-    Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
+    Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
