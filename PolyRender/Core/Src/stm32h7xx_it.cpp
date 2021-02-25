@@ -66,6 +66,14 @@ extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c3;
 extern I2C_HandleTypeDef hi2c4;
 extern MDMA_HandleTypeDef hmdma_mdma_channel40_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel41_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel42_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel43_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel44_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel45_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel46_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel47_sw_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel48_sw_0;
 extern DMA_HandleTypeDef hdma_sai1_a;
 extern SAI_HandleTypeDef hsai_BlockA1;
 extern DMA_HandleTypeDef hdma_spi1_rx;
@@ -466,6 +474,14 @@ void MDMA_IRQHandler(void) {
 
     /* USER CODE END MDMA_IRQn 0 */
     HAL_MDMA_IRQHandler(&hmdma_mdma_channel40_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel41_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel42_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel43_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel44_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel45_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel46_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel47_sw_0);
+    HAL_MDMA_IRQHandler(&hmdma_mdma_channel48_sw_0);
     /* USER CODE BEGIN MDMA_IRQn 1 */
 
     /* USER CODE END MDMA_IRQn 1 */

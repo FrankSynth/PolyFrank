@@ -2,8 +2,12 @@
 
 #include <stdint.h>
 
-#define MINWAVETABLELENGTH 3491
-#define MAXWAVETABLELENGTH 13964
+#define MINWAVETABLELENGTH 1746
+#define MAXWAVETABLELENGTH 13968
+// #define MINWAVETABLELENGTH 3491
+// #define MAXWAVETABLELENGTH 13964
+
+// TODO new wavetables for new samplerate
 
 /**
  * @brief wave table size, cycles and data pointer
@@ -11,7 +15,7 @@
  */
 typedef struct {
     /**
-     * @brief wave table size should be 3491, 6982, 10472, 13964
+     * @brief wave table size should be 1746, 3492, 5238, 6984, 13968
      *
      */
     const uint32_t size;

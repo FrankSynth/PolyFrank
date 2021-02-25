@@ -20,7 +20,7 @@ void renderNoise(Noise &noise) {
     float *outLevelLadder = noise.levelLadder.nextSample;
     // float *outBitcrusher = noise.bitcrusher.nextSample;
     float *outSamplecrusher = noise.samplecrusher.nextSample;
-    static int32_t &filterSwitch = noise.dVcfDestSwitch.valueMapped;
+    int32_t &filterSwitch = noise.dVcfDestSwitch.valueMapped;
 
     float level[VOICESPERCHIP];
 

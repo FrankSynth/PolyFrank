@@ -59,10 +59,10 @@ inline float accumulateAmount(LFO &lfo, uint16_t voice) {
 
 void renderLFO(LFO &lfo) {
 
-    static int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
-    static float *currentRandom = lfo.currentRandom;
-    static float *phase = lfo.currentTime;
-    static bool *newPhase = lfo.newPhase;
+    int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
+    float *currentRandom = lfo.currentRandom;
+    float *phase = lfo.currentTime;
+    bool *newPhase = lfo.newPhase;
     float shape[VOICESPERCHIP];
     float speed[VOICESPERCHIP];
     float amount[VOICESPERCHIP];
@@ -109,15 +109,14 @@ void renderLFO(LFO &lfo) {
             float random;
             if (newPhase[voice]) {
                 if (voice == 0) {
-                    static bool alignedRandom = false;
+                    lfo.alignedRandom = false;
                     // re-seed once when they should be aligned
-                    if (alignLFOs && alignedRandom == false) {
-                        static uint32_t randSeed = 1;
-                        std::srand(randSeed++);
-                        alignedRandom = true;
+                    if (alignLFOs && lfo.alignedRandom == false) {
+                        std::srand(lfo.randSeed++);
+                        lfo.alignedRandom = true;
                     }
                     else {
-                        alignedRandom = false;
+                        lfo.alignedRandom = false;
                     }
                 }
                 random = calcRandom();

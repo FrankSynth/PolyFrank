@@ -28,7 +28,7 @@ void renderGlobalModule(GlobalModule globalModule) {
     float right[VOICESPERCHIP];
 
     // TODO spread
-    static const float &spread = globalModule.aSpread.valueMapped;
+    const float &spread = globalModule.aSpread.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         vca[i] = accumulateVCA(globalModule, i);
