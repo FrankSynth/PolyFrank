@@ -135,6 +135,12 @@ void PolyControlInit() {
 
     // And turn the Display on
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
+
+    // Temp set Note
+
+    Key startKey = {80, 100, 0, 0, 0, 0};
+
+    liveData.voiceHandler.playNote(startKey);
 }
 
 void PolyControlRun() { // Here the party starts
