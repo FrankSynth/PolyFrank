@@ -47,7 +47,7 @@ void PolyControlInit() {
     HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
-    HAL_Delay(100);
+    HAL_Delay(1000);
 
     // CheckLayerStatus
     if (FlagHandler::interChipA_State[0] == READY && FlagHandler::interChipB_State[0] == READY) { // Layer A alive
