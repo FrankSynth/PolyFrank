@@ -1,5 +1,5 @@
 // Extracted wavetable from file SSMSquare.wav
-// This file contains 6984 samples with (probably) 8 cycles with 873.000000 samples per cycle
+// This file contains 6984 samples with 8 cycles with 873.000000 samples per cycle
 
 #ifdef POLYRENDER
 

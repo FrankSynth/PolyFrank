@@ -1,5 +1,5 @@
 // Extracted wavetable from file FeltPianoLow.wav
-// This file contains 6985 samples with (probably) 8 cycles with 873.125000 samples per cycle
+// This file contains 6985 samples with 8 cycles with 873.125000 samples per cycle
 
 #ifdef POLYRENDER
 

@@ -438,7 +438,6 @@ class LFO : public BaseModule {
     }
     Output out = Output("OUT");
 
-    // TODO check input log rendering
     Input iFreq = Input("FM", logMap);
     Input iShape = Input("SHAPE");
     Input iAmount = Input("AMOUNT");
@@ -599,6 +598,7 @@ class ADSR : public BaseModule {
 
 class GlobalModule : public BaseModule {
     // TODO spread knob as output? Additional different spreading algos, and knob to selet those?
+    // TODO master volume
 
   public:
     GlobalModule(const char *name) : BaseModule(name) { // call subclass

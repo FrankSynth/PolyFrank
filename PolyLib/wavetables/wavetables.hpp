@@ -9,19 +9,13 @@
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4
 
-// old 96k files
-// #define MINWAVETABLELENGTH 3491
-// #define MAXWAVETABLELENGTH 13964
-
-// TODO new wavetables for new samplerate
-
 /**
- * @brief wave table size, cycles and data pointer
+ * @brief wave table size, cycles, sizePerCycle, name and data pointer
  *
  */
 typedef struct {
     /**
-     * @brief wave table size should be smaller than 13968
+     * @brief wave table size must be smaller than 13968
      *
      */
     uint32_t size;
