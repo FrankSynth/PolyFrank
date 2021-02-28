@@ -100,9 +100,9 @@ class OSC_A : public BaseModule {
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
         inputs.push_back(&iLevel);
+        inputs.push_back(&iOctave);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
-        inputs.push_back(&iOctave);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
@@ -163,10 +163,10 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
         inputs.push_back(&iTuning);
+        inputs.push_back(&iOctave);
         inputs.push_back(&iLevel);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
-        inputs.push_back(&iOctave);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
@@ -597,7 +597,7 @@ class ADSR : public BaseModule {
 };
 
 class GlobalModule : public BaseModule {
-    // TODO spread knob as output? Additional different spreading algos, and knob to selet those?
+    // TODO spread knob as output? Additional different spreading algos, and knob to select those?
     // TODO master volume
 
   public:
@@ -622,7 +622,7 @@ class GlobalModule : public BaseModule {
 
     Analog aVCA = Analog("VCA", 0, 1, 1, true, linMap, &iVCA);
     Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
-    Analog aGlide = Analog("GLIDE", 0, 1, 0, true, logMap);
+    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);

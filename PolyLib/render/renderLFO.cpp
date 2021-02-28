@@ -78,7 +78,7 @@ void renderLFO(LFO &lfo) {
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
-            phase[voice] += speed[voice] * secondsPerCVRender;
+            phase[voice] += speed[voice] * SECONDSPERCVRENDER;
             if (phase[voice] > 1.0f) {
                 phase[voice] -= 1.0f;
                 newPhase[voice] = true;
