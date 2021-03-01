@@ -1,5 +1,5 @@
 // Extracted wavetable from file GuitarHigh.wav
-// This file contains 6985 samples with (probably) 32 cycles with 218.281250 samples per cycle
+// This file contains 6985 samples with 32 cycles with 218.281250 samples per cycle
 
 #ifdef POLYRENDER
 

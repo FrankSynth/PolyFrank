@@ -1,5 +1,5 @@
 // Extracted wavetable from file GuitarLow.wav
-// This file contains 6984 samples with (probably) 16 cycles with 436.500000 samples per cycle
+// This file contains 6984 samples with 16 cycles with 436.500000 samples per cycle
 
 #ifdef POLYRENDER
 

@@ -1,5 +1,5 @@
 // Extracted wavetable from file Saw.wav
-// This file contains 1747 samples with (probably) 1 cycles with 1747.000000 samples per cycle
+// This file contains 1747 samples with 1 cycles with 1747.000000 samples per cycle
 
 #ifdef POLYRENDER
 

@@ -1,5 +1,5 @@
 // Extracted wavetable from file SSMMix04.wav
-// This file contains 12980 samples with (probably) 30 cycles with 432.666667 samples per cycle
+// This file contains 12980 samples with 30 cycles with 432.666667 samples per cycle
 
 #ifdef POLYRENDER
 

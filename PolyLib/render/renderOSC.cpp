@@ -2,6 +2,7 @@
 
 #include "renderOSC.hpp"
 #include "math/polyMath.hpp"
+#include "renderCVDef.h"
 
 extern Layer layerA;
 
@@ -27,23 +28,34 @@ inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
 float noteConverted[VOICESPERCHIP];
 
 inline void accumulateNote(OSC_A &osc_a, float *note) {
-    // TODO glide missing
+    // TODO check glide
     // TODO detune missing
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / (float)12.0f;
+        noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / 12.0f;
 
     // TODO settings pitchbend range missing
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        noteConverted[i] += layerA.midi.oPitchbend.currentSample[i];
+        noteConverted[i] += layerA.midi.oPitchbend.currentSample[i]; // * pitchbendrange/12
+
+    static float currentNote[VOICESPERCHIP] = {0};
+    static float desiredNote[VOICESPERCHIP] = {0};
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] = noteConverted[i];
+        desiredNote[i] = noteConverted[i];
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] += accumulateOctave(osc_a, i);
+        desiredNote[i] += accumulateOctave(osc_a, i);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] += osc_a.iFM.currentSample[i];
+        if (currentNote[i] < desiredNote[i])
+            currentNote[i] =
+                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+        else
+            currentNote[i] =
+                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = currentNote[i] + osc_a.iFM.currentSample[i];
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = fastNoteLin2Log_f32(note[i]);
@@ -123,14 +135,25 @@ inline int32_t accumulateOctave(OSC_B &osc_b, uint16_t voice) {
 
 inline void accumulateNote(OSC_B &osc_b, float *note) {
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] = noteConverted[i];
+    static float currentNote[VOICESPERCHIP] = {0};
+    static float desiredNote[VOICESPERCHIP] = {0};
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] += accumulateOctave(osc_b, i);
+        desiredNote[i] = noteConverted[i];
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        note[i] += osc_b.iFM.currentSample[i];
+        desiredNote[i] += accumulateOctave(osc_b, i);
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        if (currentNote[i] < desiredNote[i])
+            currentNote[i] =
+                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+        else
+            currentNote[i] =
+                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] = currentNote[i] + osc_b.iFM.currentSample[i];
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = fastNoteLin2Log_f32(note[i]);

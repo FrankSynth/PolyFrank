@@ -1,7 +1,7 @@
 #ifdef POLYRENDER
 
 #include "renderADSR.hpp"
-#include "renderCV.hpp"
+#include "renderCVDef.h"
 
 extern Layer layerA;
 
@@ -61,7 +61,7 @@ void renderADSR(ADSR &adsr) {
                 }
                 else {
                     delay = accumulateDelay(adsr, voice);
-                    currentTime += secondsPerCVRender;
+                    currentTime += SECONDSPERCVRENDER;
                     if (currentTime >= delay)
                         adsr.setStatusAttack(voice);
                 }
@@ -69,7 +69,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice);
-                currentLevel += secondsPerCVRender / attack;
+                currentLevel += SECONDSPERCVRENDER / attack;
 
                 if (currentLevel >= 1) {
                     currentLevel = 1;
@@ -96,7 +96,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice);
-                currentLevel -= secondsPerCVRender / decay;
+                currentLevel -= SECONDSPERCVRENDER / decay;
 
                 sustain = accumulateSustain(adsr, voice);
                 if (currentLevel <= sustain) {
@@ -115,13 +115,13 @@ void renderADSR(ADSR &adsr) {
                     decay = accumulateDecay(adsr, voice);
 
                     if (currentLevel < sustain) {
-                        currentLevel += secondsPerCVRender / decay;
+                        currentLevel += SECONDSPERCVRENDER / decay;
                         if (currentLevel >= sustain) {
                             currentLevel = sustain;
                         }
                     }
                     else {
-                        currentLevel -= secondsPerCVRender / decay;
+                        currentLevel -= SECONDSPERCVRENDER / decay;
                         if (currentLevel <= sustain) {
                             currentLevel = sustain;
                         }
@@ -135,7 +135,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice);
-                currentLevel -= secondsPerCVRender / release;
+                currentLevel -= SECONDSPERCVRENDER / release;
 
                 if (currentLevel <= 0) {
                     currentLevel = 0;
