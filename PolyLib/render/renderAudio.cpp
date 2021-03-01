@@ -100,7 +100,7 @@ void initAudioRendering() {
 
 inline void bitcrush(float *dst, const float *bitcrush) {
 
-    uint32_t moveAmount[VOICESPERCHIP];
+    uint8_t moveAmount[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         moveAmount[i] = 23 - std::floor(bitcrush[i]);
 
@@ -123,7 +123,7 @@ inline void getNoiseSample(float *sample) {
     uint32_t randomNumber[VOICESPERCHIP];
     // uint32_t bitcrushBits[VOICESPERCHIP];
 
-    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
 
     // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
     //     bitcrusher[i] = layerA.noise.bitcrusher.currentSample[i];
@@ -185,7 +185,7 @@ inline void getSubSample(float *sample) {
 
     bitcrush(newSample, bitcrusher);
 
-    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
@@ -233,10 +233,31 @@ inline void getOscASample(float *sample) {
     WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
     WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
 
+    static uint8_t waveTableSelectionA[VOICESPERCHIP] = {0};
+    static uint8_t waveTableSelectionB[VOICESPERCHIP] = {0};
+    static uint8_t oldwaveTableSelectionA[VOICESPERCHIP] = {0};
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableA[i] = &oscAwavetable[(uint32_t)morph[i]];
+        waveTableSelectionA[i] = (uint8_t)morph[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableB[i] = &oscAwavetable[(uint32_t)std::ceil(morph[i])];
+        waveTableSelectionB[i] = (uint8_t)std::ceil(morph[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        if (waveTableSelectionA[i] == oldwaveTableSelectionA[i]) {
+        }
+        else if (waveTableSelectionA[i] < oldwaveTableSelectionA[i]) {
+            phaseWavetableB[i] = phaseWavetableA[i];
+            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        }
+        else {
+            phaseWavetableA[i] = phaseWavetableB[i];
+            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        }
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableA[i] = &oscAwavetable[waveTableSelectionA[i]];
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableB[i] = &oscAwavetable[waveTableSelectionB[i]];
 
     // make sure to be in the right step range
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
@@ -254,8 +275,8 @@ inline void getOscASample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         stepWavetableB[i] = phaseWavetableB[i] * wavetableB[i]->sizePerCycle;
 
-    uint32_t positionA[VOICESPERCHIP];
-    uint32_t positionAb[VOICESPERCHIP];
+    uint16_t positionA[VOICESPERCHIP];
+    uint16_t positionAb[VOICESPERCHIP];
     float interSampleAPos[VOICESPERCHIP];
     float sampleA[VOICESPERCHIP];
     float sampleAb[VOICESPERCHIP];
@@ -278,8 +299,8 @@ inline void getOscASample(float *sample) {
 
     fast_lerp_f32(sampleA, sampleAb, interSampleAPos, sampleA);
 
-    uint32_t positionB[VOICESPERCHIP];
-    uint32_t positionBb[VOICESPERCHIP];
+    uint16_t positionB[VOICESPERCHIP];
+    uint16_t positionBb[VOICESPERCHIP];
     float interSampleBPos[VOICESPERCHIP];
     float sampleB[VOICESPERCHIP];
     float sampleBb[VOICESPERCHIP];
@@ -317,7 +338,7 @@ inline void getOscASample(float *sample) {
 
     bitcrush(newSample, bitcrusher);
 
-    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
@@ -349,10 +370,31 @@ inline void getOscBSample(float *sample) {
     WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
     static float checkWavetableLength[VOICESPERCHIP] = {0};
 
+    static uint8_t waveTableSelectionA[VOICESPERCHIP] = {0};
+    static uint8_t waveTableSelectionB[VOICESPERCHIP] = {0};
+    static uint8_t oldwaveTableSelectionA[VOICESPERCHIP] = {0};
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableA[i] = &oscBwavetable[(uint32_t)morph[i]];
+        waveTableSelectionA[i] = (uint8_t)morph[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableB[i] = &oscBwavetable[(uint32_t)std::ceil(morph[i])];
+        waveTableSelectionB[i] = (uint8_t)std::ceil(morph[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        if (waveTableSelectionA[i] == oldwaveTableSelectionA[i]) {
+        }
+        else if (waveTableSelectionA[i] < oldwaveTableSelectionA[i]) {
+            phaseWavetableB[i] = phaseWavetableA[i];
+            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        }
+        else {
+            phaseWavetableA[i] = phaseWavetableB[i];
+            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        }
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableA[i] = &oscAwavetable[waveTableSelectionA[i]];
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableB[i] = &oscAwavetable[waveTableSelectionB[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (oscAphaseWavetableA[i] >= 1.0f)
@@ -390,8 +432,8 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         stepWavetableB[i] = phaseWavetableB[i] * wavetableB[i]->sizePerCycle;
 
-    uint32_t positionA[VOICESPERCHIP];
-    uint32_t positionAb[VOICESPERCHIP];
+    uint16_t positionA[VOICESPERCHIP];
+    uint16_t positionAb[VOICESPERCHIP];
     float interSampleAPos[VOICESPERCHIP];
     float sampleA[VOICESPERCHIP];
     float sampleAb[VOICESPERCHIP];
@@ -414,8 +456,8 @@ inline void getOscBSample(float *sample) {
 
     fast_lerp_f32(sampleA, sampleAb, interSampleAPos, sampleA);
 
-    uint32_t positionB[VOICESPERCHIP];
-    uint32_t positionBb[VOICESPERCHIP];
+    uint16_t positionB[VOICESPERCHIP];
+    uint16_t positionBb[VOICESPERCHIP];
     float interSampleBPos[VOICESPERCHIP];
     float sampleB[VOICESPERCHIP];
     float sampleBb[VOICESPERCHIP];
@@ -453,7 +495,7 @@ inline void getOscBSample(float *sample) {
 
     bitcrush(newSample, bitcrusher);
 
-    static uint32_t sampleCrushCount[VOICESPERCHIP] = {0};
+    static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
