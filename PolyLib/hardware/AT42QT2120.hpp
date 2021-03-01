@@ -26,7 +26,7 @@ class AT42QT2120 {
     void init() {
 
         // hardware init.. need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
-        HAL_Delay(25);
+        HAL_Delay(100);
         initDone = 1;
 
         readTouchStatus();

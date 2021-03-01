@@ -1,6 +1,8 @@
 #ifdef POLYCONTROL
 #include "arp.hpp"
 
+extern Clock clock;
+
 // functions
 void Arpeggiator::keyPressed(Key &key) {
     allKeysReleased = 1;
@@ -283,14 +285,14 @@ void Arpeggiator::mode_down() {
     }
     if (restarted) {
         decreaseArpOct();
-        stepArp = orderedKeys.size() - 1;
+        stepArp = (int16_t)(orderedKeys.size()) - 1;
         restarted = 0;
     }
     else {
         // if arp size increased by one, a note would be repeated, so instead, we increase further
         do {
-            stepArp = changeIntLoop(stepArp, -1, 0, orderedKeys.size() - 1);
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            stepArp = changeIntLoop(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 
@@ -301,7 +303,7 @@ void Arpeggiator::mode_down2() {
     }
     if (restarted) {
         decreaseArpOct();
-        stepArp = orderedKeys.size() - 1;
+        stepArp = (int16_t)(orderedKeys.size()) - 1;
         restarted = 0;
         direction = 0;
     }
@@ -314,20 +316,20 @@ void Arpeggiator::mode_down2() {
                     stepArp = 0;
                 }
                 else if (nextArpStep < -1) {
-                    stepArp = orderedKeys.size() - 1;
+                    stepArp = (int16_t)(orderedKeys.size()) - 1;
                 }
                 else {
                     stepArp = nextArpStep;
-                    if (!(nextArpStep == 0 && orderedKeys.size() % 2 == 0))
+                    if (!(nextArpStep == 0 && (int16_t)(orderedKeys.size()) % 2 == 0))
                         direction = 1;
                 }
             }
             else {
-                stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1, true);
+                stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1, true);
 
                 direction = 0;
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 
@@ -337,7 +339,7 @@ void Arpeggiator::mode_down3() {
     }
     if (restarted) {
         decreaseArpOct();
-        stepArp = orderedKeys.size() - 1;
+        stepArp = (int16_t)(orderedKeys.size()) - 1;
         restarted = 0;
         direction = 0;
     }
@@ -346,35 +348,35 @@ void Arpeggiator::mode_down3() {
         if (direction < 2) {
             do {
                 if (stepArp == 0) {
-                    stepArp = orderedKeys.size() - 1;
+                    stepArp = (int16_t)(orderedKeys.size()) - 1;
                     direction = 0 - 1;
                 }
                 else {
-                    stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1, true);
+                    stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1, true);
                 }
-            } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
             direction++;
         }
         else {
             do {
                 if (stepArp == 0) {
-                    stepArp = orderedKeys.size() - 1;
+                    stepArp = (int16_t)(orderedKeys.size()) - 1;
                 }
                 else {
-                    if (stepArp == orderedKeys.size() - 1) {
+                    if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                         stepArp = 0;
                     }
                     else {
-                        stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1, true);
+                        stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1, true);
                     }
                 }
-            } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
             direction = 0;
         }
     }
 }
 void Arpeggiator::mode_ordr() {
-    if (stepArp == orderedKeys.size() - 1) {
+    if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
         increaseArpOct();
     }
     if (restarted) {
@@ -385,12 +387,12 @@ void Arpeggiator::mode_ordr() {
     else {
         // if arp size increased by one, a note would be repeated, so instead, we increase further
         do {
-            stepArp = changeIntLoop(stepArp, 1, 0, orderedKeys.size() - 1);
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            stepArp = changeIntLoop(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 void Arpeggiator::mode_up2() {
-    if (stepArp == orderedKeys.size() - 1 && direction > 0) {
+    if (stepArp == (int16_t)(orderedKeys.size()) - 1 && direction > 0) {
         increaseArpOct();
     }
     if (restarted) {
@@ -404,29 +406,30 @@ void Arpeggiator::mode_up2() {
         do {
             if (direction > 0) {
                 int16_t nextArpStep = (int16_t)stepArp + 2;
-                if (nextArpStep == (int16_t)orderedKeys.size()) {
-                    stepArp = orderedKeys.size() - 1;
+                if (nextArpStep == (int16_t)(int16_t)(orderedKeys.size())) {
+                    stepArp = (int16_t)(orderedKeys.size()) - 1;
                     if (orderedKeys[stepArp].note == arpKey.note)
                         stepArp = 0;
                 }
-                else if (nextArpStep > (int16_t)orderedKeys.size()) {
+                else if (nextArpStep > (int16_t)(int16_t)(orderedKeys.size())) {
                     stepArp = 0;
                 }
                 else {
                     stepArp = nextArpStep;
-                    if (!(nextArpStep == (int16_t)orderedKeys.size() - 1 && orderedKeys.size() % 2 == 0))
+                    if (!(nextArpStep == (int16_t)(int16_t)(orderedKeys.size()) - 1 &&
+                          (int16_t)(orderedKeys.size()) % 2 == 0))
                         direction = 0;
                 }
             }
             else {
-                stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1, true);
+                stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1, true);
                 direction = 1;
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 void Arpeggiator::mode_up3() {
-    if (stepArp == orderedKeys.size() - 1) {
+    if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
         increaseArpOct();
     }
     if (restarted) {
@@ -439,35 +442,35 @@ void Arpeggiator::mode_up3() {
         // if arp size increased by one, a note would be repeated, so instead, we increase further
         if (direction > 0) {
             do {
-                if (stepArp == orderedKeys.size() - 1) {
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                     stepArp = 0;
                     direction = 2 + 1;
                 }
                 else {
-                    stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1, true);
+                    stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1, true);
                 }
-            } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
             direction--;
         }
         else {
             do {
 
-                if (stepArp == orderedKeys.size() - 1) {
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                     stepArp = 0;
                 }
                 else {
                     if (stepArp == 0)
-                        stepArp = orderedKeys.size() - 1;
+                        stepArp = (int16_t)(orderedKeys.size()) - 1;
                     else
-                        stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1, true);
+                        stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1, true);
                 }
-            } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+            } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
             direction = 2;
         }
     }
 }
 void Arpeggiator::mode_rnd() {
-    if (randomCounter == orderedKeys.size() - 1) {
+    if (randomCounter == (int16_t)(orderedKeys.size()) - 1) {
         increaseArpOct();
     }
     if (restarted) {
@@ -476,9 +479,9 @@ void Arpeggiator::mode_rnd() {
         restarted = 0;
     }
     else {
-        randomCounter = changeIntLoop(randomCounter, 1, 0, orderedKeys.size() - 1);
+        randomCounter = changeIntLoop(randomCounter, 1, 0, (int16_t)(orderedKeys.size()) - 1);
     }
-    stepArp = std::rand() * orderedKeys.size() / RAND_MAX;
+    stepArp = std::rand() * (int16_t)(orderedKeys.size()) / RAND_MAX;
 }
 void Arpeggiator::mode_updown() {
     if (restarted) {
@@ -495,14 +498,14 @@ void Arpeggiator::mode_updown() {
 
             // going up
             if (direction > 0) {
-                stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1);
-                if (stepArp == orderedKeys.size() - 1) {
+                stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1);
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                     direction = 0;
                 }
             }
             // going down
             else {
-                stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1);
+                stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1);
                 if (stepArp == 0) {
                     direction = 1;
                     if (octaveDirection == 1) {
@@ -513,7 +516,7 @@ void Arpeggiator::mode_updown() {
                     }
                 }
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 void Arpeggiator::mode_uprdownr() {
@@ -531,8 +534,8 @@ void Arpeggiator::mode_uprdownr() {
 
             // going up
             if (direction > 0) {
-                stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1);
-                if (stepArp == orderedKeys.size() - 1) {
+                stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1);
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                     if (!stepRepeat) {
                         stepRepeat = 1;
                         direction = 0;
@@ -544,7 +547,7 @@ void Arpeggiator::mode_uprdownr() {
             }
             // going down
             else {
-                stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1);
+                stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1);
                 if (stepArp == 0) {
                     if (!stepRepeat) {
                         stepRepeat = 1;
@@ -561,7 +564,7 @@ void Arpeggiator::mode_uprdownr() {
                     }
                 }
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1 && !stepRepeat);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1 && !stepRepeat);
     }
 }
 void Arpeggiator::mode_downup() {
@@ -569,7 +572,7 @@ void Arpeggiator::mode_downup() {
         decreaseArpOct();
         direction = 0;
         octaveDirection = 0;
-        stepArp = orderedKeys.size() - 1;
+        stepArp = (int16_t)(orderedKeys.size()) - 1;
         restarted = 0;
     }
     else {
@@ -578,8 +581,8 @@ void Arpeggiator::mode_downup() {
 
             // going up
             if (direction > 0) {
-                stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1);
-                if (stepArp == orderedKeys.size() - 1) {
+                stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1);
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
 
                     direction = 0;
                     if (octaveDirection == 1) {
@@ -592,12 +595,12 @@ void Arpeggiator::mode_downup() {
             }
             // going down
             else {
-                stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1);
+                stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1);
                 if (stepArp == 0) {
                     direction = 1;
                 }
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1);
     }
 }
 
@@ -606,7 +609,7 @@ void Arpeggiator::mode_downrupr() {
         decreaseArpOct();
         direction = 0;
         octaveDirection = 0;
-        stepArp = orderedKeys.size() - 1;
+        stepArp = (int16_t)(orderedKeys.size()) - 1;
         restarted = 0;
         stepRepeat = 1;
     }
@@ -616,8 +619,8 @@ void Arpeggiator::mode_downrupr() {
 
             // going up
             if (direction > 0) {
-                stepArp = changeInt(stepArp, 1, 0, orderedKeys.size() - 1);
-                if (stepArp == orderedKeys.size() - 1) {
+                stepArp = changeInt(stepArp, 1, 0, (int16_t)(orderedKeys.size()) - 1);
+                if (stepArp == (int16_t)(orderedKeys.size()) - 1) {
                     if (!stepRepeat) {
                         stepRepeat = 1;
 
@@ -636,7 +639,7 @@ void Arpeggiator::mode_downrupr() {
             }
             // going down
             else {
-                stepArp = changeInt(stepArp, -1, 0, orderedKeys.size() - 1);
+                stepArp = changeInt(stepArp, -1, 0, (int16_t)(orderedKeys.size()) - 1);
                 if (stepArp == 0) {
                     if (!stepRepeat) {
                         stepRepeat = 1;
@@ -647,7 +650,7 @@ void Arpeggiator::mode_downrupr() {
                     }
                 }
             }
-        } while (orderedKeys[stepArp].note == arpKey.note && orderedKeys.size() > 1 && !stepRepeat);
+        } while (orderedKeys[stepArp].note == arpKey.note && (int16_t)(orderedKeys.size()) > 1 && !stepRepeat);
     }
 }
 #endif

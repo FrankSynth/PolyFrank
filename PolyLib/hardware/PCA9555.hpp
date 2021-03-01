@@ -45,7 +45,7 @@ class PCA9555 {
 
         PinState = newPinState;
 
-        return __REV16(PinState); // return number of leading zeros
+        return __REV16(PinState);
     }
 
     void readInputs() {
@@ -54,11 +54,11 @@ class PCA9555 {
         uint8_t command = 0x01; // COMMANDBYTE // read Port 1 and 0
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, &command, 1, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | PCA9555 -> i2c transmit failed");
         }
 
         if (HAL_I2C_Master_Receive(i2cHandle, i2cDeviceAddress, (uint8_t *)&newPinState, 2, 50) != HAL_OK) {
-            Error_Handler();
+            PolyError_Handler("ERROR | COMMUNICATION | PCA9555 -> i2c receive failed");
         }
     }
 

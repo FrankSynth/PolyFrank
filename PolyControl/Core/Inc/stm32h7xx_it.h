@@ -76,6 +76,8 @@ void DMA2D_IRQHandler(void);
 void MDMA_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 void OTG_HS_IRQHandler(void);
+void TIM5_IRQHandler(void);
+
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

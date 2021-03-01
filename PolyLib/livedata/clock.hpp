@@ -2,6 +2,7 @@
 
 #include "liveDataBase.hpp"
 
+
 class Clock {
   public:
     void tick() {
@@ -42,4 +43,20 @@ class Clock {
 
     float bpm = 120;
 };
-extern Clock clock;
+
+class ClockSource {
+  public:
+    ClockSource() { clockBPM.useAcceleration = 1; } // enable acceleration on the BPM value
+    void serviceRoutine() {
+        static int32_t lastBPM = 0;
+        if (lastBPM != clockBPM.value) {
+
+            uint32_t periode = (60000000 / (clockBPM.value * 24)) - 1;
+            __HAL_TIM_SET_AUTORELOAD(&htim5, periode);
+            // htim5.Instance->ARR = periode;
+            // println("set clockPeriod  : ", periode);
+        }
+        lastBPM = clockBPM.value;
+    }
+    Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary);
+};

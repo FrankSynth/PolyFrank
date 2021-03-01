@@ -16,7 +16,7 @@ class MAX11128 {
         this->nChannels = nChannels;
     }
 
-    void init() {
+    uint8_t init() {
 
         // config register
 
@@ -47,25 +47,21 @@ class MAX11128 {
 
         uint32_t resetCommand = 0x40; // reset command
 
-        // microsecondsDelay(500);
-
         // Reset the ADC for a clean start!
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&resetCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
             PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
+            return 1;
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-
-        // microsecondsDelay(500);
 
         // Send Config Register
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
         if (HAL_SPI_Transmit(spi, (uint8_t *)&commandConfigRegister32, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
             PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
+            return 1;
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         microsecondsDelay(50);
@@ -75,9 +71,11 @@ class MAX11128 {
         if (HAL_SPI_Transmit(spi, (uint8_t *)&standardSampleCommand, 1, 50) != HAL_OK) {
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
             PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
+            return 1;
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+
+        return 0;
     }
 
     void fetchNewData() {
@@ -95,7 +93,6 @@ class MAX11128 {
             if (HAL_SPI_TransmitReceive(spi, (uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1, 50) != HAL_OK) {
                 HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
                 PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI RECEIVE");
-                Error_Handler();
                 return;
             }
             HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);

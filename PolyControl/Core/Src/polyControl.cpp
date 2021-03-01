@@ -258,7 +258,7 @@ inline void midiAfterTouch(uint8_t channel, byte value) {
     liveData.controlChange(channel, midi::AfterTouchChannel, value);
 }
 inline void midiClock() {
-    liveData.clockTick();
+    liveData.midiClockTick();
 }
 void initMidi() {
     mididevice.setHandleNoteOn(midiNoteOn);
@@ -345,5 +345,13 @@ void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
 
     if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // FS Connected
         FlagHandler::USB_HS_CONNECTED = true;
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // internal Clock interrupt
+                                                              //  println("timer Interrupt");
+
+    if (htim->Instance == htim5.Instance) {
+        liveData.internalClockTick();
     }
 }

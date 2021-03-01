@@ -107,6 +107,7 @@ class Setting : public DataElement {
     int32_t min;
     int32_t max;
     uint8_t disable;
+    uint8_t useAcceleration = 0;
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
@@ -547,7 +548,12 @@ inline const std::string &Analog::getValueAsString() {
     return valueName;
 }
 inline void Setting::increase(int32_t amount) {
-    value = changeInt(value, amount, min, max);
+    if (useAcceleration) {
+        value = changeInt(value, testInt((max - min) / 2 * ROTARYENCODERACELLARATION, 1, max), min, max);
+    }
+    else {
+        value = changeInt(value, amount, min, max);
+    }
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
@@ -558,7 +564,12 @@ inline void Setting::increase(int32_t amount) {
 }
 
 inline void Setting::decrease(int32_t amount) {
-    value = changeInt(value, amount, min, max);
+    if (useAcceleration) {
+        value = changeInt(value, -testInt((max - min) / 2 * ROTARYENCODERACELLARATION, 1, max), min, max);
+    }
+    else {
+        value = changeInt(value, amount, min, max);
+    }
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);

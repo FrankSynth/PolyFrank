@@ -92,12 +92,27 @@ void LiveData::keyReleased(uint8_t channel, uint8_t note) {
     }
 }
 
-void LiveData::clockTick() {
-    clock.tick();
+void LiveData::midiClockTick() {
+    if (livemodeClockSource.value == 1) { // clock source == midi
+        clock.tick();
+    }
+}
+
+void LiveData::internalClockTick() {
+    if (livemodeClockSource.value == 2) { // clock source == internal tick
+        clock.tick();
+    }
+}
+
+void LiveData::externalClockTick() {
+    if (livemodeClockSource.value == 0) { // clock source == external Sync
+        clock.tick();
+    }
 }
 
 void LiveData::serviceRoutine() {
 
+    internalClock.serviceRoutine();
     arpA.serviceRoutine();
     arpB.serviceRoutine();
 

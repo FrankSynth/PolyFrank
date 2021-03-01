@@ -26,22 +26,23 @@ IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 4, 0), IS31F
                                              {IS31FL3216(&hi2c3, 0, 4, 1), IS31FL3216(&hi2c3, 0, 5, 1),
                                               IS31FL3216(&hi2c3, 0, 6, 1), IS31FL3216(&hi2c3, 0, 7, 1)}};
 
+// Objects for evaluating Touch State for the Panel
 PanelTouch touchEvaluteLayer[2] = {PanelTouch(0), PanelTouch(1)};
 
 // Potentiomer ADC
 MAX11128 adc[] = {MAX11128(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin),
                   MAX11128(&hspi2, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin)};
 
-// 2 multiplexer connectec at the same control lines
+// Both multiplexer connected at the same control lines
 TS3A5017D multiplexer(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
                       Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
 
-// array for functionPoint for Poti mapping
-std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16]; // number layer, number multplex, number channels
+// Poti mapping array of function pointer
+std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16]; // number layer, number multiplex, number channels
 
 void initHID() {
 
-    // register flagHandler functions
+    //// register flagHandler functions ////
 
     // Control
     FlagHandler::Control_Touch_ISR = std::bind(processControlTouch);
@@ -54,7 +55,7 @@ void initHID() {
 
     initPotiMapping();
 
-    // ControlBoard controls
+    //// ControlBoard controls ////
     // register encoder
     ioExpander.init();
     encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
@@ -79,13 +80,12 @@ void initHID() {
 
     // init Control touch IC
 
-    // touchControl.init();  //TODO temp einmal switchen bitte wenn Control Panel dran
-    if (allLayers[0]->LayerState.value == 1) {
-        touchControl.init();
-    }
-    // HAL_Delay(50);
+    touchControl.init();
 
-    // Panel Controls:
+    //// Panel Control ////
+
+    elapsedMillis timeout;
+    timeout = 0;
 
     // init Panels
     for (size_t i = 0; i < 2; i++) {
@@ -101,9 +101,15 @@ void initHID() {
                     ledDriver[i][x].init(); // init LED driver}
                 }
             }
-            adc[i].init(); // ini analog-digital converter
+            timeout = 0;
+            while (adc[i].init()) { // init analog-digital converter
+                if (timeout > 100) {
+                    PolyError_Handler("ERROR | INIT | Panel ADC init failed -> timeout");
+                }
+            }
         }
     }
+
     multiplexer.enableChannels(); // multiplexer for both layer
 }
 
