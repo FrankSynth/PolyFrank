@@ -67,7 +67,7 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, EEPROM_CS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, EEPROM_CS_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(GPIOA, Layer_2_CS_1_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */

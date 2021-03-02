@@ -273,9 +273,9 @@ EepromOperations EEPROM_SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint
         /* Send WriteAddr address byte to read from */
         EEPROM_SPI_SendInstruction(header, 4);
 
-        while (HAL_SPI_Receive(EEPROM_SPI, pToBuffer, nbBytes, 200) == HAL_BUSY) {
-            HAL_Delay(1);
-        };
+        if (HAL_SPI_Receive(EEPROM_SPI, pToBuffer, nbBytes, 200) != HAL_OK) {
+            println("ERROR | COMMUNICATION | EEPROM spi receive failed");
+        }
 
         // Deselect the EEPROM: Chip Select high
         EEPROM_CS_HIGH();

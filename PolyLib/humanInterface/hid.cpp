@@ -43,6 +43,7 @@ std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16]; // number la
 void initHID() {
 
     //// register flagHandler functions ////
+    initPotiMapping();
 
     // Control
     FlagHandler::Control_Touch_ISR = std::bind(processControlTouch);
@@ -52,8 +53,6 @@ void initHID() {
     FlagHandler::Panel_EOC_ISR = std::bind(processPanelPotis);
     FlagHandler::Panel_0_Touch_ISR = std::bind(processPanelTouch, 0);
     FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
-
-    initPotiMapping();
 
     //// ControlBoard controls ////
     // register encoder
@@ -149,9 +148,9 @@ void processPanelTouch(uint8_t layerID) {
 
 void processPanelPotis() {
 
-    static uint16_t sampleDataStates[2][4][16]; // number layer, number multiplex, number channels
+    static int16_t sampleDataStates[2][4][16]; // number layer, number multiplex, number channels
 
-    static uint16_t treshold = 3; // threshold for jitter reduction
+    static int16_t treshold = 3; // threshold for jitter reduction
 
     // store for current sample data for the 4x16 Multiplexed ADC Values
 
@@ -159,11 +158,12 @@ void processPanelPotis() {
 
     multiplexer.nextChannel();
 
-    for (size_t id = 0; id < 2; id++) {                           // for every layer
+    for (uint16_t id = 0; id < 2; id++) {                         // for every layer
         if (allLayers[id]->LayerState.value == 1) {               // check layer active state
             adc[id].fetchNewData();                               // fetch ADC data
             for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
-                                                                  // channel changed -> get new Value
+                // channel changed -> get new Value
+
                 if (abs((sampleDataStates[id][multiplex][channel] -
                          (int16_t)((adc[id].adcData[channel] >> 1) & 0xFFF))) >= treshold) {
                     sampleDataStates[id][multiplex][channel] = (int16_t)(adc[id].adcData[channel] >> 1) & 0xFFF;
@@ -263,7 +263,7 @@ void eventControlTouch(uint16_t touchState) {
 
 void initPotiMapping() { // TODO fill mapping
 
-    for (size_t i = 0; i < 2; i++) { // register potis for both layer
+    for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
         potiFunctionPointer[i][0][0] =
             std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
         potiFunctionPointer[i][1][0] =

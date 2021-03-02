@@ -13,10 +13,13 @@ uint8_t blockBuffer[PRESET_BLOCKSIZE];
 void updatePresetList() {
     EEPROM_SPI_ReadBuffer(blockBuffer, TABLE_STARTADDRESS, TABLE_BLOCKSIZE);
 
+    println("Preset Dump:");
+
     presets.clear();
 
     for (uint32_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
         presetStruct newEntry;
+        println(((presetStruct *)blockBuffer)[i].name);
 
         if (((presetStruct *)blockBuffer)[i].usageState == PRESETBLOCKUSED) {
             newEntry = ((presetStruct *)blockBuffer)[i];
