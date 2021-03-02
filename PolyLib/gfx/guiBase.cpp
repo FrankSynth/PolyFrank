@@ -35,6 +35,16 @@ uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t c
 
     return width;
 }
+uint16_t drawBoxWithTextFixWidth(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                                 uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t space,
+                                 uint16_t champfer, FONTALIGN alignment) {
+
+    drawRectangleChampfered(colorBox, x - width, y, width, heigth, champfer); // draw Box
+    drawString(text, colorText, x + space / 2 - width, y + (-font->size + heigth) / 2, font,
+               LEFT); // draw text, height centered
+
+    return width;
+}
 void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
                    uint16_t viewable) {
 

@@ -91,6 +91,10 @@ typedef struct {
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer = 0,
                          FONTALIGN alignment = CENTER);
+
+uint16_t drawBoxWithTextFixWidth(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                                 uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t space,
+                                 uint16_t champfer, FONTALIGN alignment);
 void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
                    uint16_t viewable);
 

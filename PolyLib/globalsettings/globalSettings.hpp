@@ -114,6 +114,8 @@ class GlobalSettings {
 
     Error error;
 
+    uint32_t temperature = 0;
+
   private:
     const std::vector<std::string> amountLayerNameList = {"OFF", "ON"};
     const std::vector<std::string> midiTypeNameList = {"USB", "DIN"};

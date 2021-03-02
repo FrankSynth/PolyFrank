@@ -4,6 +4,7 @@
 extern GUI ui;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+extern ADC_HandleTypeDef hadc3;
 
 // Buffer for InterChip Com
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
@@ -25,8 +26,13 @@ void initMidi();
 
 uint8_t test = 0;
 
+// function to read MCU temperature and store to globalSettings
+void readTemperature();
+
 // poly control init
 void PolyControlInit() {
+    // calibrate adc for temperature reading
+    HAL_ADC_Start(&hadc3);
 
     // Init for Control and Layer Chips
     initPoly();
@@ -145,6 +151,8 @@ void PolyControlInit() {
 
 void PolyControlRun() { // Here the party starts
 
+    elapsedMillis temperatureReadTimout = 1000;
+
     while (1) {
 
         mididevice.read();
@@ -154,7 +162,16 @@ void PolyControlRun() { // Here the party starts
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             //    updatePatchLED();
+            if (HAL_ADC_PollForConversion(&hadc3, 100) != HAL_OK) {
+                Error_Handler();
+            }
         }
+
+        if (temperatureReadTimout > 1000) { // read every second
+            readTemperature();
+            temperatureReadTimout = 0;
+        }
+
         for (uint8_t i = 0; i < 2; i++) {
             layerCom[i].beginSendTransmission();
         }
@@ -178,10 +195,12 @@ uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId,
 uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
     return layerCom[layerId].sendDeletePatchInOut(outputId, inputId);
 }
-// uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+// uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float
+// offset) {
 //     return layerCom[layerId].sendCreatePatchOutOut(outputOutId, outputInId, amount, offset);
 // }
-// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
+// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float
+// offset) {
 //     return layerCom[layerId].sendUpdatePatchOutOut(outputOutId, outputInId, amount, offset);
 // }
 // uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId) {
@@ -189,6 +208,16 @@ uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId)
 // }
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom[layerId].sendDeleteAllPatches();
+}
+
+void readTemperature() {
+    static unsigned int adc_v;
+    static double adcx;
+    static double temp;
+
+    adc_v = HAL_ADC_GetValue(&hadc3);
+    adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
+    globalSettings.temperature = (uint32_t)round(adcx * (adc_v - *(unsigned short *)(0x1FF1E820)) + 30);
 }
 
 // SPI Callbacks

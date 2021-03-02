@@ -1,8 +1,6 @@
 #ifdef POLYCONTROL
 #include "guiPanelPath.hpp"
 
-extern Clock clock;
-
 void GUIPanelPath::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
     panelWidth = width;
     panelHeight = height;
@@ -11,7 +9,6 @@ void GUIPanelPath::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
 }
 
 void GUIPanelPath::Draw(uint8_t onlyLayer) {
-    drawRectangleFill(cClear, panelAbsX, panelAbsY, panelWidth, panelHeight);
     uint16_t relX = 0;
     uint16_t relY = 0;
 
@@ -30,17 +27,6 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
     relX +=
         drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     relX += 1;
-
-    // Draw BPM//
-
-    text = "BPM : " + std::to_string((uint16_t)clock.bpm);
-
-    int16_t bpmBoxWidth = 100;
-
-    drawRectangleChampfered(cWhite, panelAbsX + panelWidth - bpmBoxWidth, relY + panelAbsY, bpmBoxWidth, panelHeight,
-                            1); // draw Box
-    drawString(text, cBlack, panelAbsX + panelWidth - bpmBoxWidth / 2,
-               relY + panelAbsY + (-font->size + panelHeight) / 2, font, CENTER); // draw text, height centered
 
     // Only Layer mode?
     if (onlyLayer) {

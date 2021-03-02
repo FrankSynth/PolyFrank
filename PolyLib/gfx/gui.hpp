@@ -12,11 +12,13 @@
 #include "guiPanelPatch.hpp"
 #include "guiPanelPath.hpp"
 #include "guiPanelPreset.hpp"
+#include "guiPanelState.hpp"
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
 #include "tim.h"
 #include <functional>
 #include <string>
+
 
 /// GUI///
 class GUI {
@@ -29,7 +31,6 @@ class GUI {
 
     // PanelSelect
     void setPanelActive(uint8_t panelID);
-
 
     GUIPanelBase *activePanel = nullptr;
 
@@ -49,6 +50,8 @@ class GUI {
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelFocus guiPanelFocus;
+
+    GUIPanelState guiState;
 
     GUIPanelPath guiPath;
     GUISide guiSide;

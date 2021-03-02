@@ -52,6 +52,9 @@ void GUI::Init() { // add settings pointer
     // init Path
     guiPath.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
 
+    // init State
+    guiState.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
+
     // init Error
     guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
@@ -113,6 +116,9 @@ void GUI::Draw() {
         }
         // Draw Header
         guiHeader.Draw();
+
+        // Draw Header
+        guiState.Draw();
 
         // Draw Footer
         guiFooter.Draw();

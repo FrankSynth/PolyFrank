@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "dma2d.h"
 #include "fmc.h"
@@ -125,6 +126,7 @@ int main(void) {
     MX_TIM5_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
+    MX_ADC3_Init();
 
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
@@ -208,7 +210,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PeriphClockSelection =
         RCC_PERIPHCLK_LTDC | RCC_PERIPHCLK_UART5 | RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI5 | RCC_PERIPHCLK_SPI4 |
         RCC_PERIPHCLK_SPI1 | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_I2C3 | RCC_PERIPHCLK_I2C1 |
-        RCC_PERIPHCLK_SPI6 | RCC_PERIPHCLK_I2C4 | RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC;
+        RCC_PERIPHCLK_SPI6 | RCC_PERIPHCLK_I2C4 | RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC | RCC_PERIPHCLK_ADC;
     PeriphClkInitStruct.PLL2.PLL2M = 4;
     PeriphClkInitStruct.PLL2.PLL2N = 128;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
@@ -233,6 +235,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
     PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_D3PCLK1;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL2;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
         Error_Handler();
