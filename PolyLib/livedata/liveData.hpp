@@ -18,6 +18,7 @@ class LiveData {
         __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
         __liveSettingsLivemode.settings.push_back(&livemodeClockSource);
         __liveSettingsLivemode.settings.push_back(&internalClock.clockBPM);
+        __liveSettingsLivemode.settings.push_back(&livemodeExternalClockMultiply);
     }
     ~LiveData() {}
 
@@ -29,9 +30,9 @@ class LiveData {
     void keyReleased(uint8_t channel, uint8_t note);
 
     void midiClockTick();
-
     void internalClockTick();
     void externalClockTick();
+
     void clockHandling();
 
     void serviceRoutine();
@@ -47,10 +48,12 @@ class LiveData {
     categoryStruct __liveSettingsLivemode;
 
     Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList);
-    Setting livemodeClockSource = Setting("Clock Source", 0, 0, 2, false, binary, &clockSourceList);
+    Setting livemodeClockSource = Setting("Clock Source", 1, 0, 2, false, binary, &clockSourceList);
+    Setting livemodeExternalClockMultiply = Setting("EXT. Clock", 3, 0, 5, false, binary, &externalClockMultList);
 
     const std::vector<std::string> offOnNameList = {"OFF", "ON"};
     const std::vector<std::string> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
+    const std::vector<std::string> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
 };
 
 extern LiveData liveData;

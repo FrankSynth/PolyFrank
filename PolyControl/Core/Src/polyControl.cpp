@@ -213,7 +213,6 @@ uint8_t sendDeleteAllPatches(uint8_t layerId) {
 void readTemperature() {
     static unsigned int adc_v;
     static double adcx;
-    static double temp;
 
     adc_v = HAL_ADC_GetValue(&hadc3);
     adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
@@ -356,6 +355,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                 FlagHandler::interChipB_State[0] = READY;
             }
         }
+    }
+
+    if (pin & GPIO_PIN_8) { // ioExpander -> encoder
+        liveData.externalClockTick();
     }
 }
 

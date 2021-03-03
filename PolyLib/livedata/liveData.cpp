@@ -8,6 +8,8 @@
 LiveData liveData;
 extern COMinterChip layerCom[2];
 
+uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
+
 void LiveData::controlChange(uint8_t channel, uint8_t cc, int16_t value) {
 
     if (channel == globalSettings.midiLayerAChannel.value) { // Check Midi Channel Layer A
@@ -106,7 +108,9 @@ void LiveData::internalClockTick() {
 
 void LiveData::externalClockTick() {
     if (livemodeClockSource.value == 0) { // clock source == external Sync
-        clock.tick();
+        for (uint16_t i = 0; i < extClockMultiply[livemodeExternalClockMultiply.value]; i++) {
+            clock.tick();
+        }
     }
 }
 
@@ -152,13 +156,6 @@ void LiveData::clockHandling() {
                         allLayers[i]->lfoB.aFreq.setValueWithoutMapping(freq);
                     }
                 }
-                // ADSR Sync
-                // if (allLayers[i]->adsrA.dClockSync.value && !(clock.counter % allLayers[i]->adsrA.dClock.value)) {
-                //     layerCom[i].sendRetrigger(allLayers[i]->adsrA.id, 8); // all voices = 8
-                // }
-                // if (allLayers[i]->adsrB.dClockSync.value && !(clock.counter % allLayers[i]->adsrB.dClock.value)) {
-                //     layerCom[i].sendRetrigger(allLayers[i]->adsrB.id, 8); // all voices = 8
-                // }
             }
         }
         clock.ticked = 0;
