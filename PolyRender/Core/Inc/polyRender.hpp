@@ -12,6 +12,9 @@
 #include "render/renderCV.hpp"
 #include "tim.h"
 
+extern i2cpin i2c1Pins;
+
+
 
 void PolyRenderInit();
 void PolyRenderRun();

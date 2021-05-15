@@ -88,7 +88,13 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pins : PCPin PCPin PCPin PCPin
                              PCPin */
-    GPIO_InitStruct.Pin = SPI_Ready_toControl_Pin | LDAC_1_Pin | LDAC_2_Pin | LDAC_3_Pin | LDAC_4_Pin;
+    GPIO_InitStruct.Pin = SPI_Ready_toControl_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = LDAC_1_Pin | LDAC_2_Pin | LDAC_3_Pin | LDAC_4_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -100,16 +106,6 @@ void MX_GPIO_Init(void) {
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PFPin PFPin PFPin PFPin
-                             PFPin PFPin PFPin PFPin
-                             PFPin */
-    GPIO_InitStruct.Pin = LDAC_5_Pin | LDAC_6_Pin | LDAC_7_Pin | LDAC_8_Pin | LDAC_9_Pin | LDAC_10_Pin | LDAC_11_Pin |
-                          LDAC_12_Pin | LDAC_13_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
     /*Configure GPIO pin : PtPin */
     GPIO_InitStruct.Pin = Audio_Reset_Pin;

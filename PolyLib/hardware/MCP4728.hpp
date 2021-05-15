@@ -18,7 +18,8 @@ typedef struct {
 } i2cpin;
 
 void updateI2CAddress();
-void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t address);
+void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t fromAddress,
+                          uint8_t toAddress);
 
 void writeBit(uint32_t delay, uint8_t data);
 void I2C_delay(void);
@@ -29,6 +30,9 @@ void clear_SCL(i2cpin pins); // Actively drive SCL signal low
 void set_SDA(i2cpin pins);   // Do not drive SDA (set pin high-impedance)
 void clear_SDA(i2cpin pins); // Actively drive SDA signal low
 void arbitration_lost(void);
+
+bool i2c_read_bit_andLatch(i2cpin pins, GPIO_TypeDef *latchPort, uint16_t latchPin);
+void I2C_HalfDelay(void);
 
 bool i2c_write_byte(i2cpin pins, bool send_start, bool send_stop, unsigned char byte);
 unsigned char i2c_read_byte(i2cpin pins, bool nack, bool send_stop);
@@ -60,6 +64,18 @@ class MCP4728 {
         i2cDeviceAddressing = i2cDeviceCode | i2cAddress << 1;
     }
 
+    uint8_t testAddress() {
+        uint8_t emptyByte = 0x00;
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &emptyByte, 0, 50) != HAL_OK) {
+            Error_Handler();
+            println("MCP4728 | I2C | DAC not found -> address: ", i2cAddress);
+            return 1;
+        }
+        println("MCP4728 | I2C | DAC found -> address: ", i2cAddress);
+
+        return 0;
+    }
+
     void init() {
 
         // set latch pin LOW
@@ -77,14 +93,14 @@ class MCP4728 {
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
             Error_Handler();
-            println("I2C | init | Dac Transmit Error");
+            println("I2C | init | Dac Transmit Error", "Address :", (uint32_t)i2cAddress);
         }
 
         initData = 0x8F; // set output reference to internal 2048mV
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
             Error_Handler();
-            println("I2C | init | Dac Transmit Error 2nd");
+            println("I2C | init | Dac Transmit Error 2nd", "Address :", (uint32_t)i2cAddress);
         }
 
         // HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);

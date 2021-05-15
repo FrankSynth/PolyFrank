@@ -11,14 +11,14 @@ COMinterChip layerCom;
 
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[10][4]);
-MCP4728 cvDacA(&hi2c1, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABuffer[0]);
-MCP4728 cvDacB(&hi2c1, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABuffer[1]);
-MCP4728 cvDacC(&hi2c1, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABuffer[2]);
+MCP4728 cvDacA(&hi2c1, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABuffer[0]);
+MCP4728 cvDacB(&hi2c1, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABuffer[1]);
+MCP4728 cvDacC(&hi2c1, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABuffer[2]);
 
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferx[10][4]);
-MCP4728 cvDacAx(&hi2c2, 0x00, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABufferx[0]);
-MCP4728 cvDacBx(&hi2c2, 0x01, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABufferx[1]);
-MCP4728 cvDacCx(&hi2c2, 0x02, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABufferx[2]);
+MCP4728 cvDacAx(&hi2c2, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)&cvDacDMABufferx[0]);
+MCP4728 cvDacBx(&hi2c2, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDMABufferx[1]);
+MCP4728 cvDacCx(&hi2c2, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABufferx[2]);
 
 // Switch Ladder  //andere chip aber selbe logik
 TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port, switch_1_A_Pin,
@@ -28,22 +28,26 @@ TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin
 RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS]);
 PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
 
+void testMCPI2CAddress();
+void resetMCPI2CAddress();
+
 void PolyRenderInit() {
-    // hi2c1.Instance->CR1 &= 0b1111111111101111;
-    // hi2c2.Instance->CR1 &= ~I2C_CR1_NACKIE;
-    // hi2c2.Instance->CR1 &= ~I2C_CR1_STOPIE;
-    // hi2c2.Instance->CR1 &= ~I2C_CR1_RXIE;
-    // hi2c2.Instance->CR1 &= ~I2C_CR1_ERRIE;
-    // hi2c2.Instance->CR1 &= ~I2C_CR1_ADDRIE;
-    // hi2c2.Instance->CR2 &= ~I2C_CR2_NACK;
 
     // CV DACs
     // cvDacAx.init();
     // cvDacBx.init();
     // cvDacCx.init();
+
+    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
+
+    testMCPI2CAddress(); // check all MCP4728 addressing
+
     cvDacA.init();
     cvDacB.init();
     cvDacC.init();
+
     initCVRendering();
 
     // general inits
@@ -219,5 +223,90 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             count++;
         }
         sendDACs();
+    }
+}
+
+void testMCPI2CAddress() {
+
+    // set latch pins high
+
+    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
+
+    // check i2c ready
+    if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) {
+        println("I2C AddressChange - I2C Busy");
+        return;
+    }
+
+    // if (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY) {
+    //     println("I2C AddressChange - I2C Busy");
+    //     return;
+    // }
+
+    // if (HAL_I2C_GetState(&hi2c3) != HAL_I2C_STATE_READY) {
+    //     println("I2C AddressChange - I2C Busy");
+    //     return;
+    // }
+
+    // test Address reachable -> set target address
+
+    uint8_t addressFailed = 0;
+
+    addressFailed |= cvDacA.testAddress();
+    addressFailed |= cvDacB.testAddress();
+    addressFailed |= cvDacC.testAddress();
+
+    if (addressFailed) { // reset all MCP4728 address to start clean and reassign every one;
+        resetMCPI2CAddress();
+
+        sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
+        // sendI2CAddressUpdate(i2c2Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
+        // sendI2CAddressUpdate(i2c3Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
+
+        sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
+        // sendI2CAddressUpdate(i2c2Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
+        // sendI2CAddressUpdate(i2c3Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
+
+        sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
+        // sendI2CAddressUpdate(i2c2Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
+        // sendI2CAddressUpdate(i2c3Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
+    }
+}
+
+void resetMCPI2CAddress() {
+
+    // set latch pins high
+
+    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
+
+    // check i2c ready
+    if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) {
+        println("I2C AddressChange - I2C Busy");
+        return;
+    }
+
+    // if (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY) {
+    //     println("I2C AddressChange - I2C Busy");
+    //     return;
+    // }
+
+    // if (HAL_I2C_GetState(&hi2c3) != HAL_I2C_STATE_READY) {
+    //     println("I2C AddressChange - I2C Busy");
+    //     return;
+    // }
+
+    // test Address reachable -> set target address
+    for (uint8_t address = 0x00; address < 0x08; address++) {
+        sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, address, 0x00);
+    }
+    for (uint8_t address = 0x00; address < 0x08; address++) {
+        sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, address, 0x00);
+    }
+    for (uint8_t address = 0x00; address < 0x08; address++) {
+        sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, address, 0x00);
     }
 }
