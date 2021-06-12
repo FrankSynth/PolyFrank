@@ -26,14 +26,16 @@ void GUIPanelState::Draw() {
     relX -= drawBoxWithTextFixWidth(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, BoxWidth,
                                     panelHeight, spacer, 1, CENTER);
 
-    // Draw BPM//
-    relX -= 5; // some extra space between the boxes
-    text = "T:" + std::to_string((uint16_t)globalSettings.temperature) + " C";
+    // Draw Temperature //
+    if (globalSettings.dispTemperature.value == 1) {
+        relX -= 5; // some extra space between the boxes
+        text = "T:" + std::to_string((uint16_t)globalSettings.temperature) + " C";
 
-    BoxWidth = 70;
+        BoxWidth = 70;
 
-    relX -= drawBoxWithTextFixWidth(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, BoxWidth,
-                                    panelHeight, spacer, 1, CENTER);
+        relX -= drawBoxWithTextFixWidth(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, BoxWidth,
+                                        panelHeight, spacer, 1, CENTER);
+    }
 }
 
 #endif // ifdef POLYCONTROL

@@ -27,6 +27,7 @@ class GlobalSettings {
         __globSettingsDisplay.category = "DISPLAY";
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
+        __globSettingsDisplay.settings.push_back(&dispTemperature);
 
         // init setting IDs
         // initID();
@@ -111,6 +112,7 @@ class GlobalSettings {
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
+    Setting dispTemperature = Setting("TEMPERATURE", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Error error;
 
