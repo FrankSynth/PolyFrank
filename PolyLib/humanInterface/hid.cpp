@@ -9,8 +9,9 @@
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 
 // create Encoder objects
-rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9)};
-tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11)};
+rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9), rotary(13, 12)};
+tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(14),
+                                          tactileSwitch(11)};
 
 // create Controller Touch Objects
 AT42QT2120 touchControl[2] = {AT42QT2120(&hi2c1, 0), AT42QT2120(&hi2c1, 1)};
@@ -57,25 +58,30 @@ void initHID() {
     //// ControlBoard controls ////
     // register encoder
     ioExpander.init();
-    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
+    // encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
+    //                                   std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
-    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_2_CCW, &actionHandler));
+    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
 
     encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_CW, &actionHandler),
                                        std::bind(&actionMapping::callActionEncoder_3_CCW, &actionHandler));
 
-    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
+    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_2_CCW, &actionHandler));
 
-    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_Push, &actionHandler), nullptr);
+    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
-    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_Push, &actionHandler), nullptr);
+    //  switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler),
+    //  nullptr);
+
+    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
     switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_Push, &actionHandler), nullptr);
 
-    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
+    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_Push, &actionHandler), nullptr);
+    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_Push, &actionHandler), nullptr);
 
     // init Control touch IC
 

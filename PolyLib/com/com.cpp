@@ -314,7 +314,7 @@ uint8_t COMinterChip::invokeBufferFullSend() {
         uint32_t timer = millis();
         while (ret == ERRORCODE_SENDBLOCK || ret == ERRORCODE_RECEPTORNOTREADY) { // wait...
             if ((millis() - timer) > 100) { // transmission takes longer than 500ms
-                PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
+                                            //   PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
             }
             FlagHandler::handleFlags(); // Flaghandler muss ausgefuehrt werden damit wir nicht im Loop haengen
                                         // bleiben

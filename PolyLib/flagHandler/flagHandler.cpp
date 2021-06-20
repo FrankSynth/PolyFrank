@@ -199,7 +199,7 @@ void handleFlags() {
     for (uint8_t i = 0; i < 2; i++) {
         if (interChipA_StateTimeout[i] > 10) { // 10ms timeout
             if (interChipA_State[i] == WAITFORRESPONSE) {
-                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+                //PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
             }
             else if (interChipA_State[i] == DATARECEIVED) {
                 PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
