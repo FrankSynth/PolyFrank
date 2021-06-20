@@ -63,6 +63,7 @@ extern DMA_HandleTypeDef hdma_i2c3_tx;
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c3;
+// TODO throw away??
 extern MDMA_HandleTypeDef hmdma_mdma_channel40_sw_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel41_sw_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel42_sw_0;
@@ -229,18 +230,17 @@ void DMA1_Stream1_IRQHandler(void) {
 
     /* USER CODE END DMA1_Stream0_IRQn 1 */
 }
-
 /**
- * @brief This function handles EXTI line[9:5] interrupts.
+ * @brief This function handles EXTI line3 interrupt.
  */
-void EXTI9_5_IRQHandler(void) {
-    /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+void EXTI3_IRQHandler(void) {
+    /* USER CODE BEGIN EXTI3_IRQn 0 */
 
-    /* USER CODE END EXTI9_5_IRQn 0 */
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
-    /* USER CODE BEGIN EXTI9_5_IRQn 1 */
+    /* USER CODE END EXTI3_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+    /* USER CODE BEGIN EXTI3_IRQn 1 */
 
-    /* USER CODE END EXTI9_5_IRQn 1 */
+    /* USER CODE END EXTI3_IRQn 1 */
 }
 
 /**

@@ -561,6 +561,8 @@ void COMinterChip::initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)
 
 uint8_t COMinterChip::beginReceiveTransmission() {
 
+    // println("start reception");
+
     uint8_t ret = receiveViaDMA(dmaInBufferPointer[!currentBufferSelect], INTERCHIPBUFFERSIZE);
     FlagHandler::interChipReceive_DMA_Started = 1;
     FlagHandler::interChipReceive_DMA_FinishedFunc = std::bind(&COMinterChip::copyReceivedInBuffer, this);
@@ -673,37 +675,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         layerA.removePatchInOutById(outputID, inputID);
 
                         break;
-                    // case UPDATEOUTOUTPATCH:
-                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                    //     i += sizeof(float) - 1;
-                    //     offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                    //     i += sizeof(float) - 1;
 
-                    //     layerA.updatePatchOutOutByIdWithoutMapping(outputID, inputID, amountFloat);
-
-                    //     break;
-
-                    // case CREATEOUTOUTPATCH:
-                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     amountFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                    //     i += sizeof(float) - 1;
-                    //     offsetFloat = *(float *)&(inBufferPointer[currentBufferSelect])[++i];
-                    //     i += sizeof(float) - 1;
-
-                    //     layerA.addPatchOutOutById(outputID, inputID, amountFloat);
-
-                    //     break;
-
-                    // case DELETEOUTOUTPATCH:
-                    //     outputID = (inBufferPointer[currentBufferSelect])[++i];
-                    //     inputID = (inBufferPointer[currentBufferSelect])[++i];
-
-                    //     layerA.removePatchOutOutById(outputID, inputID);
-
-                    //     break;
                     case DELETEALLPATCHES:
                         // delete all patchesInOut at once
                         layerA.clearPatches();
@@ -740,6 +712,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         break;
 
                     case LASTBYTE:
+                        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
 
                         // transmission complete
                         // println("decode success!");
@@ -849,7 +822,7 @@ void COMinterChip::switchBuffer() {
 }
 
 void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
-    // println("HAL_MDMA_XFER_CPLT_CB_ID");
+    println("HAL_MDMA_XFER_CPLT_CB_ID");
 
     HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
 

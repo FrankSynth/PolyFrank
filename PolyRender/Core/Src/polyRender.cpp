@@ -102,12 +102,10 @@ void PolyRenderRun() {
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
 
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-
     // run loop
     while (true) {
+        FlagHandler::handleFlags();
     }
-    FlagHandler::handleFlags();
 }
 
 // CALLBACKS
@@ -196,9 +194,10 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     // reception Line from Control
+
     if (pin == GPIO_PIN_3) {
         // disable reception line
-        // println("EXTI callback, transmission done");
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
         HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
         // rising flank
         FlagHandler::interChipReceive_DMA_Finished = true;
@@ -236,9 +235,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         cvDac[3].resetLatchPin();
 
         // error callback maybe
-        // if (FlagHandler::cvDacCFinished == false) {
-        //     PolyError_Handler("polyRender | timerCallback | cvDacCFinished = false");
-        // }
+        if (FlagHandler::cvDacLastFinished[0] == false) {
+            PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[0] false");
+        }
+        if (FlagHandler::cvDacLastFinished[1] == false) {
+            PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[1] false");
+        }
+        if (FlagHandler::cvDacLastFinished[2] == false) {
+            PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[2] false");
+        }
 
         FlagHandler::renderNewCV = true;
         FlagHandler::cvDacLastFinished[0] = false;

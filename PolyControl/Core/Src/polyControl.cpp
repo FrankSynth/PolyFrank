@@ -54,7 +54,7 @@ void PolyControlInit() {
 
     // let the layer start
 
-    HAL_Delay(4000);
+    HAL_Delay(1000);
 
     // CheckLayerStatus
 
