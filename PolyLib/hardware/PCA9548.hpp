@@ -34,5 +34,6 @@ class PCA9548 {
 };
 
 extern PCA9548 i2cBusSwitch[2];
+extern PCA9548 i2cBusSwitchControl;
 
 #endif

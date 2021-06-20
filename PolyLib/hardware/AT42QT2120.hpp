@@ -16,6 +16,12 @@ class AT42QT2120 {
         this->layerID = layerID;
     }
 
+    AT42QT2120(I2C_HandleTypeDef *i2cHandle, uint8_t i2cBusSwitchAddress) {
+
+        this->i2cHandle = i2cHandle;
+        this->i2cBusSwitchAddress = i2cBusSwitchAddress; // combine default address with custom adress
+    }
+
     AT42QT2120(I2C_HandleTypeDef *I2C_HandleTypeDef) { // without busMultiplexer
 
         this->i2cHandle = i2cHandle;
@@ -32,13 +38,31 @@ class AT42QT2120 {
         readTouchStatus();
     }
 
+    void init(PCA9548 *busSwitchIC) {
+
+        // hardware init.. need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
+        HAL_Delay(100);
+        initDone = 1;
+        busMultiplexer = 2;
+        this->busSwitchIC = busSwitchIC;
+
+        readTouchStatus();
+    }
+
     uint16_t readTouchStatus() {
         if (!initDone) {
             return 0;
         }
 
-        if (busMultiplexer) {
+        if (busMultiplexer == 1) {
             i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        }
+
+        if (busMultiplexer == 2) {
+            if (busSwitchIC == nullptr) {
+                PolyError_Handler("ERROR | COM | AT42QT I2C BusSwitchIC Nullptr");
+            }
+            busSwitchIC->switchTarget(i2cBusSwitchAddress);
         }
 
         uint8_t command = 0x02; // read from memory Address 0x02
@@ -63,6 +87,8 @@ class AT42QT2120 {
     I2C_HandleTypeDef *i2cHandle;
     uint8_t i2cBusSwitchAddress = 0;
     uint8_t i2cDeviceAddress = 0x38;
+
+    PCA9548 *busSwitchIC = nullptr;
 
     uint8_t initDone = 0;
     uint8_t busMultiplexer = 0;

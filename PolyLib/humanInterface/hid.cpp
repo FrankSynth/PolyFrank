@@ -9,11 +9,12 @@
 PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 
 // create Encoder objects
-rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9)};
-tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11)};
+rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9), rotary(13, 12)};
+tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(14),
+                                          tactileSwitch(11)};
 
 // create Controller Touch Objects
-AT42QT2120 touchControl = AT42QT2120(&hi2c4, 0, 0);
+AT42QT2120 touchControl[2] = {AT42QT2120(&hi2c1, 0), AT42QT2120(&hi2c1, 1)};
 
 // LayerPanel
 // create Panel Touch Objects
@@ -57,29 +58,35 @@ void initHID() {
     //// ControlBoard controls ////
     // register encoder
     ioExpander.init();
-    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
+    // encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
+    //                                   std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
-    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_2_CCW, &actionHandler));
+    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
 
     encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_CW, &actionHandler),
                                        std::bind(&actionMapping::callActionEncoder_3_CCW, &actionHandler));
 
-    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
+    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_2_CCW, &actionHandler));
 
-    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_Push, &actionHandler), nullptr);
+    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
-    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_Push, &actionHandler), nullptr);
+    //  switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler),
+    //  nullptr);
+
+    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
     switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_Push, &actionHandler), nullptr);
 
-    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
+    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_Push, &actionHandler), nullptr);
+    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_Push, &actionHandler), nullptr);
 
     // init Control touch IC
 
-    touchControl.init();
+    touchControl[0].init(&i2cBusSwitchControl);
+    touchControl[1].init(&i2cBusSwitchControl);
 
     //// Panel Control ////
 
@@ -89,6 +96,7 @@ void initHID() {
     // TODO temp disabled
 
     // init Panels
+    // // init Panels
     // for (size_t i = 0; i < 2; i++) {
     //     if (allLayers[i]->LayerState.value == 1) {
     //         for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
@@ -181,87 +189,91 @@ void processPanelPotis() {
 }
 
 void processControlTouch() {
-    eventControlTouch(touchControl.readTouchStatus());
+    println("TouchEvent");
+    eventControlTouch(touchControl[0].readTouchStatus(), touchControl[1].readTouchStatus());
 }
 
-void eventControlTouch(uint16_t touchState) {
-    static uint16_t oldTouchState;
+void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB) {
+    static uint16_t oldTouchStateA;
+    static uint16_t oldTouchStateB;
 
-    touchEvaluteLayer[0].event(touchState, TOUCH_IO_PORT_A); // TODO sobald panel da weg damit
+    uint16_t pushEventA = ~oldTouchStateA & touchStateA;
+    uint16_t releaseEventA = oldTouchStateA & ~touchStateA;
 
-    uint16_t pushEvent = ~oldTouchState & touchState;
-    uint16_t releaseEvent = oldTouchState & ~touchState;
+    uint16_t pushEventB = ~oldTouchStateB & touchStateB;
+    uint16_t releaseEventB = oldTouchStateB & ~touchStateB;
 
     // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
-    if (pushEvent) {
-        if (pushEvent & (1 << 6)) {
+    if (pushEventA) {
+        if (pushEventA & (1 << 5)) {
             actionHandler.callActionHeader1();
         }
-        if (pushEvent & (1 << 7)) {
+        if (pushEventA & (1 << 6)) {
             actionHandler.callActionHeader2();
         }
-        if (pushEvent & (1 << 8)) {
+        if (pushEventA & (1 << 7)) {
             actionHandler.callActionHeader3();
         }
-        if (pushEvent & (1 << 9)) {
+        if (pushEventA & (1 << 8)) {
             actionHandler.callActionHeader4();
         }
-        if (pushEvent & (1 << 5)) {
+        if (pushEventA & (1 << 4)) {
             actionHandler.callActionLeft1();
             actionHandler.buttonLeft_1.state = PRESSED;
         }
-        if (pushEvent & (1 << 3)) {
+        if (pushEventA & (1 << 3)) {
             actionHandler.callActionLeft2();
             actionHandler.buttonLeft_2.state = PRESSED;
         }
-        if (pushEvent & (1 << 1)) {
+        if (pushEventA & (1 << 2)) {
             actionHandler.callActionLeft3();
             actionHandler.buttonLeft_3.state = PRESSED;
         }
-        if (pushEvent & (1 << 4)) {
+        if (pushEventA & (1 << 9)) {
             actionHandler.callActionRight1();
             actionHandler.buttonRight_1.state = PRESSED;
         }
-        if (pushEvent & (1 << 2)) {
+        if (pushEventA & (1 << 10)) {
             actionHandler.callActionRight2();
             actionHandler.buttonRight_2.state = PRESSED;
         }
-        if (pushEvent & (1 << 0)) {
+        if (pushEventA & (1 << 11)) {
             actionHandler.callActionRight3();
             actionHandler.buttonRight_3.state = PRESSED;
         }
     }
 
-    if (releaseEvent) {
-        if (releaseEvent & (1 << 6)) {
+    if (releaseEventA) {
+        if (releaseEventA & (1 << 5)) {
         }
-        if (releaseEvent & (1 << 7)) {
+        if (releaseEventA & (1 << 6)) {
         }
-        if (releaseEvent & (1 << 8)) {
+        if (releaseEventA & (1 << 7)) {
         }
-        if (releaseEvent & (1 << 9)) {
+        if (releaseEventA & (1 << 8)) {
         }
-        if (releaseEvent & (1 << 5)) {
+        if (releaseEventA & (1 << 4)) {
             actionHandler.buttonLeft_1.state = RELEASED;
         }
-        if (releaseEvent & (1 << 3)) {
+        if (releaseEventA & (1 << 3)) {
             actionHandler.buttonLeft_2.state = RELEASED;
         }
-        if (releaseEvent & (1 << 1)) {
+        if (releaseEventA & (1 << 2)) {
             actionHandler.buttonLeft_3.state = RELEASED;
         }
-        if (releaseEvent & (1 << 4)) {
+        if (releaseEventA & (1 << 9)) {
             actionHandler.buttonRight_1.state = RELEASED;
         }
-        if (releaseEvent & (1 << 2)) {
+        if (releaseEventA & (1 << 10)) {
             actionHandler.buttonRight_2.state = RELEASED;
         }
-        if (releaseEvent & (1 << 0)) {
+        if (releaseEventA & (1 << 11)) {
             actionHandler.buttonRight_3.state = RELEASED;
         }
     }
 
-    oldTouchState = touchState;
+    oldTouchStateA = touchStateA;
+    oldTouchStateB = touchStateB;
 }
 
 void initPotiMapping() { // TODO fill mapping

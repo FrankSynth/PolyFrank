@@ -11,7 +11,7 @@
 #define LEDBRIGHTNESS_LOW 50
 #define LEDBRIGHTNESS_MEDIUM 100
 #define LEDBRIGHTNESS_MAX 220
-#define NUMBERENCODERS 4
+#define NUMBERENCODERS 5
 #define NUMBER_PANELTOUCHICS 4
 #define NUMBER_LEDDRIVER 4
 
@@ -39,7 +39,7 @@ void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
-void eventControlTouch(uint16_t touchState);
+void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB);
 
 void initPotiMapping();
 void processPanelPotis();
