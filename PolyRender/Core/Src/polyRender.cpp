@@ -21,12 +21,14 @@ MCP4728 cvDacBx(&hi2c2, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)&cvDacDM
 MCP4728 cvDacCx(&hi2c2, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)&cvDacDMABufferx[2]);
 
 // Switch Ladder  //andere chip aber selbe logik
-TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port, switch_1_A_Pin,
-                                   switch_1_B_GPIO_Port, switch_1_B_Pin);
+TS3A5017D switchLadder = TS3A5017D(4, switch_1_A_GPIO_Port, switch_1_A_Pin, switch_1_B_GPIO_Port, switch_1_B_Pin);
+// TS3A5017D switchLadder = TS3A5017D(4, switch_1_open_GPIO_Port, switch_1_open_Pin, switch_1_A_GPIO_Port,
+// switch_1_A_Pin,
+//                                    switch_1_B_GPIO_Port, switch_1_B_Pin);
 
 // AUDIO DAC
 RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS]);
-PCM1690 audioDacA(&hsai_BlockA1, &hspi4, (int32_t *)saiBuffer);
+PCM1690 audioDacA(&hsai_BlockA1, &hspi2, (int32_t *)saiBuffer);
 
 void testMCPI2CAddress();
 void resetMCPI2CAddress();
@@ -83,12 +85,12 @@ void PolyRenderInit() {
     FlagHandler::renderNewCVFunc = renderCVs;
 
     // Ladder stuff
-    switchLadder.disableChannels();
+    // switchLadder.disableChannels();
 }
 
 void PolyRenderRun() {
     // enable reception line
-    HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
     // start cv rendering
     renderCVs();
@@ -177,7 +179,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin == GPIO_PIN_8) {
         // disable reception line
         // println("EXTI callback, transmission done");
-        HAL_GPIO_WritePin(SPI_Ready_toControl_GPIO_Port, SPI_Ready_toControl_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
         // rising flank
         FlagHandler::interChipReceive_DMA_Finished = true;
     }

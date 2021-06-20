@@ -112,7 +112,7 @@ int main(void) {
     // MX_I2C4_Init();
     MX_SAI1_Init();
     MX_SPI1_Init();
-    MX_SPI4_Init();
+    MX_SPI2_Init();
     MX_TIM3_Init();
     MX_TIM4_Init();
     MX_TIM8_Init();
@@ -211,7 +211,7 @@ void SystemClock_Config(void) {
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
         Error_Handler();
     }
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SPI1 |
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
                                                RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_I2C3 |
                                                RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_I2C4;
     PeriphClkInitStruct.PLL2.PLL2M = 5;
@@ -302,7 +302,7 @@ void PolyError_Handler(const char *errorMessage) {
 
 /**
  * @brief  This function is executed in case of error occurrence.
- * @retval None
+ * @retval None\
  */
 void Error_Handler(void) {
     /* USER CODE BEGIN Error_Handler_Debug */
