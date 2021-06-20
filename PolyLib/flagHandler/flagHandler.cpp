@@ -46,12 +46,8 @@ void initFlagHandler() {
     cvDacAStarted = false;
     cvDacBStarted = false;
     cvDacCStarted = false;
-    cvDacCFinished = false;
-
-    cvDacAxStarted = false;
-    cvDacBxStarted = false;
-    cvDacCxStarted = false;
-    cvDacCxFinished = false;
+    cvDacDStarted = false;
+    cvDacDFinished = false;
 
     renderNewCV = false;
     renderNewCVFunc = nullptr;
@@ -131,12 +127,9 @@ std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 bool cvDacAStarted;
 bool cvDacBStarted;
 bool cvDacCStarted;
-bool cvDacCFinished;
+bool cvDacDStarted;
+bool cvDacDFinished;
 
-bool cvDacAxStarted;
-bool cvDacBxStarted;
-bool cvDacCxStarted;
-bool cvDacCxFinished;
 // std::function<void()> cvDacCFinishedFunc;
 
 bool renderNewCV;

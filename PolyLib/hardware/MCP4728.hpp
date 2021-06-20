@@ -60,6 +60,7 @@ class MCP4728 {
         this->latchPin = latchPin;
         this->latchPort = latchPort;
         this->dmabuffer = buffer;
+        this->bufferAsInt = (uint32_t *)buffer;
 
         i2cDeviceAddressing = i2cDeviceCode | i2cAddress << 1;
     }
@@ -109,15 +110,14 @@ class MCP4728 {
     // transmit data in fastMode
     inline void fastUpdate() {
         // pData[0] |= 0b01000000; // enable FastMode
-        uint32_t *dataAsInt = (uint32_t *)data.currentSample;
         // each half word needs to be swapped, because of reasons
         // uint8_t sendOut[8];
-        uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
+        // uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
 
         // FIXME unsafe, because buffer is in D2 domain? Slow. Move to sendToDAC
 
-        bufferAsInt[0] = __REV16(dataAsInt[0]);
-        bufferAsInt[1] = __REV16(dataAsInt[1]);
+        bufferAsInt[0] = __REV16(((uint32_t *)data.currentSample)[0]);
+        bufferAsInt[1] = __REV16(((uint32_t *)data.currentSample)[1]);
 
         // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
         HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8);
@@ -160,4 +160,5 @@ class MCP4728 {
 
   private:
     uint16_t *dmabuffer = nullptr;
+    uint32_t *bufferAsInt = nullptr;
 };
