@@ -7,7 +7,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #ifdef POLYCONTROL
 #include "flagHandler/flagHandler.hpp"
-#include "usbd_cdc_if.h"
+#include "usbd_cdc_if.hpp"
 
 extern elapsedMicros USBHSTIMEOUT;
 

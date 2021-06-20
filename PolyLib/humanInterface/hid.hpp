@@ -39,7 +39,7 @@ void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
-void eventControlTouch(uint16_t touchState);
+void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB);
 
 void initPotiMapping();
 void processPanelPotis();

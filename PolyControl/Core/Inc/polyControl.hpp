@@ -1,5 +1,6 @@
 #pragma once
 
+#include "comControl/comReceive.hpp"
 #include "debughelper/debughelper.hpp"
 #include "fmc.h"
 #include "gfx/gui.hpp"

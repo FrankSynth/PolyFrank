@@ -216,7 +216,6 @@ void handleFlags() {
         Control_Touch_Interrupt = 0;
         if (Control_Touch_ISR != nullptr) {
             Control_Touch_ISR();
-            Panel_0_Touch_ISR(); // TODO rausnehmen nur temporär
         }
     }
 

@@ -53,9 +53,11 @@ void PolyControlInit() {
     HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
-    HAL_Delay(1000);
+
+    HAL_Delay(5000);
 
     // CheckLayerStatus
+
     if (FlagHandler::interChipA_State[0] == READY && FlagHandler::interChipB_State[0] == READY) { // Layer A alive
         layerA.LayerState.value = 1;
     }
@@ -155,10 +157,15 @@ void PolyControlRun() { // Here the party starts
 
         mididevice.read();
 
+        // Com Receive Buffer
+        //        if (comAvailable()) {
+        //            print("received : ", (char)comRead());
+        //        }
+
         liveData.serviceRoutine();
 
         FlagHandler::handleFlags();
-        
+
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             //    updatePatchLED();
@@ -308,7 +315,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         FlagHandler::Panel_0_EOC_Interrupt = true;
         FlagHandler::Panel_1_EOC_Interrupt = true;
     }
-    if (pin & GPIO_PIN_2) { // Control Touch
+    if (pin & GPIO_PIN_14) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;
     }
     if (pin & GPIO_PIN_3) { // Layer 2 Ready 1

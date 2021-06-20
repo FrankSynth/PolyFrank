@@ -39,7 +39,8 @@
         "PolyLib/livedata",
         "PolyLib/render",
         "PolyLib/humanInterface",
-        "PolyLib/hardware"
+        "PolyLib/hardware",
+        "PolyLib/comControl"
       ],
       "defines": [
         "STM32H743xx",
