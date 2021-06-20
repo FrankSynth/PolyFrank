@@ -66,15 +66,8 @@ extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 // extern bool saiCptl;
 // extern std::function<uint8_t()> saiCptlFunc;
 
-extern bool cvDacAStarted;
-extern bool cvDacBStarted;
-extern bool cvDacCStarted;
-extern bool cvDacCFinished;
-
-extern bool cvDacAxStarted;
-extern bool cvDacBxStarted;
-extern bool cvDacCxStarted;
-extern bool cvDacCxFinished;
+extern bool cvDacStarted[10];
+extern bool cvDacLastFinished[3];
 
 extern bool renderNewCV;
 extern std::function<void()> renderNewCVFunc;

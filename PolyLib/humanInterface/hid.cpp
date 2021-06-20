@@ -86,30 +86,33 @@ void initHID() {
     elapsedMillis timeout;
     timeout = 0;
 
+    // TODO temp disabled
+
     // init Panels
-    for (size_t i = 0; i < 2; i++) {
-        if (allLayers[i]->LayerState.value == 1) {
-            for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
-                if (PANELACTIVE) {
-                    touchPanel[i][x].init(); // init Touch ICS
-                }
-            }
-            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-                if (PANELACTIVE) {
+    // for (size_t i = 0; i < 2; i++) {
+    //     if (allLayers[i]->LayerState.value == 1) {
+    //         for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
+    //             if (PANELACTIVE) {
+    //                 touchPanel[i][x].init(); // init Touch ICS
+    //             }
+    //         }
+    //         for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+    //             if (PANELACTIVE) {
 
-                    ledDriver[i][x].init(); // init LED driver}
-                }
-            }
-            timeout = 0;
-            while (adc[i].init()) { // init analog-digital converter
-                if (timeout > 100) {
-                    PolyError_Handler("ERROR | INIT | Panel ADC init failed -> timeout");
-                }
-            }
-        }
-    }
+    //                 ledDriver[i][x].init(); // init LED driver}
+    //             }
+    //         }
+    //         timeout = 0;
+    //         while (adc[i].init()) { // init analog-digital converter
+    //             if (timeout > 100) {
+    //                 PolyError_Handler("ERROR | INIT | Panel ADC init failed -> timeout");
+    //             }
+    //         }
+    //     }
+    // }
 
-    multiplexer.enableChannels(); // multiplexer for both layer
+    // TODO temp disabled
+    // multiplexer.enableChannels(); // multiplexer for both layer
 }
 
 void processEncoder() {

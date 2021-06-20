@@ -25,7 +25,7 @@
 /* USER CODE END 0 */
 
 SPI_HandleTypeDef hspi1;
-SPI_HandleTypeDef hspi4;
+SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_rx;
 
 /* SPI1 init function */
@@ -56,32 +56,32 @@ void MX_SPI1_Init(void) {
         Error_Handler();
     }
 }
-/* SPI4 init function */
-void MX_SPI4_Init(void) {
+/* SPI2 init function */
+void MX_SPI2_Init(void) {
 
-    hspi4.Instance = SPI4;
-    hspi4.Init.Mode = SPI_MODE_MASTER;
-    hspi4.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
-    hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi4.Init.NSS = SPI_NSS_SOFT;
-    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-    hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi4.Init.CRCPolynomial = 0x0;
-    hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-    hspi4.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
-    hspi4.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
-    hspi4.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    hspi4.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    hspi4.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-    hspi4.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
-    hspi4.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
-    hspi4.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
-    hspi4.Init.IOSwap = SPI_IO_SWAP_DISABLE;
-    if (HAL_SPI_Init(&hspi4) != HAL_OK) {
+    hspi2.Instance = SPI2;
+    hspi2.Init.Mode = SPI_MODE_MASTER;
+    hspi2.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+    hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+    hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi2.Init.CRCPolynomial = 0x0;
+    hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+    hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+    hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+    hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+    hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+    hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+    hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+    if (HAL_SPI_Init(&hspi2) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -105,7 +105,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
         GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -134,39 +134,32 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI1_MspInit 1 */
     }
-    else if (spiHandle->Instance == SPI4) {
-        /* USER CODE BEGIN SPI4_MspInit 0 */
+    else if (spiHandle->Instance == SPI2) {
+        /* USER CODE BEGIN SPI2_MspInit 0 */
 
-        /* USER CODE END SPI4_MspInit 0 */
-        /* SPI4 clock enable */
-        __HAL_RCC_SPI4_CLK_ENABLE();
+        /* USER CODE END SPI2_MspInit 0 */
+        /* SPI2 clock enable */
+        __HAL_RCC_SPI2_CLK_ENABLE();
 
-        __HAL_RCC_GPIOE_CLK_ENABLE();
-        /**SPI4 GPIO Configuration
-        PE11     ------> SPI4_NSS
-        PE12     ------> SPI4_SCK
-        PE14     ------> SPI4_MOSI
+        __HAL_RCC_GPIOI_CLK_ENABLE();
+        /**SPI2 GPIO Configuration
+        PI0     ------> SPI2_NSS
+        PI1     ------> SPI2_SCK
+        PI3     ------> SPI2_MOSI
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_12 | GPIO_PIN_14;
+        GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-        GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
-        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+        GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+        HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-        GPIO_InitStruct.Pin = GPIO_PIN_11;
-        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-        // GPIO_InitStruct.Alternate = GPIO_AF5_SPI4;
-        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+        /* SPI2 interrupt Init */
+        HAL_NVIC_SetPriority(SPI2_IRQn, 4, 0);
+        HAL_NVIC_EnableIRQ(SPI2_IRQn);
+        /* USER CODE BEGIN SPI2_MspInit 1 */
 
-        /* SPI4 interrupt Init */
-        HAL_NVIC_SetPriority(SPI4_IRQn, 4, 0);
-        HAL_NVIC_EnableIRQ(SPI4_IRQn);
-        /* USER CODE BEGIN SPI4_MspInit 1 */
-
-        /* USER CODE END SPI4_MspInit 1 */
+        /* USER CODE END SPI2_MspInit 1 */
     }
 }
 
@@ -195,25 +188,25 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI1_MspDeInit 1 */
     }
-    else if (spiHandle->Instance == SPI4) {
-        /* USER CODE BEGIN SPI4_MspDeInit 0 */
+    else if (spiHandle->Instance == SPI2) {
+        /* USER CODE BEGIN SPI2_MspDeInit 0 */
 
-        /* USER CODE END SPI4_MspDeInit 0 */
+        /* USER CODE END SPI2_MspDeInit 0 */
         /* Peripheral clock disable */
-        __HAL_RCC_SPI4_CLK_DISABLE();
+        __HAL_RCC_SPI2_CLK_DISABLE();
 
-        /**SPI4 GPIO Configuration
-        PE11     ------> SPI4_NSS
-        PE12     ------> SPI4_SCK
-        PE14     ------> SPI4_MOSI
+        /**SPI2 GPIO Configuration
+        PI0     ------> SPI2_NSS
+        PI1     ------> SPI2_SCK
+        PI3     ------> SPI2_MOSI
         */
-        HAL_GPIO_DeInit(GPIOE, GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_14);
+        HAL_GPIO_DeInit(GPIOI, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3);
 
-        /* SPI4 interrupt Deinit */
-        HAL_NVIC_DisableIRQ(SPI4_IRQn);
-        /* USER CODE BEGIN SPI4_MspDeInit 1 */
+        /* SPI2 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(SPI2_IRQn);
+        /* USER CODE BEGIN SPI2_MspDeInit 1 */
 
-        /* USER CODE END SPI4_MspDeInit 1 */
+        /* USER CODE END SPI2_MspDeInit 1 */
     }
 }
 

@@ -60,11 +60,9 @@
 extern DMA_HandleTypeDef hdma_i2c1_tx;
 extern DMA_HandleTypeDef hdma_i2c2_tx;
 extern DMA_HandleTypeDef hdma_i2c3_tx;
-extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c3;
-extern I2C_HandleTypeDef hi2c4;
 extern MDMA_HandleTypeDef hmdma_mdma_channel40_sw_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel41_sw_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel42_sw_0;
@@ -78,7 +76,7 @@ extern DMA_HandleTypeDef hdma_sai1_a;
 extern SAI_HandleTypeDef hsai_BlockA1;
 extern DMA_HandleTypeDef hdma_spi1_rx;
 extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi4;
+extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim15;
 extern TIM_HandleTypeDef htim16;
@@ -322,7 +320,18 @@ void SPI1_IRQHandler(void) {
 
     /* USER CODE END SPI1_IRQn 1 */
 }
+/**
+ * @brief This function handles SPI2 global interrupt.
+ */
+void SPI2_IRQHandler(void) {
+    /* USER CODE BEGIN SPI2_IRQn 0 */
 
+    /* USER CODE END SPI2_IRQn 0 */
+    HAL_SPI_IRQHandler(&hspi2);
+    /* USER CODE BEGIN SPI2_IRQn 1 */
+
+    /* USER CODE END SPI2_IRQn 1 */
+}
 /**
  * @brief This function handles DMA2 stream1 global interrupt.
  */
@@ -389,19 +398,6 @@ void I2C3_ER_IRQHandler(void) {
 }
 
 /**
- * @brief This function handles SPI4 global interrupt.
- */
-void SPI4_IRQHandler(void) {
-    /* USER CODE BEGIN SPI4_IRQn 0 */
-
-    /* USER CODE END SPI4_IRQn 0 */
-    HAL_SPI_IRQHandler(&hspi4);
-    /* USER CODE BEGIN SPI4_IRQn 1 */
-
-    /* USER CODE END SPI4_IRQn 1 */
-}
-
-/**
  * @brief This function handles SAI1 global interrupt.
  */
 void SAI1_IRQHandler(void) {
@@ -412,32 +408,6 @@ void SAI1_IRQHandler(void) {
     /* USER CODE BEGIN SAI1_IRQn 1 */
 
     /* USER CODE END SAI1_IRQn 1 */
-}
-
-/**
- * @brief This function handles I2C4 event interrupt.
- */
-void I2C4_EV_IRQHandler(void) {
-    /* USER CODE BEGIN I2C4_EV_IRQn 0 */
-
-    /* USER CODE END I2C4_EV_IRQn 0 */
-    HAL_I2C_EV_IRQHandler(&hi2c4);
-    /* USER CODE BEGIN I2C4_EV_IRQn 1 */
-
-    /* USER CODE END I2C4_EV_IRQn 1 */
-}
-
-/**
- * @brief This function handles I2C4 error interrupt.
- */
-void I2C4_ER_IRQHandler(void) {
-    /* USER CODE BEGIN I2C4_ER_IRQn 0 */
-
-    /* USER CODE END I2C4_ER_IRQn 0 */
-    HAL_I2C_ER_IRQHandler(&hi2c4);
-    /* USER CODE BEGIN I2C4_ER_IRQn 1 */
-
-    /* USER CODE END I2C4_ER_IRQn 1 */
 }
 
 /**
@@ -485,19 +455,6 @@ void MDMA_IRQHandler(void) {
     /* USER CODE BEGIN MDMA_IRQn 1 */
 
     /* USER CODE END MDMA_IRQn 1 */
-}
-
-/**
- * @brief This function handles BDMA channel0 global interrupt.
- */
-void BDMA_Channel0_IRQHandler(void) {
-    /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
-
-    /* USER CODE END BDMA_Channel0_IRQn 0 */
-    HAL_DMA_IRQHandler(&hdma_i2c4_tx);
-    /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
-
-    /* USER CODE END BDMA_Channel0_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

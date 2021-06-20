@@ -5,61 +5,18 @@
 bool started = false; // global data
 
 i2cpin i2c1Pins = {GPIOB, GPIO_PIN_7, GPIOB, GPIO_PIN_6};
-// i2cpin i2c2Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
-// i2cpin i2c3Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
-// i2cpin i2c4Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
-
-// update all I2C Addresse ob the MCP4728 ICs
-void updateI2CAddress() {
-
-    if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) {
-        println("I2C AddressChange - I2C Busy");
-        return;
-    }
-
-    // if (HAL_I2C_GetState(&hi2cx) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
-
-    // if (HAL_I2C_GetState(&hi2cx) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
-
-    // if (HAL_I2C_GetState(&hi2c4x) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
-
-    // update all MCPs on one I2C Lane
-
-    sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00);
-    sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x01);
-    sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x02);
-    // sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin, 0x03);
-
-    // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c2Pins, GPIOx, GPIO_PIN_x);
-
-    // sendI2CAddressUpdate(i2c3Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c3Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c3Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c3Pins, GPIOx, GPIO_PIN_x);
-
-    // sendI2CAddressUpdate(i2c4Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c4Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c4Pins, GPIOx, GPIO_PIN_x);
-    // sendI2CAddressUpdate(i2c4Pins, GPIOx, GPIO_PIN_x);
-}
+i2cpin i2c2Pins = {GPIOF, GPIO_PIN_0, GPIOF, GPIO_PIN_1};
+i2cpin i2c3Pins = {GPIOH, GPIO_PIN_8, GPIOH, GPIO_PIN_7};
 
 // send I2C Command
-void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t address) {
+void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t fromAddress,
+                          uint8_t toAddress) {
     uint8_t nack = 0;
 
+    HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET); // latchPin LOW
+
     // set I2C pins to standard gpio
+    HAL_GPIO_WritePin(i2cPins.portSCL, i2cPins.pinSCL, GPIO_PIN_SET); // reset Latch
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = i2cPins.pinSCL;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -67,6 +24,7 @@ void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latc
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(i2cPins.portSCL, &GPIO_InitStruct);
 
+    HAL_GPIO_WritePin(i2cPins.portSDA, i2cPins.pinSDA, GPIO_PIN_SET); // reset Latch
     GPIO_InitStruct.Pin = i2cPins.pinSDA;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -75,31 +33,27 @@ void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latc
 
     // use Sofware I2C to change MCP addresses
 
-    HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET); // latchPin HIGH
-
-    HAL_Delay(1);
+    uint8_t command = 0b01100001 | (fromAddress << 2);
 
     i2c_start_cond(i2cPins);
 
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b11000000); // expect current i2c address is 000
+    nack |= i2c_write_byte(i2cPins, 0, 0, 0b11000000 | (fromAddress << 1)); // write device address to Bus
+    microsecondsDelay(2);
+    i2c_write_bit(i2cPins, command & (0x01 << 7));
+    i2c_write_bit(i2cPins, command & (0x01 << 6));
+    i2c_write_bit(i2cPins, command & (0x01 << 5));
+    i2c_write_bit(i2cPins, command & (0x01 << 4));
+    i2c_write_bit(i2cPins, command & (0x01 << 3));
+    i2c_write_bit(i2cPins, command & (0x01 << 2));
+    i2c_write_bit(i2cPins, command & (0x01 << 1));
+    i2c_write_bit(i2cPins, command & 0x01);
 
-    i2c_write_bit(i2cPins, 0);
-    i2c_write_bit(i2cPins, 1);
-    i2c_write_bit(i2cPins, 1);
-    i2c_write_bit(i2cPins, 0);
-    i2c_write_bit(i2cPins, 0);
-    i2c_write_bit(i2cPins, 0);
-    i2c_write_bit(i2cPins, 0);
-    i2c_write_bit(i2cPins, 1);
+    nack |= i2c_read_bit_andLatch(i2cPins, latchPort, latchPin); // ack bit
 
-    microsecondsDelay(I2CSPEED / 2);
-    HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET); // latchPin LOW
-
-    nack |= i2c_read_bit(i2cPins); // ack bit
-
-    // nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100001);               //
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100010 | (address << 2)); // new address 001
-    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100011 | (address << 2)); // repeat new address
+    microsecondsDelay(2);
+    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100010 | (toAddress << 2)); // new address 001
+    microsecondsDelay(2);
+    nack |= i2c_write_byte(i2cPins, 0, 0, 0b01100011 | (toAddress << 2)); // repeat new address
 
     i2c_stop_cond(i2cPins);
 
@@ -121,8 +75,13 @@ void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latc
     HAL_GPIO_Init(i2cPins.portSDA, &GPIO_InitStruct);
 
     if (nack) {
-        println("I2C AddressChange - NACK!");
+        println("I2C AddressChange - NACK!", "-> Address change from ", fromAddress, " to ", toAddress, " failed ");
     }
+    else {
+        println("I2C Address changed", "-> from ", fromAddress, " to ", toAddress);
+    }
+
+    HAL_Delay(100);
 };
 
 ////// I2C Software Bit-banging //////
@@ -131,6 +90,14 @@ void I2C_delay() {
     uint32_t time = __HAL_TIM_GetCounter(&htim2);
 
     while (__HAL_TIM_GetCounter(&htim2) - time < I2CSPEED) {
+        ;
+    }
+}
+
+void I2C_HalfDelay() {
+    uint32_t time = __HAL_TIM_GetCounter(&htim2);
+
+    while (__HAL_TIM_GetCounter(&htim2) - time < (I2CSPEED / 2)) {
         ;
     }
 }
@@ -184,6 +151,7 @@ void i2c_start_cond(i2cpin pins) {
     I2C_delay();
     clear_SCL(pins);
     started = true;
+    I2C_HalfDelay();
 }
 
 void i2c_stop_cond(i2cpin pins) {
@@ -252,6 +220,38 @@ bool i2c_read_bit(i2cpin pins) {
 
     // Wait for SDA value to be written by slave, minimum of 4us for standard mode
     I2C_delay();
+
+    // Set SCL high to indicate a new valid SDA value is available
+    set_SCL(pins);
+
+    while (read_SCL(pins) == 0) { // Clock stretching
+                                  // You should add timeout to this loop
+    }
+
+    // Wait for SDA value to be written by slave, minimum of 4us for standard mode
+    I2C_delay();
+
+    // SCL is high, read out bit
+    bit = read_SDA(pins);
+
+    // Set SCL low in preparation for next operation
+    clear_SCL(pins);
+
+    return bit;
+}
+
+// Read a bit from I2C bus
+bool i2c_read_bit_andLatch(i2cpin pins, GPIO_TypeDef *latchPort, uint16_t latchPin) {
+    bool bit;
+
+    // Let the slave drive data
+    set_SDA(pins);
+
+    // latch pin for MCP address change
+
+    HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET); // latchPin LOW
+    I2C_HalfDelay();
+    I2C_HalfDelay();
 
     // Set SCL high to indicate a new valid SDA value is available
     set_SCL(pins);
