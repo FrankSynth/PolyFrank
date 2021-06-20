@@ -10,6 +10,10 @@
 
 #define I2CSPEED 10 // 100khz
 
+/**
+ * @brief portSDA, pinSDA, portSCL, pinSCL
+ *
+ */
 typedef struct {
     GPIO_TypeDef *portSDA;
     uint16_t pinSDA;

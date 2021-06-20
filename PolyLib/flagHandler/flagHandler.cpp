@@ -43,11 +43,11 @@ void initFlagHandler() {
     // saiCptl = false;
     // saiCptlFunc = nullptr;
 
-    cvDacAStarted = false;
-    cvDacBStarted = false;
-    cvDacCStarted = false;
-    cvDacDStarted = false;
-    cvDacDFinished = false;
+    for (uint32_t i = 0; i < 10; i++)
+        cvDacStarted[i] = false;
+
+    for (uint32_t i = 0; i < 3; i++)
+        cvDacLastFinished[i] = false;
 
     renderNewCV = false;
     renderNewCVFunc = nullptr;
@@ -124,11 +124,8 @@ std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 // bool saiCptl;
 // std::function<uint8_t()> saiCptlFunc;
 
-bool cvDacAStarted;
-bool cvDacBStarted;
-bool cvDacCStarted;
-bool cvDacDStarted;
-bool cvDacDFinished;
+bool cvDacStarted[10];
+bool cvDacLastFinished[3];
 
 // std::function<void()> cvDacCFinishedFunc;
 

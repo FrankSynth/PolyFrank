@@ -5,9 +5,8 @@
 bool started = false; // global data
 
 i2cpin i2c1Pins = {GPIOB, GPIO_PIN_7, GPIOB, GPIO_PIN_6};
-// i2cpin i2c2Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
-// i2cpin i2c3Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
-// i2cpin i2c4Pins = {GPIOx, GPIO_PIN_x, GPIOx, GPIO_PIN_x};
+i2cpin i2c2Pins = {GPIOF, GPIO_PIN_0, GPIOF, GPIO_PIN_1};
+i2cpin i2c3Pins = {GPIOH, GPIO_PIN_8, GPIOH, GPIO_PIN_7};
 
 // send I2C Command
 void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latchPin, uint8_t fromAddress,

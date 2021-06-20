@@ -13,8 +13,8 @@
 #include "tim.h"
 
 extern i2cpin i2c1Pins;
-
-
+extern i2cpin i2c2Pins;
+extern i2cpin i2c3Pins;
 
 void PolyRenderInit();
 void PolyRenderRun();
