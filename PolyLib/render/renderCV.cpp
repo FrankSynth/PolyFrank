@@ -311,14 +311,32 @@ inline void setLEDs() {
     // TODO LED assigment
     // TODO LED Brightness setting?
 
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, ledLog.mapValue(layerA.adsrA.out.currentSample[0]) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, ledLog.mapValue(layerA.adsrB.out.currentSample[0]) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3,
-                         ledLog.mapValue(layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4,
-                         ledLog.mapValue(layerA.lfoB.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, ledLog.mapValue(layerA.adsrA.out.currentSample[0]) * 1023.0f);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, ledLog.mapValue(layerA.adsrB.out.currentSample[0]) * 1023.0f);
+    __HAL_TIM_SetCompare(
+        &htim3, TIM_CHANNEL_1,
+        ledLog.mapValue((layerA.globalModule.left.currentSample[2] + layerA.globalModule.right.currentSample[2]) *
+                        0.5f) *
+            1023.0f); // 2
+    __HAL_TIM_SetCompare(
+        &htim3, TIM_CHANNEL_2,
+        ledLog.mapValue((layerA.globalModule.left.currentSample[3] + layerA.globalModule.right.currentSample[3]) *
+                        0.5f) *
+            1023.0f); // 3
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1,
+                         ledLog.mapValue(layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f); // 5
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2,
+                         ledLog.mapValue(layerA.lfoB.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f); // 6
+    __HAL_TIM_SetCompare(
+        &htim4, TIM_CHANNEL_1,
+        ledLog.mapValue((layerA.globalModule.left.currentSample[1] + layerA.globalModule.right.currentSample[1]) *
+                        0.5f) *
+            1023.0f); // 1
+    __HAL_TIM_SetCompare(
+        &htim4, TIM_CHANNEL_2,
+        ledLog.mapValue((layerA.globalModule.left.currentSample[0] + layerA.globalModule.right.currentSample[0]) *
+                        0.5f) *
+            1023.0f); // 0
+    // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, ledLog.mapValue(layerA.adsrB.out.currentSample[2]) * 1023.0f);
+    // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_4, ledLog.mapValue(layerA.adsrB.out.currentSample[3]) * 1023.0f);
 }
 
 // elapsedMicros rendertimecv;

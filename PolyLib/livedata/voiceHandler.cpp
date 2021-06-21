@@ -182,7 +182,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
         }
     }
     if (oldestVoiceID == 0xFF) {
-        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to many voices?");
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for too many voices?");
         return;
     }
 

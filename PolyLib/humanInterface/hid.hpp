@@ -12,8 +12,8 @@
 #define LEDBRIGHTNESS_MEDIUM 100
 #define LEDBRIGHTNESS_MAX 220
 #define NUMBERENCODERS 5
-#define NUMBER_PANELTOUCHICS 4
-#define NUMBER_LEDDRIVER 4
+#define NUMBER_PANELTOUCHICS 2
+#define NUMBER_LEDDRIVER 1
 
 typedef enum {
     TOUCH_IO_PIN_0,
@@ -92,17 +92,17 @@ class PanelTouch {
         }
         if (port == TOUCH_IO_PORT_A) {
             switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
+                case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
+                case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
+                case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
+                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
+                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
+                case 6: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
+                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
+                case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
                 case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
             }
 
@@ -110,18 +110,18 @@ class PanelTouch {
         }
         if (port == TOUCH_IO_PORT_B) {
             switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: break;
-                case 11: break;
+                case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
+                case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
+                case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
+                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
+                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
+                case 6: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
+                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
+                case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
             }
 
             return;

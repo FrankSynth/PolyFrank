@@ -49,8 +49,10 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
     // check Midi channel
 
-    if (channel == globalSettings.midiLayerAChannel.value) {                         // check midi Channel
-        if ((livemodeKeysplit.value && key.note >= 44) || !livemodeKeysplit.value) { // Key split ? + upper half
+    if (channel == globalSettings.midiLayerAChannel.value) { // check midi Channel
+
+        // TODO split note als setting??
+        if ((livemodeKeysplit.value && key.note >= 64) || !livemodeKeysplit.value) { // Key split ? + upper half
             key.layerID = 0;
 
             if (!arpA.arpEnable.value) {    // arp aus?
@@ -61,7 +63,8 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
     }
 
     if (channel == globalSettings.midiLayerBChannel.value) {
-        if ((livemodeKeysplit.value && key.note < 44) || !livemodeKeysplit.value) {
+
+        if ((livemodeKeysplit.value && key.note < 64) || !livemodeKeysplit.value) {
             key.layerID = 1;
             if (!arpB.arpEnable.value) {
                 voiceHandler.playNote(key);

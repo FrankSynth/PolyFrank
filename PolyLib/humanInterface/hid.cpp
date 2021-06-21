@@ -2,7 +2,7 @@
 
 #include "hid.hpp"
 
-#define PANELACTIVE 0
+#define PANELACTIVE 1
 
 // ControlPanel
 // PCA9555 -> Bus expander for the Encoder
@@ -10,22 +10,27 @@ PCA9555 ioExpander = PCA9555(&hi2c2, 0x00);
 
 // create Encoder objects
 rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9), rotary(13, 12)};
-tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(14),
-                                          tactileSwitch(11)};
+tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11),
+                                          tactileSwitch(14)};
 
 // create Controller Touch Objects
 AT42QT2120 touchControl[2] = {AT42QT2120(&hi2c1, 0), AT42QT2120(&hi2c1, 1)};
 
 // LayerPanel
 // create Panel Touch Objects
-AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {
-    {AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 2, 0), AT42QT2120(&hi2c4, 3, 0)},
-    {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1), AT42QT2120(&hi2c3, 2, 1), AT42QT2120(&hi2c3, 4, 1)}};
+AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {{AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 1, 0)},
+                                                  {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1)}};
 
-IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 4, 0), IS31FL3216(&hi2c4, 0, 5, 0),
-                                              IS31FL3216(&hi2c4, 0, 6, 0), IS31FL3216(&hi2c4, 0, 7, 0)},
-                                             {IS31FL3216(&hi2c3, 0, 4, 1), IS31FL3216(&hi2c3, 0, 5, 1),
-                                              IS31FL3216(&hi2c3, 0, 6, 1), IS31FL3216(&hi2c3, 0, 7, 1)}};
+// AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {
+//     {AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 2, 0), AT42QT2120(&hi2c4, 3, 0)},
+//     {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1), AT42QT2120(&hi2c3, 2, 1), AT42QT2120(&hi2c3, 4, 1)}};
+
+// IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 4, 0), IS31FL3216(&hi2c4, 0, 5, 0),
+//                                               IS31FL3216(&hi2c4, 0, 6, 0), IS31FL3216(&hi2c4, 0, 7, 0)},
+//                                              {IS31FL3216(&hi2c3, 0, 4, 1), IS31FL3216(&hi2c3, 0, 5, 1),
+//                                               IS31FL3216(&hi2c3, 0, 6, 1), IS31FL3216(&hi2c3, 0, 7, 1)}};
+
+IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 7, 0)}, {IS31FL3216(&hi2c3, 0, 7, 1)}};
 
 // Objects for evaluating Touch State for the Panel
 PanelTouch touchEvaluteLayer[2] = {PanelTouch(0), PanelTouch(1)};
@@ -93,34 +98,31 @@ void initHID() {
     elapsedMillis timeout;
     timeout = 0;
 
-    // TODO temp disabled
-
     // init Panels
-    // // init Panels
-    // for (size_t i = 0; i < 2; i++) {
-    //     if (allLayers[i]->LayerState.value == 1) {
-    //         for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
-    //             if (PANELACTIVE) {
-    //                 touchPanel[i][x].init(); // init Touch ICS
-    //             }
-    //         }
-    //         for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-    //             if (PANELACTIVE) {
+    for (size_t i = 0; i < 2; i++) {
+        if (allLayers[i]->LayerState.value == 1) {
+            for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
+                if (PANELACTIVE) {
+                    println("init Touch IC");
+                    touchPanel[i][x].init(); // init Touch ICS
+                }
+            }
+            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+                if (PANELACTIVE) {
+                    println("init LED Driver");
+                    ledDriver[i][x].init(); // init LED driver}
+                }
+            }
+            timeout = 0;
+            while (adc[i].init()) { // init analog-digital converter
+                if (timeout > 100) {
+                    PolyError_Handler("ERROR | INIT | Panel ADC init failed -> timeout");
+                }
+            }
+        }
+    }
 
-    //                 ledDriver[i][x].init(); // init LED driver}
-    //             }
-    //         }
-    //         timeout = 0;
-    //         while (adc[i].init()) { // init analog-digital converter
-    //             if (timeout > 100) {
-    //                 PolyError_Handler("ERROR | INIT | Panel ADC init failed -> timeout");
-    //             }
-    //         }
-    //     }
-    // }
-
-    // TODO temp disabled
-    // multiplexer.enableChannels(); // multiplexer for both layer
+    multiplexer.enableChannels(); // multiplexer for both layer
 }
 
 void processEncoder() {
@@ -286,7 +288,30 @@ void initPotiMapping() { // TODO fill mapping
         potiFunctionPointer[i][2][0] =
             std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
         potiFunctionPointer[i][3][0] =
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aParSer), std::placeholders::_1);
+
+        potiFunctionPointer[i][0][1] =
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+        potiFunctionPointer[i][1][1] =
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+        potiFunctionPointer[i][2][1] =
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
+
+        potiFunctionPointer[i][0][2] = std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aFreq), std::placeholders::_1);
+        potiFunctionPointer[i][1][2] =
+            std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aShape), std::placeholders::_1);
+        potiFunctionPointer[i][2][2] = std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aFreq), std::placeholders::_1);
+        potiFunctionPointer[i][3][2] =
+            std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aShape), std::placeholders::_1);
+
+        potiFunctionPointer[i][0][3] =
             std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
+        potiFunctionPointer[i][1][3] =
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aPan), std::placeholders::_1);
+        potiFunctionPointer[i][2][3] =
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aSpread), std::placeholders::_1);
+        potiFunctionPointer[i][3][3] =
+            std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
     }
 }
 void updatePatchLED() {

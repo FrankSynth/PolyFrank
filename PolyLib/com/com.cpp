@@ -822,7 +822,7 @@ void COMinterChip::switchBuffer() {
 }
 
 void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
-    println("HAL_MDMA_XFER_CPLT_CB_ID");
+    // println("HAL_MDMA_XFER_CPLT_CB_ID");
 
     HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
 

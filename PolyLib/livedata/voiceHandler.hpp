@@ -37,7 +37,7 @@ class VoiceHandler {
 
     uint32_t sustain[2] = {0, 0};
 
-    Setting livemodeVoiceMode = Setting("MODE", 3, 0, 3, false, binary, &polySplitNameList);
+    Setting livemodeVoiceMode = Setting("MODE", 0, 0, 3, false, binary, &polySplitNameList);
     Setting livemodeMergeLayer = Setting("MERGE", 0, 0, 1, false, binary, &polyMergeNameList);
 
     const std::vector<std::string> polySplitNameList = {"1|8", "2|4", "4|2", "8|1"};

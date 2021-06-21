@@ -512,7 +512,8 @@ inline void getOscBSample(float *sample) {
  * @param renderDest output buffer
  */
 void renderAudio(int32_t *renderDest) {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+    // speed test led - obsolete
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
 
     const float *noiseLevelLadder = layerA.noise.levelLadder.currentSample;
     const float *noiseLevelSteiner = layerA.noise.levelSteiner.currentSample;
@@ -631,13 +632,15 @@ void renderAudio(int32_t *renderDest) {
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             intSampleLadder[i] = sampleLadder[i];
 
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            renderDest[sample * AUDIOCHANNELS + i * 2 + 1] = intSampleSteiner[i];
-        renderDest[sample * AUDIOCHANNELS + 7] = intSampleSteiner[0]; // FIXME temp voice test
+        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleLadder[3];
 
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            renderDest[sample * AUDIOCHANNELS + i * 2] = intSampleLadder[i];
-        // renderDest[sample * AUDIOCHANNELS + 0] = intSampleLadder[0]; // FIXME temp voice test
+        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
 
         if (sample == 0) {
             for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -650,7 +653,7 @@ void renderAudio(int32_t *renderDest) {
                 oscBOut[i] = oscBSample[i];
         }
     }
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
 }
 
 #endif

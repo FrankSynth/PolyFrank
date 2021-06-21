@@ -318,6 +318,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & GPIO_PIN_14) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;
     }
+    if (pin & GPIO_PIN_2) { // Control Touch
+        FlagHandler::Panel_0_Touch_Interrupt = true;
+    }
+    if (pin & GPIO_PIN_5) { // Control Touch
+        FlagHandler::Panel_1_Touch_Interrupt = true;
+    }
     if (pin & GPIO_PIN_3) { // Layer 2 Ready 1
         if (FlagHandler::interChipA_State[1] == NOTCONNECT) {
             FlagHandler::interChipA_State[1] = READY;

@@ -132,10 +132,12 @@ int main(void) {
     // timer LEDs
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
     // HAL_Delay(200);
 
@@ -145,10 +147,12 @@ int main(void) {
     // some example LED Brightness
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0);
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0);
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
     __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 0);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, 0);
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_4, 0);
 
     // start main programm
     PolyRenderRun();

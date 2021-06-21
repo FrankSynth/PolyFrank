@@ -41,7 +41,7 @@ class IS31FL3216 {
         }
 
         // set LED brightness to 0
-        setPWM(0); // set all LEDs to 0
+        setPWM(150); // set all LEDs to 0
     }
 
     void setPWM(uint8_t pwm) {

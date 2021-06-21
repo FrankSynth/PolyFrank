@@ -25,7 +25,6 @@ class AT42QT2120 {
     AT42QT2120(I2C_HandleTypeDef *I2C_HandleTypeDef) { // without busMultiplexer
 
         this->i2cHandle = i2cHandle;
-        this->i2cBusSwitchAddress = i2cBusSwitchAddress; // combine default address with custom adress
         busMultiplexer = 0;
     }
 
