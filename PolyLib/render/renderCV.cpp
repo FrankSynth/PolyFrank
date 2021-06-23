@@ -125,7 +125,7 @@ void initCVRendering() {
     cvDac[9].data.currentSample[2] = 4095; // VOICE 2 | STEINER OUT LEVEL
     cvDac[9].data.currentSample[3] = 4095; // VOICE 3 | STEINER OUT LEVEL
 
-    for (uint16_t i; i < ALLDACS; i++)
+    for (uint16_t i = 0; i < ALLDACS; i++)
         cvDac[0].sendCurrentBuffer();
 }
 

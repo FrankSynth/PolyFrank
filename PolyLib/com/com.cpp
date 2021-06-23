@@ -189,8 +189,8 @@ uint8_t COMinterChip::startFirstDMA() {
     FlagHandler::interChipA_DMA_Started[layer] = 1;
 
     // TODO remove single chip temp setting, switch following lines
-    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
-    // FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
+    // FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
+    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
 
     uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize);
     if (ret) {
@@ -202,13 +202,18 @@ uint8_t COMinterChip::startFirstDMA() {
 
 uint8_t COMinterChip::startSecondMDMA() {
 
-    prepareMDMAHandle();
-    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
+    println("start seconds MDMA");
+
     FlagHandler::interChipB_MDMA_Started[layer] = 1;
     FlagHandler::interChipB_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondDMA, this);
 
     FlagHandler::interChipB_State[layer] = WAITFORRESPONSE;
     FlagHandler::interChipB_StateTimeout[layer] = 0;
+
+    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
+    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
+
+    prepareMDMAHandle();
 
     uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipB[!currentBufferSelect].data(),
                                     (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize, 1);
@@ -221,7 +226,7 @@ uint8_t COMinterChip::startSecondMDMA() {
 }
 
 uint8_t COMinterChip::startSecondDMA() {
-
+    println("start seconds dma");
     // enable NSS to Render Chip B
     if (layer == 0)
         HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);

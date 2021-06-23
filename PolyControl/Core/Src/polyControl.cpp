@@ -330,8 +330,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else {
             if (FlagHandler::interChipA_State[1] == WAITFORRESPONSE) {
-                FlagHandler::interChipA_State[1] = READY;
                 FlagHandler::interChipA_StateTimeout[1] = 0;
+                FlagHandler::interChipA_State[1] = READY;
             }
         }
     }
@@ -349,7 +349,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & GPIO_PIN_6) { // Layer 1 Ready 1
         if (FlagHandler::interChipA_State[0] == NOTCONNECT) {
             FlagHandler::interChipA_State[0] = READY;
-            FlagHandler::interChipB_State[0] = READY;
         }
         else {
             if (FlagHandler::interChipA_State[0] == WAITFORRESPONSE) {
@@ -368,10 +367,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                 FlagHandler::interChipB_State[0] = READY;
             }
         }
-    }
-
-    if (pin & GPIO_PIN_8) { // ioExpander -> encoder
-        liveData.externalClockTick();
     }
 }
 

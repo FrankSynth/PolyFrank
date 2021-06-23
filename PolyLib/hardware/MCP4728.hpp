@@ -72,7 +72,6 @@ class MCP4728 {
     uint8_t testAddress() {
         uint8_t emptyByte = 0x00;
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &emptyByte, 0, 50) != HAL_OK) {
-            Error_Handler();
             println("MCP4728 | I2C | DAC not found -> address: ", i2cAddress);
             return 1;
         }

@@ -13,8 +13,8 @@
 #include <string>
 #endif
 
-#define MAX_VALUE_12BIT 4071 // TODO andere rail to rail Opamp.. dann auf größere range setzen
-#define MIN_VALUE_12BIT 19   // TODO andere rail to rail Opamp.. dann auf größere range setzen
+#define MAX_VALUE_12BIT 4071
+#define MIN_VALUE_12BIT 19
 
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
