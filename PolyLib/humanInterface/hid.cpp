@@ -103,13 +103,13 @@ void initHID() {
         if (allLayers[i]->LayerState.value == 1) {
             for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
                 if (PANELACTIVE) {
-                    println("init Touch IC");
+                    // println("init Touch IC");
                     touchPanel[i][x].init(); // init Touch ICS
                 }
             }
             for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
                 if (PANELACTIVE) {
-                    println("init LED Driver");
+                    // println("init LED Driver");
                     ledDriver[i][x].init(); // init LED driver}
                 }
             }

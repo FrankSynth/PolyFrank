@@ -293,6 +293,9 @@ class COMinterChip {
     uint8_t sendRetrigger(uint8_t modulID, uint8_t voiceID);
     uint8_t sendResetAll();
 
+    // start copying data for render chip A via MDMA
+    uint8_t startFirstMDMA();
+
     // after first MDMA finished, start DMA transfer to render chip A
     uint8_t startFirstDMA();
 

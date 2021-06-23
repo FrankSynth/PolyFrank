@@ -124,11 +124,28 @@ uint8_t COMinterChip::beginSendTransmission() {
     appendLastByte();
 
     dmaOutCurrentBufferASize = outBufferChipA[currentBufferSelect].size();
+    dmaOutCurrentBufferBSize = outBufferChipB[currentBufferSelect].size();
 
     // write size into first two bytes of outBuffers
     *(uint16_t *)outBufferChipA[currentBufferSelect].data() = dmaOutCurrentBufferASize;
     *(uint16_t *)outBufferChipB[currentBufferSelect].data() = dmaOutCurrentBufferBSize;
     // println("register flaghandlers interChipA_MDMA_Started");
+
+    switchBuffer();
+
+    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
+    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
+    prepareMDMAHandle();
+
+    if (dmaOutCurrentBufferASize) {
+        startFirstMDMA();
+    }
+    else if (dmaOutCurrentBufferBSize) {
+        startSecondDMA();
+    }
+}
+
+uint8_t COMinterChip::startFirstMDMA() {
 
     FlagHandler::interChipA_MDMA_Started[layer] = 1;
     FlagHandler::interChipA_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startFirstDMA, this);
@@ -136,14 +153,6 @@ uint8_t COMinterChip::beginSendTransmission() {
     // set Interchip state and wait for response
     FlagHandler::interChipA_State[layer] = WAITFORRESPONSE;
     FlagHandler::interChipA_StateTimeout[layer] = 0;
-
-    switchBuffer();
-
-    // println("send buffer size", dmaOutCurrentBufferASize);
-
-    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
-    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
-    prepareMDMAHandle();
 
     uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipA[!currentBufferSelect].data(),
                                     (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize, 1);
@@ -188,9 +197,12 @@ uint8_t COMinterChip::startFirstDMA() {
 
     FlagHandler::interChipA_DMA_Started[layer] = 1;
 
-    // TODO remove single chip temp setting, switch following lines
-    // FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
-    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
+    if (dmaOutCurrentBufferBSize) {
+        FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
+    }
+    else { // buffer Empty
+        FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
+    }
 
     uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize);
     if (ret) {
@@ -201,8 +213,6 @@ uint8_t COMinterChip::startFirstDMA() {
 }
 
 uint8_t COMinterChip::startSecondMDMA() {
-
-    println("start seconds MDMA");
 
     FlagHandler::interChipB_MDMA_Started[layer] = 1;
     FlagHandler::interChipB_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondDMA, this);
@@ -219,11 +229,13 @@ uint8_t COMinterChip::startSecondMDMA() {
         FlagHandler::interChipB_MDMA_FinishedFunc[layer] = nullptr;
         HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
     }
+    else {
+        blockNewSendBeginCommand = 1;
+    }
     return ret;
 }
 
 uint8_t COMinterChip::startSecondDMA() {
-    println("start seconds dma");
     // enable NSS to Render Chip B
     if (layer == 0)
         HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
@@ -824,7 +836,7 @@ void COMinterChip::switchBuffer() {
 }
 
 void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
-    println("HAL_MDMA_XFER_CPLT_CB_ID");
+    // println("HAL_MDMA_XFER_CPLT_CB_ID");
 
     HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
 
