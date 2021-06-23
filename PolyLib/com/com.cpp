@@ -211,9 +211,6 @@ uint8_t COMinterChip::startSecondMDMA() {
     FlagHandler::interChipB_StateTimeout[layer] = 0;
 
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
-    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
-
-    prepareMDMAHandle();
 
     uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipB[!currentBufferSelect].data(),
                                     (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize, 1);
@@ -827,7 +824,7 @@ void COMinterChip::switchBuffer() {
 }
 
 void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
-    // println("HAL_MDMA_XFER_CPLT_CB_ID");
+    println("HAL_MDMA_XFER_CPLT_CB_ID");
 
     HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
 
