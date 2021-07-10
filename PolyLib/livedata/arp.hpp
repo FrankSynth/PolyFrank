@@ -122,5 +122,5 @@ class Arpeggiator {
 
     const std::vector<std::string> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
                                                       "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
-                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANNDOM"};
+                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
 };

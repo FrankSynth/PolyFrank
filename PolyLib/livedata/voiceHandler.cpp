@@ -161,7 +161,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             }
             else { // first found
                 oldestVoiceID = voiceLayer[i].voiceID;
-                break; // FIXME break possible, no?
+                // break; // FIXME break possible, no?
             }
         }
     }

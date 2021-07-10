@@ -468,7 +468,7 @@ void switchLEDMapping() {
         ledDriver[i][0].pwmValue[13] = allLayers[i]->adsrA.dLatch.valueMapped ? 255 : 0;
         ledDriver[i][0].pwmValue[14] = allLayers[i]->adsrB.dLatch.valueMapped ? 255 : 0;
 
-        println(allLayers[0]->ladder.dSlope.valueMapped);
+        // println(allLayers[0]->ladder.dSlope.valueMapped);
     }
 }
 

@@ -84,7 +84,7 @@ void Arpeggiator::lifetime(Key &key) {
     // uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPlayedKeysParallel.value; // in micros
     key.lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep; // in micros
 
-    key.retriggerAmounts = arpPlayedKeysParallel.value;
+    key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
 }
 
 void Arpeggiator::serviceRoutine() {
@@ -101,8 +101,9 @@ void Arpeggiator::release() {
             (((micros() - it->born) > (it->lifespan / 2)) && !arpSustain)) {
             voiceHandler->freeNote(*it); // free Note
             if (it->retriggerAmounts) {
-                it->retriggerAmounts--;
-                retriggerKeys.push_back(*it);
+                Key copyKey = *it;
+                copyKey.retriggerAmounts--;
+                retriggerKeys.push_back(copyKey);
             }
 
             it = pressedKeys.erase(it); // delete key
@@ -209,8 +210,11 @@ void Arpeggiator::nextStep() {
 
     // repress all retrigger Notes
     for (std::list<Key>::iterator it = retriggerKeys.begin(); it != retriggerKeys.end(); it++) {
-        pressKey(*it); // TODO inefficient to copy all key data
+        it->lifespan = key.lifespan;
+        it->born = key.born;
+        pressKey(*it);
     }
+    retriggerKeys.clear();
 
     // press new key
     pressKey(key);
@@ -494,7 +498,10 @@ void Arpeggiator::mode_rnd() {
     else {
         randomCounter = changeIntLoop(randomCounter, 1, 0, (int16_t)(orderedKeys.size()) - 1);
     }
-    stepArp = std::rand() * (int16_t)(orderedKeys.size()) / RAND_MAX;
+
+    uint32_t randomNumber = std::rand() & 0x0000FFFF;
+
+    stepArp = randomNumber * (int16_t)(orderedKeys.size()) / 0x0000FFFF;
 }
 void Arpeggiator::mode_updown() {
     if (restarted) {
