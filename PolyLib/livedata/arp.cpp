@@ -101,9 +101,8 @@ void Arpeggiator::release() {
             (((micros() - it->born) > (it->lifespan / 2)) && !arpSustain)) {
             voiceHandler->freeNote(*it); // free Note
             if (it->retriggerAmounts) {
-                Key copyKey = *it;
-                copyKey.retriggerAmounts--;
-                retriggerKeys.push_back(copyKey);
+                it->retriggerAmounts--;
+                retriggerKeys.push_back(*it);
             }
 
             it = pressedKeys.erase(it); // delete key
