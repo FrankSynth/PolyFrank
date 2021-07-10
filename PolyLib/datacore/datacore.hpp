@@ -263,6 +263,8 @@ class Digital : public DataElement {
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
     void nextValue();
+    void nextValueLoop();
+
     void previousValue();
     inline void resetValue() { setValueWithoutMapping(defaultValue); }
 

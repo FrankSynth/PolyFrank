@@ -129,13 +129,14 @@ class IS31FL3216 {
     }
 
     void updateLEDs() {
+
         uint8_t changed = 0;
         // Switch bus
         i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
 
         for (int x = 0; x < 16; x++) {
-            if (data[x + 1] != pwmValue[x]) {
-                data[x + 1] = pwmValue[x];
+            if (data[x + 1] != pwmValue[15 - x]) { // corrent orientation, check for difference
+                data[x + 1] = pwmValue[15 - x];
                 changed = 1;
             }
         }

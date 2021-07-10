@@ -245,7 +245,7 @@ uint8_t COMinterChip::startSecondDMA() {
     FlagHandler::interChipB_DMA_Started[layer] = 1;
     FlagHandler::interChipB_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
 
-    uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize);
+    uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize);
     if (ret) {
         FlagHandler::interChipB_DMA_Started[layer] = 0;
         FlagHandler::interChipB_DMA_FinishedFunc[layer] = nullptr;

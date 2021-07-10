@@ -39,7 +39,7 @@ void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
 void eventPanelTouch(uint16_t touchState, uint8_t port);
-void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB);
+void eventControlTouch(uint16_t touchStateA);
 
 void initPotiMapping();
 void processPanelPotis();
@@ -54,32 +54,21 @@ class PanelTouch {
     void event(uint16_t touchState, uint8_t port) {
 
         uint16_t event = pinState[port] ^ touchState;
-
-        // println("------> eval");
         uint16_t push = event & touchState;
         uint16_t release = event & (~touchState);
-        // println("------ > event ", event);
-
-        // println("------ > push ", push);
-
-        // println("------ > release ", release);
 
         for (int x = 0; x < 12; x++) { // pins per port
 
             if (push & (1 << x)) {
-                // println("--------> eval Push");
 
                 evaluate(x, port, 1);
             }
 
             else if (release & (1 << x)) {
-                // println("--------> eval Release");
 
                 evaluate(x, port, 0);
             }
         }
-        // uint8_t newPinState = pinState[port] |= (1 << pin);
-        // uint8_t oldPinState = pinState[port] |= (1 << pin);
     }
 
     // TODO panel touch buttons Mapping
@@ -92,53 +81,53 @@ class PanelTouch {
         }
         if (port == TOUCH_IO_PORT_A) {
             switch (pin) {
-                case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
-                case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
-                case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
-                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
-                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
-                case 6: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
-                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
-                case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 0: evaluateInput((Input *)&(allLayers[layerID]->oscA.iFM), event); break;
+                case 1: evaluateInput((Input *)&(allLayers[layerID]->ladder.iCutoff), event); break;
+                case 2: break;
+                case 3: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iVCA), event); break;
+                case 4: evaluateInput((Input *)&(allLayers[layerID]->oscA.iMorph), event); break;
+                case 5: evaluateInput((Input *)&(allLayers[layerID]->steiner.iCutoff), event); break;
+                case 6: break;
+                case 7: break;
+                case 8: evaluateInput((Input *)&(allLayers[layerID]->oscA.iLevel), event); break;
+                case 9: evaluateInput((Input *)&(allLayers[layerID]->distort.iDistort), event); break;
+                case 10: break;
+                case 11: break;
             }
 
             return;
         }
         if (port == TOUCH_IO_PORT_B) {
             switch (pin) {
-                case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
-                case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
-                case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
-                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
-                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
-                case 6: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
-                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
-                case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-                case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+                case 0: evaluateInput((Input *)&(allLayers[layerID]->oscB.iFM), event); break;
+                case 1: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iPan), event); break;
+                case 2: break;
+                case 3: evaluateSetting((Digital *)&(allLayers[layerID]->adsrA.dLatch), event); break;
+                case 4: evaluateInput((Input *)&(allLayers[layerID]->oscB.iMorph), event); break;
+                case 5: break;
+                case 6: break;
+                case 7: evaluateInput((Input *)&(allLayers[layerID]->oscB.iLevel), event); break;
+                case 8: evaluateSetting((Digital *)&(allLayers[layerID]->adsrB.dLatch), event); break;
+                case 9: evaluateSetting((Digital *)&(allLayers[layerID]->ladder.dSlope), event); break;
+                case 10: evaluateSetting((Digital *)&(allLayers[layerID]->oscA.dVcfDestSwitch), event); break;
+                case 11: break;
             }
 
             return;
         }
         if (port == TOUCH_IO_PORT_C) {
             switch (pin) {
-                case 0: break;
+                case 0: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
                 case 1: break;
-                case 2: break;
+                case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
                 case 3: break;
-                case 4: break;
+                case 4: evaluateOutput((Output *)&(allLayers[layerID]->adsrA.out), event); break;
                 case 5: break;
-                case 6: break;
+                case 6: evaluateOutput((Output *)&(allLayers[layerID]->adsrB.out), event); break;
                 case 7: break;
-                case 8: break;
+                case 8: evaluateOutput((Output *)&(allLayers[layerID]->midi.oVeloctiy), event); break;
                 case 9: break;
-                case 10: break;
+                case 10: evaluateOutput((Output *)&(allLayers[layerID]->midi.oMod), event); break;
                 case 11: break;
             }
 
@@ -228,7 +217,11 @@ class PanelTouch {
         }
     }
 
-    void evaluateSetting(Digital *pSwitch) { pSwitch->nextValue(); }
+    void evaluateSetting(Digital *pSwitch, uint8_t event) {
+        if (event) {
+            pSwitch->nextValueLoop();
+        }
+    }
 
     void setInputFocus(Input *pInput) {
         if (activeInput == nullptr && activeOutput == nullptr) {

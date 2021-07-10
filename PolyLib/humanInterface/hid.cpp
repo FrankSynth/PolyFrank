@@ -191,19 +191,18 @@ void processPanelPotis() {
 }
 
 void processControlTouch() {
-    println("TouchEvent");
-    eventControlTouch(touchControl[0].readTouchStatus(), touchControl[1].readTouchStatus());
+    eventControlTouch(touchControl[0].readTouchStatus());
+
+    // TODO Temporary solution
+    touchEvaluteLayer[0].event(touchControl[1].readTouchStatus(),
+                               TOUCH_IO_PORT_C); // send to panel touch command evaluation
 }
 
-void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB) {
+void eventControlTouch(uint16_t touchStateA) {
     static uint16_t oldTouchStateA;
-    static uint16_t oldTouchStateB;
 
     uint16_t pushEventA = ~oldTouchStateA & touchStateA;
     uint16_t releaseEventA = oldTouchStateA & ~touchStateA;
-
-    uint16_t pushEventB = ~oldTouchStateB & touchStateB;
-    uint16_t releaseEventB = oldTouchStateB & ~touchStateB;
 
     // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
     if (pushEventA) {
@@ -275,43 +274,45 @@ void eventControlTouch(uint16_t touchStateA, uint16_t touchStateB) {
     }
 
     oldTouchStateA = touchStateA;
-    oldTouchStateB = touchStateB;
 }
 
 void initPotiMapping() { // TODO fill mapping
 
     for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
         potiFunctionPointer[i][0][0] =
-            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
         potiFunctionPointer[i][1][0] =
             std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
         potiFunctionPointer[i][2][0] =
-            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
         potiFunctionPointer[i][3][0] =
-            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aParSer), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aSpread), std::placeholders::_1);
 
         potiFunctionPointer[i][0][1] =
-            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
         potiFunctionPointer[i][1][1] =
-            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
         potiFunctionPointer[i][2][1] =
-            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aGlide), std::placeholders::_1);
+        potiFunctionPointer[i][3][1] =
+            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aDetune), std::placeholders::_1);
 
         potiFunctionPointer[i][0][2] = std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aFreq), std::placeholders::_1);
         potiFunctionPointer[i][1][2] =
-            std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aShape), std::placeholders::_1);
-        potiFunctionPointer[i][2][2] = std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aFreq), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
+        potiFunctionPointer[i][2][2] =
+            std::bind(&Analog::setValue, &(allLayers[i]->oscB.aLevel), std::placeholders::_1);
         potiFunctionPointer[i][3][2] =
-            std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aShape), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
 
         potiFunctionPointer[i][0][3] =
-            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
         potiFunctionPointer[i][1][3] =
-            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aPan), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
         potiFunctionPointer[i][2][3] =
-            std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aSpread), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
         potiFunctionPointer[i][3][3] =
-            std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
+            std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
     }
 }
 void updatePatchLED() {
@@ -323,34 +324,36 @@ void updatePatchLED() {
         // nothing changed?
         if (currentFocus.id == focusCompare.id && currentFocus.layer == focusCompare.layer &&
             currentFocus.modul == focusCompare.modul && currentFocus.type == focusCompare.type) {
-            return;
         }
+        else {
 
-        if (currentFocus.type == FOCUSOUTPUT) {
-            Output *output = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+            if (currentFocus.type == FOCUSOUTPUT) {
+                Output *output =
+                    allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
 
-            uint16_t sourceID = output->idGlobal;
-            patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
+                uint16_t sourceID = output->idGlobal;
+                patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
 
-            for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-                uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-                patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+                for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
+                    uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+                    patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+                }
+
+                // for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
+                //     uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
+                //     patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+                // }
             }
+            else if (currentFocus.type == FOCUSINPUT) {
 
-            // for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
-            //     uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-            //     patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
-            // }
-        }
-        else if (currentFocus.type == FOCUSINPUT) {
+                Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+                uint16_t inputID = input->idGlobal;
+                patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
 
-            Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-            uint16_t inputID = input->idGlobal;
-            patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
-
-            for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-                uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
-                patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+                for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
+                    uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
+                    patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+                }
             }
         }
 
@@ -361,7 +364,6 @@ void updatePatchLED() {
         for (int i = 0; i < 2; i++) {                  // for both Layer
             if (allLayers[i]->LayerState.value == 1) { // check layer State
                 for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-                    ledDriver[i][x].updateLEDs();
                     ledDriver[i][x].updateLEDs();
                 }
             }
@@ -412,64 +414,62 @@ void patchLEDMapping(FOCUSMODE type, uint32_t id,
 
 void switchLEDMapping() {
     // TODO mapping fertig machen sobald platine klar hier gerade nur beispiele
-    // static IS31FL3216 *ledDriver;
 
     // single led
 
-    // for (uint8_t i = 0; i < 2; i++) {
+    for (uint8_t i = 0; i < 1; i++) { // todo number layers
 
-    //     // Zwischen den Layern wechseln
-    //     if (i == 0) {
-    //         ledDriver = ledDriverA;
-    //     }
-    //     else {
-    //         ledDriver = ledDriverB;
-    //     }
+        //     // Zwischen den Layern wechseln
 
-    // switch (allLayers[i]->test.dSelectFilter.value) {
-    //     case 0: ledDriver[0].pwmValue[1] = 0; break;
-    //     case 1: ledDriver[0].pwmValue[1] = 255; break;
-    // };
-    // // dual LED
-    // switch (allLayers[i]->test.dSelectFilter.value) {
-    //     case 0:
-    //         ledDriver[0].pwmValue[1] = 255;
-    //         ledDriver[0].pwmValue[2] = 0;
-    //         break;
+        //     }
 
-    //     case 1:
-    //         ledDriver[0].pwmValue[1] = 0;
-    //         ledDriver[0].pwmValue[2] = 255;
-    //         break;
-    // };
-    // // Quad LED
-    // switch (allLayers[i]->test.dSelectFilter.value) {
-    //     case 0:
-    //         ledDriver[0].pwmValue[1] = 255;
-    //         ledDriver[0].pwmValue[2] = 0;
-    //         ledDriver[0].pwmValue[3] = 0;
-    //         ledDriver[0].pwmValue[4] = 0;
-    //         break;
-    //     case 1:
-    //         ledDriver[0].pwmValue[1] = 0;
-    //         ledDriver[0].pwmValue[2] = 255;
-    //         ledDriver[0].pwmValue[3] = 0;
-    //         ledDriver[0].pwmValue[4] = 0;
-    //         break;
-    //     case 2:
-    //         ledDriver[0].pwmValue[1] = 0;
-    //         ledDriver[0].pwmValue[2] = 0;
-    //         ledDriver[0].pwmValue[3] = 255;
-    //         ledDriver[0].pwmValue[4] = 0;
-    //         break;
-    //     case 3:
-    //         ledDriver[0].pwmValue[1] = 0;
-    //         ledDriver[0].pwmValue[2] = 0;
-    //         ledDriver[0].pwmValue[3] = 0;
-    //         ledDriver[0].pwmValue[4] = 255;
-    //         break;
-    // };
-    //}
+        // switch (allLayers[i]->test.dSelectFilter.value) {
+        //     case 0: ledDriver[0].pwmValue[1] = 0; break;
+        //     case 1: ledDriver[0].pwmValue[1] = 255; break;
+        // };
+        // // dual LED
+        // switch (allLayers[i]->test.dSelectFilter.value) {
+        //     case 0:
+        //         ledDriver[0].pwmValue[1] = 255;
+        //         ledDriver[0].pwmValue[2] = 0;
+        //         break;
+
+        //     case 1:
+        //         ledDriver[0].pwmValue[1] = 0;
+        //         ledDriver[0].pwmValue[2] = 255;
+        //         break;
+        // };
+        // // Quad LED
+        switch (allLayers[i]->oscA.dVcfDestSwitch.valueMapped) {
+            case 0:
+                ledDriver[i][0].pwmValue[5] = 255;
+                ledDriver[i][0].pwmValue[6] = 0;
+
+                break;
+            case 1:
+                ledDriver[i][0].pwmValue[5] = 0;
+                ledDriver[i][0].pwmValue[6] = 255;
+
+                break;
+            case 2:
+                ledDriver[i][0].pwmValue[5] = 255;
+                ledDriver[i][0].pwmValue[6] = 255;
+                break;
+            case 3:
+                ledDriver[i][0].pwmValue[5] = 0;
+                ledDriver[i][0].pwmValue[6] = 0;
+
+                break;
+        }
+
+        // fast ledselect, only  possible if LEDs are in a pin row
+        (uint32_t &)(ledDriver[i][0].pwmValue[0]) = 0x000000FF << (allLayers[i]->ladder.dSlope.valueMapped * 8);
+
+        ledDriver[i][0].pwmValue[13] = allLayers[i]->adsrA.dLatch.valueMapped ? 255 : 0;
+        ledDriver[i][0].pwmValue[14] = allLayers[i]->adsrB.dLatch.valueMapped ? 255 : 0;
+
+        println(allLayers[0]->ladder.dSlope.valueMapped);
+    }
 }
 
 #endif

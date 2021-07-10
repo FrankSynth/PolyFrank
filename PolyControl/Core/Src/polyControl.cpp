@@ -168,7 +168,7 @@ void PolyControlRun() { // Here the party starts
 
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
-            //    updatePatchLED();
+            updatePatchLED();
             if (HAL_ADC_PollForConversion(&hadc3, 100) != HAL_OK) {
                 Error_Handler();
             }

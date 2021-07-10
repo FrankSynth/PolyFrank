@@ -125,6 +125,17 @@ void Digital::nextValue() {
 #endif
 }
 
+void Digital::nextValueLoop() {
+    valueMapped = changeIntLoop(valueMapped, 1, min, max);
+
+#ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
 void Digital::previousValue() {
     valueMapped = changeInt(valueMapped, -1, min, max);
 

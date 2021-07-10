@@ -83,17 +83,17 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  */
 void initAudioRendering() {
     // Osc A
-    switchOscAWavetable(0, &wavetable_GuitarLow);
-    switchOscAWavetable(1, &wavetable_GuitarHigh);
-    switchOscAWavetable(2, &wavetable_FeltPianoLow);
-    switchOscAWavetable(3, &wavetable_SSMMix05);
+    switchOscAWavetable(0, &wavetable_Sine);
+    switchOscAWavetable(1, &wavetable_Triangle);
+    switchOscAWavetable(2, &wavetable_Saw);
+    switchOscAWavetable(3, &wavetable_Square);
     // switchOscAWavetableB(wavetable_nylonGuitar01);
 
     // Osc B
-    switchOscBWavetable(0, &wavetable_SSMMix01);
-    switchOscBWavetable(1, &wavetable_SSMMix02);
-    switchOscBWavetable(2, &wavetable_SSMMix03);
-    switchOscBWavetable(3, &wavetable_SSMMix04);
+    switchOscBWavetable(0, &wavetable_SSMMix05);
+    switchOscBWavetable(1, &wavetable_SSMMix06);
+    switchOscBWavetable(2, &wavetable_SSMMix07);
+    switchOscBWavetable(3, &wavetable_SSMMix08);
     // switchOscBWavetableA(wavetable_sinus01);
     // switchOscBWavetableB(wavetable_wurli02);
 }
