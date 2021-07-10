@@ -54,8 +54,6 @@ void Arpeggiator::keyReleased(Key &key) {
 
 void Arpeggiator::pressKey(Key key) {
 
-    lifetime(key); // calculate lifespan
-
     voiceHandler->playNote(key); // play new note
     pressedKeys.push_back(key);  // add to pressed List
 }
@@ -81,10 +79,12 @@ void Arpeggiator::lifetime(Key &key) {
         }
     }
 
-    uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPresseKeysParallel.value; // in micros
-
     key.born = micros();
-    key.lifespan = lifespan;
+
+    // uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPlayedKeysParallel.value; // in micros
+    key.lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep; // in micros
+
+    key.retriggerAmounts = arpPlayedKeysParallel.value;
 }
 
 void Arpeggiator::serviceRoutine() {
@@ -100,7 +100,12 @@ void Arpeggiator::release() {
         if (((micros() - it->born) > it->lifespan && arpSustain) ||
             (((micros() - it->born) > (it->lifespan / 2)) && !arpSustain)) {
             voiceHandler->freeNote(*it); // free Note
-            it = pressedKeys.erase(it);  // delete key
+            if (it->retriggerAmounts) {
+                it->retriggerAmounts--;
+                retriggerKeys.push_back(*it);
+            }
+
+            it = pressedKeys.erase(it); // delete key
         }
         else {
             it++;
@@ -200,6 +205,14 @@ void Arpeggiator::nextStep() {
         }
     }
 
+    lifetime(key); // calculate lifespan
+
+    // repress all retrigger Notes
+    for (std::list<Key>::iterator it = retriggerKeys.begin(); it != retriggerKeys.end(); it++) {
+        pressKey(*it); // TODO inefficient to copy all key data
+    }
+
+    // press new key
     pressKey(key);
 }
 

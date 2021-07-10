@@ -27,8 +27,8 @@ void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
     switch (cc) {
         case midi::ModulationWheel: allLayers[layer]->midi.aMod.setValue(value); break;
         case midi::Sustain:
+            arps[layer]->setSustain(value);        // set arp Sustain
             if (arps[layer]->arpEnable.value) {    // check arp is on?
-                arps[layer]->setSustain(value);    // set arp Sustain
                 voiceHandler.setSustain(0, layer); // disable voiceHandler Sustain
             }
             else {

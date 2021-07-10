@@ -28,7 +28,7 @@ class Arpeggiator {
         __liveSettingsArp.settings.push_back(&arpLatch);
         __liveSettingsArp.settings.push_back(&arpMode);
         __liveSettingsArp.settings.push_back(&arpOctave);
-        __liveSettingsArp.settings.push_back(&arpPresseKeysParallel);
+        __liveSettingsArp.settings.push_back(&arpPlayedKeysParallel);
         __liveSettingsArp.settings.push_back(&arpRep);
         __liveSettingsArp.settings.push_back(&arpPolyrythm);
         __liveSettingsArp.settings.push_back(&arpStepsA);
@@ -84,6 +84,7 @@ class Arpeggiator {
     uint16_t randomCounter;
 
     std::list<Key> pressedKeys;
+    std::list<Key> retriggerKeys;
     std::list<Key> inputKeys;
 
     std::vector<Key> orderedKeys;
@@ -92,6 +93,8 @@ class Arpeggiator {
 
     uint8_t allKeysReleased = 0;
     uint8_t arpSustain = 0;
+
+    elapsedMicros midiUpdateDelayTimer = 0;
 
     VoiceHandler *voiceHandler;
 
@@ -106,7 +109,7 @@ class Arpeggiator {
     Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList);
     Setting arpStepsB = Setting("STEPB", 9, 0, 22, false, binary, &arpStepNameList);
 
-    Setting arpPresseKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
+    Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
 
     const std::vector<std::string> offOnNameList = {"OFF", "ON"};
 

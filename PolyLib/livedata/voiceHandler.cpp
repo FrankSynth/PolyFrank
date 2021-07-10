@@ -161,10 +161,12 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             }
             else { // first found
                 oldestVoiceID = voiceLayer[i].voiceID;
+                break; // FIXME break possible, no?
             }
         }
     }
 
+    // FIXME what about SUSTAIN note status? What is SELECT?
     // no voice free voice found, take the oldest played one
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
