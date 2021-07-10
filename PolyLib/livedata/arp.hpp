@@ -95,6 +95,7 @@ class Arpeggiator {
     uint8_t arpSustain = 0;
 
     elapsedMicros midiUpdateDelayTimer = 0;
+    uint8_t arpStepDelayed = 0;
 
     VoiceHandler *voiceHandler;
 

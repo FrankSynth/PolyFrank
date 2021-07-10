@@ -6,6 +6,7 @@ extern Clock clock;
 // functions
 void Arpeggiator::keyPressed(Key &key) {
     allKeysReleased = 1;
+    midiUpdateDelayTimer = 0;
     if (!inputKeys.empty()) {                                                                // inputKey list empty?
         for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
             if (!it->released) {
@@ -33,6 +34,7 @@ void Arpeggiator::keyPressed(Key &key) {
     orderKeys();
 }
 void Arpeggiator::keyReleased(Key &key) {
+    midiUpdateDelayTimer = 0;
 
     if (inputKeys.empty()) {
         return;
@@ -91,6 +93,8 @@ void Arpeggiator::serviceRoutine() {
     checkLatch();
     release();
     ratched();
+    if (arpStepDelayed)
+        nextStep();
 }
 void Arpeggiator::ratched() {}
 void Arpeggiator::release() {
@@ -145,7 +149,16 @@ void Arpeggiator::orderKeys() {
     }
     std::sort(orderedKeys.begin(), orderedKeys.end(), compareByNote);
 }
+
 void Arpeggiator::nextStep() {
+
+    if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
+        arpStepDelayed = 1;
+        return;
+    }
+    else {
+        arpStepDelayed = 0;
+    }
 
     if (!arpEnable.value || orderedKeys.empty()) {
         return;

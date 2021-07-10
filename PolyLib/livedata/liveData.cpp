@@ -128,6 +128,9 @@ void LiveData::serviceRoutine() {
 
 void LiveData::clockHandling() {
     if (clock.ticked) {
+        arpA.midiUpdateDelayTimer = 0;
+        arpB.midiUpdateDelayTimer = 0;
+
         for (uint8_t i = 0; i < 2; i++) {
             if (allLayers[i]->LayerState.value == 1) { // check layer state
 
