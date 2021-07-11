@@ -33,6 +33,8 @@ class Arpeggiator {
         __liveSettingsArp.settings.push_back(&arpPolyrythm);
         __liveSettingsArp.settings.push_back(&arpStepsA);
         __liveSettingsArp.settings.push_back(&arpStepsB);
+
+        orderedKeys.reserve(30);
     }
 
     // functions
@@ -74,6 +76,7 @@ class Arpeggiator {
     int16_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
     int16_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
     int16_t restarted = 0;        // arp was reset
+    int16_t reorder = 0;          // arp was reset
     int16_t currentOctave = 0;    // current arp octave being played
 
     int16_t stepArp = 0; // current arp step

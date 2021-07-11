@@ -275,6 +275,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 // Midi Handling
 
 inline void midiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+    println(micros(), " - kp: ", note);
     liveData.keyPressed(channel, note, velocity);
 }
 inline void midiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
@@ -293,6 +294,8 @@ inline void midiAfterTouch(uint8_t channel, byte value) {
     liveData.controlChange(channel, midi::AfterTouchChannel, value);
 }
 inline void midiClock() {
+    println(micros(), " - clock tick: ");
+
     liveData.midiClockTick();
 }
 inline void midiStart() {
@@ -307,6 +310,9 @@ inline void midiContinue() {
 inline void midiReset() {
     liveData.receivedReset();
 }
+inline void receivedSPP(unsigned int spp) {
+    liveData.receivedMidiSongPosition(spp);
+}
 void initMidi() {
     mididevice.setHandleNoteOn(midiNoteOn);
     mididevice.setHandleNoteOff(midiNoteOff);
@@ -318,6 +324,7 @@ void initMidi() {
     mididevice.setHandleStop(midiStop);
     mididevice.setHandleContinue(midiContinue);
     mididevice.setHandleSystemReset(midiReset);
+    mididevice.setHandleSongPosition(receivedSPP);
 }
 
 // EXTI Callback

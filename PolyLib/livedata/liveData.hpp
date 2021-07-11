@@ -34,6 +34,7 @@ class LiveData {
     void receivedContinue();
     void receivedStop();
     void receivedReset();
+    void receivedMidiSongPosition(unsigned int spp);
     void internalClockTick();
     void externalClockTick();
 

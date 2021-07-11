@@ -11,7 +11,14 @@ class Clock {
         static uint32_t averageCounter = 0;
         static uint8_t doNotCalcBpm = 0;
 
-        counter++;
+        if (receivedNewSPP) {
+            receivedNewSPP = 0;
+            doNotCalcBpm = 1;
+        }
+        else {
+            counter++;
+        }
+
         counter %= MAXCLOCKTICKS;
         ticked = 1;
 
@@ -37,13 +44,15 @@ class Clock {
     }
 
     void reset() {
-        ticked = 1;
-        counter = 0;
+        ticked = 0;
+        counter = MAXCLOCKTICKS;
     }
 
     uint8_t ticked = 0;
 
-    uint32_t counter = 0;
+    uint32_t counter = MAXCLOCKTICKS;
+
+    uint8_t receivedNewSPP = 0;
 
     float bpm = 120;
 };

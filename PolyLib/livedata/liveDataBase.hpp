@@ -11,7 +11,7 @@
 #define NUMBERCLOCKSTATES 23
 #define NOTERANGE 88 // Supported Midi Note Range
 
-#define MIDIARPUPDATEDELAY 1500 // delay in micros that will be waited for the arp to update after some new midinote
+#define MIDIARPUPDATEDELAY 2000 // delay in micros that will be waited for the arp to update after some new midinote
 
 #define MAXCLOCKTICKS 2304
 

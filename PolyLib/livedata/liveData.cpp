@@ -12,11 +12,13 @@ uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, int16_t value) {
 
-    if (channel == globalSettings.midiLayerAChannel.value) { // Check Midi Channel Layer A
+    if (channel == globalSettings.midiLayerAChannel.value ||
+        globalSettings.midiLayerAChannel.value == 0) { // Check Midi Channel Layer A
         distributeCC(cc, value, 0);
     }
 
-    if (channel == globalSettings.midiLayerBChannel.value) { // Check Midi Channel Layer A
+    if (channel == globalSettings.midiLayerBChannel.value ||
+        globalSettings.midiLayerBChannel.value == 0) { // Check Midi Channel Layer A
         distributeCC(cc, value, 1);
     }
 
@@ -49,7 +51,8 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
     // check Midi channel
 
-    if (channel == globalSettings.midiLayerAChannel.value) { // check midi Channel
+    if (channel == globalSettings.midiLayerAChannel.value ||
+        globalSettings.midiLayerAChannel.value == 0) { // check midi Channel
 
         // TODO split note als setting??
         if ((livemodeKeysplit.value && key.note >= 64) || !livemodeKeysplit.value) { // Key split ? + upper half
@@ -62,7 +65,7 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
         }
     }
 
-    if (channel == globalSettings.midiLayerBChannel.value) {
+    if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
 
         if ((livemodeKeysplit.value && key.note < 64) || !livemodeKeysplit.value) {
             key.layerID = 1;
@@ -78,7 +81,8 @@ void LiveData::keyReleased(uint8_t channel, uint8_t note) {
     Key key;
     key.note = note;
 
-    if (channel == globalSettings.midiLayerAChannel.value) { // check midi Channel
+    if (channel == globalSettings.midiLayerAChannel.value ||
+        globalSettings.midiLayerAChannel.value == 0) { // check midi Channel
         key.layerID = 0;
 
         if (!arps[0].arpEnable.value) { // arp aus?
@@ -87,7 +91,7 @@ void LiveData::keyReleased(uint8_t channel, uint8_t note) {
         arps[0].keyReleased(key);
     }
 
-    if (channel == globalSettings.midiLayerBChannel.value) {
+    if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
         key.layerID = 1;
 
         if (!arps[1].arpEnable.value) {
@@ -108,9 +112,11 @@ void LiveData::receivedStart() {
     }
 }
 void LiveData::receivedContinue() {
+
     if (livemodeClockSource.value == 1) { // clock source == midi
+        clock.reset();
         for (byte i = 0; i < 2; i++) {
-            arps[i].midiUpdateDelayTimer = 0;
+            arps[i].restart();
         }
     }
 }
@@ -128,8 +134,20 @@ void LiveData::receivedReset() {
     // TODO reset and default everything
 }
 
+void LiveData::receivedMidiSongPosition(unsigned int spp) {
+    if (livemodeClockSource.value == 1) { // clock source == midi
+        clock.receivedNewSPP = 1;
+        for (byte i = 0; i < 2; i++) {
+            arps[i].restart();
+        }
+        clock.counter = (spp * 6);
+    }
+}
+
 void LiveData::midiClockTick() {
     if (livemodeClockSource.value == 1) { // clock source == midi
+        arps[0].midiUpdateDelayTimer = 0;
+        arps[1].midiUpdateDelayTimer = 0;
         clock.tick();
     }
 }
@@ -159,8 +177,6 @@ void LiveData::serviceRoutine() {
 
 void LiveData::clockHandling() {
     if (clock.ticked) {
-        arps[0].midiUpdateDelayTimer = 0;
-        arps[1].midiUpdateDelayTimer = 0;
 
         for (uint8_t i = 0; i < 2; i++) {
             if (allLayers[i]->LayerState.value == 1) { // check layer state

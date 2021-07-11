@@ -31,7 +31,7 @@ void Arpeggiator::keyPressed(Key &key) {
     }
 
     inputKeys.push_back(key);
-    orderKeys();
+    reorder = 1;
 }
 void Arpeggiator::keyReleased(Key &key) {
     midiUpdateDelayTimer = 0;
@@ -51,7 +51,7 @@ void Arpeggiator::keyReleased(Key &key) {
             return;
         }
     }
-    orderKeys();
+    reorder = 1;
 }
 
 void Arpeggiator::pressKey(Key key) {
@@ -90,11 +90,14 @@ void Arpeggiator::lifetime(Key &key) {
 }
 
 void Arpeggiator::serviceRoutine() {
-    checkLatch();
     release();
     ratched();
+
+    if (!arpEnable.value)
+        return;
     if (arpStepDelayed)
         nextStep();
+    checkLatch();
 }
 void Arpeggiator::ratched() {}
 void Arpeggiator::release() {
@@ -136,7 +139,7 @@ void Arpeggiator::checkLatch() {
                 it++;
             }
         }
-        orderKeys();
+        reorder = 1;
     }
 }
 
@@ -151,29 +154,38 @@ void Arpeggiator::restart() {
 
     pressedKeys.clear();
     retriggerKeys.clear();
-    orderKeys();
+    reorder = 1;
 }
 
 void Arpeggiator::orderKeys() {
+    println(micros(), " - ordered");
     orderedKeys.clear();
 
     for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {
         orderedKeys.push_back(*it);
     }
     std::sort(orderedKeys.begin(), orderedKeys.end(), compareByNote);
+    reorder = 0;
 }
 
 void Arpeggiator::nextStep() {
+    if (!arpEnable.value)
+        return;
 
     if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
         arpStepDelayed = 1;
+        println(micros(), " - step delayed");
         return;
     }
     else {
+        println(micros(), " - step not delayed");
         arpStepDelayed = 0;
     }
 
-    if (!arpEnable.value || orderedKeys.empty()) {
+    if (reorder)
+        orderKeys();
+
+    if (orderedKeys.empty()) {
         return;
     }
 
@@ -234,13 +246,18 @@ void Arpeggiator::nextStep() {
 
     lifetime(key); // calculate lifespan
 
-    // repress all retrigger Notes
-    for (std::list<Key>::iterator it = retriggerKeys.begin(); it != retriggerKeys.end(); it++) {
-        it->lifespan = key.lifespan;
-        it->born = key.born;
-        pressKey(*it);
+    println(micros(), " - new key: ", key.note);
+
+    // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
+    if (!retriggerKeys.empty()) {
+        // repress all retrigger Notes
+        for (std::list<Key>::iterator it = retriggerKeys.begin(); it != retriggerKeys.end(); it++) {
+            it->lifespan = key.lifespan;
+            it->born = key.born;
+            pressKey(*it);
+        }
+        retriggerKeys.clear();
     }
-    retriggerKeys.clear();
 
     // press new key
     pressKey(key);
