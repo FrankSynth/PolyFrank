@@ -140,6 +140,20 @@ void Arpeggiator::checkLatch() {
     }
 }
 
+void Arpeggiator::restart() {
+
+    stepArp = 0;
+    restarted = 1;
+    midiUpdateDelayTimer = 0;
+
+    for (std::list<Key>::iterator it = pressedKeys.begin(); it != pressedKeys.end();)
+        voiceHandler->freeNote(*it); // free Note
+
+    pressedKeys.clear();
+    retriggerKeys.clear();
+    orderKeys();
+}
+
 void Arpeggiator::orderKeys() {
     orderedKeys.clear();
 

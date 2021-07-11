@@ -75,6 +75,26 @@ void VoiceHandler::freeNote(Key &key) {
     }
 }
 
+void VoiceHandler::reset(uint8_t layer) {
+    if (livemodeMergeLayer.value == 1) {
+        if (layer == 0) {
+            for (uint8_t i = 0; i < 2; i++) {
+                for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                    sendGateOff(&voices[i][x]);
+                }
+                sustain[i] = 0;
+            }
+        }
+    }
+
+    else {
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            sendGateOff(&voices[layer][i]);
+        }
+        sustain[layer] = 0;
+    }
+}
+
 void VoiceHandler::setSustain(uint8_t value, uint8_t layer) {
     if (value >= 64) {
         sustainOn(layer);

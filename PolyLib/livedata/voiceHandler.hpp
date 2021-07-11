@@ -17,6 +17,7 @@ class VoiceHandler {
     void freeNote(Key &key);
     void sendGateOff(voiceStateStruct *v);
     void sustainOff(uint8_t layer);
+    void reset(uint8_t layer);
 
     void sustainOn(uint8_t layer);
 

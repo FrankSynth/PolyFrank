@@ -27,8 +27,8 @@ void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
     switch (cc) {
         case midi::ModulationWheel: allLayers[layer]->midi.aMod.setValue(value); break;
         case midi::Sustain:
-            arps[layer]->setSustain(value);        // set arp Sustain
-            if (arps[layer]->arpEnable.value) {    // check arp is on?
+            arps[layer].setSustain(value);         // set arp Sustain
+            if (arps[layer].arpEnable.value) {     // check arp is on?
                 voiceHandler.setSustain(0, layer); // disable voiceHandler Sustain
             }
             else {
@@ -55,10 +55,10 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
         if ((livemodeKeysplit.value && key.note >= 64) || !livemodeKeysplit.value) { // Key split ? + upper half
             key.layerID = 0;
 
-            if (!arpA.arpEnable.value) {    // arp aus?
+            if (!arps[0].arpEnable.value) { // arp aus?
                 voiceHandler.playNote(key); // directMode
             }
-            arpA.keyPressed(key);
+            arps[0].keyPressed(key);
         }
     }
 
@@ -66,10 +66,10 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
         if ((livemodeKeysplit.value && key.note < 64) || !livemodeKeysplit.value) {
             key.layerID = 1;
-            if (!arpB.arpEnable.value) {
+            if (!arps[1].arpEnable.value) {
                 voiceHandler.playNote(key);
             }
-            arpB.keyPressed(key);
+            arps[1].keyPressed(key);
         }
     }
 }
@@ -81,20 +81,51 @@ void LiveData::keyReleased(uint8_t channel, uint8_t note) {
     if (channel == globalSettings.midiLayerAChannel.value) { // check midi Channel
         key.layerID = 0;
 
-        if (!arpA.arpEnable.value) {    // arp aus?
+        if (!arps[0].arpEnable.value) { // arp aus?
             voiceHandler.freeNote(key); // directMode
         }
-        arpA.keyReleased(key);
+        arps[0].keyReleased(key);
     }
 
     if (channel == globalSettings.midiLayerBChannel.value) {
         key.layerID = 1;
 
-        if (!arpB.arpEnable.value) {
+        if (!arps[1].arpEnable.value) {
             voiceHandler.freeNote(key);
         }
-        arpB.keyReleased(key);
+        arps[1].keyReleased(key);
     }
+}
+
+void LiveData::receivedStart() {
+
+    if (livemodeClockSource.value == 1) { // clock source == midi
+
+        clock.reset();
+        for (byte i = 0; i < 2; i++) {
+            arps[i].restart();
+        }
+    }
+}
+void LiveData::receivedContinue() {
+    if (livemodeClockSource.value == 1) { // clock source == midi
+        for (byte i = 0; i < 2; i++) {
+            arps[i].midiUpdateDelayTimer = 0;
+        }
+    }
+}
+void LiveData::receivedStop() {
+    if (livemodeClockSource.value == 1) { // clock source == midi
+
+        for (byte i = 0; i < 2; i++) {
+            arps[i].midiUpdateDelayTimer = 0;
+        }
+    }
+}
+
+void LiveData::receivedReset() {
+    // reset();
+    // TODO reset and default everything
 }
 
 void LiveData::midiClockTick() {
@@ -120,24 +151,24 @@ void LiveData::externalClockTick() {
 void LiveData::serviceRoutine() {
 
     internalClock.serviceRoutine();
-    arpA.serviceRoutine();
-    arpB.serviceRoutine();
+    arps[0].serviceRoutine();
+    arps[1].serviceRoutine();
 
     clockHandling();
 }
 
 void LiveData::clockHandling() {
     if (clock.ticked) {
-        arpA.midiUpdateDelayTimer = 0;
-        arpB.midiUpdateDelayTimer = 0;
+        arps[0].midiUpdateDelayTimer = 0;
+        arps[1].midiUpdateDelayTimer = 0;
 
         for (uint8_t i = 0; i < 2; i++) {
             if (allLayers[i]->LayerState.value == 1) { // check layer state
 
                 // ARP Steps
-                if (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsA.value]) ||
-                    (!(clock.counter % clockTicksPerStep[arps[i]->arpStepsB.value]) && arps[i]->arpPolyrythm.value)) {
-                    arps[i]->nextStep();
+                if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||
+                    (!(clock.counter % clockTicksPerStep[arps[i].arpStepsB.value]) && arps[i].arpPolyrythm.value)) {
+                    arps[i].nextStep();
                 }
 
                 // LFO Sync

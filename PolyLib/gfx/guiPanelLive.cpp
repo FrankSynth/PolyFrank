@@ -49,7 +49,7 @@ void GUIPanelLive::updateEntrys() {
         pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &liveData.arps[currentFocus.layer]->__liveSettingsArp;
+        pCategory = &liveData.arps[currentFocus.layer].__liveSettingsArp;
     }
     if (subPanelSelect == 2) {
         pCategory = &liveData.__liveSettingsLivemode;
@@ -90,7 +90,7 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionRight(
         {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
         {std::bind(&GUIPanelLive::selectSubPanel, this, 1),
-         liveData.arps[currentFocus.layer]->__liveSettingsArp.category},
+         liveData.arps[currentFocus.layer].__liveSettingsArp.category},
         {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
     // register Panel Seetings Left
 

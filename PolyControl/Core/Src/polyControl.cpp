@@ -295,6 +295,18 @@ inline void midiAfterTouch(uint8_t channel, byte value) {
 inline void midiClock() {
     liveData.midiClockTick();
 }
+inline void midiStart() {
+    liveData.receivedStart();
+}
+inline void midiStop() {
+    liveData.receivedStop();
+}
+inline void midiContinue() {
+    liveData.receivedContinue();
+}
+inline void midiReset() {
+    liveData.receivedReset();
+}
 void initMidi() {
     mididevice.setHandleNoteOn(midiNoteOn);
     mididevice.setHandleNoteOff(midiNoteOff);
@@ -302,6 +314,10 @@ void initMidi() {
     mididevice.setHandleClock(midiClock);
     mididevice.setHandlePitchBend(midiPitchBend);
     mididevice.setHandleAfterTouchChannel(midiAfterTouch);
+    mididevice.setHandleStart(midiStart);
+    mididevice.setHandleStop(midiStop);
+    mididevice.setHandleContinue(midiContinue);
+    mididevice.setHandleSystemReset(midiReset);
 }
 
 // EXTI Callback

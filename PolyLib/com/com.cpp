@@ -141,8 +141,10 @@ uint8_t COMinterChip::beginSendTransmission() {
         startFirstMDMA();
     }
     else if (dmaOutCurrentBufferBSize) {
-        startSecondDMA();
+        startSecondMDMA();
     }
+
+    return 0;
 }
 
 uint8_t COMinterChip::startFirstMDMA() {

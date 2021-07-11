@@ -2,7 +2,6 @@
 
 #include "liveDataBase.hpp"
 
-
 class Clock {
   public:
     void tick() {
@@ -35,6 +34,11 @@ class Clock {
             averageCounter = 0;
             averagingStartTimer = 0;
         }
+    }
+
+    void reset() {
+        ticked = 1;
+        counter = 0;
     }
 
     uint8_t ticked = 0;
