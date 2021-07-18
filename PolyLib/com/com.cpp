@@ -659,9 +659,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             ;
         return 1;
     }
-    println("/// success ////");
-    println("last byte: ", (inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1]);
-    println("size: ", sizeOfReadBuffer);
 
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 

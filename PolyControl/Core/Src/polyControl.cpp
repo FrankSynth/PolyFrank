@@ -295,8 +295,6 @@ inline void midiAfterTouch(uint8_t channel, byte value) {
     liveData.controlChange(channel, midi::AfterTouchChannel, value);
 }
 inline void midiClock() {
-    println(micros(), " - clock tick: ");
-
     liveData.midiClockTick();
 }
 inline void midiStart() {
