@@ -193,7 +193,7 @@ uint8_t COMinterChip::startFirstDMA() {
 
     // enable NSS to Render Chip A
     if (layer == 0)
-        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, );
+        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
     else
         HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_RESET);
 
@@ -653,10 +653,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     if ((inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1] != (LASTBYTE | PATCHCMDTYPE)) {
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
-        println("last byte: ", (inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1]);
-        println("size: ", sizeOfReadBuffer);
-        while (1)
-            ;
         return 1;
     }
 
