@@ -31,6 +31,7 @@ void readTemperature();
 
 // poly control init
 void PolyControlInit() {
+
     // calibrate adc for temperature reading
     HAL_ADC_Start(&hadc3);
 
@@ -54,7 +55,7 @@ void PolyControlInit() {
 
     // let the layer start
 
-    HAL_Delay(1000);
+    HAL_Delay(50);
 
     // CheckLayerStatus
 
@@ -124,13 +125,13 @@ void PolyControlInit() {
     // load global Settings
     globalSettings.loadGlobalSettings();
 
-    // Sit back and relax for a moment
-    HAL_Delay(1000);
-
     // Reset all Layer to default configuration,
     for (Layer *l : allLayers) {
         l->resetLayer();
     };
+
+    // Reset Poti States
+    resetPanelPotis();
 
     // Say hello
     println("Hi, Frank here!");
@@ -275,7 +276,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 // Midi Handling
 
 inline void midiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
-    println(micros(), " - kp: ", note);
+    // println(micros(), " - kp: ", note);
     liveData.keyPressed(channel, note, velocity);
 }
 inline void midiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {

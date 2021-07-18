@@ -23,6 +23,10 @@ extern bool interChipB_DMA_Started[2];
 extern bool interChipB_DMA_Finished[2];
 extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
+extern bool HID_Initialized;
+
+
+
 extern bool Control_Encoder_Interrupt;
 extern std::function<void()> Control_Encoder_ISR;
 

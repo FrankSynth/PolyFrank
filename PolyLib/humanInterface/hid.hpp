@@ -43,6 +43,7 @@ void eventControlTouch(uint16_t touchStateA);
 
 void initPotiMapping();
 void processPanelPotis();
+void resetPanelPotis();
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
 uint16_t patchLEDMapping(FOCUSMODE type, uint32_t id);
@@ -117,17 +118,17 @@ class PanelTouch {
         }
         if (port == TOUCH_IO_PORT_C) {
             switch (pin) {
-                case 0: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
+                case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
                 case 1: break;
-                case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
+                case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
                 case 3: break;
-                case 4: evaluateOutput((Output *)&(allLayers[layerID]->adsrA.out), event); break;
+                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
                 case 5: break;
-                case 6: evaluateOutput((Output *)&(allLayers[layerID]->adsrB.out), event); break;
+                case 6: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
                 case 7: break;
-                case 8: evaluateOutput((Output *)&(allLayers[layerID]->midi.oVeloctiy), event); break;
+                case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->globalModule), event); break;
                 case 9: break;
-                case 10: evaluateOutput((Output *)&(allLayers[layerID]->midi.oMod), event); break;
+                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->midi), event); break;
                 case 11: break;
             }
 

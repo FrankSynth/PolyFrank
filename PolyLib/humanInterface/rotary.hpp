@@ -46,8 +46,8 @@ class tactileSwitch {
     void process(uint16_t pinStatus) {
 
         uint16_t newState = pinStatus & (1 << pin);
-        if (newState != state && (lastTimePressed - millis()) > 10) { // switch state changed check debounce
-            if (!newState) {                                          // push
+        if (newState != state && (lastTimePressed - millis()) > 100) { // switch state changed check debounce
+            if (!newState) {                                           // push
                 if (functionPush != nullptr) {
                     functionPush();
                 }

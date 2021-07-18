@@ -45,7 +45,7 @@ class MAX11128 {
 
         command[nChannels - 1] = standardSampleCommand;
 
-        uint32_t resetCommand = 0x40; // reset command
+        uint32_t resetCommand = ((uint32_t)0x840) << 1; // reset command
 
         // Reset the ADC for a clean start!
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
@@ -55,6 +55,7 @@ class MAX11128 {
             return 1;
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        microsecondsDelay(50);
 
         // Send Config Register
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
@@ -64,7 +65,7 @@ class MAX11128 {
             return 1;
         }
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        microsecondsDelay(50);
+        microsecondsDelay(10);
 
         // start Init sample Command.. data receive will be triggered by EOC interrupt.
         HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
@@ -81,7 +82,7 @@ class MAX11128 {
     void fetchNewData() {
 
         // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
-        uint32_t zero = 0;
+        static uint32_t zero = 0;
         fastMemset(&zero, command, nChannels - 1);
 
         command[nChannels - 1] = standardSampleCommand;

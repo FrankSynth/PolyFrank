@@ -72,17 +72,19 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOB, Sync_OUT_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOB, Panel_Reset_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOB, Panel_Reset_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(
-        GPIOG, Panel_ADC_Mult_A_Pin | Panel_ADC_Mult_B_Pin | Panel_ADC_Mult_C_Pin | Panel_1_CS_Pin | Control_Reset_Pin,
-        GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOG, Panel_ADC_Mult_A_Pin | Panel_ADC_Mult_B_Pin | Panel_ADC_Mult_C_Pin | Panel_1_CS_Pin,
+                      GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOG, Control_Reset_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin : PtPin */
     GPIO_InitStruct.Pin = Layer_Reset_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD; // MUST BE OPEN DRAIN!!!
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(Layer_Reset_GPIO_Port, &GPIO_InitStruct);
 
@@ -139,28 +141,38 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pins : PBPin PBPin */
     GPIO_InitStruct.Pin = Panel_Reset_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PDPin PDPin PDPin */
-    GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Panel_2_EOC_Pin;
+    GPIO_InitStruct.Pin = Panel_1_EOC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = Panel_2_EOC_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = Encoder_Interrupt_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PGPin PGPin PGPin PGPin
                              PGPin */
-    GPIO_InitStruct.Pin =
-        Panel_ADC_Mult_A_Pin | Panel_ADC_Mult_B_Pin | Panel_ADC_Mult_C_Pin | Panel_1_CS_Pin | Control_Reset_Pin;
+    GPIO_InitStruct.Pin = Panel_ADC_Mult_A_Pin | Panel_ADC_Mult_B_Pin | Panel_ADC_Mult_C_Pin | Panel_1_CS_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = Control_Reset_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 

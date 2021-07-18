@@ -63,6 +63,7 @@ void GUI::Init() { // add settings pointer
         {std::bind(&GUI::setPanelActive, this, 0), "LIVEMODE"}, {std::bind(&GUI::setPanelActive, this, 1), "PATCH"},
         {std::bind(&GUI::setPanelActive, this, 2), "PRESET"}, {std::bind(&GUI::setPanelActive, this, 3), "CONFIG"});
 
+    Clear();
     checkFocusChange();
     setPanelActive(0);
 
