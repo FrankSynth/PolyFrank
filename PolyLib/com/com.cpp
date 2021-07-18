@@ -193,7 +193,7 @@ uint8_t COMinterChip::startFirstDMA() {
 
     // enable NSS to Render Chip A
     if (layer == 0)
-        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, );
     else
         HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_RESET);
 
@@ -205,6 +205,11 @@ uint8_t COMinterChip::startFirstDMA() {
     else { // buffer Empty
         FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
     }
+
+    // if (dmaOutBufferPointer[!currentBufferSelect][dmaOutCurrentBufferASize - 1] != (PATCHCMDTYPE | LASTBYTE)) {
+    //     println("LastByteError... -> is : ", dmaOutBufferPointer[!currentBufferSelect][dmaOutCurrentBufferASize],
+    //             "   Should be :  ", (PATCHCMDTYPE | LASTBYTE));
+    // }
 
     uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize);
     if (ret) {
@@ -647,8 +652,15 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     if ((inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1] != (LASTBYTE | PATCHCMDTYPE)) {
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
+        println("last byte: ", (inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1]);
+        println("size: ", sizeOfReadBuffer);
+        while (1)
+            ;
         return 1;
     }
+    println("/// success ////");
+    println("last byte: ", (inBufferPointer[currentBufferSelect])[sizeOfReadBuffer - 1]);
+    println("size: ", sizeOfReadBuffer);
 
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 

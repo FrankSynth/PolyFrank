@@ -174,11 +174,11 @@ void Arpeggiator::nextStep() {
 
     if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
         arpStepDelayed = 1;
-        println(micros(), " - step delayed");
+        // println(micros(), " - step delayed");
         return;
     }
     else {
-        println(micros(), " - step not delayed");
+        // println(micros(), " - step not delayed");
         arpStepDelayed = 0;
     }
 
@@ -246,7 +246,7 @@ void Arpeggiator::nextStep() {
 
     lifetime(key); // calculate lifespan
 
-    println(micros(), " - new key: ", key.note);
+    // println(micros(), " - new key: ", key.note);
 
     // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
     if (!retriggerKeys.empty()) {
