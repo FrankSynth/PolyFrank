@@ -75,7 +75,7 @@ class MCP4728 {
             println("MCP4728 | I2C | DAC not found -> address: ", i2cAddress);
             return 1;
         }
-        println("MCP4728 | I2C | DAC found -> address: ", i2cAddress);
+        // println("MCP4728 | I2C | DAC found -> address: ", i2cAddress);
 
         return 0;
     }

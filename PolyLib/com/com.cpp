@@ -596,13 +596,14 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
     stopReceiveViaDMA();
 
     // flush fifo buffer necessary?
-    HAL_SPIEx_FlushRxFifo(&hspi1);
+    // HAL_SPIEx_FlushRxFifo(&hspi1);
 
     // println("start in MDMA");
     // copy via MDMA into ITC Memory
     prepareMDMAHandle();
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
 
+    // TODO unnecessary shit on receiver side to always register and deregister func
     FlagHandler::interChipReceive_MDMA_Started = 1;
     FlagHandler::interChipReceive_MDMA_FinishedFunc = std::bind(&COMinterChip::decodeCurrentInBuffer, this);
 

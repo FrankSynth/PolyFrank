@@ -90,6 +90,9 @@ void PolyRenderInit() {
 }
 
 void PolyRenderRun() {
+
+    println("////////// Hi, it's Render. PolyFrank Render. //////////");
+
     // enable reception line
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
