@@ -3,6 +3,10 @@
 
 extern Layer layerA;
 
+#ifdef POLYRENDER
+extern uint8_t chipID;
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////// COMusb //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +109,7 @@ uint8_t COMinterChip::beginSendTransmission() {
         return 0;
     }
     // buffers empty
-    if ((outBufferChipA[currentBufferSelect].size() + outBufferChipB[currentBufferSelect].size()) < 5) {
+    if (outBuffer[currentBufferSelect].size() < 2) {
         // println("buffer empty, skip send");
         return 0;
     }
@@ -122,13 +126,12 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     // close both buffers
     appendLastByte();
-
-    dmaOutCurrentBufferASize = outBufferChipA[currentBufferSelect].size();
-    dmaOutCurrentBufferBSize = outBufferChipB[currentBufferSelect].size();
+    dmaOutCurrentBufferSize = outBuffer[currentBufferSelect].size();
+    // dmaOutCurrentBufferBSize = outBufferChipB[currentBufferSelect].size();
 
     // write size into first two bytes of outBuffers
-    *(uint16_t *)outBufferChipA[currentBufferSelect].data() = dmaOutCurrentBufferASize;
-    *(uint16_t *)outBufferChipB[currentBufferSelect].data() = dmaOutCurrentBufferBSize;
+    *outBuffer[currentBufferSelect].data() = dmaOutCurrentBufferSize;
+    // outBufferChipB[currentBufferSelect].data() = dmaOutCurrentBufferBSize;
     // println("register flaghandlers interChipA_MDMA_Started");
 
     switchBuffer();
@@ -137,12 +140,12 @@ uint8_t COMinterChip::beginSendTransmission() {
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
     prepareMDMAHandle();
 
-    if (dmaOutCurrentBufferASize) {
+    if (dmaOutCurrentBufferSize) {
         startFirstMDMA();
     }
-    else if (dmaOutCurrentBufferBSize) {
-        startSecondMDMA();
-    }
+    // else if (dmaOutCurrentBufferBSize) {
+    //     startSecondMDMA();
+    // }
 
     return 0;
 }
@@ -154,10 +157,12 @@ uint8_t COMinterChip::startFirstMDMA() {
 
     // set Interchip state and wait for response
     FlagHandler::interChipA_State[layer] = WAITFORRESPONSE;
+    FlagHandler::interChipB_State[layer] = WAITFORRESPONSE;
     FlagHandler::interChipA_StateTimeout[layer] = 0;
+    FlagHandler::interChipB_StateTimeout[layer] = 0;
 
-    uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipA[!currentBufferSelect].data(),
-                                    (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize, 1);
+    uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBuffer[!currentBufferSelect].data(),
+                                    (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferSize, 1);
 
     if (ret) {
         FlagHandler::interChipA_MDMA_Started[layer] = 0;
@@ -180,10 +185,10 @@ void COMinterChip::initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t
     dmaOutBufferPointer[0] = dmaBuffer;
     dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
 
-    outBufferChipA[0].reserve(INTERCHIPBUFFERSIZE);
-    outBufferChipA[1].reserve(INTERCHIPBUFFERSIZE);
-    outBufferChipB[0].reserve(INTERCHIPBUFFERSIZE);
-    outBufferChipB[1].reserve(INTERCHIPBUFFERSIZE);
+    outBuffer[0].reserve(INTERCHIPBUFFERSIZE);
+    outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
+    // outBufferChipB[0].reserve(INTERCHIPBUFFERSIZE);
+    // outBufferChipB[1].reserve(INTERCHIPBUFFERSIZE);
 
     pushDummySizePlaceHolder();
 }
@@ -192,26 +197,21 @@ uint8_t COMinterChip::startFirstDMA() {
     // println("startFirstDMA");
 
     // enable NSS to Render Chip A
-    if (layer == 0)
+    if (layer == 0) {
+
         HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
-    else
+        HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
+    }
+    else {
         HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
+    }
 
     FlagHandler::interChipA_DMA_Started[layer] = 1;
 
-    if (dmaOutCurrentBufferBSize) {
-        FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondMDMA, this);
-    }
-    else { // buffer Empty
-        FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
-    }
+    FlagHandler::interChipA_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
 
-    // if (dmaOutBufferPointer[!currentBufferSelect][dmaOutCurrentBufferASize - 1] != (PATCHCMDTYPE | LASTBYTE)) {
-    //     println("LastByteError... -> is : ", dmaOutBufferPointer[!currentBufferSelect][dmaOutCurrentBufferASize],
-    //             "   Should be :  ", (PATCHCMDTYPE | LASTBYTE));
-    // }
-
-    uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferASize);
+    uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferSize);
     if (ret) {
         FlagHandler::interChipA_DMA_Started[layer] = 0;
         FlagHandler::interChipA_DMA_FinishedFunc[layer] = nullptr;
@@ -219,46 +219,48 @@ uint8_t COMinterChip::startFirstDMA() {
     return ret;
 }
 
-uint8_t COMinterChip::startSecondMDMA() {
+// uint8_t COMinterChip::startSecondMDMA() {
 
-    FlagHandler::interChipB_MDMA_Started[layer] = 1;
-    FlagHandler::interChipB_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondDMA, this);
+//     FlagHandler::interChipB_MDMA_Started[layer] = 1;
+//     FlagHandler::interChipB_MDMA_FinishedFunc[layer] = std::bind(&COMinterChip::startSecondDMA, this);
 
-    FlagHandler::interChipB_State[layer] = WAITFORRESPONSE;
-    FlagHandler::interChipB_StateTimeout[layer] = 0;
+//     FlagHandler::interChipB_State[layer] = WAITFORRESPONSE;
+//     FlagHandler::interChipB_StateTimeout[layer] = 0;
 
-    HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
+//     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
 
-    uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0, (uint32_t)outBufferChipB[!currentBufferSelect].data(),
-                                    (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize, 1);
-    if (ret) {
-        FlagHandler::interChipB_MDMA_Started[layer] = 0;
-        FlagHandler::interChipB_MDMA_FinishedFunc[layer] = nullptr;
-        HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
-    }
-    else {
-        blockNewSendBeginCommand = 1;
-    }
-    return ret;
-}
+//     uint8_t ret = HAL_MDMA_Start_IT(&hmdma_mdma_channel40_sw_0,
+//     (uint32_t)outBufferChipB[!currentBufferSelect].data(),
+//                                     (uint32_t)dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize,
+//                                     1);
+//     if (ret) {
+//         FlagHandler::interChipB_MDMA_Started[layer] = 0;
+//         FlagHandler::interChipB_MDMA_FinishedFunc[layer] = nullptr;
+//         HAL_MDMA_UnRegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID);
+//     }
+//     else {
+//         blockNewSendBeginCommand = 1;
+//     }
+//     return ret;
+// }
 
-uint8_t COMinterChip::startSecondDMA() {
-    // enable NSS to Render Chip B
-    if (layer == 0)
-        HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
-    else
-        HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
+// uint8_t COMinterChip::startSecondDMA() {
+//     // enable NSS to Render Chip B
+//     if (layer == 0)
+//         HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
+//     else
+//         HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
 
-    FlagHandler::interChipB_DMA_Started[layer] = 1;
-    FlagHandler::interChipB_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
+//     FlagHandler::interChipB_DMA_Started[layer] = 1;
+//     FlagHandler::interChipB_DMA_FinishedFunc[layer] = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
 
-    uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize);
-    if (ret) {
-        FlagHandler::interChipB_DMA_Started[layer] = 0;
-        FlagHandler::interChipB_DMA_FinishedFunc[layer] = nullptr;
-    }
-    return ret;
-}
+//     uint8_t ret = sendViaDMA(dmaOutBufferPointer[!currentBufferSelect], dmaOutCurrentBufferBSize);
+//     if (ret) {
+//         FlagHandler::interChipB_DMA_Started[layer] = 0;
+//         FlagHandler::interChipB_DMA_FinishedFunc[layer] = nullptr;
+//     }
+//     return ret;
+// }
 
 uint8_t COMinterChip::sendTransmissionSuccessfull() {
     if (layer == 0) {
@@ -276,45 +278,19 @@ uint8_t COMinterChip::sendTransmissionSuccessfull() {
 
 // copy the received SPI via DMA data using the MDMA to the DTCM Ram
 
-uint8_t COMinterChip::pushOutBufferChipA(uint8_t data) {
-    if (outBufferChipA[currentBufferSelect].size() >= INTERCHIPBUFFERSIZE - 1) {
+uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
+    if (outBuffer[currentBufferSelect].size() >= INTERCHIPBUFFERSIZE - 1) {
         uint8_t ret = invokeBufferFullSend();
         if (ret) {
             return ret;
         }
     }
-    outBufferChipA[currentBufferSelect].push_back(data);
+    outBuffer[currentBufferSelect].push_back(data);
     return 0;
 }
 
-uint8_t COMinterChip::pushOutBufferChipA(uint8_t *data, uint32_t length) {
-    if (outBufferChipA[currentBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {
-        uint8_t ret = invokeBufferFullSend();
-        if (ret) {
-            return ret;
-        }
-    }
-
-    for (uint32_t i = 0; i < length; i++) {
-        // println(data[i]);
-        outBufferChipA[currentBufferSelect].push_back(data[i]);
-    }
-    return 0;
-}
-
-uint8_t COMinterChip::pushOutBufferChipB(uint8_t data) {
-    if (outBufferChipB[currentBufferSelect].size() >= INTERCHIPBUFFERSIZE - 1) {
-        uint8_t ret = invokeBufferFullSend();
-        if (ret) {
-            return ret;
-        }
-    }
-    outBufferChipB[currentBufferSelect].push_back(data);
-    return 0;
-}
-
-uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
-    if (outBufferChipB[currentBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {
+uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
+    if (outBuffer[currentBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {
         uint8_t ret = invokeBufferFullSend();
         if (ret) {
             return ret;
@@ -323,10 +299,36 @@ uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
 
     for (uint32_t i = 0; i < length; i++) {
         // println(data[i]);
-        outBufferChipB[currentBufferSelect].push_back(data[i]);
+        outBuffer[currentBufferSelect].push_back(data[i]);
     }
     return 0;
 }
+
+// uint8_t COMinterChip::pushOutBufferChipB(uint8_t data) {
+//     if (outBufferChipB[currentBufferSelect].size() >= INTERCHIPBUFFERSIZE - 1) {
+//         uint8_t ret = invokeBufferFullSend();
+//         if (ret) {
+//             return ret;
+//         }
+//     }
+//     outBufferChipB[currentBufferSelect].push_back(data);
+//     return 0;
+// }
+
+// uint8_t COMinterChip::pushOutBufferChipB(uint8_t *data, uint32_t length) {
+//     if (outBufferChipB[currentBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {
+//         uint8_t ret = invokeBufferFullSend();
+//         if (ret) {
+//             return ret;
+//         }
+//     }
+
+//     for (uint32_t i = 0; i < length; i++) {
+//         // println(data[i]);
+//         outBufferChipB[currentBufferSelect].push_back(data[i]);
+//     }
+//     return 0;
+// }
 
 uint8_t COMinterChip::invokeBufferFullSend() {
     uint8_t ret = beginSendTransmission();
@@ -354,8 +356,8 @@ uint8_t COMinterChip::sendCreatePatchInOut(uint8_t outputId, uint8_t inputId, fl
     comCommand[2] = inputId;
     *(float *)(&comCommand[3]) = amount;
 
-    pushOutBufferChipA(comCommand, CREATEINOUTPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, CREATEINOUTPATCHCMDSIZE);
+    pushOutBuffer(comCommand, CREATEINOUTPATCHCMDSIZE);
+    // pushOutBufferChipB(comCommand, CREATEINOUTPATCHCMDSIZE);
     return 0;
 }
 
@@ -366,8 +368,8 @@ uint8_t COMinterChip::sendUpdatePatchInOut(uint8_t outputId, uint8_t inputId, fl
     comCommand[2] = inputId;
     *(float *)(&comCommand[3]) = amount;
 
-    pushOutBufferChipA(comCommand, UPDATEINOUTPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, UPDATEINOUTPATCHCMDSIZE);
+    pushOutBuffer(comCommand, UPDATEINOUTPATCHCMDSIZE);
+    // pushOutBufferChipB(comCommand, UPDATEINOUTPATCHCMDSIZE);
     return 0;
 }
 
@@ -377,54 +379,17 @@ uint8_t COMinterChip::sendDeletePatchInOut(uint8_t outputId, uint8_t inputId) {
     comCommand[1] = outputId;
     comCommand[2] = inputId;
 
-    pushOutBufferChipA(comCommand, DELETEPATCHCMDSIZE);
-    pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
+    pushOutBuffer(comCommand, DELETEPATCHCMDSIZE);
+    // pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
     return 0;
 }
-
-// uint8_t COMinterChip::sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
-//     uint8_t comCommand[CREATEOUTOUTPATCHCMDSIZE];
-//     comCommand[0] = PATCHCMDTYPE | CREATEOUTOUTPATCH;
-//     comCommand[1] = outputOutId;
-//     comCommand[2] = OutputInId;
-//     *(float *)(&comCommand[3]) = amount;
-//     *(float *)(&comCommand[7]) = offset;
-
-//     pushOutBufferChipA(comCommand, CREATEOUTOUTPATCHCMDSIZE);
-//     pushOutBufferChipB(comCommand, CREATEOUTOUTPATCHCMDSIZE);
-//     return 0;
-// }
-
-// uint8_t COMinterChip::sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount, float offset) {
-//     uint8_t comCommand[UPDATEOUTOUTPATCHCMDSIZE];
-//     comCommand[0] = PATCHCMDTYPE | UPDATEOUTOUTPATCH;
-//     comCommand[1] = outputOutId;
-//     comCommand[2] = OutputInId;
-//     *(float *)(&comCommand[3]) = amount;
-//     *(float *)(&comCommand[7]) = offset;
-
-//     pushOutBufferChipA(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
-//     pushOutBufferChipB(comCommand, UPDATEOUTOUTPATCHCMDSIZE);
-//     return 0;
-// }
-
-// uint8_t COMinterChip::sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId) {
-//     uint8_t comCommand[DELETEPATCHCMDSIZE];
-//     comCommand[0] = PATCHCMDTYPE | DELETEOUTOUTPATCH;
-//     comCommand[1] = outputOutId;
-//     comCommand[2] = OutputInId;
-
-//     pushOutBufferChipA(comCommand, DELETEPATCHCMDSIZE);
-//     pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
-//     return 0;
-// }
 
 uint8_t COMinterChip::sendDeleteAllPatches() {
     uint8_t comCommand[DELETEALLPATCHESCMDSIZE];
     comCommand[0] = PATCHCMDTYPE | DELETEALLPATCHES;
 
-    pushOutBufferChipA(comCommand[0]);
-    pushOutBufferChipB(comCommand[0]);
+    pushOutBuffer(comCommand[0]);
+    // pushOutBufferChipB(comCommand[0]);
     return 0;
 }
 
@@ -435,8 +400,8 @@ uint8_t COMinterChip::sendSetting(uint8_t modulID, uint8_t settingID, int32_t am
     comCommand[1] = UPDATESETTINGINT | settingID;
     *(int32_t *)(&comCommand[2]) = amount;
 
-    pushOutBufferChipA(comCommand, SETTINGCMDSIZE);
-    pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
+    pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    // pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
     return 0;
 }
 
@@ -446,99 +411,82 @@ uint8_t COMinterChip::sendSetting(uint8_t modulID, uint8_t settingID, float amou
     comCommand[1] = UPDATESETTINGFLOAT | settingID;
     *(float *)(&comCommand[2]) = amount;
 
-    pushOutBufferChipA(comCommand, SETTINGCMDSIZE);
-    pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
+    pushOutBuffer(comCommand, SETTINGCMDSIZE);
     return 0;
 }
 
 uint8_t COMinterChip::sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocity) {
     uint8_t comCommand[NEWNOTECMDSIZE];
-    uint8_t voiceIDsend = voiceID;
 
-    if (voiceIDsend != VOICEALL)
-        voiceIDsend %= 4;
-    else
-        voiceIDsend = 4;
-
-    comCommand[0] = PATCHCMDTYPE | NEWNOTE | voiceIDsend;
     comCommand[1] = note;
     comCommand[2] = velocity;
 
-    if (voiceID < 4)
-        pushOutBufferChipA(comCommand, NEWNOTECMDSIZE);
-    else if (voiceID < 8)
-        pushOutBufferChipB(comCommand, NEWNOTECMDSIZE);
-    else {
-        pushOutBufferChipA(comCommand, NEWNOTECMDSIZE);
-        pushOutBufferChipB(comCommand, NEWNOTECMDSIZE);
+    if (voiceID == VOICEALL) {
+        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+            comCommand[0] = PATCHCMDTYPE | NEWNOTE | voice;
+            pushOutBuffer(comCommand, NEWNOTECMDSIZE);
+        }
     }
+    else {
+        comCommand[0] = PATCHCMDTYPE | NEWNOTE | voiceID;
+        pushOutBuffer(comCommand, NEWNOTECMDSIZE);
+    }
+
     return 0;
 }
 
 uint8_t COMinterChip::sendOpenGate(uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
-    uint8_t voiceIDsend = voiceID;
 
-    if (voiceIDsend != VOICEALL)
-        voiceIDsend %= 4;
-    else
-        voiceIDsend = 4;
-
-    comCommand[0] = PATCHCMDTYPE | OPENGATE | voiceIDsend;
-
-    if (voiceID < 4)
-        pushOutBufferChipA(comCommand[0]);
-    else if (voiceID < 8)
-        pushOutBufferChipB(comCommand[0]);
-    else {
-        pushOutBufferChipA(comCommand[0]);
-        pushOutBufferChipB(comCommand[0]);
+    if (voiceID == VOICEALL) {
+        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+            comCommand[0] = PATCHCMDTYPE | OPENGATE | voice;
+            pushOutBuffer(comCommand[0]);
+        }
     }
+    else {
+        comCommand[0] = PATCHCMDTYPE | OPENGATE | voiceID;
+        pushOutBuffer(comCommand[0]);
+    }
+
     return 0;
 }
 
 uint8_t COMinterChip::sendCloseGate(uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
-    uint8_t voiceIDsend = voiceID;
 
-    if (voiceIDsend != VOICEALL)
-        voiceIDsend %= 4;
-    else
-        voiceIDsend = 4;
-
-    comCommand[0] = PATCHCMDTYPE | CLOSEGATE | voiceIDsend;
-
-    if (voiceID < 4)
-        pushOutBufferChipA(comCommand[0]);
-    else if (voiceID < 8)
-        pushOutBufferChipB(comCommand[0]);
-    else {
-        pushOutBufferChipA(comCommand[0]);
-        pushOutBufferChipB(comCommand[0]);
+    if (voiceID == VOICEALL) {
+        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+            comCommand[0] = PATCHCMDTYPE | CLOSEGATE | voice;
+            pushOutBuffer(comCommand[0]);
+        }
     }
+    else {
+        comCommand[0] = PATCHCMDTYPE | CLOSEGATE | voiceID;
+        pushOutBuffer(comCommand[0]);
+    }
+
     return 0;
 }
 
 uint8_t COMinterChip::sendRetrigger(uint8_t modulID, uint8_t voiceID) {
     uint8_t comCommand[RETRIGGERCMDSIZE];
-    uint8_t voiceIDsend = voiceID;
 
-    if (voiceIDsend != VOICEALL)
-        voiceIDsend %= 4;
-    else
-        voiceIDsend = 4;
-
-    comCommand[0] = SETTINGTYPE | (modulID << 3) | voiceIDsend;
     comCommand[1] = RETRIGGER;
 
-    if (voiceID < 4)
-        pushOutBufferChipA(comCommand, RETRIGGERCMDSIZE);
-    else if (voiceID < 8)
-        pushOutBufferChipB(comCommand, RETRIGGERCMDSIZE);
-    else {
-        pushOutBufferChipA(comCommand, RETRIGGERCMDSIZE);
-        pushOutBufferChipB(comCommand, RETRIGGERCMDSIZE);
+    if (voiceID == VOICEALL) {
+        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+            comCommand[0] = SETTINGTYPE | (modulID << 3) | voice;
+
+            pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
+        }
     }
+    else {
+        comCommand[0] = SETTINGTYPE | (modulID << 3) | voiceID;
+
+        pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
+    }
+
     return 0;
 }
 
@@ -546,8 +494,8 @@ uint8_t COMinterChip::sendResetAll() {
     uint8_t comCommand[RESETALLCMDSIZE];
     comCommand[0] = PATCHCMDTYPE | RESETALL;
 
-    pushOutBufferChipA(comCommand[0]);
-    pushOutBufferChipB(comCommand[0]);
+    pushOutBuffer(comCommand[0]);
+
     return 0;
 }
 
@@ -555,17 +503,15 @@ uint8_t COMinterChip::sendResetAll() {
 uint8_t COMinterChip::appendLastByte() {
     uint8_t comCommand[LASTBYTECMDSIZE];
     comCommand[0] = PATCHCMDTYPE | LASTBYTE;
-    outBufferChipA[currentBufferSelect].push_back(comCommand[0]);
-    outBufferChipB[currentBufferSelect].push_back(comCommand[0]);
+    outBuffer[currentBufferSelect].push_back(comCommand[0]);
 
     return 0;
 }
 
 // reserve place for size byte
 void COMinterChip::pushDummySizePlaceHolder() {
-    uint16_t dummysize = 0;
-    pushOutBufferChipA((uint8_t *)&dummysize, 2);
-    pushOutBufferChipB((uint8_t *)&dummysize, 2);
+    uint8_t dummysize = 0;
+    pushOutBuffer((uint8_t *)&dummysize, 1);
 }
 
 #elif POLYRENDER
@@ -603,7 +549,6 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
     prepareMDMAHandle();
     HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
 
-    // TODO unnecessary shit on receiver side to always register and deregister func
     FlagHandler::interChipReceive_MDMA_Started = 1;
     FlagHandler::interChipReceive_MDMA_FinishedFunc = std::bind(&COMinterChip::decodeCurrentInBuffer, this);
 
@@ -617,6 +562,21 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
     }
 
     return ret;
+}
+
+uint8_t COMinterChip::checkVoice(uint8_t voice) {
+    if (chipID == 0) {
+        if (voice < VOICESPERCHIP)
+            return voice;
+        else
+            return NOVOICE;
+    }
+    else {
+        if (voice < VOICESPERCHIP)
+            return NOVOICE;
+        else
+            return voice - VOICESPERCHIP;
+    }
 }
 
 uint8_t COMinterChip::decodeCurrentInBuffer() {
@@ -642,7 +602,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     beginReceiveTransmission();
 
     // assemble size
-    uint16_t sizeOfReadBuffer = *(uint16_t *)(inBufferPointer[currentBufferSelect]);
+    uint8_t sizeOfReadBuffer = *inBufferPointer[currentBufferSelect];
     // println("Buffer size: ", sizeOfReadBuffer);
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
@@ -659,7 +619,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
     // start with offset, as two bytes were size
-    for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
+    for (uint8_t i = 1; i < sizeOfReadBuffer; i++) {
         currentByte = (inBufferPointer[currentBufferSelect])[i];
 
         switch (currentByte & CMD_TYPEMASK) {
@@ -705,22 +665,29 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                     case NEWNOTE:
                         voice = currentByte & CMD_VOICEMASK;
-
                         note = (inBufferPointer[currentBufferSelect])[++i];
                         velocity = (inBufferPointer[currentBufferSelect])[++i];
-                        layerA.setNote(voice, note, velocity);
-                        layerA.gateOn(voice);
+
+                        voice = checkVoice(voice);
+                        if (voice != NOVOICE) {
+                            layerA.setNote(voice, note, velocity);
+                            layerA.gateOn(voice);
+                        }
 
                         break;
 
                     case OPENGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        layerA.gateOn(voice);
+                        voice = checkVoice(voice);
+                        if (voice != NOVOICE)
+                            layerA.gateOn(voice);
                         break;
 
                     case CLOSEGATE:
                         voice = currentByte & CMD_VOICEMASK;
-                        layerA.gateOff(voice);
+                        voice = checkVoice(voice);
+                        if (voice != NOVOICE)
+                            layerA.gateOff(voice);
                         break;
 
                     case CLOCK:
@@ -779,7 +746,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         // println("setting float: ", amountFloat);
 
                         break;
-                    case RETRIGGER: layerA.getModules()[modul]->resetPhase(voice); break;
+                    case RETRIGGER:
+                        voice = checkVoice(voice);
+                        if (voice != NOVOICE)
+                            layerA.getModules()[modul]->resetPhase(voice);
+                        break;
 
                     default:
                         // something went wrong here
@@ -837,8 +808,8 @@ void COMinterChip::switchBuffer() {
     currentBufferSelect = !currentBufferSelect;
 
 #ifdef POLYCONTROL
-    outBufferChipA[currentBufferSelect].clear();
-    outBufferChipB[currentBufferSelect].clear();
+    outBuffer[currentBufferSelect].clear();
+    // outBufferChipB[currentBufferSelect].clear();
     pushDummySizePlaceHolder();
 #endif
 }
@@ -855,10 +826,10 @@ void comMDMACallback(MDMA_HandleTypeDef *_hmdma) {
             FlagHandler::interChipA_MDMA_Started[i] = 0;
             FlagHandler::interChipA_MDMA_Finished[i] = 1;
         }
-        if (FlagHandler::interChipB_MDMA_Started[i] == 1) {
-            FlagHandler::interChipB_MDMA_Started[i] = 0;
-            FlagHandler::interChipB_MDMA_Finished[i] = 1;
-        }
+        // if (FlagHandler::interChipB_MDMA_Started[i] == 1) {
+        //     FlagHandler::interChipB_MDMA_Started[i] = 0;
+        //     FlagHandler::interChipB_MDMA_Finished[i] = 1;
+        // }
     }
 
 #elif POLYRENDER

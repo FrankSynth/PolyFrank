@@ -281,9 +281,6 @@ class COMinterChip {
     uint8_t sendCreatePatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
     uint8_t sendUpdatePatchInOut(uint8_t outputId, uint8_t inputId, float amount);
     uint8_t sendDeletePatchInOut(uint8_t outputId, uint8_t inputId);
-    // uint8_t sendCreatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
-    // uint8_t sendUpdatePatchOutOut(uint8_t outputOutId, uint8_t OutputInId, float amount = 0, float offset = 0);
-    // uint8_t sendDeletePatchOutOut(uint8_t outputOutId, uint8_t OutputInId);
     uint8_t sendDeleteAllPatches();
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t modulID, uint8_t settingID, float amount);
@@ -298,12 +295,6 @@ class COMinterChip {
 
     // after first MDMA finished, start DMA transfer to render chip A
     uint8_t startFirstDMA();
-
-    // after first DMA to render chip A finished, start copying data for render chip B via MDMA
-    uint8_t startSecondMDMA();
-
-    // after second MDMA finished, start DMA transfer to render chip B
-    uint8_t startSecondDMA();
 
     // second DMA was successfull
     uint8_t sendTransmissionSuccessfull();
@@ -336,24 +327,26 @@ class COMinterChip {
 
     uint8_t *dmaOutBufferPointer[2];
 
-    uint16_t dmaOutCurrentBufferASize;
-    uint16_t dmaOutCurrentBufferBSize;
+    uint8_t dmaOutCurrentBufferSize;
+    // uint8_t dmaOutCurrentBufferBSize;
 
     // flag to block new send commands while send task is in progress
     uint8_t blockNewSendBeginCommand = 0;
 
-    uint8_t pushOutBufferChipA(uint8_t data);
-    uint8_t pushOutBufferChipA(uint8_t *data, uint32_t size);
-    uint8_t pushOutBufferChipB(uint8_t data);
-    uint8_t pushOutBufferChipB(uint8_t *data, uint32_t size);
+    uint8_t pushOutBuffer(uint8_t data);
+    uint8_t pushOutBuffer(uint8_t *data, uint32_t size);
+    // uint8_t pushOutBufferChipB(uint8_t data);
+    // uint8_t pushOutBufferChipB(uint8_t *data, uint32_t size);
 
-    std::vector<uint8_t> outBufferChipA[2];
-    std::vector<uint8_t> outBufferChipB[2];
+    std::vector<uint8_t> outBuffer[2];
+    // std::vector<uint8_t> outBufferChipB[2];
+    uint8_t layer;
 
 #elif POLYRENDER
 
     // decode received Buffer
     uint8_t decodeCurrentInBuffer();
+    uint8_t checkVoice(uint8_t voice);
 
     // received new Data, copy from DMA buffer to RAM
     uint8_t copyReceivedInBuffer();
@@ -370,8 +363,6 @@ class COMinterChip {
     void prepareMDMAHandle();
 
     uint8_t currentBufferSelect = 0;
-
-    uint8_t layer;
 
     void switchBuffer();
 };

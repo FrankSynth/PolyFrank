@@ -5,6 +5,8 @@
 ID layerId;
 Layer layerA(layerId.getNewId());
 
+uint8_t chipID;
+
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE]);
 COMinterChip layerCom;
@@ -38,6 +40,12 @@ void testMCPI2CAddress();
 void resetMCPI2CAddress();
 
 void PolyRenderInit() {
+
+    // set chip id
+    if (HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin))
+        chipID = 1;
+    else
+        chipID = 0;
 
     // CV DACs
 

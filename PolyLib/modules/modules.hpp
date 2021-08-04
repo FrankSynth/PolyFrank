@@ -464,13 +464,13 @@ class LFO : public BaseModule {
     uint32_t randSeed = 1;
 
     inline void resetPhase(uint16_t voice) {
-        if (voice == 4) {
-            resetAllPhases();
-        }
-        else {
-            currentTime[voice] = 1;
-            newPhase[voice] = true;
-        }
+        // if (voice == 4) {
+        // resetAllPhases();
+        // }
+        // else {
+        currentTime[voice] = 1;
+        newPhase[voice] = true;
+        // }
     }
 
     inline void resetAllPhases() {
@@ -557,12 +557,12 @@ class ADSR : public BaseModule {
     }
 
     inline void resetPhase(uint16_t voice) {
-        if (voice == 4) {
-            resetAllPhases();
-        }
-        else {
-            resetADSR(voice);
-        }
+        // if (voice == 4) {
+        // resetAllPhases();
+        // }
+        // else {
+        resetADSR(voice);
+        // }
     }
 
     inline void resetAllPhases() {

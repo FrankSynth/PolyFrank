@@ -238,15 +238,16 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
                 FlagHandler::interChipA_DMA_Finished[0] = 1;
                 // close ChipSelectLine
                 HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-            }
-
-            if (FlagHandler::interChipB_DMA_Started[0] == 1) {
-                FlagHandler::interChipB_DMA_Started[0] = 0;
-                FlagHandler::interChipB_DMA_Finished[0] = 1;
-
-                // close ChipSelectLine
                 HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
             }
+
+            // if (FlagHandler::interChipB_DMA_Started[0] == 1) {
+            //     FlagHandler::interChipB_DMA_Started[0] = 0;
+            //     FlagHandler::interChipB_DMA_Finished[0] = 1;
+
+            //     // close ChipSelectLine
+            //     HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
+            // }
         }
     }
 
@@ -260,15 +261,16 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
                 // close ChipSelectLine
                 HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-            }
-
-            if (FlagHandler::interChipB_DMA_Started[1] == 1) {
-                FlagHandler::interChipB_DMA_Started[1] = 0;
-                FlagHandler::interChipB_DMA_Finished[1] = 1;
-
-                // close ChipSelectLine
                 HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
             }
+
+            // if (FlagHandler::interChipB_DMA_Started[1] == 1) {
+            //     FlagHandler::interChipB_DMA_Started[1] = 0;
+            //     FlagHandler::interChipB_DMA_Finished[1] = 1;
+
+            //     // close ChipSelectLine
+            //     HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
+            // }
         }
     }
 }

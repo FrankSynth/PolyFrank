@@ -9,8 +9,6 @@
 
 #define CREATEINOUTPATCHCMDSIZE 7
 #define UPDATEINOUTPATCHCMDSIZE 7
-#define CREATEOUTOUTPATCHCMDSIZE 11
-#define UPDATEOUTOUTPATCHCMDSIZE 11
 #define DELETEPATCHCMDSIZE 3
 #define DELETEALLPATCHESCMDSIZE 1
 #define SETTINGCMDSIZE 6
@@ -30,6 +28,8 @@
 #define VOICE7 7
 #define VOICEALL 8
 
+#define NOVOICE 255
+
 // first two bytes of each buffer have to determine the amount of bytes
 
 // first byte all commands
@@ -38,14 +38,11 @@ enum comCommands {
     // 1CCCCVVV | IIIIIIII | OOOOOOOO | 32Bit Float (Amount)
     PATCHCMDTYPE = 0b10000000, // next bytes are setting
 
-    UPDATEINOUTPATCH = 0b00000000,  // update patchesInOut
-    CREATEINOUTPATCH = 0b00001000,  // create patchesInOut
-    DELETEINOUTPATCH = 0b00010000,  // delete patchesInOut
-    UPDATEOUTOUTPATCH = 0b00011000, // update patchesInOut
-    CREATEOUTOUTPATCH = 0b00100000, // create patchesInOut
-    DELETEOUTOUTPATCH = 0b00101000, // delete patchesInOut
-    DELETEALLPATCHES = 0b00110000,  // delete patchesInOut
-    LASTBYTE = 0b01111000,          // LAST BYTE of transmission
+    UPDATEINOUTPATCH = 0b00000000, // update patchesInOut
+    CREATEINOUTPATCH = 0b00001000, // create patchesInOut
+    DELETEINOUTPATCH = 0b00010000, // delete patchesInOut
+    DELETEALLPATCHES = 0b00110000, // delete patchesInOut
+    LASTBYTE = 0b01111000,         // LAST BYTE of transmission
 
     // Trigger
     // 1CCCCVVV

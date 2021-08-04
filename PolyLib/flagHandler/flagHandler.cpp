@@ -16,12 +16,12 @@ void initFlagHandler() {
         interChipA_DMA_Started[i] = false;
         interChipA_DMA_Finished[i] = false;
         interChipA_DMA_FinishedFunc[i] = nullptr;
-        interChipB_MDMA_Started[i] = false;
-        interChipB_MDMA_Finished[i] = false;
-        interChipB_MDMA_FinishedFunc[i] = nullptr;
-        interChipB_DMA_Started[i] = false;
-        interChipB_DMA_Finished[i] = false;
-        interChipB_DMA_FinishedFunc[i] = nullptr;
+        // interChipB_MDMA_Started[i] = false;
+        // interChipB_MDMA_Finished[i] = false;
+        // interChipB_MDMA_FinishedFunc[i] = nullptr;
+        // interChipB_DMA_Started[i] = false;
+        // interChipB_DMA_Finished[i] = false;
+        // interChipB_DMA_FinishedFunc[i] = nullptr;
     }
 
     HID_Initialized = false;
@@ -72,12 +72,12 @@ std::function<uint8_t()> interChipA_MDMA_FinishedFunc[2];
 bool interChipA_DMA_Started[2];
 bool interChipA_DMA_Finished[2];
 std::function<uint8_t()> interChipA_DMA_FinishedFunc[2];
-bool interChipB_MDMA_Started[2];
-bool interChipB_MDMA_Finished[2];
-std::function<uint8_t()> interChipB_MDMA_FinishedFunc[2];
-bool interChipB_DMA_Started[2];
-bool interChipB_DMA_Finished[2];
-std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
+// bool interChipB_MDMA_Started[2];
+// bool interChipB_MDMA_Finished[2];
+// std::function<uint8_t()> interChipB_MDMA_FinishedFunc[2];
+// bool interChipB_DMA_Started[2];
+// bool interChipB_DMA_Finished[2];
+// std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
 bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
@@ -174,36 +174,48 @@ void handleFlags() {
                 interChipA_DMA_Finished[i] = 0;
             }
         }
-        if (interChipB_MDMA_Finished[i]) {
-            if (interChipB_MDMA_FinishedFunc[i] != nullptr) {
-                if (interChipB_MDMA_FinishedFunc[i]() == 0) {
-                    interChipB_MDMA_FinishedFunc[i] = nullptr;
-                    interChipB_MDMA_Finished[i] = 0;
-                }
-            }
-            else {
-                interChipB_MDMA_Finished[i] = 0;
-            }
-        }
-        if (interChipB_DMA_Finished[i]) {
-            if (interChipB_DMA_FinishedFunc[i] != nullptr) {
-                if (interChipB_DMA_FinishedFunc[i]() == 0) {
-                    interChipB_DMA_FinishedFunc[i] = nullptr;
-                    interChipB_DMA_Finished[i] = 0;
-                }
-            }
-            else {
-                interChipB_DMA_Finished[i] = 0;
-            }
-        }
+        // if (interChipB_MDMA_Finished[i]) {
+        //     if (interChipB_MDMA_FinishedFunc[i] != nullptr) {
+        //         if (interChipB_MDMA_FinishedFunc[i]() == 0) {
+        //             interChipB_MDMA_FinishedFunc[i] = nullptr;
+        //             interChipB_MDMA_Finished[i] = 0;
+        //         }
+        //     }
+        //     else {
+        //         interChipB_MDMA_Finished[i] = 0;
+        //     }
+        // }
+        // if (interChipB_DMA_Finished[i]) {
+        //     if (interChipB_DMA_FinishedFunc[i] != nullptr) {
+        //         if (interChipB_DMA_FinishedFunc[i]() == 0) {
+        //             interChipB_DMA_FinishedFunc[i] = nullptr;
+        //             interChipB_DMA_Finished[i] = 0;
+        //         }
+        //     }
+        //     else {
+        //         interChipB_DMA_Finished[i] = 0;
+        //     }
+        // }
     }
     for (uint8_t i = 0; i < 2; i++) {
-        if (interChipA_StateTimeout[i] > 10) { // 10ms timeout
-            if (interChipA_State[i] == WAITFORRESPONSE) {
-                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+        if (interChipA_State[i] != READY) {
+            if (interChipA_StateTimeout[i] > 10) { // 10ms timeout
+                if (interChipA_State[i] == WAITFORRESPONSE) {
+                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+                }
+                else if (interChipA_State[i] == DATARECEIVED) {
+                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
+                }
             }
-            else if (interChipA_State[i] == DATARECEIVED) {
-                PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
+        }
+        if (interChipB_State[i] != READY) {
+            if (interChipB_StateTimeout[i] > 10) { // 10ms timeout
+                if (interChipB_State[i] == WAITFORRESPONSE) {
+                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> no reponse");
+                }
+                else if (interChipB_State[i] == DATARECEIVED) {
+                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> Checksum failed");
+                }
             }
         }
     }
