@@ -380,7 +380,7 @@ ALWAYS_INLINE inline void fastMemset(uint32_t *data, uint32_t *pDst, uint32_t bl
     }
 }
 
-inline void microsecondsDelay(uint32_t delay) {
+inline void microsecondsDelay(const uint32_t delay) {
     uint32_t time = __HAL_TIM_GetCounter(&htim2);
     while (__HAL_TIM_GetCounter(&htim2) - time < delay) {
         ;

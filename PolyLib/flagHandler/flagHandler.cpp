@@ -55,11 +55,17 @@ void initFlagHandler() {
     for (uint32_t i = 0; i < 10; i++)
         cvDacStarted[i] = false;
 
+    for (uint32_t i = 0; i < 10; i++)
+        cvDacFinished[i] = false;
+
     for (uint32_t i = 0; i < 3; i++)
         cvDacLastFinished[i] = true;
 
     renderNewCV = false;
+    cvRendered = false;
+    cvSent = false;
     renderNewCVFunc = nullptr;
+    sendRenderedCVsFunc = nullptr;
 #endif
 }
 
@@ -136,12 +142,16 @@ std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 // std::function<uint8_t()> saiCptlFunc;
 
 bool cvDacStarted[10];
+bool cvDacFinished[10];
 bool cvDacLastFinished[3];
 
 // std::function<void()> cvDacCFinishedFunc;
 
 bool renderNewCV;
+bool cvRendered;
+bool cvSent;
 std::function<void()> renderNewCVFunc;
+std::function<void()> sendRenderedCVsFunc;
 #endif
 
 // handle all interrupts
@@ -273,6 +283,12 @@ void handleFlags() {
     if (renderNewCV) {
         renderNewCV = false;
         renderNewCVFunc();
+    }
+
+    if (cvRendered && cvSent) {
+        cvRendered = false;
+        cvSent = false;
+        sendRenderedCVsFunc();
     }
 
     // InterChip receive flags

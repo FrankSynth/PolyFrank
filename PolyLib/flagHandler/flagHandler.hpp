@@ -25,8 +25,6 @@ extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
 
 extern bool HID_Initialized;
 
-
-
 extern bool Control_Encoder_Interrupt;
 extern std::function<void()> Control_Encoder_ISR;
 
@@ -71,10 +69,14 @@ extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 // extern std::function<uint8_t()> saiCptlFunc;
 
 extern bool cvDacStarted[10];
+extern bool cvDacFinished[10];
 extern bool cvDacLastFinished[3];
 
 extern bool renderNewCV;
+extern bool cvRendered;
+extern bool cvSent;
 extern std::function<void()> renderNewCVFunc;
+extern std::function<void()> sendRenderedCVsFunc;
 
 #endif
 

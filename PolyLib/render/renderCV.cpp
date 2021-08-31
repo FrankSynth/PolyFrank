@@ -125,8 +125,35 @@ void initCVRendering() {
     cvDac[9].data.currentSample[2] = 4095; // VOICE 2 | STEINER OUT LEVEL
     cvDac[9].data.currentSample[3] = 4095; // VOICE 3 | STEINER OUT LEVEL
 
-    for (uint16_t i = 0; i < ALLDACS; i++)
-        cvDac[0].sendCurrentBuffer();
+    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
+    cvDac[0].sendCurrentBuffer();
+    cvDac[4].sendCurrentBuffer();
+    cvDac[7].sendCurrentBuffer();
+    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
+    cvDac[1].sendCurrentBuffer();
+    cvDac[5].sendCurrentBuffer();
+    cvDac[8].sendCurrentBuffer();
+    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
+    cvDac[2].sendCurrentBuffer();
+    cvDac[6].sendCurrentBuffer();
+    cvDac[9].sendCurrentBuffer();
+    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_SET);
+    cvDac[3].sendCurrentBuffer();
+    HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_RESET);
+
+    // set LEDs off
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0); // 2
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0); // 3
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 0); // 5
+    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 0); // 6
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0); // 1
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 0); // 0
 }
 
 inline void collectAllCurrentInputs() {
@@ -373,7 +400,9 @@ void renderCVs() {
 
     setSwitches();
     setLEDs();
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+
+    FlagHandler::cvRendered = true;
 
     // cvDacA.resetLatchPin();
 }

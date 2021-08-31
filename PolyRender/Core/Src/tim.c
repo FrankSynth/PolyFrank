@@ -62,7 +62,7 @@ void MX_TIM3_Init(void) {
     TIM_OC_InitTypeDef sConfigOC = {0};
 
     htim3.Instance = TIM3;
-    htim3.Init.Prescaler = 240 - 1;
+    htim3.Init.Prescaler = 50 - 1;
     htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim3.Init.Period = 1024 - 1;
     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -94,7 +94,7 @@ void MX_TIM4_Init(void) {
     TIM_OC_InitTypeDef sConfigOC = {0};
 
     htim4.Instance = TIM4;
-    htim4.Init.Prescaler = 240 - 1;
+    htim4.Init.Prescaler = 50 - 1;
     htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim4.Init.Period = 1024 - 1;
     htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -156,7 +156,7 @@ void MX_TIM8_Init(void) {
     TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
     htim8.Instance = TIM8;
-    htim8.Init.Prescaler = 240 - 1;
+    htim8.Init.Prescaler = 50 - 1;
     htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim8.Init.Period = 1024 - 1;
     htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -339,18 +339,18 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
     if (timHandle->Instance == TIM3) {
         /* USER CODE BEGIN TIM3_MspPostInit 0 */
 
-  /* USER CODE END TIM3_MspPostInit 0 */
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    /**TIM3 GPIO Configuration
-    PC6     ------> TIM3_CH1
-    PC7     ------> TIM3_CH2
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+        /* USER CODE END TIM3_MspPostInit 0 */
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+        /**TIM3 GPIO Configuration
+        PC6     ------> TIM3_CH1
+        PC7     ------> TIM3_CH2
+        */
+        GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
         /* USER CODE BEGIN TIM3_MspPostInit 1 */
 

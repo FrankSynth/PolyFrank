@@ -620,7 +620,7 @@ class GlobalModule : public BaseModule {
     Input iVCA = Input("VCA", logMap);
     Input iPan = Input("PAN");
 
-    Analog aVCA = Analog("VCA", 0, 1, 1, true, linMap, &iVCA);
+    Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
     Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);

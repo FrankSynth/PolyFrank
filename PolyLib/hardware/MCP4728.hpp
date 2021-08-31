@@ -107,22 +107,16 @@ class MCP4728 {
             println("I2C | init | Dac Transmit Error 2nd", "Address :", (uint32_t)i2cAddress);
         }
 
-        // HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
     }
 
     // transmit data in fastMode
     inline void fastUpdate() {
-        // pData[0] |= 0b01000000; // enable FastMode
+
         // each half word needs to be swapped, because of reasons
-        // uint8_t sendOut[8];
-        // uint32_t *bufferAsInt = (uint32_t *)dmabuffer;
-
-        // FIXME unsafe, because buffer is in D2 domain? Slow. Move to sendToDAC
-
         bufferAsInt[0] = __REV16(((uint32_t *)data.currentSample)[0]);
         bufferAsInt[1] = __REV16(((uint32_t *)data.currentSample)[1]);
 
-        // HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, sendOut, 8, 100);
         HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8);
         if (ret != HAL_OK) {
             Error_Handler();
@@ -144,8 +138,14 @@ class MCP4728 {
 
     inline void switchIC2renderBuffer() { data.updateToNextSample(); }
 
-    inline void setLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET); }
-    inline void resetLatchPin() { HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET); }
+    inline void setLatchPin() {
+        //
+        HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
+    }
+    inline void resetLatchPin() {
+        //
+        HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_RESET);
+    }
 
     // set the pointer to the data
     // inline void setDataPointer(uint16_t *pData) { this->pData = pData; }
