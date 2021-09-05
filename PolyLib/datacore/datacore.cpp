@@ -156,16 +156,16 @@ void BasePatch::removePatchInOut(PatchElementInOut &patch) {
     }
 }
 
-// TODO remove all out out patch stuff
-
-// void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
-//     for (uint32_t i = 0; i < patchesOutOut.size(); i++) {
-//         if (patchesOutOut[i] == &patch) {
-//             patchesOutOut.erase(patchesOutOut.begin() + i);
-//             return;
-//         }
-//     }
-// }
+bool BasePatch::findPatchInOut(uint8_t output, uint8_t input) {
+    for (PatchElementInOut *p : patchesInOut) {
+        if (p == nullptr) {
+            return false;
+        }
+        if (p->sourceOut->idGlobal == output && p->targetIn->idGlobal == input)
+            return true;
+    }
+    return false;
+}
 
 void Input::collectCurrentSample() {
 

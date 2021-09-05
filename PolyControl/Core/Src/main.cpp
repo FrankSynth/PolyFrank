@@ -123,6 +123,7 @@ int main(void) {
     MX_TIM13_Init();
     MX_I2C4_Init();
     MX_TIM3_Init();
+    MX_TIM4_Init();
     MX_TIM5_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
@@ -137,6 +138,7 @@ int main(void) {
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
+    HAL_TIM_Base_Start_IT(&htim4);
     HAL_TIM_Base_Start_IT(&htim5);
 
     PolyControlInit();

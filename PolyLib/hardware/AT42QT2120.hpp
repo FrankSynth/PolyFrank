@@ -7,15 +7,6 @@
 
 class AT42QT2120 {
   public:
-    AT42QT2120(I2C_HandleTypeDef *i2cHandle, uint8_t i2cBusSwitchAddress, uint8_t layerID) {
-
-        this->i2cHandle = i2cHandle;
-        this->i2cBusSwitchAddress = i2cBusSwitchAddress; // combine default address with custom adress
-
-        busMultiplexer = 1;
-        this->layerID = layerID;
-    }
-
     AT42QT2120(I2C_HandleTypeDef *i2cHandle, uint8_t i2cBusSwitchAddress) {
 
         this->i2cHandle = i2cHandle;
@@ -30,21 +21,23 @@ class AT42QT2120 {
 
     void init() {
 
-        // hardware init.. need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
+        // hardware init -> need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
         HAL_Delay(100);
         initDone = 1;
 
+        configIC();
         readTouchStatus();
     }
 
     void init(PCA9548 *busSwitchIC) {
 
-        // hardware init.. need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
+        // hardware init -> need to wait for about 100ms until touch IC is ready. Then clear interrupt status.
         HAL_Delay(100);
         initDone = 1;
-        busMultiplexer = 2;
+        busMultiplexer = 1;
         this->busSwitchIC = busSwitchIC;
 
+        configIC();
         readTouchStatus();
     }
 
@@ -52,12 +45,7 @@ class AT42QT2120 {
         if (!initDone) {
             return 0;
         }
-
         if (busMultiplexer == 1) {
-            i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
-        }
-
-        if (busMultiplexer == 2) {
             if (busSwitchIC == nullptr) {
                 PolyError_Handler("ERROR | COM | AT42QT I2C BusSwitchIC Nullptr");
             }
@@ -79,6 +67,26 @@ class AT42QT2120 {
         keyStatus = *(uint16_t *)&newKeyStatus[1];
 
         return *(uint16_t *)&newKeyStatus[1];
+    }
+
+    void configIC() {
+
+        if (busMultiplexer == 1) {
+            if (busSwitchIC == nullptr) {
+                PolyError_Handler("ERROR | COM | AT42QT I2C BusSwitchIC Nullptr");
+                return;
+            }
+            busSwitchIC->switchTarget(i2cBusSwitchAddress);
+        }
+
+        uint8_t command[2];
+
+        command[0] = 0x0B; // write to memory Address 11 (Detection Integrator)
+        command[1] = 0x01; // set detection integration to 1
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, command, 2, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | COM | AT42QT I2C Transmit Failed");
+        }
     }
 
     uint16_t keyStatus = 0;

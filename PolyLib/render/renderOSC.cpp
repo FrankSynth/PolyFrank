@@ -33,6 +33,9 @@ inline void accumulateNote(OSC_A &osc_a, float *note) {
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / 12.0f;
 
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        noteConverted[i] += layerA.oscA.aMasterTune.valueMapped;
+
     // TODO settings pitchbend range missing
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         noteConverted[i] += layerA.midi.oPitchbend.currentSample[i]; // * pitchbendrange/12
@@ -140,6 +143,9 @@ inline void accumulateNote(OSC_B &osc_b, float *note) {
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] = noteConverted[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.oscB.aTuning.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += accumulateOctave(osc_b, i);

@@ -41,6 +41,8 @@ class Layer {
         modules.push_back(&distort);
         modules.push_back(&globalModule);
         modules.push_back(&midi);
+        modules.push_back(&imperfect);
+
         // skip layer settings?
 
         initID();
@@ -121,6 +123,7 @@ class Layer {
     ADSR adsrA = ADSR("ADSR A");
     ADSR adsrB = ADSR("ADSR B");
     GlobalModule globalModule = GlobalModule("GLOBAL");
+    Imperfection imperfect = Imperfection("IMPERF"); //vll auch feel, defect
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs

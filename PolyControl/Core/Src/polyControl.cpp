@@ -24,8 +24,6 @@ COMinterChip layerCom[2];
 // function pointers
 void initMidi();
 
-uint8_t test = 0;
-
 // function to read MCU temperature and store to globalSettings
 void readTemperature();
 
@@ -34,6 +32,7 @@ void PolyControlInit() {
 
     // calibrate adc for temperature reading
     HAL_ADC_Start(&hadc3);
+    FlagHandler::readTemperature_ISR = readTemperature; // registerFunction pointer to ISR
 
     // Init for Control and Layer Chips
     initPoly();
@@ -152,8 +151,6 @@ void PolyControlInit() {
 
 void PolyControlRun() { // Here the party starts
 
-    elapsedMillis temperatureReadTimout = 0;
-
     while (1) {
 
         mididevice.read();
@@ -169,17 +166,7 @@ void PolyControlRun() { // Here the party starts
 
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
-            updatePatchLED();
-
-            // TODO what does this do? correct in loop?
-            if (HAL_ADC_PollForConversion(&hadc3, 100) != HAL_OK) {
-                Error_Handler();
-            }
-        }
-
-        if (temperatureReadTimout > 1000) { // read every second
-            readTemperature();
-            temperatureReadTimout = 0;
+            renderLED();
         }
 
         for (uint8_t i = 0; i < 2; i++) {
@@ -205,28 +192,23 @@ uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId,
 uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
     return layerCom[layerId].sendDeletePatchInOut(outputId, inputId);
 }
-// uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float
-// offset) {
-//     return layerCom[layerId].sendCreatePatchOutOut(outputOutId, outputInId, amount, offset);
-// }
-// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float
-// offset) {
-//     return layerCom[layerId].sendUpdatePatchOutOut(outputOutId, outputInId, amount, offset);
-// }
-// uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId) {
-//     return layerCom[layerId].sendDeletePatchOutOut(outputOutId, outputInId);
-// }
+
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom[layerId].sendDeleteAllPatches();
 }
 
 void readTemperature() {
+
     static unsigned int adc_v;
     static double adcx;
 
     adc_v = HAL_ADC_GetValue(&hadc3);
     adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
     globalSettings.temperature = (uint32_t)round(adcx * (adc_v - *(unsigned short *)(0x1FF1E820)) + 30);
+
+    if (HAL_ADC_PollForConversion(&hadc3, 100) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 // SPI Callbacks
@@ -242,14 +224,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
                 HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
                 HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
             }
-
-            // if (FlagHandler::interChipB_DMA_Started[0] == 1) {
-            //     FlagHandler::interChipB_DMA_Started[0] = 0;
-            //     FlagHandler::interChipB_DMA_Finished[0] = 1;
-
-            //     // close ChipSelectLine
-            //     HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
-            // }
         }
     }
 
@@ -265,14 +239,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
                 HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
                 HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
             }
-
-            // if (FlagHandler::interChipB_DMA_Started[1] == 1) {
-            //     FlagHandler::interChipB_DMA_Started[1] = 0;
-            //     FlagHandler::interChipB_DMA_Finished[1] = 1;
-
-            //     // close ChipSelectLine
-            //     HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
-            // }
         }
     }
 }
@@ -344,10 +310,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & GPIO_PIN_14) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;
     }
-    if (pin & GPIO_PIN_2) { // Control Touch
+    if (pin & GPIO_PIN_2) { //  Touch
         FlagHandler::Panel_0_Touch_Interrupt = true;
     }
-    if (pin & GPIO_PIN_5) { // Control Touch
+    if (pin & GPIO_PIN_5) { //  Touch
         FlagHandler::Panel_1_Touch_Interrupt = true;
     }
     if (pin & GPIO_PIN_3) { // Layer 2 Ready 1
@@ -414,10 +380,12 @@ void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
     }
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // internal Clock interrupt
-                                                              //  println("timer Interrupt");
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupts
 
     if (htim->Instance == htim5.Instance) {
         liveData.internalClockTick();
+    }
+    if (htim->Instance == htim4.Instance) {
+        FlagHandler::readTemperature = true;
     }
 }

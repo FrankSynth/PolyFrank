@@ -7,21 +7,24 @@
 
 class IS31FL3216 {
   public:
-    IS31FL3216(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddresse, uint8_t i2cBusSwitchAddress, uint8_t layerID) {
+    IS31FL3216(I2C_HandleTypeDef *i2cHandle, uint8_t i2cAddresse, uint8_t i2cBusSwitchAddress) {
 
         this->i2cHandle = i2cHandle;
         this->i2cBusSwitchAddress = i2cBusSwitchAddress;
         this->i2cDeviceAddress = i2cDeviceCode | (i2cAddresse << 1);
-        this->layerID = layerID;
     }
 
-    void init() {
+    void init(PCA9548 *busSwitchIC) {
+        this->busSwitchIC = busSwitchIC;
 
         // Switch bus
-        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        if (busSwitchIC == nullptr) {
+            PolyError_Handler("ERROR | COM | IS31FL3216 I2C BusSwitchIC Nullptr");
+            return;
+        }
+        busSwitchIC->switchTarget(i2cBusSwitchAddress);
 
         // enable Chip
-
         uint8_t command[2];
         command[0] = 0x00;       // write to register 0x00
         command[1] = 0b00000000; // write 0000 0000
@@ -46,7 +49,11 @@ class IS31FL3216 {
 
     void setPWM(uint8_t pwm) {
         // Switch bus
-        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        if (busSwitchIC == nullptr) {
+            PolyError_Handler("ERROR | COM | IS31FL3216 I2C BusSwitchIC Nullptr");
+            return;
+        }
+        busSwitchIC->switchTarget(i2cBusSwitchAddress);
 
         uint8_t data[17]; // pwm
         data[0] = 0x10;   // write to register 0x10 - 0x1F
@@ -73,7 +80,11 @@ class IS31FL3216 {
     void setPWM(uint8_t pwm, uint8_t pin) {
 
         // Switch bus
-        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        if (busSwitchIC == nullptr) {
+            PolyError_Handler("ERROR | COM | IS31FL3216 I2C BusSwitchIC Nullptr");
+            return;
+        }
+        busSwitchIC->switchTarget(i2cBusSwitchAddress);
 
         if (pin > 16) {
             return;
@@ -101,7 +112,11 @@ class IS31FL3216 {
     void setPWM(uint8_t pwm, uint16_t pinRegister) {
 
         // Switch bus
-        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        if (busSwitchIC == nullptr) {
+            PolyError_Handler("ERROR | COM | IS31FL3216 I2C BusSwitchIC Nullptr");
+            return;
+        }
+        busSwitchIC->switchTarget(i2cBusSwitchAddress);
 
         uint8_t data[17];
 
@@ -132,7 +147,11 @@ class IS31FL3216 {
 
         uint8_t changed = 0;
         // Switch bus
-        i2cBusSwitch[layerID].switchTarget(i2cBusSwitchAddress);
+        if (busSwitchIC == nullptr) {
+            PolyError_Handler("ERROR | COM | IS31FL3216 I2C BusSwitchIC Nullptr");
+            return;
+        }
+        busSwitchIC->switchTarget(i2cBusSwitchAddress);
 
         for (int x = 0; x < 16; x++) {
             if (data[x + 1] != pwmValue[15 - x]) { // corrent orientation, check for difference
@@ -146,7 +165,6 @@ class IS31FL3216 {
         }
 
         data[0] = 0x10; // write to register 0x10 + pin
-                        // TODO umbau sobald chip dran..
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, data, 17, 50) != HAL_OK) {
             PolyError_Handler("ERROR | COMMUNICATION | IS31FL3216 -> I2C Transmit failed");
@@ -166,6 +184,7 @@ class IS31FL3216 {
     }
 
     uint8_t data[17];
+    PCA9548 *busSwitchIC = nullptr;
 
     uint8_t pwmValue[16];
     I2C_HandleTypeDef *i2cHandle;

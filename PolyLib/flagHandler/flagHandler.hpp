@@ -53,6 +53,9 @@ extern bool USB_FS_CONNECTED;
 // Display
 extern bool renderingDoneSwitchBuffer;
 
+extern bool readTemperature;
+extern std::function<void()> readTemperature_ISR;
+
 #elif POLYRENDER
 
 // InterChip receive flags

@@ -181,13 +181,14 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             }
             else { // first found
                 oldestVoiceID = voiceLayer[i].voiceID;
-                // break; // FIXME break possible, no?
+                // break; // FIXME break possible, no?  Was meinst du damit? also ich will aus den for loop breaken
             }
         }
     }
 
-    // FIXME what about SUSTAIN note status? What is SELECT?
-    // no voice free voice found, take the oldest played one
+    // FIXME what about SUSTAIN note status? What is SELECT? //select makiert schon ausgewählte voices, falls man
+    // mehrere auf einmal spielt
+    // no free voice found, take the oldest played one
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE

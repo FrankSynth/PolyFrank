@@ -54,7 +54,8 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
     if (channel == globalSettings.midiLayerAChannel.value ||
         globalSettings.midiLayerAChannel.value == 0) { // check midi Channel
 
-        // TODO split note als setting??
+        // TODO split note als setting??  -> verstehe nicht genau was du meinst, key split teil obere und untere
+        // keyboard hälfte auf die layer auf
         if ((livemodeKeysplit.value && key.note >= 64) || !livemodeKeysplit.value) { // Key split ? + upper half
             key.layerID = 0;
 

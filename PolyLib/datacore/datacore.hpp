@@ -328,6 +328,7 @@ class BasePatch {
     // void addPatchOutOut(PatchElementOutOut &patch);
     void removePatchInOut(PatchElementInOut &patch);
     // void removePatchOutOut(PatchElementOutOut &patch);
+    bool findPatchInOut(uint8_t output, uint8_t input);
 
     inline const std::string &getName() { return name; };
     inline std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
@@ -362,7 +363,8 @@ class Input : public BasePatch {
     void collectCurrentSample();
     typeLinLog mapping;
 
-  protected:
+    uint8_t LEDPortID;
+    uint8_t LEDPinID;
 };
 
 class Output : public BasePatch {
@@ -386,6 +388,9 @@ class Output : public BasePatch {
     float *currentSample;
     float *nextSample;
 
+    uint8_t LEDPortID;
+    uint8_t LEDPinID;
+
   private:
     float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
     float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
@@ -403,10 +408,9 @@ class PatchElement {
 
 class PatchElementInOut : public PatchElement {
   public:
-    PatchElementInOut(Output &source, Input &targetIn, uint8_t layerId, float amount = 0) {
+    PatchElementInOut(Output &source, Input &targetIn, uint8_t layerId) {
         this->sourceOut = &source;
         this->targetIn = &targetIn;
-        this->amount = amount;
         this->layerId = layerId;
     }
 

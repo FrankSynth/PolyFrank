@@ -46,9 +46,9 @@ void renderGlobalModule(GlobalModule globalModule) {
         panRight[i] = panningAntiLog.mapValue(panRight[i]);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        left[i] = vca[i] * panLeft[i];
+        left[i] = vca[i] * panLeft[i] * globalModule.aMaster.valueMapped;
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        right[i] = vca[i] * panRight[i];
+        right[i] = vca[i] * panRight[i] * globalModule.aMaster.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         outLeft[i] = testFloat(left[i], 0, 1);

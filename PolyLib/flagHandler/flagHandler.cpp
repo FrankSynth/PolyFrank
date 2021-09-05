@@ -38,6 +38,8 @@ void initFlagHandler() {
     Panel_1_Touch_Interrupt = false;
     Panel_1_Touch_ISR = nullptr;
 
+    readTemperature = false;
+
 #elif POLYRENDER
 
     interChipReceive_DMA_Started = false;
@@ -123,6 +125,9 @@ bool USB_FS_CONNECTED = false;
 
 // Display
 bool renderingDoneSwitchBuffer;
+
+bool readTemperature;
+std::function<void()> readTemperature_ISR = nullptr;
 
 #elif POLYRENDER
 
@@ -247,7 +252,7 @@ void handleFlags() {
         }
         // Control Panel Touch
         if (Control_Touch_Interrupt) {
-            Control_Touch_Interrupt = 0;
+            // Control_Touch_Interrupt = 0;
             if (Control_Touch_ISR != nullptr) {
                 Control_Touch_ISR();
             }
@@ -255,13 +260,13 @@ void handleFlags() {
 
         // Panel Touch
         if (Panel_0_Touch_Interrupt) {
-            Panel_0_Touch_Interrupt = 0;
+            // Panel_0_Touch_Interrupt = 0;
             if (Panel_0_Touch_ISR != nullptr) {
                 Panel_0_Touch_ISR();
             }
         }
         if (Panel_1_Touch_Interrupt) {
-            Panel_1_Touch_Interrupt = 0;
+            // Panel_1_Touch_Interrupt = 0;
             if (Panel_1_Touch_ISR != nullptr) {
                 Panel_1_Touch_ISR();
             }
@@ -275,6 +280,12 @@ void handleFlags() {
             if (Panel_EOC_ISR != nullptr) {
                 Panel_EOC_ISR();
             }
+        }
+    }
+    if (readTemperature) {
+        readTemperature = false;
+        if (readTemperature_ISR != nullptr) {
+            readTemperature_ISR();
         }
     }
 

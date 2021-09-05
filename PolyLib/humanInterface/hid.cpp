@@ -4,6 +4,9 @@
 
 #define PANELACTIVE 1
 
+extern PCA9548 i2cBusSwitchLayer[2];
+extern PCA9548 i2cBusSwitchControl;
+
 int16_t panelADCStates[2][4][16]; // number layer, number multiplex, number channels
 
 // ControlPanel
@@ -16,26 +19,17 @@ tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), ta
                                           tactileSwitch(14)};
 
 // create Controller Touch Objects
-AT42QT2120 touchControl[2] = {AT42QT2120(&hi2c1, 0), AT42QT2120(&hi2c1, 1)};
+AT42QT2120 touchControl[NUMBER_CONTROLTOUCHICS] = {AT42QT2120(&hi2c1, 0), AT42QT2120(&hi2c1, 1)};
 
 // LayerPanel
 // create Panel Touch Objects
-AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {{AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 1, 0)},
-                                                  {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1)}};
+AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {{AT42QT2120(&hi2c4, 0), AT42QT2120(&hi2c4, 1)},
+                                                  {AT42QT2120(&hi2c3, 0), AT42QT2120(&hi2c3, 1)}};
 
-// AT42QT2120 touchPanel[2][NUMBER_PANELTOUCHICS] = {
-//     {AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 0, 0), AT42QT2120(&hi2c4, 2, 0), AT42QT2120(&hi2c4, 3, 0)},
-//     {AT42QT2120(&hi2c3, 0, 1), AT42QT2120(&hi2c3, 1, 1), AT42QT2120(&hi2c3, 2, 1), AT42QT2120(&hi2c3, 4, 1)}};
+IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 7)}, {IS31FL3216(&hi2c3, 0, 7)}};
 
-// IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 4, 0), IS31FL3216(&hi2c4, 0, 5, 0),
-//                                               IS31FL3216(&hi2c4, 0, 6, 0), IS31FL3216(&hi2c4, 0, 7, 0)},
-//                                              {IS31FL3216(&hi2c3, 0, 4, 1), IS31FL3216(&hi2c3, 0, 5, 1),
-//                                               IS31FL3216(&hi2c3, 0, 6, 1), IS31FL3216(&hi2c3, 0, 7, 1)}};
-
-IS31FL3216 ledDriver[2][NUMBER_LEDDRIVER] = {{IS31FL3216(&hi2c4, 0, 7, 0)}, {IS31FL3216(&hi2c3, 0, 7, 1)}};
-
-// Objects for evaluating Touch State for the Panel
-PanelTouch touchEvaluteLayer[2] = {PanelTouch(0), PanelTouch(1)};
+// Objects for evaluating Touch State for the LayerPanel
+PanelTouch touch;
 
 // Potentiomer ADC
 MAX11128 adc[] = {MAX11128(&hspi1, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin),
@@ -94,30 +88,32 @@ void initHID() {
 
     //// Panel Control ////
 
-    elapsedMillis timeout;
-    timeout = 0;
-
     //// register flagHandler functions ////
     initPotiMapping();
 
     // init Panels
-    for (size_t i = 0; i < 2; i++) {
-        if (allLayers[i]->LayerState.value == 1) {
-            for (int x = 0; x < NUMBER_PANELTOUCHICS; x++) {
-                if (PANELACTIVE) {
-                    // println("init Touch IC");
-                    touchPanel[i][x].init(); // init Touch ICS
-                }
-            }
-            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-                if (PANELACTIVE) {
-                    // println("init LED Driver");
-                    ledDriver[i][x].init(); // init LED driver}
-                }
-            }
-            adc[i].init();
-        }
+    // init Layer 0
+
+    if (allLayers[0]->LayerState.value == 1) {
+        touchPanel[0][0].init(&i2cBusSwitchLayer[0]); // touch IC
+        touchPanel[0][1].init(&i2cBusSwitchLayer[0]); // touch IC
+
+        ledDriver[0][0].init(&i2cBusSwitchLayer[0]); // init LED driver
+
+        adc[0].init(); // init DAC
     }
+    // init Layer 1
+
+    if (allLayers[1]->LayerState.value == 1) {
+        touchPanel[1][0].init(&i2cBusSwitchLayer[1]); // touch IC
+        touchPanel[1][1].init(&i2cBusSwitchLayer[1]); // touch IC
+
+        ledDriver[1][0].init(&i2cBusSwitchLayer[1]); // init LED driver
+
+        adc[1].init(); // init DAC
+    }
+
+    patchLEDMappingInit();
 
     // activate FlagHandling for HID ICs
     FlagHandler::HID_Initialized = true;
@@ -140,19 +136,38 @@ void processPanelTouch(uint8_t layerID) {
 
         if (layerID == 0) {
 
-            touchEvaluteLayer[0].event(touchState, x);
+            touch.eventLayer(layerID, touchState, x);
             if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port,
                                  Panel_1_Change_Pin)) { // interrupt cleared?
+                FlagHandler::Panel_0_Touch_Interrupt = false;
                 return;
             }
         }
         else if (layerID == 1) {
 
-            touchEvaluteLayer[1].event(touchState, x);
+            touch.eventLayer(layerID, touchState, x);
             if (HAL_GPIO_ReadPin(Panel_2_Change_GPIO_Port,
                                  Panel_2_Change_Pin)) { // interrupt cleared?
+                FlagHandler::Panel_1_Touch_Interrupt = false;
+
                 return;
             }
+        }
+    }
+}
+
+void processControlTouch() {
+
+    for (int x = 0; x < NUMBER_CONTROLTOUCHICS; x++) {
+        uint16_t touchState = touchControl[x].readTouchStatus();
+
+        touch.eventControl(touchState, x);
+
+        if (HAL_GPIO_ReadPin(Control_Touch_Change_GPIO_Port,
+                             Control_Touch_Change_Pin)) { // interrupt cleared?
+            FlagHandler::Control_Touch_Interrupt = false;
+
+            return;
         }
     }
 }
@@ -186,102 +201,10 @@ void processPanelPotis() {
     }
 }
 void resetPanelPotis() {
-    for (uint16_t id = 0; id < 2; id++) {                          // for every layer
-        for (uint16_t multiplex = 0; multiplex < 4; multiplex++) { // for every multiplex
-            for (uint16_t channel = 0; channel < 16; channel++) {  // for all channels
-                panelADCStates[id][multiplex][channel] = 0;
-            }
-        }
-    }
+    memset(panelADCStates, 0, 2 * 2 * 16 * 4);
 }
 
-void processControlTouch() {
-    eventControlTouch(touchControl[0].readTouchStatus());
-
-    // TODO Temporary solution
-    touchEvaluteLayer[0].event(touchControl[1].readTouchStatus(),
-                               TOUCH_IO_PORT_C); // send to panel touch command evaluation
-}
-
-void eventControlTouch(uint16_t touchStateA) {
-    static uint16_t oldTouchStateA;
-
-    uint16_t pushEventA = ~oldTouchStateA & touchStateA;
-    uint16_t releaseEventA = oldTouchStateA & ~touchStateA;
-
-    // TODO wenn das platinen Layout für die Control Front fertig ist -> touch zuweißung anpassen
-    if (pushEventA) {
-        if (pushEventA & (1 << 5)) {
-            actionHandler.callActionHeader1();
-        }
-        if (pushEventA & (1 << 6)) {
-            actionHandler.callActionHeader2();
-        }
-        if (pushEventA & (1 << 7)) {
-            actionHandler.callActionHeader3();
-        }
-        if (pushEventA & (1 << 8)) {
-            actionHandler.callActionHeader4();
-        }
-        if (pushEventA & (1 << 4)) {
-            actionHandler.callActionLeft1();
-            actionHandler.buttonLeft_1.state = PRESSED;
-        }
-        if (pushEventA & (1 << 3)) {
-            actionHandler.callActionLeft2();
-            actionHandler.buttonLeft_2.state = PRESSED;
-        }
-        if (pushEventA & (1 << 2)) {
-            actionHandler.callActionLeft3();
-            actionHandler.buttonLeft_3.state = PRESSED;
-        }
-        if (pushEventA & (1 << 9)) {
-            actionHandler.callActionRight1();
-            actionHandler.buttonRight_1.state = PRESSED;
-        }
-        if (pushEventA & (1 << 10)) {
-            actionHandler.callActionRight2();
-            actionHandler.buttonRight_2.state = PRESSED;
-        }
-        if (pushEventA & (1 << 11)) {
-            actionHandler.callActionRight3();
-            actionHandler.buttonRight_3.state = PRESSED;
-        }
-    }
-
-    if (releaseEventA) {
-        if (releaseEventA & (1 << 5)) {
-        }
-        if (releaseEventA & (1 << 6)) {
-        }
-        if (releaseEventA & (1 << 7)) {
-        }
-        if (releaseEventA & (1 << 8)) {
-        }
-        if (releaseEventA & (1 << 4)) {
-            actionHandler.buttonLeft_1.state = RELEASED;
-        }
-        if (releaseEventA & (1 << 3)) {
-            actionHandler.buttonLeft_2.state = RELEASED;
-        }
-        if (releaseEventA & (1 << 2)) {
-            actionHandler.buttonLeft_3.state = RELEASED;
-        }
-        if (releaseEventA & (1 << 9)) {
-            actionHandler.buttonRight_1.state = RELEASED;
-        }
-        if (releaseEventA & (1 << 10)) {
-            actionHandler.buttonRight_2.state = RELEASED;
-        }
-        if (releaseEventA & (1 << 11)) {
-            actionHandler.buttonRight_3.state = RELEASED;
-        }
-    }
-
-    oldTouchStateA = touchStateA;
-}
-
-void initPotiMapping() { // TODO fill mapping
+void initPotiMapping() {
 
     for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
         if (allLayers[i]->LayerState.value == 1) {
@@ -293,7 +216,7 @@ void initPotiMapping() { // TODO fill mapping
             potiFunctionPointer[i][2][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
             potiFunctionPointer[i][3][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aSpread), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aMaster), std::placeholders::_1);
 
             potiFunctionPointer[i][0][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
@@ -305,7 +228,7 @@ void initPotiMapping() { // TODO fill mapping
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aDetune), std::placeholders::_1);
 
             potiFunctionPointer[i][0][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aFreq), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->imperfect.aSpread), std::placeholders::_1);
             potiFunctionPointer[i][1][2] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
             potiFunctionPointer[i][2][2] =
@@ -324,161 +247,175 @@ void initPotiMapping() { // TODO fill mapping
         }
     }
 }
-void updatePatchLED() {
+void renderLED() {
+    for (int i = 0; i < 2; i++) { // for both Layer
 
-    if (PANELACTIVE) {
+        if (allLayers[i]->LayerState.value) {
 
-        static location focusCompare = {0, 0, 0, FOCUSLAYER};
+            // static location focusCompare = {0, 0, 0, FOCUSLAYER};
+            uint8_t pulseBrightness =
+                uint8_t((fast_sin_f32(millis() / 1000.f) + 1) / 2.f * (float)LEDBRIGHTNESS_MEDIUM);
 
-        // nothing changed?
-        if (currentFocus.id == focusCompare.id && currentFocus.layer == focusCompare.layer &&
-            currentFocus.modul == focusCompare.modul && currentFocus.type == focusCompare.type) {
-        }
-        else {
+            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+                setAllLEDs(i, x, LEDBRIGHTNESS_OFF);
+            }
+
+            // nothing changed?
+            // if (currentFocus.id == focusCompare.id && currentFocus.layer == focusCompare.layer &&
+            //     currentFocus.modul == focusCompare.modul && currentFocus.type == focusCompare.type) {
+            // }
+            // else {
 
             if (currentFocus.type == FOCUSOUTPUT) {
                 Output *output =
                     allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
 
-                uint16_t sourceID = output->idGlobal;
-                patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MAX);
+                setLED(currentFocus.layer, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
 
                 for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-                    uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-                    patchLEDMapping(FOCUSINPUT, targetID, LEDBRIGHTNESS_MEDIUM);
+                    Input *target = output->getPatchesInOut()[i]->targetIn;
+                    setLED(currentFocus.layer, target->LEDPortID, target->LEDPinID, pulseBrightness);
                 }
-
-                // for (uint8_t i = 0; i < output->getPatchesOutOut().size(); i++) {
-                //     uint16_t targetID = output->getPatchesInOut()[i]->targetIn->idGlobal;
-                //     patchLEDMapping(FOCUSOUTPUT, targetID, LEDBRIGHTNESS_MEDIUM);
-                // }
             }
             else if (currentFocus.type == FOCUSINPUT) {
 
                 Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                uint16_t inputID = input->idGlobal;
-                patchLEDMapping(FOCUSINPUT, inputID, LEDBRIGHTNESS_MAX);
+                setLED(currentFocus.layer, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
 
                 for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-                    uint16_t sourceID = input->getPatchesInOut()[i]->sourceOut->idGlobal;
-                    patchLEDMapping(FOCUSOUTPUT, sourceID, LEDBRIGHTNESS_MEDIUM);
+                    Output *source = input->getPatchesInOut()[i]->sourceOut;
+                    setLED(currentFocus.layer, source->LEDPortID, source->LEDPinID, pulseBrightness);
                 }
             }
-        }
+            // }
 
-        // mapping Switch settings to LEDs
-        switchLEDMapping();
+            // mapping Switch settings to LEDs
+            switchLEDMapping();
 
-        // update LEDDriver Outputs
-        for (int i = 0; i < 2; i++) {                  // for both Layer
-            if (allLayers[i]->LayerState.value == 1) { // check layer State
-                for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
-                    ledDriver[i][x].updateLEDs();
-                }
+            // update LEDDriver Outputs
+            for (int x = 0; x < NUMBER_LEDDRIVER; x++) {
+                ledDriver[i][x].updateLEDs();
             }
         }
-        focusCompare = currentFocus;
+        // focusCompare = currentFocus;
     }
 }
 
-void patchLEDMapping(FOCUSMODE type, uint32_t id,
-                     uint8_t pwm) { // type 0 -> Output | type 1 -> Input
-    // TODO mapping fertig machen sobald platine klar
+void patchLEDMappingInit() {
+    for (uint8_t i = 0; i < 2; i++) {
+        allLayers[i]->adsrA.out.LEDPinID = 10;
+        allLayers[i]->adsrA.out.LEDPortID = 0;
 
-    uint16_t mappedID = 0xFFFF;
-    if (type == FOCUSOUTPUT) {
-        if (allLayers[currentFocus.layer]->lfoA.out.idGlobal == id) {
-            mappedID = 0;
-        }
-        if (allLayers[currentFocus.layer]->lfoB.out.idGlobal == id) {
-            mappedID = 1;
-        }
-        if (allLayers[currentFocus.layer]->adsrA.out.idGlobal == id) {
-            mappedID = 2;
-        }
-        if (allLayers[currentFocus.layer]->adsrB.out.idGlobal == id) {
-            mappedID = 3;
-        }
-    }
+        allLayers[i]->adsrB.out.LEDPinID = 9;
+        allLayers[i]->adsrB.out.LEDPortID = 0;
 
-    if (type == FOCUSINPUT) {
-        if (allLayers[currentFocus.layer]->lfoA.iFreq.idGlobal == id) {
-            mappedID = 5;
-        }
-        if (allLayers[currentFocus.layer]->lfoB.iFreq.idGlobal == id) {
-            mappedID = 6;
-        }
-        if (allLayers[currentFocus.layer]->adsrA.iAttack.idGlobal == id) {
-            mappedID = 8;
-        }
-        if (allLayers[currentFocus.layer]->adsrB.iAmount.idGlobal == id) {
-            mappedID = 9;
-        }
-    }
+        allLayers[i]->lfoA.out.LEDPinID = 8;
+        allLayers[i]->lfoA.out.LEDPortID = 0;
 
-    if (mappedID != 0xFFFF) {
-        ledDriver[currentFocus.layer][mappedID % 16].pwmValue[(uint8_t)(mappedID - ((mappedID % 16) * 16))] = pwm;
+        allLayers[i]->lfoB.out.LEDPinID = 7;
+        allLayers[i]->lfoB.out.LEDPortID = 0;
+
+        allLayers[i]->ladder.iCutoff.LEDPinID = 11;
+        allLayers[i]->ladder.iCutoff.LEDPortID = 0;
+
+        allLayers[i]->steiner.iCutoff.LEDPinID = 12;
+        allLayers[i]->steiner.iCutoff.LEDPortID = 0;
+
+        allLayers[i]->globalModule.iPan.LEDPinID = 14;
+        allLayers[i]->globalModule.iPan.LEDPortID = 0;
+
+        allLayers[i]->globalModule.iVCA.LEDPinID = 15;
+        allLayers[i]->globalModule.iVCA.LEDPortID = 0;
+
+        allLayers[i]->distort.iDistort.LEDPinID = 13;
+        allLayers[i]->distort.iDistort.LEDPortID = 0;
+
+        allLayers[i]->imperfect.oSpread.LEDPinID = 4;
+        allLayers[i]->imperfect.oSpread.LEDPortID = 0;
     }
+}
+
+void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness) {
+    ledDriver[layer][port].pwmValue[pin] = brigthness;
+}
+
+void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness) {
+    memset(ledDriver[layer][port].pwmValue, brigthness, 16);
 }
 
 void switchLEDMapping() {
-    // TODO mapping fertig machen sobald platine klar hier gerade nur beispiele
 
-    // single led
+    for (uint8_t i = 0; i < 2; i++) {
+        if (allLayers[i]->LayerState.value == 1) {
+            dualLEDSetting(ledDriver[i][0].pwmValue[5], ledDriver[i][0].pwmValue[6],
+                           allLayers[i]->oscA.dVcfDestSwitch.valueMapped);
 
-    for (uint8_t i = 0; i < 1; i++) { // todo number layers
+            quadLEDSetting(ledDriver[i][0].pwmValue[0], ledDriver[i][0].pwmValue[1], ledDriver[i][0].pwmValue[2],
+                           ledDriver[i][0].pwmValue[3], allLayers[i]->ladder.dSlope.valueMapped);
 
-        //     // Zwischen den Layern wechseln
-
-        //     }
-
-        // switch (allLayers[i]->test.dSelectFilter.value) {
-        //     case 0: ledDriver[0].pwmValue[1] = 0; break;
-        //     case 1: ledDriver[0].pwmValue[1] = 255; break;
-        // };
-        // // dual LED
-        // switch (allLayers[i]->test.dSelectFilter.value) {
-        //     case 0:
-        //         ledDriver[0].pwmValue[1] = 255;
-        //         ledDriver[0].pwmValue[2] = 0;
-        //         break;
-
-        //     case 1:
-        //         ledDriver[0].pwmValue[1] = 0;
-        //         ledDriver[0].pwmValue[2] = 255;
-        //         break;
-        // };
-        // // Quad LED
-        switch (allLayers[i]->oscA.dVcfDestSwitch.valueMapped) {
-            case 0:
-                ledDriver[i][0].pwmValue[5] = 255;
-                ledDriver[i][0].pwmValue[6] = 0;
-
-                break;
-            case 1:
-                ledDriver[i][0].pwmValue[5] = 0;
-                ledDriver[i][0].pwmValue[6] = 255;
-
-                break;
-            case 2:
-                ledDriver[i][0].pwmValue[5] = 255;
-                ledDriver[i][0].pwmValue[6] = 255;
-                break;
-            case 3:
-                ledDriver[i][0].pwmValue[5] = 0;
-                ledDriver[i][0].pwmValue[6] = 0;
-
-                break;
+            // singleLEDSetting(ledDriver[i][0].pwmValue[13], allLayers[i]->adsrA.dLatch.valueMapped);
+            // singleLEDSetting(ledDriver[i][0].pwmValue[14], allLayers[i]->adsrB.dLatch.valueMapped);
         }
-
-        // fast ledselect, only  possible if LEDs are in a pin row
-        (uint32_t &)(ledDriver[i][0].pwmValue[0]) = 0x000000FF << (allLayers[i]->ladder.dSlope.valueMapped * 8);
-
-        ledDriver[i][0].pwmValue[13] = allLayers[i]->adsrA.dLatch.valueMapped ? 255 : 0;
-        ledDriver[i][0].pwmValue[14] = allLayers[i]->adsrB.dLatch.valueMapped ? 255 : 0;
-
-        // println(allLayers[0]->ladder.dSlope.valueMapped);
     }
+}
+
+void quadLEDSetting(uint8_t &LED1, uint8_t &LED2, uint8_t &LED3, uint8_t &LED4, int32_t &value) {
+    switch (value) {
+        case 0:
+            LED1 = LEDBRIGHTNESS_MAX;
+            LED2 = LEDBRIGHTNESS_OFF;
+            LED3 = LEDBRIGHTNESS_OFF;
+            LED4 = LEDBRIGHTNESS_OFF;
+
+            break;
+        case 1:
+            LED1 = LEDBRIGHTNESS_OFF;
+            LED2 = LEDBRIGHTNESS_MAX;
+            LED3 = LEDBRIGHTNESS_OFF;
+            LED4 = LEDBRIGHTNESS_OFF;
+
+            break;
+        case 2:
+            LED1 = LEDBRIGHTNESS_OFF;
+            LED2 = LEDBRIGHTNESS_OFF;
+            LED3 = LEDBRIGHTNESS_MAX;
+            LED4 = LEDBRIGHTNESS_OFF;
+            break;
+        case 3:
+            LED1 = LEDBRIGHTNESS_OFF;
+            LED2 = LEDBRIGHTNESS_OFF;
+            LED3 = LEDBRIGHTNESS_OFF;
+            LED4 = LEDBRIGHTNESS_MAX;
+
+            break;
+    }
+}
+
+void dualLEDSetting(uint8_t &LED1, uint8_t &LED2, int32_t &value) {
+    switch (value) {
+        case 0:
+            LED1 = LEDBRIGHTNESS_MAX;
+            LED2 = LEDBRIGHTNESS_OFF;
+
+            break;
+        case 1:
+            LED1 = LEDBRIGHTNESS_OFF;
+            LED2 = LEDBRIGHTNESS_MAX;
+
+            break;
+        case 2:
+            LED1 = LEDBRIGHTNESS_MAX;
+            LED2 = LEDBRIGHTNESS_MAX;
+            break;
+        case 3:
+            LED1 = LEDBRIGHTNESS_OFF;
+            LED2 = LEDBRIGHTNESS_OFF;
+
+            break;
+    }
+}
+void singleLEDSetting(uint8_t &LED, int32_t &value) {
+    LED = value ? LEDBRIGHTNESS_MAX : LEDBRIGHTNESS_OFF;
 }
 
 #endif

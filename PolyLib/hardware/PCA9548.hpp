@@ -31,7 +31,4 @@ class PCA9548 {
     uint8_t i2cDeviceAddress = 0;
 };
 
-extern PCA9548 i2cBusSwitch[2];
-extern PCA9548 i2cBusSwitchControl;
-
 #endif

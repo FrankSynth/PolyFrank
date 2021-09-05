@@ -92,6 +92,25 @@ class Midi : public BaseModule {
     }
 };
 
+class Imperfection : public BaseModule {
+  public:
+    Imperfection(const char *name) : BaseModule(name) { // call subclass
+        outputs.push_back(&oSpread);
+        outputs.push_back(&oDrift);
+
+        knobs.push_back(&aSpread);
+        knobs.push_back(&aDrift);
+
+        // switches.push_back(&dGate);
+    }
+
+    Output oSpread = Output("Spread");
+    Output oDrift = Output("Drift");
+
+    Analog aSpread = Analog("Spread", 0, 1, 0, true, linMap);
+    Analog aDrift = Analog("Drift", 0, 1, 0, true, linMap);
+};
+
 class OSC_A : public BaseModule {
   public:
     OSC_A(const char *name) : BaseModule(name) { // call subclass
@@ -130,7 +149,7 @@ class OSC_A : public BaseModule {
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
@@ -199,7 +218,7 @@ class OSC_B : public BaseModule {
     // Input iSync = Input("SYNC");
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iTuning);
+    Analog aTuning = Analog("TUNING", -0.2, 0.2, 0, true, linMap, &iTuning);
     Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -612,6 +631,7 @@ class GlobalModule : public BaseModule {
         knobs.push_back(&aPan);
         knobs.push_back(&aSpread);
         knobs.push_back(&aDetune);
+        knobs.push_back(&aMaster);
 
         renderBuffer.push_back(&left);
         renderBuffer.push_back(&right);
@@ -626,6 +646,7 @@ class GlobalModule : public BaseModule {
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
+    Analog aMaster = Analog("MASTER", 0, 1, 0, true, antilogMap);
 
     RenderBuffer left;
     RenderBuffer right;

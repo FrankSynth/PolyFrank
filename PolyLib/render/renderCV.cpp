@@ -7,6 +7,7 @@
 #include "renderCV.hpp"
 #include "renderDistort.hpp"
 #include "renderGlobal.hpp"
+#include "renderImperfection.hpp"
 #include "renderLFO.hpp"
 #include "renderLadder.hpp"
 #include "renderNoise.hpp"
@@ -391,6 +392,7 @@ void renderCVs() {
     renderADSR(layerA.adsrA);
     renderADSR(layerA.adsrB);
     renderGlobalModule(layerA.globalModule);
+    renderImperfection(layerA.imperfect);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();
