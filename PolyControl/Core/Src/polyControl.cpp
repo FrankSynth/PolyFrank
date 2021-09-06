@@ -28,7 +28,16 @@ void initMidi();
 void readTemperature();
 
 // poly control init
-void PolyControlInit() {
+void PolyControlInit() { ////////Hardware init////////
+
+    // Enable Layer Board
+    // HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
+
+    // Enable Panel Board
+    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
+
+    // Enable Control Panel Board
+    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // calibrate adc for temperature reading
     HAL_ADC_Start(&hadc3);
@@ -40,17 +49,6 @@ void PolyControlInit() {
     // Prepare Layer
     allLayers.push_back(&layerA);
     allLayers.push_back(&layerB);
-
-    ////////Hardware init////////
-
-    // Enable Layer Board
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
-
-    // Enable Panel Board
-    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
-
-    // Enable Control Panel Board
-    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
 

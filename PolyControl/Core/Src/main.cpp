@@ -99,7 +99,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(10); //
+    // HAL_Delay(10); //
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */

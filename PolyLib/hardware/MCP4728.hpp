@@ -100,12 +100,12 @@ class MCP4728 {
             println("I2C | init | Dac Transmit Error", "Address :", (uint32_t)i2cAddress);
         }
 
-        initData = 0x8F; // set output reference to internal 2048mV
+        //initData = 0x8F; // set output reference to internal 2048mV
 
-        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
-            Error_Handler();
-            println("I2C | init | Dac Transmit Error 2nd", "Address :", (uint32_t)i2cAddress);
-        }
+        // if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
+        //     Error_Handler();
+        //     println("I2C | init | Dac Transmit Error 2nd", "Address :", (uint32_t)i2cAddress);
+        //}
 
         HAL_GPIO_WritePin(latchPort, latchPin, GPIO_PIN_SET);
     }

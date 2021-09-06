@@ -57,8 +57,10 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, STATUS_LED_Pin | switch_1_B_Pin | switch_1_A_Pin | switch_2_A_Pin | switch_2_B_Pin,
-                      GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, STATUS_LED_Pin | switch_2_A_Pin | switch_2_B_Pin, GPIO_PIN_RESET);
+
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(GPIOA, switch_1_B_Pin | switch_1_A_Pin, GPIO_PIN_SET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOG, LDAC_1_Pin | LDAC_2_Pin | LDAC_3_Pin | LDAC_4_Pin | Audio_Reset_Pin, GPIO_PIN_RESET);

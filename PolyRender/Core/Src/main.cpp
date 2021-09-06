@@ -96,7 +96,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(10); // !!
+    // HAL_Delay(10); // !!
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
@@ -141,7 +141,7 @@ int main(void) {
 
     // HAL_Delay(200);
 
-    println("PolyRender Init");
+    //println("PolyRender Init");
     PolyRenderInit();
 
     // start main programm

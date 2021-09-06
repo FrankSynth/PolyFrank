@@ -53,6 +53,7 @@ void PolyRenderInit() {
     std::srand(chipID + 1);
 
     // CV DACs
+    initCVRendering();
 
     testMCPI2CAddress(); // check all MCP4728 addressing
 
@@ -60,9 +61,6 @@ void PolyRenderInit() {
         cvDac[i].init();
     }
 
-    initCVRendering();
-
-    // general inits
     initPoly();
 
     // init allLayers
