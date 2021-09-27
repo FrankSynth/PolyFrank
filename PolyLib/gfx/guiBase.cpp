@@ -23,7 +23,9 @@ uint32_t cWhite = 0xFFFFFFFF;
 uint32_t cWhiteMedium = 0x40FFFFFF;
 uint32_t cWhiteBright = 0x80FFFFFF;
 uint32_t cWhiteLight = 0x10FFFFFF;
-uint32_t cHighlight = 0xF0db0000;
+
+uint32_t cHighlight = 0xFFffda47;
+uint32_t cPatch = 0xFFFFFFFF;
 
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer, FONTALIGN alignment) {
@@ -90,6 +92,21 @@ void focusDown(location focus) {
     }
 }
 
+void focusPatch(location focus) {
+
+    if (focus.type == NOFOCUS) {
+        return;
+    }
+
+    currentFocus.type = focus.type;
+    currentFocus.modul = focus.modul;
+    if (focus.type == FOCUSINPUT) {
+        currentFocus.id = focus.id;
+    }
+
+    setPanelActive(1);
+}
+
 void Scroller::scroll(int16_t change) {
 
     if (position + change != 0) {
@@ -120,6 +137,47 @@ void Scroller::scroll(int16_t change) {
     }
 
     relPosition = position - offset;
+}
+
+void Scroller::setScroll(int16_t scrollPosition) {
+
+    if (scrollPosition == 0) {
+        position = 0;
+    }
+    else {
+        position = testInt(scrollPosition, 0, entrys - 1);
+    }
+
+    if (position - offset >= maxEntrysVisible) {
+        offset = position - maxEntrysVisible / 2;
+    }
+    if (position - offset <= 0) {
+        offset = position - maxEntrysVisible / 2;
+    }
+
+    offset = testInt(offset, 0, testInt(entrys - maxEntrysVisible, 0, 0xFF));
+
+    relPosition = position - offset;
+}
+
+// PanelSelect
+
+uint8_t activePanelID = 0;
+uint8_t oldActivePanelID = 0;
+uint8_t panelChanged = 0;
+
+void setPanelActive(uint8_t panelID) {
+
+    // zurück zum letzen panel
+    if (activePanelID == panelID) {
+        activePanelID = oldActivePanelID;
+    }
+    else {
+        oldActivePanelID = activePanelID;
+        activePanelID = panelID;
+    }
+
+    panelChanged = 1;
 }
 
 #endif

@@ -23,16 +23,16 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 void GUIPanelFocus::registerPanelSettings() {
     // register Scroll
     if (newPanelFocus.type != NOFOCUS) {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+        actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
                                              {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"},
                                              {std::bind(focusDown, newPanelFocus), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+        actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
                                              {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"}, {nullptr, ""});
     }
 
-    // register Panel Seetings Left
+    // register Panel Settings Left
     if (globalSettings.multiLayer.value == 1) {
         actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
                                          {std::bind(nextLayer), "LAYER"});          // Layer Switch
@@ -42,16 +42,21 @@ void GUIPanelFocus::registerPanelSettings() {
                                          {nullptr, ""});
     }
 
-    // register Panel Seetings Rigth
-    actionHandler.registerActionRight({nullptr, ""}, {std::bind(Todo), "RESET"}, {std::bind(Todo), "PATCH"});
+    // register Panel Settings Right
+    if (currentFocus.type == FOCUSMODULE) {
+        actionHandler.registerActionRight({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+    }
+    else {
+        actionHandler.registerActionRight({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+    }
 }
 
 void GUIPanelFocus::Draw() {
-    // register Panel Seetings
+    // register Panel Settings
     registerPanelSettings();
 
-    // update number ob entrys
-    updateEntrys();
+    // update entrys
+    collectEntrys();
 
     // resetFocus
     newPanelFocus.type = NOFOCUS;
@@ -82,298 +87,245 @@ void GUIPanelFocus::Draw() {
     }
 
     drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll->offset,
-                  entrys, FOCUSPANELENTRYS);
+                  scroll->entrys, FOCUSPANELENTRYS);
 }
-
-void GUIPanelFocus::updateEntrys() {
-    entrys = 0;
-
+void GUIPanelFocus::collectEntrys() {
+    // set scroller
     if (currentFocus.type == FOCUSLAYER) {
         scroll = &scrollLayer;
     }
     else {
         scroll = &scrollModule;
     }
-
-    if (oldLocation.modul != currentFocus.modul) {
+    // check for location change
+    if (oldFocus.modul != currentFocus.modul) {
         scroll->resetScroll();
-        oldLocation = currentFocus;
+        oldFocus = currentFocus;
     }
 
     if (currentFocus.type == FOCUSINPUT) {
-        entrys = 0; // BaseValue
-        entrys += allLayers[currentFocus.layer]
-                      ->getModules()[currentFocus.modul]
-                      ->getInputs()[currentFocus.id]
-                      ->getPatchesInOut()
-                      .size(); // all patches to this input
+        patch.clear();
 
-        // println("entrys Input", entrys);
+        for (PatchElement *p : allLayers[currentFocus.layer]
+                                   ->getModules()[currentFocus.modul]
+                                   ->getInputs()[currentFocus.id]
+                                   ->getPatchesInOut()) {
+            patch.push_back(p);
+        }
+
+        scroll->entrys = patch.size();
     }
     else if (currentFocus.type == FOCUSOUTPUT) {
-        entrys = 0; // BaseValue
-        entrys += allLayers[currentFocus.layer]
-                      ->getModules()[currentFocus.modul]
-                      ->getOutputs()[currentFocus.id]
-                      ->getPatchesInOut()
-                      .size(); // all Input patches to this output
+        patch.clear();
 
-        // entrys += allLayers[currentFocus.layer]
-        //               ->getModules()[currentFocus.modul]
-        //               ->getOutputs()[currentFocus.id]
-        //               ->getPatchesOutOut()
-        //               .size(); // all Output patches to this output
-        // println("entrys Output", entrys);
+        for (PatchElement *p : allLayers[currentFocus.layer]
+                                   ->getModules()[currentFocus.modul]
+                                   ->getOutputs()[currentFocus.id]
+                                   ->getPatchesInOut()) {
+            patch.push_back(p);
+        }
+        scroll->entrys = patch.size();
     }
+
     else if (currentFocus.type == FOCUSMODULE) {
+        analog.clear();
+        digital.clear();
 
         for (Analog *a : allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getPotis()) {
             if (a->displayVis) { // filter Display Visibility
-                entrys++;
+                analog.push_back(a);
             }
         }
-        uint8_t sub = 0;
         for (Digital *d : allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getSwitches()) {
-
             if (d->displayVis) { // filter Display Visibility
-                if (!(sub % 3)) {
-                    entrys++;
-                }
-                sub++;
+                digital.push_back(d);
             }
         }
+
+        scroll->entrys =
+            analog.size() + digital.size() / SwitchEntrysPerElement + (digital.size() % SwitchEntrysPerElement != 0);
     }
     else if (currentFocus.type == FOCUSLAYER) {
-        entrys = allLayers[currentFocus.layer]->getModules().size(); // all Modules
+        module.clear();
+        for (BaseModule *m : allLayers[currentFocus.layer]->getModules()) {
+            if (m->displayVis) { // filter Display Visibility
+                module.push_back(m);
+            }
+        }
+        scroll->entrys = module.size();
+    }
+    scroll->checkScroll(); // check scoll position
+}
+
+Analog *GUIPanelFocus::getAnalogEntry() {
+    if (analogIndex < analog.size()) {
+        return analog[analogIndex++];
     }
 
-    scroll->entrys = entrys;
-    scroll->checkScroll();
+    return nullptr;
+}
+
+Digital *GUIPanelFocus::getDigitalEntry() {
+    if (digitalIndex < digital.size()) {
+        return digital[digitalIndex++];
+    }
+    return nullptr;
+}
+
+BaseModule *GUIPanelFocus::getModuleEntry() {
+    if (moduleIndex < module.size()) {
+        return module[moduleIndex++];
+    }
+    return nullptr;
+}
+
+PatchElement *GUIPanelFocus::getPatchEntry() {
+    if (patchIndex < patch.size()) {
+        return patch[patchIndex++];
+    }
+    return nullptr;
 }
 
 void GUIPanelFocus::registerModuleSettings() {
-    uint16_t size;
+    analogIndex = scroll->offset;
 
-    uint16_t dataIndex = 0;
+    if (analogIndex >= analog.size()) {
+        digitalIndex = scroll->offset - analog.size();
+    }
+    else {
+        digitalIndex = 0;
+    }
+
     uint16_t elementIndex = 0;
 
-    size = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getPotis().size();
+    for (; elementIndex < entrys; elementIndex++) {
 
-    dataIndex = scroll->offset;
+        Analog *a = getAnalogEntry();
 
-    while (true) {
-        if (elementIndex >= FOCUSPANELENTRYS) {
+        if (a == nullptr) {
             break;
-        }
-
-        if (dataIndex < size) {
-            Analog *analogElement =
-                allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getPotis()[dataIndex];
-
-            if (analogElement->displayVis) { // element Visible
-
-                // register newFocus
-                if ((scroll->relPosition) == elementIndex) {
-                    if (analogElement->input != nullptr) {
-                        newPanelFocus.id = analogElement->input->id;
-                        newPanelFocus.modul = analogElement->input->moduleId;
-                        newPanelFocus.type = FOCUSINPUT;
-                    }
-                }
-
-                panelElements[elementIndex].addAnalogEntry(
-
-                    analogElement, {std::bind(&Analog::changeValueWithEncoderAcceleration, analogElement, 1), "AMOUNT"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration, analogElement, 0), "AMOUNT"},
-                    {std::bind(&Analog::resetValue, analogElement), "RESET"});
-
-                dataIndex++;
-                elementIndex++;
-            }
-            else {
-                dataIndex++;
-            }
         }
         else {
-            break;
+
+            panelElements[elementIndex].addAnalogEntry(a);
+
+            // register newFocus
+            if ((scroll->relPosition) == elementIndex) {
+                if (a->input != nullptr) {
+                    newPanelFocus.id = a->input->id;
+                    newPanelFocus.modul = a->input->moduleId;
+                    newPanelFocus.type = FOCUSINPUT;
+
+                    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "IN"});
+                }
+            }
         }
     }
 
-    size = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getSwitches().size();
-    dataIndex = 0;
+    Digital *d = nullptr;
+    for (; elementIndex < entrys; elementIndex++) {
+        d = getDigitalEntry();
 
-    while (true) {
-        if (elementIndex >= FOCUSPANELENTRYS) {
+        if (d == nullptr) // more digitalEntry available?
             break;
-        }
-        for (int x = 0; x < SwitchEntrysPerElement; x++) {
 
-            if (dataIndex < size) {
-                Digital *digitalElement =
-                    allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getSwitches()[dataIndex];
+        for (int x = 0; x < SwitchEntrysPerElement; x++) { // start new Element
 
-                panelElements[elementIndex].addDigitalEntry(
-                    digitalElement, {std::bind(&Digital::nextValue, digitalElement), "NEXT"},
-                    {std::bind(&Digital::previousValue, digitalElement), "NEXT"},
-                    {std::bind(&Digital::resetValue, digitalElement), "RESET"});
-                dataIndex++;
-            }
-            else {
+            if (d == nullptr) {                              // no more entry available
                 panelElements[elementIndex].addEmptyEntry(); // empty entry
             }
+            else {
+                panelElements[elementIndex].addDigitalEntry(d);
+            }
+
+            d = getDigitalEntry();
         }
-        elementIndex++;
     }
 
     panelElements[scroll->relPosition].select = 1;
+    if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
+        actionHandler.registerActionRight2(
+            {std::bind(focusPatch, location(currentFocus.layer, currentFocus.modul, currentFocus.id, FOCUSOUTPUT)),
+             "OUT"});
+    }
 }
 
 void GUIPanelFocus::registerModulePatchIn() {
-    // println("registerModulePatchIn");
 
-    uint16_t size = allLayers[currentFocus.layer]
-                        ->getModules()[currentFocus.modul]
-                        ->getInputs()[currentFocus.id]
-                        ->getPatchesInOut()
-                        .size();
+    patchIndex = scroll->offset;
+    for (uint16_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
 
-    uint16_t dataIndex;
+        PatchElement *p = getPatchEntry();
 
-    while (true) {
-        for (unsigned int i = 0; i < FOCUSPANELENTRYS; i++) {
-
-            dataIndex = i + scroll->offset;
-            if (dataIndex < size) {
-
-                // println("register PatchElement");
-                PatchElementInOut *patchElement = allLayers[currentFocus.layer]
-                                                      ->getModules()[currentFocus.modul]
-                                                      ->getInputs()[currentFocus.id]
-                                                      ->getPatchesInOut()[dataIndex];
-
-                panelElements[i].addPatchOutputEntry(
-                    patchElement,
-                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patchElement, 1), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patchElement, 0), "AMOUNT"},
-                    {std::bind(&PatchElementInOut::setAmount, patchElement, 0), "RESET"});
-            }
-            if (scroll->position == (i + scroll->offset)) {
-                panelElements[i].select = 1;
-            }
-            else {
-                panelElements[i].select = 0;
-            }
-        }
-
-        break;
-    }
-}
-void GUIPanelFocus::registerLayerModules() {
-    uint16_t size;
-
-    uint16_t dataIndex = 0;
-    uint16_t elementIndex = 0;
-
-    size = allLayers[currentFocus.layer]->getModules().size();
-
-    dataIndex = scroll->offset;
-
-    while (true) {
-        if (elementIndex >= FOCUSPANELENTRYS) {
+        if (p == nullptr) {
             break;
-        }
-
-        if (dataIndex < size) {
-            BaseModule *moduleElement = allLayers[currentFocus.layer]->getModules()[dataIndex];
-
-            panelElements[elementIndex].addModuleEntry(moduleElement, {nullptr, ""}, {nullptr, ""}, {nullptr, ""});
-
-            if ((scroll->relPosition) == elementIndex) {
-                newPanelFocus.modul = moduleElement->id;
-                newPanelFocus.type = FOCUSMODULE;
-            }
-
-            dataIndex++;
-            elementIndex++;
         }
         else {
-            break;
+
+            panelElements[elementIndex].addPatchOutputEntry(p);
         }
     }
+
     panelElements[scroll->relPosition].select = 1;
+
+    // register newFocus
+
+    newPanelFocus.id = currentFocus.id;
+    newPanelFocus.modul = currentFocus.modul;
+    newPanelFocus.type = FOCUSINPUT;
+
+    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "PATCH"});
 }
 
 void GUIPanelFocus::registerModulePatchOut() {
-    uint16_t size;
+    patchIndex = scroll->offset;
+    for (uint16_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
 
-    uint16_t dataIndex = 0;
-    uint16_t elementIndex = 0;
+        PatchElement *p = getPatchEntry();
 
-    size = allLayers[currentFocus.layer]
-               ->getModules()[currentFocus.modul]
-               ->getOutputs()[currentFocus.id]
-               ->getPatchesInOut()
-               .size();
-
-    dataIndex = scroll->offset;
-
-    while (true) {
-        if (elementIndex >= FOCUSPANELENTRYS) {
+        if (p == nullptr) {
             break;
-        }
-
-        if (dataIndex < size) {
-            PatchElementInOut *patchElement = allLayers[currentFocus.layer]
-                                                  ->getModules()[currentFocus.modul]
-                                                  ->getOutputs()[currentFocus.id]
-                                                  ->getPatchesInOut()[dataIndex];
-
-            panelElements[elementIndex].addPatchInputEntry(
-                patchElement,
-                {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patchElement, 1), "AMOUNT"},
-                {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patchElement, 0), "AMOUNT"},
-                {std::bind(&PatchElementInOut::setAmount, patchElement, 0), "RESET"});
-
-            dataIndex++;
-            elementIndex++;
         }
         else {
-            break;
+
+            panelElements[elementIndex].addPatchInputEntry(p);
         }
     }
 
-    // dataIndex = 0;
+    panelElements[scroll->relPosition].select = 1;
 
-    // size = allLayers[currentFocus.layer]
-    //            ->getModules()[currentFocus.modul]
-    //            ->getOutputs()[currentFocus.id]
-    //            ->getPatchesOutOut()
-    //            .size();
+    // register newFocus
 
-    // while (true) {
-    //     if (elementIndex >= FOCUSPANELENTRYS) {
-    //         break;
-    //     }
+    newPanelFocus.id = currentFocus.id;
+    newPanelFocus.modul = currentFocus.modul;
+    newPanelFocus.type = FOCUSOUTPUT;
 
-    //     if (dataIndex < size) {
+    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "PATCH"});
+}
 
-    //         PatchElementOutOut *patchElement = allLayers[currentFocus.layer]
-    //                                                ->getModules()[currentFocus.modul]
-    //                                                ->getOutputs()[currentFocus.id]
-    //                                                ->getPatchesOutOut()[dataIndex];
+void GUIPanelFocus::registerLayerModules() {
+    uint16_t elementIndex = 0;
 
-    //         panelElements[elementIndex].addPatchOutOutEntry(
-    //             patchElement, {std::bind(&PatchElementOutOut::changeAmount, patchElement, 0.02), "AMOUNT"},
-    //             {std::bind(&PatchElementOutOut::changeAmount, patchElement, -0.02), "AMOUNT"},
-    //             {std::bind(&PatchElementOutOut::setAmount, patchElement, 0), "RESET"});
+    moduleIndex = scroll->offset;
 
-    //         dataIndex++;
-    //         elementIndex++;
-    //     }
-    //     else {
-    //         break;
-    //     }
-    // }
+    for (; elementIndex < entrys; elementIndex++) {
+
+        BaseModule *m = getModuleEntry();
+
+        if (m == nullptr) {
+            break;
+        }
+        else {
+
+            panelElements[elementIndex].addModuleEntry(m);
+
+            if ((scroll->relPosition) == elementIndex) {
+                newPanelFocus.modul = m->id;
+                newPanelFocus.type = FOCUSMODULE;
+            }
+        }
+    }
+
     panelElements[scroll->relPosition].select = 1;
 }
 

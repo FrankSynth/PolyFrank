@@ -122,7 +122,7 @@ int main(void) {
     MX_UART5_Init();
     MX_TIM13_Init();
     MX_I2C4_Init();
-    MX_TIM3_Init();
+    // MX_TIM3_Init();
     MX_TIM4_Init();
     MX_TIM5_Init();
     MX_RNG_Init();
@@ -134,8 +134,8 @@ int main(void) {
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
     HAL_TIM_Base_Start(&htim2);
-    HAL_TIM_Base_Start(&htim3);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    // HAL_TIM_Base_Start(&htim3);
+    // HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
     HAL_TIM_Base_Start_IT(&htim4);

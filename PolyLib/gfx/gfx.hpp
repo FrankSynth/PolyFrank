@@ -73,5 +73,7 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
                 FONTALIGN alignment);
 void drawString(char *text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
+void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont);
+
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
 uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font);

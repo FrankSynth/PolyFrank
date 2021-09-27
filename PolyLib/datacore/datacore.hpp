@@ -316,7 +316,7 @@ class NameElement {
     std::string name;
 };
 
-class PatchElementInOut; // define class to fix no declaration error from Input and Output Class
+class PatchElement; // define class to fix no declaration error from Input and Output Class
 // class PatchElementOutOut; // define class to fix no declaration error from Input and Output Class
 
 // input patchesInOut
@@ -324,37 +324,36 @@ class BasePatch {
   public:
     void clearPatches();
 
-    void addPatchInOut(PatchElementInOut &patch);
+    void addPatchInOut(PatchElement &patch);
     // void addPatchOutOut(PatchElementOutOut &patch);
-    void removePatchInOut(PatchElementInOut &patch);
+    void removePatchInOut(PatchElement &patch);
     // void removePatchOutOut(PatchElementOutOut &patch);
     bool findPatchInOut(uint8_t output, uint8_t input);
 
     inline const std::string &getName() { return name; };
-    inline std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
+    inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
     // inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
     uint8_t layerId;
-
+    uint8_t visible;
     uint8_t idGlobal;
     std::string name;
 
     typeLinLog mapping = linMap;
 
-  protected:
-    std::vector<PatchElementInOut *> patchesInOut;
-    // std::vector<PatchElementOutOut *> patchesOutOut;
+    std::vector<PatchElement *> patchesInOut;
 };
 
 class Input : public BasePatch {
   public:
-    Input(const char *name, typeLinLog mapping = linMap) {
+    Input(const char *name, typeLinLog mapping = linMap, uint8_t visible = 1) {
         this->name = name;
         this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
         this->mapping = mapping;
+        this->visible = visible;
     }
 
     float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
@@ -369,13 +368,14 @@ class Input : public BasePatch {
 
 class Output : public BasePatch {
   public:
-    Output(const char *name) {
+    Output(const char *name, uint8_t visible = 1) {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
         // patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
 
         currentSample = bufferCurrentSample;
         nextSample = bufferNextSample;
+        this->visible = visible;
     }
 
     // set next calculatedSample as current sample
@@ -388,8 +388,8 @@ class Output : public BasePatch {
     float *currentSample;
     float *nextSample;
 
-    uint8_t LEDPortID;
-    uint8_t LEDPinID;
+    uint8_t LEDPortID = 0xFF;
+    uint8_t LEDPinID = 0xFF;
 
   private:
     float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
@@ -400,15 +400,8 @@ class PatchElement {
   public:
     inline float getAmount() { return amount; }
 
-    float offset;
-    float amount;
-
     uint8_t layerId;
-};
-
-class PatchElementInOut : public PatchElement {
-  public:
-    PatchElementInOut(Output &source, Input &targetIn, uint8_t layerId) {
+    PatchElement(Output &source, Input &targetIn, uint8_t layerId) {
         this->sourceOut = &source;
         this->targetIn = &targetIn;
         this->layerId = layerId;
@@ -419,38 +412,14 @@ class PatchElementInOut : public PatchElement {
     void changeAmount(float change);
     void changeAmountEncoderAccelerationMapped(bool direction); // create Mapped
 
+    float offset;
+    float amount;
+
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
     float amountRaw = 0;
 };
-
-// class PatchElementOutOut : public PatchElement {
-//   public:
-//     PatchElementOutOut(Output &source, Output &targetOut, uint8_t layerId, float amount = 0, float offset = 0) {
-//         this->sourceOut = &source;
-//         this->targetOut = &targetOut;
-//         this->amount = amount;
-//         this->offset = offset;
-//         this->layerId = layerId;
-//     }
-//     inline float getOffset() { return offset; }
-
-//     void setAmount(float amount);
-//     void setAmountWithoutMapping(float amount);
-//     void changeAmount(float change);
-//     void setOffset(float offset);
-//     void setOffsetWithoutMapping(float offset);
-//     void changeOffset(float change);
-//     void setAmountAndOffset(float amount, float offset);
-
-//     bool remove = false;
-//     Output *sourceOut;
-//     Output *targetOut;
-
-//   private:
-//     float offset;
-// };
 
 class ID {
   public:
@@ -506,7 +475,7 @@ class I2CBuffer {
 
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
-inline void PatchElementInOut::changeAmount(float change) {
+inline void PatchElement::changeAmount(float change) {
     setAmount(amount + change);
 #ifdef POLYCONTROL
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
@@ -539,7 +508,7 @@ inline void BasePatch::clearPatches() {
     // patchesOutOut.clear();
 }
 
-inline void BasePatch::addPatchInOut(PatchElementInOut &patch) {
+inline void BasePatch::addPatchInOut(PatchElement &patch) {
     patchesInOut.push_back(&patch);
 }
 // inline void BasePatch::addPatchOutOut(PatchElementOutOut &patch) {

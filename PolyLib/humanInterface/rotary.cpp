@@ -54,6 +54,7 @@ void rotary::process(uint16_t pinState) {
     state = ttable[state & 0xf][pinstate];
     // Return emit bits, ie the generated event.
     if ((state & 0x30) == DIR_CW) {
+
         acellaration();
 
         if (functionCW != nullptr) {

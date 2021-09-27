@@ -110,13 +110,13 @@ class PanelTouch {
                 case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
                 case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->sub), event); break;
                 case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->noise), event); break;
-                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrA), event); break;
-                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->adsrB), event); break;
-                case 6: evaluateOutput((Output *)&(allLayers[layerID]->adsrA.out), event); break;
+                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->envA), event); break;
+                case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->envF), event); break;
+                case 6: evaluateOutput((Output *)&(allLayers[layerID]->envA.out), event); break;
                 case 7: evaluateInput((Input *)&(allLayers[layerID]->ladder.iCutoff), event); break;
                 case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
                 case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
-                case 10: evaluateOutput((Output *)&(allLayers[layerID]->adsrB.out), event); break;
+                case 10: evaluateOutput((Output *)&(allLayers[layerID]->envF.out), event); break;
                 case 11: evaluateInput((Input *)&(allLayers[layerID]->steiner.iCutoff), event); break;
             }
 

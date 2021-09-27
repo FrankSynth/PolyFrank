@@ -25,6 +25,13 @@ void actionMapping::registerActionRight(actionHandle handle1, actionHandle handl
     buttonRight_3.handle = handle3;
 }
 
+void actionMapping::registerActionRight2(actionHandle handle2) {
+    buttonRight_2.handle = handle2;
+}
+void actionMapping::registerActionRight3(actionHandle handle3) {
+    buttonRight_3.handle = handle3;
+}
+
 void actionMapping::registerActionEncoder1(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
     encoder1_CW = handle1;
     encoder1_CCW = handle2;
@@ -46,114 +53,153 @@ void actionMapping::registerActionEncoder4(actionHandle handle1, actionHandle ha
     encoder4_Push = handle3;
 }
 
+void actionMapping::registerActionEncoder5(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
+    encoder5_CW = handle1;
+    encoder5_CCW = handle2;
+    encoder5_Push = handle3;
+}
+void actionMapping::registerActionEncoder6(actionHandle handle1, actionHandle handle2, actionHandle handle3) {
+    encoder6_CW = handle1;
+    encoder6_CCW = handle2;
+    encoder6_Push = handle3;
+}
+
 void actionMapping::callActionHeader1() {
     if (buttonHeader_1.functionPointer != nullptr)
         buttonHeader_1.functionPointer();
-};
+}
 
 void actionMapping::callActionHeader2() {
     if (buttonHeader_2.functionPointer != nullptr)
         buttonHeader_2.functionPointer();
-};
+}
 
 void actionMapping::callActionHeader3() {
     if (buttonHeader_3.functionPointer != nullptr)
         buttonHeader_3.functionPointer();
-};
+}
 
 void actionMapping::callActionHeader4() {
     if (buttonHeader_4.functionPointer != nullptr)
         buttonHeader_4.functionPointer();
-};
+}
 
 void actionMapping::callActionLeft1() {
     if (buttonLeft_1.handle.functionPointer != nullptr)
         buttonLeft_1.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionLeft2() {
     if (buttonLeft_2.handle.functionPointer != nullptr)
         buttonLeft_2.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionLeft3() {
     if (buttonLeft_3.handle.functionPointer != nullptr)
         buttonLeft_3.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionRight1() {
     if (buttonRight_1.handle.functionPointer != nullptr)
         buttonRight_1.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionRight2() {
     if (buttonRight_2.handle.functionPointer != nullptr)
         buttonRight_2.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionRight3() {
     if (buttonRight_3.handle.functionPointer != nullptr)
         buttonRight_3.handle.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_1_CW() {
     if (encoder1_CW.functionPointer != nullptr)
         encoder1_CW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_1_CCW() {
     if (encoder1_CCW.functionPointer != nullptr)
         encoder1_CCW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_1_Push() {
     if (encoder1_Push.functionPointer != nullptr)
         encoder1_Push.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_2_CW() {
     if (encoder2_CW.functionPointer != nullptr)
         encoder2_CW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_2_CCW() {
     if (encoder2_CCW.functionPointer != nullptr)
         encoder2_CCW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_2_Push() {
     if (encoder2_Push.functionPointer != nullptr)
         encoder2_Push.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_3_CW() {
     if (encoder3_CW.functionPointer != nullptr)
         encoder3_CW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_3_CCW() {
     if (encoder3_CCW.functionPointer != nullptr)
         encoder3_CCW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_3_Push() {
     if (encoder3_Push.functionPointer != nullptr)
         encoder3_Push.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_4_CW() {
     if (encoder4_CW.functionPointer != nullptr)
         encoder4_CW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_4_CCW() {
     if (encoder4_CCW.functionPointer != nullptr)
         encoder4_CCW.functionPointer();
-};
+}
 
 void actionMapping::callActionEncoder_4_Push() {
     if (encoder4_Push.functionPointer != nullptr)
         encoder4_Push.functionPointer();
-};
+}
+void actionMapping::callActionEncoder_5_CW() {
+    if (encoder5_CW.functionPointer != nullptr)
+        encoder5_CW.functionPointer();
+}
+
+void actionMapping::callActionEncoder_5_CCW() {
+    if (encoder5_CCW.functionPointer != nullptr)
+        encoder5_CCW.functionPointer();
+}
+
+void actionMapping::callActionEncoder_5_Push() {
+    if (encoder5_Push.functionPointer != nullptr)
+        encoder5_Push.functionPointer();
+}
+void actionMapping::callActionEncoder_6_CW() {
+    if (encoder6_CW.functionPointer != nullptr)
+        encoder6_CW.functionPointer();
+}
+
+void actionMapping::callActionEncoder_6_CCW() {
+    if (encoder6_CCW.functionPointer != nullptr)
+        encoder6_CCW.functionPointer();
+}
+
+void actionMapping::callActionEncoder_6_Push() {
+    if (encoder6_Push.functionPointer != nullptr)
+        encoder6_Push.functionPointer();
+}
 
 #endif

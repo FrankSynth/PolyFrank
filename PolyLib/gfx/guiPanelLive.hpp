@@ -26,7 +26,7 @@ class GUIPanelLive : public GUIPanelBase {
 
     uint8_t subPanelSelect = 0;
 
-    uint16_t EntrysPerElement = 3;
+    uint16_t EntrysPerElement = 4;
 
     uint16_t panelWidth = 0;
     uint16_t panelHeight = 0;

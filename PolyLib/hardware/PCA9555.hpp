@@ -4,6 +4,7 @@
 #include "debughelper/debughelper.hpp"
 #include "i2c.h"
 #include "tim.h"
+#include <bitset>
 
 class PCA9555 {
   public:
@@ -22,6 +23,14 @@ class PCA9555 {
         initData[0] = 0x07;       // COMMANDBYTE //write Pin Configuration
         initData[1] = 0b11111111; // MODE PORT 1             1-> Input
         initData[2] = 0b11111111; // MODE PORT 0
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, initData, 3, 50) != HAL_OK) {
+            Error_Handler();
+        }
+
+        initData[0] = 0x05; // COMMANDBYTE //write Pin Configuration
+        initData[1] = 0x00; // MODE PORT 1             1-> Input
+        initData[2] = 0x00; // MODE PORT 0
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, initData, 3, 50) != HAL_OK) {
             Error_Handler();
@@ -60,6 +69,7 @@ class PCA9555 {
         if (HAL_I2C_Master_Receive(i2cHandle, i2cDeviceAddress, (uint8_t *)&newPinState, 2, 50) != HAL_OK) {
             PolyError_Handler("ERROR | COMMUNICATION | PCA9555 -> i2c receive failed");
         }
+        std::string str = std::bitset<8>(((uint8_t *)&newPinState)[1]).to_string();
     }
 
     uint16_t newPinState = 0;

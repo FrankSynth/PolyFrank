@@ -48,8 +48,6 @@ void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, u
 
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
-// void drawPatchOutOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
-
 void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
 
 void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
@@ -88,6 +86,23 @@ class Data_PanelElement {
         visible = 1;
     }
 
+    void addAnalogEntry(Analog *data) {
+
+        entrys[numberEntrys] = entryStruct{ANALOG,
+                                           data,
+                                           nullptr,
+                                           nullptr,
+                                           nullptr,
+                                           nullptr,
+
+                                           {std::bind(&Analog::changeValueWithEncoderAcceleration, data, 1), "AMOUNT"},
+                                           {std::bind(&Analog::changeValueWithEncoderAcceleration, data, 0), "AMOUNT"},
+                                           {std::bind(&Analog::resetValue, data), "RESET"}};
+
+        numberEntrys++;
+        visible = 1;
+    }
+
     void addModuleEntry(BaseModule *data, actionHandle functionCW, actionHandle functionCCW,
                         actionHandle functionPush) {
 
@@ -98,10 +113,35 @@ class Data_PanelElement {
         visible = 1;
     }
 
+    void addModuleEntry(BaseModule *data) {
+
+        entrys[numberEntrys] =
+            entryStruct{MODULE, nullptr, nullptr, nullptr, nullptr, data, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}};
+
+        numberEntrys++;
+        visible = 1;
+    }
+
     void addDigitalEntry(Digital *data, actionHandle functionCW, actionHandle functionCCW, actionHandle functionPush) {
 
         entrys[numberEntrys] =
             entryStruct{DIGITAL, nullptr, data, nullptr, nullptr, nullptr, functionCW, functionCCW, functionPush};
+
+        numberEntrys++;
+        visible = 1;
+    }
+
+    void addDigitalEntry(Digital *data) {
+
+        entrys[numberEntrys] = entryStruct{DIGITAL,
+                                           nullptr,
+                                           data,
+                                           nullptr,
+                                           nullptr,
+                                           nullptr,
+                                           {std::bind(&Digital::nextValue, data), "NEXT"},
+                                           {std::bind(&Digital::previousValue, data), "NEXT"},
+                                           {std::bind(&Digital::resetValue, data), "RESET"}};
 
         numberEntrys++;
         visible = 1;
@@ -124,21 +164,45 @@ class Data_PanelElement {
         numberEntrys++;
         visible = 1;
     }
-    // void addPatchOutOutEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
-    //                          actionHandle functionPush) {
 
-    //     entrys[numberEntrys] =
-    //         entryStruct{PATCHOUTOUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW,
-    //         functionPush};
+    void addPatchInputEntry(PatchElement *patch) {
 
-    //     numberEntrys++;
-    //     visible = 1;
-    // }
+        entrys[numberEntrys] =
+            entryStruct{PATCHINPUT,
+                        nullptr,
+                        nullptr,
+                        nullptr,
+                        patch,
+                        nullptr,
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::setAmount, patch, 0), "RESET"}};
+
+        numberEntrys++;
+        visible = 1;
+    }
+
     void addPatchOutputEntry(PatchElement *patch, actionHandle functionCW, actionHandle functionCCW,
                              actionHandle functionPush) {
 
         entrys[numberEntrys] =
             entryStruct{PATCHOUTPUT, nullptr, nullptr, nullptr, patch, nullptr, functionCW, functionCCW, functionPush};
+
+        numberEntrys++;
+        visible = 1;
+    }
+    void addPatchOutputEntry(PatchElement *patch) {
+
+        entrys[numberEntrys] =
+            entryStruct{PATCHOUTPUT,
+                        nullptr,
+                        nullptr,
+                        nullptr,
+                        patch,
+                        nullptr,
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::setAmount, patch, 0), "RESET"}};
 
         numberEntrys++;
         visible = 1;
@@ -228,7 +292,7 @@ class Patch_PanelElement {
         this->entryHeight = heigth;
     }
     void Draw();
-    void addPatchEntry(PatchElementInOut *patch) { this->patch = patch; }
+    void addPatchEntry(PatchElement *patch) { this->patch = patch; }
 
     void addEntry(BasePatch *entry, uint8_t showModuleName = 0) {
         this->showModuleName = showModuleName;
@@ -244,7 +308,7 @@ class Patch_PanelElement {
 
     BasePatch *entry = nullptr;
 
-    PatchElementInOut *patch = nullptr;
+    PatchElement *patch = nullptr;
 
   private:
     uint16_t panelAbsY;

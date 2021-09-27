@@ -7,7 +7,9 @@ class GUIPanelFocus : public GUIPanelBase {
     void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, uint8_t pathVisible = 1);
     void Draw();
 
-    void updateEntrys();
+    void collectEntrys();
+
+    // void updateEntrys();
     void registerModuleSettings();
     void registerModulePatchIn();
     void registerModulePatchOut();
@@ -15,8 +17,21 @@ class GUIPanelFocus : public GUIPanelBase {
 
     void registerPanelSettings();
 
+    void updateEntrys();
+
+    Analog *getAnalogEntry();
+    Digital *getDigitalEntry();
+    BaseModule *getModuleEntry();
+    PatchElement *getPatchEntry();
+
   private:
     // Boxes
+    uint16_t focusChanged;
+
+    uint16_t analogIndex;
+    uint16_t digitalIndex;
+    uint16_t moduleIndex;
+    uint16_t patchIndex;
 
     FOCUSMODE mode;
 
@@ -24,7 +39,12 @@ class GUIPanelFocus : public GUIPanelBase {
 
     location newPanelFocus;
 
-    uint16_t SwitchEntrysPerElement = 3;
+    std::vector<BaseModule *> module;
+    std::vector<Analog *> analog;
+    std::vector<Digital *> digital;
+    std::vector<PatchElement *> patch;
+
+    uint16_t SwitchEntrysPerElement = 4;
     uint16_t AnalogEntrysPerElement = 1;
     uint16_t PatchEntrysPerElement = 1;
 
@@ -32,7 +52,7 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
-    location oldLocation;
+    location oldFocus;
 
     Scroller scrollModule = Scroller(FOCUSPANELENTRYS);
     Scroller scrollLayer = Scroller(FOCUSPANELENTRYS);

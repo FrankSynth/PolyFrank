@@ -37,7 +37,8 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
         if (!allLayers[currentFocus.layer]->getModules().size()) { //  empty
             return;
         }
-        std::string text = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getName(); // Modul name
+        std::string text =
+            allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getShortName(); // Modul name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);

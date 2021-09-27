@@ -17,9 +17,14 @@ extern const std::vector<std::string> nlSubOctaves;
 // Basemodule
 class BaseModule {
   public:
-    BaseModule(const char *name) { this->name = name; }
+    BaseModule(const char *name, const char *shortName) {
+        this->name = name;
+        this->shortName = shortName;
+    }
 
     inline const std::string &getName() { return name; }
+    inline const std::string &getShortName() { return shortName; }
+
     inline std::vector<Output *> &getOutputs() { return outputs; }
     inline std::vector<Input *> &getInputs() { return inputs; }
     inline std::vector<Analog *> &getPotis() { return knobs; }
@@ -29,8 +34,11 @@ class BaseModule {
 
     uint8_t id;
     uint8_t layerId;
+    uint8_t displayVis = 1;
 
     std::string name;
+    std::string shortName;
+
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
     std::vector<Analog *> knobs;
@@ -47,7 +55,7 @@ class BaseModule {
 
 class Midi : public BaseModule {
   public:
-    Midi(const char *name) : BaseModule(name) { // call subclass
+    Midi(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&oMod);
         outputs.push_back(&oAftertouch);
         outputs.push_back(&oPitchbend);
@@ -94,7 +102,7 @@ class Midi : public BaseModule {
 
 class Imperfection : public BaseModule {
   public:
-    Imperfection(const char *name) : BaseModule(name) { // call subclass
+    Imperfection(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&oSpread);
         outputs.push_back(&oDrift);
 
@@ -113,7 +121,7 @@ class Imperfection : public BaseModule {
 
 class OSC_A : public BaseModule {
   public:
-    OSC_A(const char *name) : BaseModule(name) { // call subclass
+    OSC_A(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
         inputs.push_back(&iFM);
@@ -156,7 +164,7 @@ class OSC_A : public BaseModule {
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfDestSwitch = Digital("VCF OUT", 0, 3, 1, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
 
     // render shizzle
 
@@ -176,7 +184,7 @@ class OSC_A : public BaseModule {
 
 class OSC_B : public BaseModule {
   public:
-    OSC_B(const char *name) : BaseModule(name) { // call subclass
+    OSC_B(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
         inputs.push_back(&iFM);
@@ -224,9 +232,9 @@ class OSC_B : public BaseModule {
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
-    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfDestSwitch = Digital("VCF DEST", 0, 3, 1, true, &nlVCFDest);
-    Digital dSync = Digital("SYNC OSC A", 0, 1, 0, true, &nlOnOff);
+    Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 1, true, &nlVCFDest);
+    Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
     // render shizzle
 
@@ -247,7 +255,7 @@ class OSC_B : public BaseModule {
 
 class Sub : public BaseModule {
   public:
-    Sub(const char *name) : BaseModule(name) { // call subclass
+    Sub(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
         inputs.push_back(&iShape);
@@ -282,7 +290,7 @@ class Sub : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
     // render shizzle
@@ -299,7 +307,7 @@ class Sub : public BaseModule {
 
 class Noise : public BaseModule {
   public:
-    Noise(const char *name) : BaseModule(name) { // call subclass
+    Noise(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
         inputs.push_back(&iLevel);
@@ -328,7 +336,7 @@ class Noise : public BaseModule {
     // Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF Dest", 0, 3, 2, true, &nlVCFDest);
+    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
 
     // render shizzle
 
@@ -341,7 +349,7 @@ class Noise : public BaseModule {
 class Steiner : public BaseModule {
 
   public:
-    Steiner(const char *name) : BaseModule(name) { // call subclass
+    Steiner(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         inputs.push_back(&iCutoff);
         inputs.push_back(&iResonance);
         inputs.push_back(&iLevel);
@@ -382,7 +390,7 @@ class Steiner : public BaseModule {
 
 class Ladder : public BaseModule {
   public:
-    Ladder(const char *name) : BaseModule(name) { // call subclass
+    Ladder(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         inputs.push_back(&iCutoff);
         inputs.push_back(&iResonance);
         inputs.push_back(&iLevel);
@@ -419,7 +427,7 @@ class Ladder : public BaseModule {
 
 class Distortion : public BaseModule {
   public:
-    Distortion(const char *name) : BaseModule(name) { // call subclass
+    Distortion(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
 
         inputs.push_back(&iDistort);
 
@@ -437,7 +445,7 @@ class Distortion : public BaseModule {
 
 class LFO : public BaseModule {
   public:
-    LFO(const char *name) : BaseModule(name) { // call subclass
+    LFO(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
         inputs.push_back(&iFreq);
@@ -467,9 +475,9 @@ class LFO : public BaseModule {
 
     // Freq also as Digital knob??
     // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
-    Digital dFreqSnap = Digital("SNAP SPEED", 0, 1, 0, false, &nlOnOff);
-    Digital dGateSync = Digital("SYNC GATE", 0, 1, 0, true, &nlOnOff);
-    Digital dClockSync = Digital("SYNC CLOCK", 0, 1, 0, false, &nlOnOff);
+    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, false, &nlOnOff);
+    Digital dGateSync = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
+    Digital dClockSync = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
@@ -507,7 +515,7 @@ class LFO : public BaseModule {
 
 class ADSR : public BaseModule {
   public:
-    ADSR(const char *name) : BaseModule(name) { // call subclass
+    ADSR(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
 
         outputs.push_back(&out);
 
@@ -620,7 +628,7 @@ class GlobalModule : public BaseModule {
     // TODO master volume
 
   public:
-    GlobalModule(const char *name) : BaseModule(name) { // call subclass
+    GlobalModule(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
 
         inputs.push_back(&iVCA);
         inputs.push_back(&iPan);

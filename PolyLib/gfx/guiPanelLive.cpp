@@ -83,7 +83,7 @@ void GUIPanelLive::Draw() {
 }
 
 void GUIPanelLive::registerPanelSettings() {
-    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+    actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
                                          {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
     // register Panel Seetings Rigth
@@ -115,8 +115,8 @@ void GUIPanelLive::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y,
     this->pathVisible = pathVisible;
 
     // elements Sizes
-    uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
-    uint16_t elementSpace = 3;
+    uint16_t elementWidth = width;
+    uint16_t elementSpace = 2;
     uint16_t elementHeight = (height - (LIVEPANELENTRYS - 2) * elementSpace) / LIVEPANELENTRYS;
 
     // init Elements

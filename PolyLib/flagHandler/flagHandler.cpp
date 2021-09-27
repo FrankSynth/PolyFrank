@@ -89,7 +89,7 @@ std::function<uint8_t()> interChipA_DMA_FinishedFunc[2];
 
 bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
-
+elapsedMicros Control_Encoder_Interrupt_Timer;
 bool HID_Initialized = false;
 
 bool Panel_0_EOC_Interrupt = false;
@@ -241,13 +241,15 @@ void handleFlags() {
     if (HID_Initialized == true) {
         // Control Panel Encoder
         if (Control_Encoder_Interrupt) {
-            if (Control_Encoder_ISR != nullptr) {
-                Control_Encoder_ISR();
-            }
+            if (Control_Encoder_Interrupt_Timer > 250) {
+                if (Control_Encoder_ISR != nullptr) {
+                    Control_Encoder_ISR();
+                }
 
-            // interrupt cleared?
-            if (HAL_GPIO_ReadPin(Encoder_Interrupt_GPIO_Port, Encoder_Interrupt_Pin) == 1) {
-                Control_Encoder_Interrupt = false;
+                // interrupt cleared?
+                if (HAL_GPIO_ReadPin(Encoder_Interrupt_GPIO_Port, Encoder_Interrupt_Pin) == 1) {
+                    Control_Encoder_Interrupt = false;
+                }
             }
         }
         // Control Panel Touch

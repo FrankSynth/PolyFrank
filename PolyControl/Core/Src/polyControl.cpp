@@ -31,7 +31,7 @@ void readTemperature();
 void PolyControlInit() { ////////Hardware init////////
 
     // Enable Layer Board
-    // HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
 
     // Enable Panel Board
     HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
@@ -163,7 +163,9 @@ void PolyControlRun() { // Here the party starts
         FlagHandler::handleFlags();
 
         if (getRenderState() == RENDER_DONE) {
+            // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
             ui.Draw();
+            // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
             renderLED();
         }
 
@@ -300,6 +302,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
     if (pin & GPIO_PIN_12) { // ioExpander -> encoder
         FlagHandler::Control_Encoder_Interrupt = true;
+        FlagHandler::Control_Encoder_Interrupt_Timer = 0;
     }
     if (pin & GPIO_PIN_11) { // EOC
         FlagHandler::Panel_0_EOC_Interrupt = true;

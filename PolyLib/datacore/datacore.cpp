@@ -147,7 +147,7 @@ void Digital::previousValue() {
 #endif
 }
 
-void BasePatch::removePatchInOut(PatchElementInOut &patch) {
+void BasePatch::removePatchInOut(PatchElement &patch) {
     for (uint32_t i = 0; i < patchesInOut.size(); i++) {
         if (patchesInOut[i] == &patch) {
             patchesInOut.erase(patchesInOut.begin() + i);
@@ -157,7 +157,7 @@ void BasePatch::removePatchInOut(PatchElementInOut &patch) {
 }
 
 bool BasePatch::findPatchInOut(uint8_t output, uint8_t input) {
-    for (PatchElementInOut *p : patchesInOut) {
+    for (PatchElement *p : patchesInOut) {
         if (p == nullptr) {
             return false;
         }
@@ -173,7 +173,7 @@ void Input::collectCurrentSample() {
     currentSample[1] = 0;
     currentSample[2] = 0;
     currentSample[3] = 0;
-    for (PatchElementInOut *patch : patchesInOut) {
+    for (PatchElement *patch : patchesInOut) {
         Output *sourceOut = patch->sourceOut;
         const float &amount = patch->amount;
         currentSample[0] += sourceOut->currentSample[0] * amount;
@@ -183,7 +183,7 @@ void Input::collectCurrentSample() {
     }
 }
 
-void PatchElementInOut::changeAmountEncoderAccelerationMapped(bool direction) {
+void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 
     if (direction == 0) {
         amountRaw = amountRaw + (-0.5f * ROTARYENCODERACELLARATION);
@@ -194,7 +194,7 @@ void PatchElementInOut::changeAmountEncoderAccelerationMapped(bool direction) {
     setAmount(amountRaw);
 }
 
-void PatchElementInOut::setAmount(float amountRaw) {
+void PatchElement::setAmount(float amountRaw) {
     this->amountRaw = testFloat(amountRaw, -1, 1);
 
     if (targetIn->mapping == linMap) {
@@ -212,7 +212,7 @@ void PatchElementInOut::setAmount(float amountRaw) {
 #endif
 }
 
-void PatchElementInOut::setAmountWithoutMapping(float amountRaw) {
+void PatchElement::setAmountWithoutMapping(float amountRaw) {
     this->amountRaw = testFloat(amountRaw, -1, 1);
     amount = this->amountRaw;
 

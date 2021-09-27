@@ -27,6 +27,7 @@ extern bool HID_Initialized;
 
 extern bool Control_Encoder_Interrupt;
 extern std::function<void()> Control_Encoder_ISR;
+extern elapsedMicros Control_Encoder_Interrupt_Timer;
 
 extern bool Control_Touch_Interrupt;
 extern std::function<void()> Control_Touch_ISR;

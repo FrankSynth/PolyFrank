@@ -3,24 +3,27 @@
 #include "guiPanelConfig.hpp"
 
 void GUIPanelConfig::registerGlobalSettings() {
-    uint16_t size;
+    elementIndex = 0;
+    registerPanelElements(globalSettings.__globSettingsMIDI);
+    registerPanelElements(globalSettings.__globSettingsSystem);
+    registerPanelElements(globalSettings.__globSettingsDisplay);
+    panelElements[scroll.relPosition].select = 1;
+}
+
+void GUIPanelConfig::registerPanelElements(categoryStruct &settingsCategory) {
 
     uint16_t dataIndex = 0;
-    uint16_t elementIndex = 0;
-    uint8_t exit = false;
-
-    size = globalSettings.__globSettingsMIDI.settings.size();
 
     while (true) {
         if (elementIndex >= CONFIGPANELENTRYS) {
-            break;
+            return;
         }
-        panelElements[elementIndex].setName(&globalSettings.__globSettingsMIDI.category);
+        panelElements[elementIndex].setName(&settingsCategory.category);
 
         for (int x = 0; x < EntrysPerElement; x++) {
 
-            if (dataIndex < size) {
-                Setting *settingsElement = globalSettings.__globSettingsMIDI.settings[dataIndex];
+            if (dataIndex < settingsCategory.settings.size()) {
+                Setting *settingsElement = settingsCategory.settings[dataIndex];
                 if (settingsElement->disable == 1) {
                     panelElements[elementIndex].addSettingsEntry(settingsElement, {nullptr, ""}, {nullptr, ""},
                                                                  {nullptr, ""});
@@ -35,75 +38,13 @@ void GUIPanelConfig::registerGlobalSettings() {
             }
             else {
                 panelElements[elementIndex].addEmptyEntry(); // empty entry
-                exit = true;
             }
         }
         elementIndex++;
-        if (exit)
-            break;
+        if (dataIndex >= settingsCategory.settings.size()) { // settings left?
+            return;
+        }
     }
-    size = globalSettings.__globSettingsSystem.settings.size();
-    dataIndex = 0;
-    exit = false;
-
-    while (true) {
-        if (elementIndex >= CONFIGPANELENTRYS) {
-            break;
-        }
-        panelElements[elementIndex].setName(&globalSettings.__globSettingsSystem.category);
-
-        for (int x = 0; x < EntrysPerElement; x++) {
-
-            if (dataIndex < size) {
-                Setting *settingsElement = globalSettings.__globSettingsSystem.settings[dataIndex];
-
-                panelElements[elementIndex].addSettingsEntry(
-                    settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
-                    {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
-                    {std::bind(&Setting::resetValue, settingsElement), "RESET"});
-                dataIndex++;
-            }
-            else {
-                panelElements[elementIndex].addEmptyEntry(); // empty entry
-                exit = true;
-            }
-        }
-        elementIndex++;
-        if (exit)
-            break;
-    }
-    size = globalSettings.__globSettingsDisplay.settings.size();
-    dataIndex = 0;
-    exit = false;
-
-    while (true) {
-        if (elementIndex >= CONFIGPANELENTRYS) {
-            break;
-        }
-        panelElements[elementIndex].setName(&globalSettings.__globSettingsDisplay.category);
-
-        for (int x = 0; x < EntrysPerElement; x++) {
-
-            if (dataIndex < size) {
-                Setting *settingsElement = globalSettings.__globSettingsDisplay.settings[dataIndex];
-
-                panelElements[elementIndex].addSettingsEntry(
-                    settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
-                    {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
-                    {std::bind(&Setting::resetValue, settingsElement), "RESET"});
-                dataIndex++;
-            }
-            else {
-                panelElements[elementIndex].addEmptyEntry(); // empty entry
-                exit = true;
-            }
-        }
-        elementIndex++;
-        if (exit)
-            break;
-    }
-
-    panelElements[scroll.relPosition].select = 1;
 }
 
 void GUIPanelConfig::updateEntrys() {
@@ -135,7 +76,7 @@ void GUIPanelConfig::Draw() {
 }
 
 void GUIPanelConfig::registerPanelSettings() {
-    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+    actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
                                          {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
     // register Panel Seetings Left

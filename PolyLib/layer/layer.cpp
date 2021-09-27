@@ -72,12 +72,12 @@ void Layer::resetLayer() {
 }
 
 void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
-    for (PatchElementInOut *p : sourceOut.getPatchesInOut()) {
+    for (PatchElement *p : sourceOut.getPatchesInOut()) {
         if (p->targetIn == &targetIn)
             return;
     }
 
-    patchesInOut.push_back(PatchElementInOut(sourceOut, targetIn, id));
+    patchesInOut.push_back(PatchElement(sourceOut, targetIn, id));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
     patchesInOut.back().setAmount(0.2);
@@ -91,12 +91,12 @@ void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     addPatchInOut(*(outputs[outputId]), *(inputs[inputId]), amount);
 }
 
-void Layer::updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount) {
+void Layer::updatePatchInOutWithoutMapping(PatchElement &patch, float amount) {
     patch.setAmountWithoutMapping(amount);
 }
 
 void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
-    for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
+    for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             this->updatePatchInOutWithoutMapping(*p, amount);
             return;
@@ -104,7 +104,7 @@ void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId
     }
 }
 
-void Layer::removePatchInOut(PatchElementInOut &patch) {
+void Layer::removePatchInOut(PatchElement &patch) {
 #ifdef POLYCONTROL
     sendDeletePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal);
 #endif
@@ -113,11 +113,11 @@ void Layer::removePatchInOut(PatchElementInOut &patch) {
     patch.targetIn->removePatchInOut(patch);  // remove targetIn entry
 
     patch.remove = true;                                                  // set remove flag
-    patchesInOut.remove_if([](PatchElementInOut n) { return n.remove; }); // find element and remove from list
+    patchesInOut.remove_if([](PatchElement n) { return n.remove; }); // find element and remove from list
 }
 
 void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
-    for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
+    for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             removePatchInOut(*p);
             return;
@@ -236,7 +236,7 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
     index = 0;
     patchSaveStruct patch;
     // save Patches
-    for (PatchElementInOut p : patchesInOut) {
+    for (PatchElement p : patchesInOut) {
 
         patch.sourceID = p.sourceOut->idGlobal;
         patch.targetID = p.targetIn->idGlobal;

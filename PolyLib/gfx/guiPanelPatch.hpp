@@ -18,6 +18,12 @@ class GUIPanelPatch : public GUIPanelBase {
     void removeCurrentPatch();
     void clearPatches();
 
+    void activate();
+
+    void scrollModulePosition(int16_t scroll);
+    void scrollTargetPosition(int16_t scroll);
+    void scrollSourcePosition(int16_t scroll);
+
     void setFocus(FOCUSMODE focusMode) {
 
         newFocus.type = focusMode;
@@ -49,6 +55,10 @@ class GUIPanelPatch : public GUIPanelBase {
     uint16_t entrysModule = 0;
     uint16_t entrysSource = 0;
     uint16_t entrysTarget = 0;
+
+    std::vector<BaseModule *> allModules;
+    std::vector<Input *> allInputs;
+    std::vector<Output *> allOutputs;
 
     const uint16_t maxEntrys = PATCHPANELENTRYS;
 

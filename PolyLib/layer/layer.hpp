@@ -34,8 +34,8 @@ class Layer {
         modules.push_back(&noise);
         modules.push_back(&steiner);
         modules.push_back(&ladder);
-        modules.push_back(&adsrA);
-        modules.push_back(&adsrB);
+        modules.push_back(&envA);
+        modules.push_back(&envF);
         modules.push_back(&lfoA);
         modules.push_back(&lfoB);
         modules.push_back(&distort);
@@ -64,9 +64,9 @@ class Layer {
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount = 0);
+    void updatePatchInOutWithoutMapping(PatchElement &patch, float amount = 0);
     void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void removePatchInOut(PatchElementInOut &patch);
+    void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
     // void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
@@ -82,7 +82,7 @@ class Layer {
     void loadLayerFromPreset(uint32_t presetID);
 #endif
 
-    inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
+    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
     // inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
 
 #ifdef POLYRENDER
@@ -110,25 +110,25 @@ class Layer {
 
     uint8_t id;
 
-    Midi midi = Midi("MIDI");
-    OSC_A oscA = OSC_A("OSC_A");
-    OSC_B oscB = OSC_B("OSC_B");
-    Sub sub = Sub("SUB");
-    Noise noise = Noise("NOISE");
-    Steiner steiner = Steiner("STEINER");
-    Ladder ladder = Ladder("LADDER");
-    Distortion distort = Distortion("DISTORTION");
-    LFO lfoA = LFO("LFO A");
-    LFO lfoB = LFO("LFO B");
-    ADSR adsrA = ADSR("ADSR A");
-    ADSR adsrB = ADSR("ADSR B");
-    GlobalModule globalModule = GlobalModule("GLOBAL");
-    Imperfection imperfect = Imperfection("IMPERF"); //vll auch feel, defect
+    Midi midi = Midi("MIDI INTERFACE", "MIDI");
+    OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
+    OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
+    Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
+    Noise noise = Noise("NOISE GENERATOR", "NOISE");
+    Steiner steiner = Steiner("STEINER FILTER", "STEINER");
+    Ladder ladder = Ladder("LADDER FILTER", "LADDER");
+    Distortion distort = Distortion("DISTORTION", "DIST");
+    LFO lfoA = LFO("LFO A", "LFO A");
+    LFO lfoB = LFO("LFO B", "LFO B");
+    ADSR envA = ADSR("ENVELOPE VCA", "ENV A");
+    ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
+    GlobalModule globalModule = GlobalModule("GLOBAL", "GLOBAL");
+    Imperfection imperfect = Imperfection("FEEL", "FEEL"); // vll auch feel, defect
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
-    std::list<PatchElementInOut> patchesInOut;
+    std::list<PatchElement> patchesInOut;
     // std::list<PatchElementOutOut> patchesOutOut;
 
     Setting LayerState = Setting("LayerState", 0, 1, 10, false, binary);

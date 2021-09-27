@@ -29,15 +29,18 @@ void GUIPanelPreset::init(uint16_t width, uint16_t height, uint16_t x, uint16_t 
 
 void GUIPanelPreset::registerPanelSettings() {
 
-    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollPreset), 1), "SCROLL"},
+    actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, &(this->scrollPreset), 1), "SCROLL"},
                                          {std::bind(&Scroller::scroll, &(this->scrollPreset), -1), "SCROLL"},
                                          {nullptr, "Scroll"});
+
+    actionHandler.registerActionEncoder1({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
     actionHandler.registerActionEncoder2(
         {std::bind(&Scroller::scroll, &(this->scrollFirstName), 1), firstName[scrollFirstName.position]},
         {std::bind(&Scroller::scroll, &(this->scrollFirstName), -1), ""}, {nullptr, "SCROLL"});
     actionHandler.registerActionEncoder3(
         {std::bind(&Scroller::scroll, &(this->scrollSecondName), 1), secondName[scrollSecondName.position]},
         {std::bind(&Scroller::scroll, &(this->scrollSecondName), -1), ""}, {nullptr, "SCROLL"});
+    actionHandler.registerActionEncoder4({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
 
     // register Panel Seetings Left
     if (globalSettings.multiLayer.value == 1) {

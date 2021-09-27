@@ -17,6 +17,7 @@ typedef struct {
 
 class actionMapping {
   public:
+    // Register Touch
     void registerActionHeader(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
                               actionHandle handle3 = {nullptr, ""}, actionHandle handle4 = {nullptr, ""});
 
@@ -26,8 +27,15 @@ class actionMapping {
     void registerActionRight(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
                              actionHandle handle3 = {nullptr, ""});
 
+    void registerActionRight2(actionHandle handle2);
+
+    void registerActionRight3(actionHandle handle3);
+
+    // Register Rotary Encoder
+
     void registerActionEncoder1(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
                                 actionHandle handle3 = {nullptr, ""});
+
     void registerActionEncoder2(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
                                 actionHandle handle3 = {nullptr, ""});
 
@@ -35,6 +43,12 @@ class actionMapping {
                                 actionHandle handle3 = {nullptr, ""});
 
     void registerActionEncoder4(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
+                                actionHandle handle3 = {nullptr, ""});
+
+    void registerActionEncoder5(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
+                                actionHandle handle3 = {nullptr, ""});
+
+    void registerActionEncoder6(actionHandle handle1 = {nullptr, ""}, actionHandle handle2 = {nullptr, ""},
                                 actionHandle handle3 = {nullptr, ""});
 
     void callActionHeader1();
@@ -58,27 +72,35 @@ class actionMapping {
     void callActionRight3();
 
     void callActionEncoder_1_CW();
-
     void callActionEncoder_1_CCW();
-
     void callActionEncoder_1_Push();
+
     void callActionEncoder_2_CW();
-
     void callActionEncoder_2_CCW();
-
     void callActionEncoder_2_Push();
+
     void callActionEncoder_3_CW();
     void callActionEncoder_3_CCW();
     void callActionEncoder_3_Push();
+
     void callActionEncoder_4_CW();
     void callActionEncoder_4_CCW();
-
     void callActionEncoder_4_Push();
+
+    void callActionEncoder_5_CW();
+    void callActionEncoder_5_CCW();
+    void callActionEncoder_5_Push();
+
+    void callActionEncoder_6_CW();
+    void callActionEncoder_6_CCW();
+    void callActionEncoder_6_Push();
 
     actionHandle buttonHeader_1;
     actionHandle buttonHeader_2;
     actionHandle buttonHeader_3;
     actionHandle buttonHeader_4;
+    actionHandle buttonHeader_5;
+    actionHandle buttonHeader_6;
 
     ButtonActionHandle buttonLeft_1;
     ButtonActionHandle buttonLeft_2;
@@ -102,6 +124,14 @@ class actionMapping {
     actionHandle encoder4_CW;
     actionHandle encoder4_CCW;
     actionHandle encoder4_Push;
+
+    actionHandle encoder5_CW;
+    actionHandle encoder5_CCW;
+    actionHandle encoder5_Push;
+
+    actionHandle encoder6_CW;
+    actionHandle encoder6_CCW;
+    actionHandle encoder6_Push;
 };
 
 extern actionMapping actionHandler;

@@ -19,7 +19,6 @@
 #include <functional>
 #include <string>
 
-
 /// GUI///
 class GUI {
   public:
@@ -29,33 +28,25 @@ class GUI {
 
     void checkFocusChange();
 
-    // PanelSelect
-    void setPanelActive(uint8_t panelID);
-
     GUIPanelBase *activePanel = nullptr;
-
-    uint8_t activePanelID = 0;
-    uint8_t oldActivePanelID = 0;
 
     std::vector<Layer *> layers;
 
   private:
-    GUIPanelLive guiPanelLive;
-    GUIPanelPatch guiPanel_1;
-    GUIPanelPreset guiPanel_2;
-    GUIPanelConfig guiPanel_3;
-
-    GUIPanelVoice guiPanelVoice;
-
     std::vector<GUIPanelBase *> panels;
 
+    GUIPanelLive guiPanelLive;
+    GUIPanelPatch guiPanelPatch;
+    GUIPanelPreset guiPanelPreset;
+    GUIPanelConfig guiPanelConfig;
+
+    GUIPanelVoice guiPanelVoice;
     GUIPanelFocus guiPanelFocus;
 
+    GUIPanelPath guiPath;
     GUIPanelState guiState;
 
-    GUIPanelPath guiPath;
     GUISide guiSide;
-
     GUIFooter guiFooter;
     GUIHeader guiHeader;
 

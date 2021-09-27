@@ -58,6 +58,8 @@ void initHID() {
     ioExpander.init();
     // encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
     //                                   std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
+    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_5_CW, &actionHandler),
+                                       std::bind(&actionMapping::callActionEncoder_5_CCW, &actionHandler));
 
     encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
                                        std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
@@ -71,9 +73,13 @@ void initHID() {
     encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
                                        std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
 
+    // encoders[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_6_CW, &actionHandler),
+    //                                    std::bind(&actionMapping::callActionEncoder_6_CCW, &actionHandler));
+
     //  switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler),
     //  nullptr);
 
+    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_5_Push, &actionHandler), nullptr);
     switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
 
     switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_Push, &actionHandler), nullptr);
@@ -303,11 +309,11 @@ void renderLED() {
 
 void patchLEDMappingInit() {
     for (uint8_t i = 0; i < 2; i++) {
-        allLayers[i]->adsrA.out.LEDPinID = 10;
-        allLayers[i]->adsrA.out.LEDPortID = 0;
+        allLayers[i]->envA.out.LEDPinID = 10;
+        allLayers[i]->envA.out.LEDPortID = 0;
 
-        allLayers[i]->adsrB.out.LEDPinID = 9;
-        allLayers[i]->adsrB.out.LEDPortID = 0;
+        allLayers[i]->envF.out.LEDPinID = 9;
+        allLayers[i]->envF.out.LEDPortID = 0;
 
         allLayers[i]->lfoA.out.LEDPinID = 8;
         allLayers[i]->lfoA.out.LEDPortID = 0;
@@ -336,6 +342,8 @@ void patchLEDMappingInit() {
 }
 
 void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness) {
+    if (port == 0xFF)
+        return;
     ledDriver[layer][port].pwmValue[pin] = brigthness;
 }
 
