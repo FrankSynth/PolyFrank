@@ -216,4 +216,48 @@ void LiveData::clockHandling() {
     }
 }
 
+void LiveData::saveLiveDataSettings() {
+    uint32_t index = 0;
+    int32_t *buffer = (int32_t *)blockBuffer;
+
+    for (Setting *s : __liveSettingsLivemode.settings) {
+        buffer[index] = s->value;
+        index++;
+    }
+    for (Setting *s : arps[0].__liveSettingsArp.settings) {
+        buffer[index] = s->value;
+        index++;
+    }
+    for (Setting *s : arps[1].__liveSettingsArp.settings) {
+        buffer[index] = s->value;
+        index++;
+    }
+
+    writeLiveDataBlock();
+
+    if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)blockBuffer) > (LIVEDATA_BLOCKSIZE)) {
+        PolyError_Handler("ERROR | FATAL | LiveDataSettings -> saveLiveDataSettings -> BufferOverflow!");
+    }
+}
+
+void LiveData::loadLiveDataSettings() {
+    uint32_t index = 0;
+    int32_t *buffer = (int32_t *)blockBuffer;
+
+    readLiveData();
+
+    for (Setting *s : __liveSettingsLivemode.settings) {
+        s->setValue(buffer[index]);
+        index++;
+    }
+    for (Setting *s : arps[0].__liveSettingsArp.settings) {
+        s->setValue(buffer[index]);
+        index++;
+    }
+    for (Setting *s : arps[1].__liveSettingsArp.settings) {
+        s->setValue(buffer[index]);
+        index++;
+    }
+}
+
 #endif

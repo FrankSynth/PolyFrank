@@ -64,8 +64,8 @@ void Layer::resetLayer() {
 
 #ifdef POLYRENDER
     allGatesOff();
-    adsrA.resetAllADSRs();
-    adsrB.resetAllADSRs();
+    envA.resetAllADSRs();
+    envF.resetAllADSRs();
     lfoA.resetAllPhases();
     lfoB.resetAllPhases();
 #endif
@@ -112,7 +112,7 @@ void Layer::removePatchInOut(PatchElement &patch) {
     patch.sourceOut->removePatchInOut(patch); // remove sourceOut entry
     patch.targetIn->removePatchInOut(patch);  // remove targetIn entry
 
-    patch.remove = true;                                                  // set remove flag
+    patch.remove = true;                                             // set remove flag
     patchesInOut.remove_if([](PatchElement n) { return n.remove; }); // find element and remove from list
 }
 
@@ -201,7 +201,7 @@ void Layer::clearPatches() {
 }
 #ifdef POLYCONTROL
 
-void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName) {
+void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName, std::string thirdName) {
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 
@@ -265,10 +265,10 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
     }
     // println("Index Size : ", index);
     // println("ID  : ", presetID, "  Name: ", firstName + " " + secondName);
-    writePresetBlock(presetID, firstName + " " + secondName);
+    writePresetBlock(presetID, firstName + " " + secondName + " " + thirdName);
 }
 void Layer::loadLayerFromPreset(uint32_t presetID) {
-    if (presets[presetID].usageState != PRESETBLOCKUSED) {
+    if (presets[presetID].usageState != PRESET_USED) {
         return;
     }
 

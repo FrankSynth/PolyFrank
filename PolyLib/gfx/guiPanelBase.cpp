@@ -440,9 +440,8 @@ void drawPresetElement(presetStruct *element, uint16_t x, uint16_t y, uint16_t w
 
     std::string name;
 
-    if (element->usageState != PRESETBLOCKUSED) {
-
-        name = "FREE";
+    if (element->usageState == PRESET_FREE) {
+        return;
     }
     else {
         name = element->name;
@@ -474,10 +473,10 @@ void Data_PanelElement::Draw() {
     }
 
     if (select) {
-        actionHandler.registerActionEncoder1(entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder2(entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder3(entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-        actionHandler.registerActionEncoder4(entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
+        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
     }
     // wir nehmen an das wenn das erste element ein Setting ist, alle elemente Settings sind
     if (entrys[0].type == SETTING) {
@@ -547,8 +546,8 @@ void Patch_PanelElement::Draw() {
             else {
 
                 if (select) {
-                    actionHandler.registerActionEncoder4(
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                    actionHandler.registerActionEncoder(
+                        3, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
                         {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
                         {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
                 }
@@ -617,10 +616,10 @@ void Live_PanelElement::Draw() {
     }
 
     if (select) {
-        actionHandler.registerActionEncoder1(entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder2(entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder3(entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-        actionHandler.registerActionEncoder4(entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
+        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
     }
     entryWidth = width / (numberEntrys);
 

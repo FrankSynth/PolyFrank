@@ -25,6 +25,8 @@ uint32_t cWhiteBright = 0x80FFFFFF;
 uint32_t cWhiteLight = 0x10FFFFFF;
 
 uint32_t cHighlight = 0xFFffda47;
+uint32_t cWarning = 0xFFFF0000;
+
 uint32_t cPatch = 0xFFFFFFFF;
 
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
@@ -117,6 +119,7 @@ void Scroller::scroll(int16_t change) {
 
     if (position >= entrys) {
         position = 0;
+        offset = 0;
     }
 
     if (entrys <= maxEntrysVisible) {

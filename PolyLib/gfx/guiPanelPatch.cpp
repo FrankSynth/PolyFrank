@@ -51,7 +51,7 @@ void GUIPanelPatch::registerElements() {
     panelElementsTarget[scrollTarget.relPosition].select = 1;
 
     // register PatchMarker
-    if (flipView) {
+    if (!flipView) {
 
         // für jeden Eintrag
         for (int i = 0; i < maxEntrys; i++) {
@@ -269,7 +269,7 @@ void GUIPanelPatch::Draw() {
     registerElements();
 
     for (int i = 0; i < maxEntrys; i++) {
-        if (flipView) {
+        if (!flipView) {
             panelElementsModule[i].panelAbsX = absXPositions[1];
             panelElementsTarget[i].panelAbsX = absXPositions[2];
             panelElementsSource[i].panelAbsX = absXPositions[0];
@@ -291,47 +291,49 @@ void GUIPanelPatch::Draw() {
 }
 
 void GUIPanelPatch::registerPanelSettings() {
-    if (flipView) {
+    if (!flipView) {
 
-        actionHandler.registerActionEncoder2({std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
-        actionHandler.registerActionEncoder3({std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(1, {std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
-        actionHandler.registerActionEncoder2({std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
-        actionHandler.registerActionEncoder3({std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder(1, {std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     // register Panel Seetings Left
 
     if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
-                                         {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"},
-                                         {std::bind(nextLayer), "LAYER"});
+        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
     }
     else {
-        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
-                                         {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"}, {nullptr, ""});
+        actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"},
+                                             &(this->flipView));
+        actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"},
+                                             &(this->filteredView));
+        actionHandler.registerActionLeft(2);
     }
 
-    // register Panel Seetings Rigth
-    actionHandler.registerActionRight({std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"}, // SAVE
-                                      {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, {nullptr, ""});
+    // register Panel Seetings Right
+    actionHandler.registerActionRight(0, {std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"});
+    actionHandler.registerActionRight(1, {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, 0);
+    actionHandler.registerActionRight(2, {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, 0);
 
     // clear Encoder 4
-    actionHandler.registerActionEncoder4({nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
+    actionHandler.registerActionEncoder(3, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
 }
 
 void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,

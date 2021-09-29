@@ -189,23 +189,23 @@ class PanelTouch {
             switch (pin) {
                 case 0: break;
                 case 1: break;
-                case 2: evaluateActionButton(&actionHandler.buttonLeft_3, event); break;
-                case 3: evaluateActionButton(&actionHandler.buttonLeft_2, event); break;
-                case 4: evaluateActionButton(&actionHandler.buttonLeft_1, event); break;
-                case 5: evaluateActionHandle(&actionHandler.buttonHeader_1, event); break;
-                case 6: evaluateActionHandle(&actionHandler.buttonHeader_2, event); break;
-                case 7: evaluateActionHandle(&actionHandler.buttonHeader_3, event); break;
-                case 8: evaluateActionHandle(&actionHandler.buttonHeader_4, event); break;
-                case 9: evaluateActionButton(&actionHandler.buttonRight_1, event); break;
-                case 10: evaluateActionButton(&actionHandler.buttonRight_2, event); break;
-                case 11: evaluateActionButton(&actionHandler.buttonRight_3, event); break;
+                case 2: evaluateActionButton(&actionHandler.buttonLeft[2], event); break;
+                case 3: evaluateActionButton(&actionHandler.buttonLeft[1], event); break;
+                case 4: evaluateActionButton(&actionHandler.buttonLeft[0], event); break;
+                case 5: evaluateActionHandle(&actionHandler.buttonHeader[0], event); break;
+                case 6: evaluateActionHandle(&actionHandler.buttonHeader[1], event); break;
+                case 7: evaluateActionHandle(&actionHandler.buttonHeader[2], event); break;
+                case 8: evaluateActionHandle(&actionHandler.buttonHeader[3], event); break;
+                case 9: evaluateActionButton(&actionHandler.buttonRight[0], event); break;
+                case 10: evaluateActionButton(&actionHandler.buttonRight[1], event); break;
+                case 11: evaluateActionButton(&actionHandler.buttonRight[2], event); break;
             }
 
             return;
         }
         if (port == TOUCH_IO_PORT_B) {
             switch (pin) {
-                case 0: break;
+                case 0: actionHandler.lock(event);
                 case 1: break;
                 case 2: break;
                 case 3: break;
@@ -302,7 +302,7 @@ class PanelTouch {
 
         if (event) { // push Event
             pButton->state = PRESSED;
-            if (pButton->handle.functionPointer != nullptr)
+            if ((pButton->handle.functionPointer != nullptr) && (actionHandler.unlocked || pButton->unlock))
                 pButton->handle.functionPointer();
         }
         else {

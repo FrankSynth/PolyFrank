@@ -9,7 +9,6 @@ class GUIPanelFocus : public GUIPanelBase {
 
     void collectEntrys();
 
-    // void updateEntrys();
     void registerModuleSettings();
     void registerModulePatchIn();
     void registerModulePatchOut();

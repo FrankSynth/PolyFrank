@@ -78,7 +78,7 @@ class Layer {
     // void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
 
 #ifdef POLYCONTROL
-    void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName);
+    void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName, std::string thirdName);
     void loadLayerFromPreset(uint32_t presetID);
 #endif
 
@@ -89,8 +89,8 @@ class Layer {
     inline void gateOn(uint16_t voice) {
         lfoA.gateOn(voice);
         lfoB.gateOn(voice);
-        adsrA.gateOn(voice);
-        adsrB.gateOn(voice);
+        envA.gateOn(voice);
+        envF.gateOn(voice);
         // oscA.gateOn(voice);
         // oscB.gateOn(voice);
         midi.gateOn(voice);

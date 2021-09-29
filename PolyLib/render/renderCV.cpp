@@ -389,8 +389,8 @@ void renderCVs() {
     renderDistort(layerA.distort);
     renderLFO(layerA.lfoA);
     renderLFO(layerA.lfoB);
-    renderADSR(layerA.adsrA);
-    renderADSR(layerA.adsrB);
+    renderADSR(layerA.envA);
+    renderADSR(layerA.envF);
     renderGlobalModule(layerA.globalModule);
     renderImperfection(layerA.imperfect);
 

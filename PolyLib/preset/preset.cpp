@@ -2,8 +2,6 @@
 
 #include "preset.hpp"
 
-const uint8_t PRESETBLOCKUSED = 0x0F;
-
 std::vector<presetStruct> presets;
 
 uint8_t blockBuffer[PRESET_BLOCKSIZE];
@@ -17,12 +15,15 @@ void updatePresetList() {
 
     for (uint32_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
         presetStruct newEntry;
-        if (((presetStruct *)blockBuffer)[i].usageState == PRESETBLOCKUSED) {
+
+        if (((presetStruct *)blockBuffer)[i].usageState == PRESET_USED) {
             newEntry = ((presetStruct *)blockBuffer)[i];
+            newEntry.ID = i;
             presets.push_back(newEntry);
         }
         else {
-            newEntry.usageState = 0;
+            newEntry.usageState = PRESET_FREE;
+            newEntry.ID = i;
             presets.push_back(newEntry);
         }
     }
@@ -31,7 +32,7 @@ void updatePresetList() {
 void removePreset(uint16_t blockID) {
     // write empty entry to table
     presetStruct newEntry;
-    newEntry.usageState = 0;
+    newEntry.usageState = PRESET_FREE;
     newEntry.name[0] = '\0';
 
     uint32_t address = TABLE_STARTADDRESS + blockID * sizeof(presetStruct);
@@ -39,6 +40,14 @@ void removePreset(uint16_t blockID) {
     EEPROM_SPI_WriteBuffer((uint8_t *)&newEntry, address, sizeof(presetStruct));
 
     updatePresetList();
+}
+
+uint32_t freePresetID() {
+    for (presetStruct p : presets) {
+        if (p.usageState == PRESET_FREE)
+            return p.ID;
+    }
+    return 0;
 }
 
 std::vector<presetStruct> *getPresetList() {
@@ -56,7 +65,7 @@ void writePresetBlock(uint16_t blockID, std::string name) {
 
     // write new entry to table
     presetStruct newEntry;
-    newEntry.usageState = PRESETBLOCKUSED;
+    newEntry.usageState = PRESET_USED;
     newEntry.ID = blockID;
 
     for (uint32_t i = 0; i < PRESET_NAMELENGTH; i++) {
@@ -77,9 +86,8 @@ void writePresetBlock(uint16_t blockID, std::string name) {
 }
 
 void writeConfigBlock() {
-    uint32_t address = CONFIG_STARTADDRESS;
 
-    EEPROM_SPI_WriteBuffer(blockBuffer, address, CONFIG_BLOCKSIZE);
+    EEPROM_SPI_WriteBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
 }
 
 uint8_t *readPreset(uint16_t blockID) {
@@ -91,9 +99,20 @@ uint8_t *readPreset(uint16_t blockID) {
 }
 
 uint8_t *readConfig() {
-    uint32_t address = CONFIG_STARTADDRESS;
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, address, CONFIG_BLOCKSIZE);
+    EEPROM_SPI_ReadBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
+
+    return blockBuffer;
+}
+
+void writeLiveDataBlock() {
+
+    EEPROM_SPI_WriteBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
+}
+
+uint8_t *readLiveData() {
+
+    EEPROM_SPI_ReadBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
 
     return blockBuffer;
 }

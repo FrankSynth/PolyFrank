@@ -36,18 +36,54 @@ void Side_PanelBox::Draw() {
     std::string mainName = actionHandle->handle.name;
 
     if (mainName.empty()) {
-        mainName = "-";
+        return;
     }
 
-    if (actionHandle->state == PRESSED) {
-        drawRectangleFill(cHighlight, x, y, width, heigth);
+    if (actionHandler.unlocked || actionHandle->unlock) {
+        if (actionHandle->data != nullptr) {
+            if (*(actionHandle->data)) {
+                drawRectangleFill(cHighlight, x, y, width, heigth);
+                drawStringVertical(mainName, cFont_Select, x + width / 2, y + heigth / 2, fontSmall);
+            }
+            else {
+                drawRectangleFill(cGreyLight, x, y, width, heigth);
+                drawStringVertical(mainName, cFont_Deselect, x + width / 2, y + heigth / 2, fontSmall);
+            }
+        }
+        else if (actionHandle->state == PRESSED) {
+            drawRectangleFill(cHighlight, x, y, width, heigth);
 
-        drawStringVertical(mainName, cFont_Select, x + width / 2, y + heigth / 2, fontSmall);
+            drawStringVertical(mainName, cFont_Select, x + width / 2, y + heigth / 2, fontSmall);
+        }
+
+        else {
+            drawRectangleFill(cGreyLight, x, y, width, heigth);
+
+            drawStringVertical(mainName, cFont_Deselect, x + width / 2, y + heigth / 2, fontSmall);
+        }
     }
     else {
-        drawRectangleFill(cGreyLight, x, y, width, heigth);
+        if (actionHandle->data != nullptr) {
+            if (*(actionHandle->data)) {
+                drawRectangleFill(cWarning, x, y, width, heigth);
+                drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+            }
+            else {
+                drawRectangleFill(cGreyLight, x, y, width, heigth);
+                drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+            }
+        }
+        else if (actionHandle->state == PRESSED) {
+            drawRectangleFill(cWarning, x, y, width, heigth);
 
-        drawStringVertical(mainName, cFont_Deselect, x + width / 2, y + heigth / 2, fontSmall);
+            drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+        }
+
+        else {
+            drawRectangleFill(cGreyLight, x, y, width, heigth);
+
+            drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+        }
     }
 }
 
@@ -83,13 +119,13 @@ void GUIFooter::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
     panelAbsY = y;
 
     // create Header Boxes and linkt to action Handler;
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder1_CW, &actionHandler.encoder1_Push,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[0].handle_CW, &actionHandler.encoder[0].handle_CW,
                                     panelWidth * 0 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder2_CW, &actionHandler.encoder2_Push,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[1].handle_CW, &actionHandler.encoder[1].handle_CW,
                                     panelWidth * 1 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder3_CW, &actionHandler.encoder3_Push,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[2].handle_CW, &actionHandler.encoder[2].handle_CW,
                                     panelWidth * 2 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder4_CW, &actionHandler.encoder4_Push,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[3].handle_CW, &actionHandler.encoder[3].handle_CW,
                                     panelWidth * 3 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
 }
 void GUIFooter::Draw() {
@@ -112,19 +148,19 @@ void GUISide::init(uint16_t width, uint16_t height, uint16_t y, uint16_t x) {
     panelAbsX = x;
 
     // boxes on the left
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft_1, panelAbsX, panelAbsY + panelHeight * 0 + 2,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft[0], panelAbsX, panelAbsY + panelHeight * 0 + 2,
                                   panelWidth - 6, panelHeight - 4));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft_2, panelAbsX, panelAbsY + panelHeight * 1 + 2,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft[1], panelAbsX, panelAbsY + panelHeight * 1 + 2,
                                   panelWidth - 6, panelHeight - 4));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft_3, panelAbsX, panelAbsY + panelHeight * 2 + 2,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonLeft[2], panelAbsX, panelAbsY + panelHeight * 2 + 2,
                                   panelWidth - 6, panelHeight - 4));
 
     // boxes on the rigth
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_1, LCDWIDTH - panelWidth + 6,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight[0], LCDWIDTH - panelWidth + 6,
                                   panelAbsY + panelHeight * 0 + 2, panelWidth - 6, panelHeight - 4));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_2, LCDWIDTH - panelWidth + 6,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight[1], LCDWIDTH - panelWidth + 6,
                                   panelAbsY + panelHeight * 1 + 2, panelWidth - 6, panelHeight - 4));
-    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight_3, LCDWIDTH - panelWidth + 6,
+    boxes.push_back(Side_PanelBox(&actionHandler.buttonRight[2], LCDWIDTH - panelWidth + 6,
                                   panelAbsY + panelHeight * 2 + 2, panelWidth - 6, panelHeight - 4));
 }
 void GUISide::Draw() {

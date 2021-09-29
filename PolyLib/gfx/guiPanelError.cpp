@@ -13,10 +13,15 @@ void GUIPanelError::Draw() {
     // register Action
 
     // register Panel Seetings Rigth
-    actionHandler.registerActionRight({std::bind(&Error::resetError, &globalSettings.error), "IGNORE"}, // Reset Error
-                                      {nullptr, ""}, {nullptr, ""});
+    actionHandler.registerActionRight(0,
+                                      {std::bind(&Error::resetError, &globalSettings.error), "IGNORE"}); // Reset Error
+    actionHandler.registerActionRight(1);
+    actionHandler.registerActionRight(2);
+
     // register Panel Seetings LEFT
-    actionHandler.registerActionLeft({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
+    actionHandler.registerActionLeft(0);
+    actionHandler.registerActionLeft(1);
+    actionHandler.registerActionLeft(2);
     drawString(globalSettings.error.errorMessage, cFont_Deselect, panelWidth / 2, panelHeight / 2, fontMedium, CENTER);
 }
 

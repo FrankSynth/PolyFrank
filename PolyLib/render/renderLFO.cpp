@@ -3,6 +3,8 @@
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
 
+LogCurve linlogMapping(32, 0.01);
+
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
 }
@@ -48,7 +50,8 @@ inline float calcRandom() {
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
-    return testFloat(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
+    return linlogMapping.mapValue((lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped)) * 100; // max 200 Hz
+    // return testFloat(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline float accumulateShape(LFO &lfo, uint16_t voice) {
     return testFloat(lfo.iShape.currentSample[voice] + lfo.aShape.valueMapped, lfo.aShape.min, lfo.aShape.max);

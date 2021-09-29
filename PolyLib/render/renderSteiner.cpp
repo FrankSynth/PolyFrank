@@ -9,7 +9,7 @@ inline float accumulateLevel(Steiner &steiner, uint16_t voice) {
 }
 inline float accumulateCutoff(Steiner &steiner, uint16_t voice) {
     return testFloat(steiner.iCutoff.currentSample[voice] + steiner.aCutoff.valueMapped +
-                         layerA.adsrB.out.currentSample[voice] * steiner.aADSR.valueMapped,
+                         layerA.envF.out.currentSample[voice] * steiner.aADSR.valueMapped,
                      steiner.aCutoff.min, steiner.aCutoff.max);
 }
 inline float accumulateResonance(Steiner &steiner, uint16_t voice) {

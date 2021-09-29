@@ -5,8 +5,8 @@
 
 extern Layer layerA;
 
-LogCurve adsrConvertLog(32, 0.1);
-LogCurve adsrConvertAntiLog(32, 0.9);
+LogCurve adsrConvertLog(128, 0.1);
+LogCurve adsrConvertAntiLog(128, 0.9);
 
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
     return testFloat(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
@@ -99,6 +99,18 @@ void renderADSR(ADSR &adsr) {
                 currentLevel -= SECONDSPERCVRENDER / decay;
 
                 sustain = accumulateSustain(adsr, voice);
+
+                // fix Sustain level
+                if (shape < 1) {
+                    // shape between 0 and 1, 1 is linear
+                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
+                }
+                else {
+                    // shape between 1 and 2, 1 is linear
+                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
+                }
+                //
+
                 if (currentLevel <= sustain) {
                     currentLevel = sustain;
                     adsr.setStatusSustain(voice);
@@ -110,7 +122,20 @@ void renderADSR(ADSR &adsr) {
                 break;
 
             case adsr.SUSTAIN:
+
                 sustain = accumulateSustain(adsr, voice);
+
+                // fix Sustain level
+                if (shape < 1) {
+                    // shape between 0 and 1, 1 is linear
+                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
+                }
+                else {
+                    // shape between 1 and 2, 1 is linear
+                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
+                }
+                //
+
                 if (currentLevel != sustain) {
                     decay = accumulateDecay(adsr, voice);
 

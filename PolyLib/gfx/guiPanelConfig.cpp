@@ -76,18 +76,19 @@ void GUIPanelConfig::Draw() {
 }
 
 void GUIPanelConfig::registerPanelSettings() {
-    actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
-                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
+    actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+                                        {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
     // register Panel Seetings Left
-    actionHandler.registerActionLeft({nullptr, "RESET"}, // RESET
-                                     {nullptr, ""}, {nullptr, ""});
+    actionHandler.registerActionLeft(0, {std::bind(&GlobalSettings::saveGlobalSettings, &globalSettings), "SAVE"});
+    actionHandler.registerActionLeft(1);
+    actionHandler.registerActionLeft(2);
 
     // register Panel Seetings Rigth
-    actionHandler.registerActionRight({std::bind(&GlobalSettings::saveGlobalSettings, &globalSettings), "SAVE"}, // SAVE
-                                      {nullptr, ""}, {nullptr, ""});
+    actionHandler.registerActionRight(0, {std::bind(&GlobalSettings::loadGlobalSettings, &globalSettings), "LOAD"});
+    actionHandler.registerActionRight(1);
+    actionHandler.registerActionRight(2);
 }
-
 void GUIPanelConfig::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,
                           uint8_t pathVisible) {
     panelWidth = width;

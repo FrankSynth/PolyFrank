@@ -63,16 +63,16 @@ class GlobalSettings {
 
         readConfig();
 
-        for (Setting *i : __globSettingsSystem.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsSystem.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
-        for (Setting *i : __globSettingsMIDI.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsMIDI.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
-        for (Setting *i : __globSettingsDisplay.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsDisplay.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
     }
@@ -93,9 +93,6 @@ class GlobalSettings {
         //     setting->id = modID.getNewId();
         // }
     }
-
-    // return all settings
-    // std::vector<Setting *> getSettings() { return __globSettings; }
 
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
     categoryStruct __globSettingsSystem;

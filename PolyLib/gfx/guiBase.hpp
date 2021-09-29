@@ -25,6 +25,7 @@ extern uint32_t cHighlight;
 extern uint32_t cWhiteBright;
 
 extern uint32_t cPatch;
+extern uint32_t cWarning;
 
 // responsive sizes
 #define HEADERHEIGHT 36
@@ -33,7 +34,7 @@ extern uint32_t cPatch;
 #define SPACER 8
 #define SCROLLBARWIDTH 4
 
-#define BOARDERWIDTH 36
+#define BOARDERWIDTH 30
 #define VOICEHEIGHT 100
 
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
@@ -117,7 +118,7 @@ class GUIPanelBase {
 
 class Scroller {
   public:
-    Scroller(uint16_t maxEntrysVisible) { this->maxEntrysVisible = maxEntrysVisible; }
+    Scroller(uint16_t maxEntrysVisible = 0) { this->maxEntrysVisible = maxEntrysVisible; }
 
     void scroll(int16_t change);
 
@@ -133,7 +134,7 @@ class Scroller {
     int16_t offset = 0;
     uint16_t entrys = 0;
     uint16_t maxEntrysVisible = 0;
-    uint16_t relPosition = 0;
+    int16_t relPosition = 0;
 };
 
 // PanelSelect

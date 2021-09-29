@@ -58,20 +58,20 @@ void initHID() {
     ioExpander.init();
     // encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
     //                                   std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
-    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_5_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_5_CCW, &actionHandler));
+    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 4),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 4));
 
-    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_4_CCW, &actionHandler));
+    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 3),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 3));
 
-    encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_3_CCW, &actionHandler));
+    encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 2),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 2));
 
-    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_2_CCW, &actionHandler));
+    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 1),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 1));
 
-    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_CW, &actionHandler),
-                                       std::bind(&actionMapping::callActionEncoder_1_CCW, &actionHandler));
+    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 0),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 0));
 
     // encoders[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_6_CW, &actionHandler),
     //                                    std::bind(&actionMapping::callActionEncoder_6_CCW, &actionHandler));
@@ -79,13 +79,13 @@ void initHID() {
     //  switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler),
     //  nullptr);
 
-    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_5_Push, &actionHandler), nullptr);
-    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_4_Push, &actionHandler), nullptr);
+    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 4), nullptr);
+    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 3), nullptr);
 
-    switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_3_Push, &actionHandler), nullptr);
+    switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 2), nullptr);
 
-    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_2_Push, &actionHandler), nullptr);
-    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_1_Push, &actionHandler), nullptr);
+    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 1), nullptr);
+    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 0), nullptr);
 
     // init Control touch IC
 
@@ -360,9 +360,6 @@ void switchLEDMapping() {
 
             quadLEDSetting(ledDriver[i][0].pwmValue[0], ledDriver[i][0].pwmValue[1], ledDriver[i][0].pwmValue[2],
                            ledDriver[i][0].pwmValue[3], allLayers[i]->ladder.dSlope.valueMapped);
-
-            // singleLEDSetting(ledDriver[i][0].pwmValue[13], allLayers[i]->adsrA.dLatch.valueMapped);
-            // singleLEDSetting(ledDriver[i][0].pwmValue[14], allLayers[i]->adsrB.dLatch.valueMapped);
         }
     }
 }

@@ -9,7 +9,7 @@ inline float accumulateLevel(Ladder &ladder, uint16_t voice) {
 }
 inline float accumulateCutoff(Ladder &ladder, uint16_t voice) {
     return testFloat(ladder.iCutoff.currentSample[voice] + ladder.aCutoff.valueMapped +
-                         layerA.adsrB.out.currentSample[voice] * ladder.aADSR.valueMapped,
+                         layerA.envF.out.currentSample[voice] * ladder.aADSR.valueMapped,
                      ladder.aCutoff.min, ladder.aCutoff.max);
 }
 inline float accumulateResonance(Ladder &ladder, uint16_t voice) {

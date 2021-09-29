@@ -157,7 +157,7 @@ class OSC_A : public BaseModule {
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
@@ -469,7 +469,7 @@ class LFO : public BaseModule {
     Input iShape = Input("SHAPE");
     Input iAmount = Input("AMOUNT");
 
-    Analog aFreq = Analog("FREQ", 0.1, 100, 1, true, logMap, &iFreq);
+    Analog aFreq = Analog("FREQ", 0, 1, 1, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
@@ -554,7 +554,7 @@ class ADSR : public BaseModule {
     Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
     Analog aAttack = Analog("ATTACK", 0.001, 10, 0.5, true, logMap, &iAttack);
     Analog aDecay = Analog("DECAY", 0.001, 10, 0.5, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, logMap, &iSustain);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, linMap, &iSustain);
     Analog aRelease = Analog("RELEASE", 0.001, 10, 0.5, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
@@ -654,7 +654,7 @@ class GlobalModule : public BaseModule {
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
-    Analog aMaster = Analog("MASTER", 0, 1, 0, true, antilogMap);
+    Analog aMaster = Analog("MASTER", 0, 1, 0, true, linMap);
 
     RenderBuffer left;
     RenderBuffer right;

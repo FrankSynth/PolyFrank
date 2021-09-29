@@ -59,9 +59,10 @@ void GUI::Init() { // add settings pointer
     guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
     // register Header action
-    actionHandler.registerActionHeader(
-        {std::bind(setPanelActive, 0), "LIVEMODE"}, {std::bind(setPanelActive, 1), "PATCH"},
-        {std::bind(setPanelActive, 2), "PRESET"}, {std::bind(setPanelActive, 3), "CONFIG"});
+    actionHandler.registerActionHeader(0, {std::bind(setPanelActive, 0), "LIVEMODE"});
+    actionHandler.registerActionHeader(1, {std::bind(setPanelActive, 1), "PATCH"});
+    actionHandler.registerActionHeader(2, {std::bind(setPanelActive, 2), "PRESET"});
+    actionHandler.registerActionHeader(3, {std::bind(setPanelActive, 3), "CONFIG"});
 
     Clear();
     checkFocusChange();

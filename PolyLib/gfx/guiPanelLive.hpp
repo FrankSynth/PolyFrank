@@ -24,7 +24,8 @@ class GUIPanelLive : public GUIPanelBase {
 
     uint16_t entrys = LIVEPANELENTRYS;
 
-    uint8_t subPanelSelect = 0;
+    int32_t subPanelSelect = 0;
+    int32_t subPanelSelection[6] = {1, 0, 0, 0, 0, 0};
 
     uint16_t EntrysPerElement = 4;
 

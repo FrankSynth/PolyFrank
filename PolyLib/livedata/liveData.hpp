@@ -42,6 +42,9 @@ class LiveData {
 
     void serviceRoutine();
 
+    void saveLiveDataSettings();
+    void loadLiveDataSettings();
+
     void reset();
 
     VoiceHandler voiceHandler;

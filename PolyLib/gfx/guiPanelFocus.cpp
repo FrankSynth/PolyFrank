@@ -22,33 +22,30 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 
 void GUIPanelFocus::registerPanelSettings() {
     // register Scroll
+    actionHandler.registerActionEncoder(0, {std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"});
+    actionHandler.registerActionEncoder(1, {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"});
+
     if (newPanelFocus.type != NOFOCUS) {
-        actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"},
-                                             {std::bind(focusDown, newPanelFocus), "FOCUS"});
+        actionHandler.registerActionEncoder(2, {std::bind(focusDown, newPanelFocus), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder5({std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
-                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"}, {nullptr, ""});
+        actionHandler.registerActionEncoder(2);
     }
 
+    actionHandler.registerActionLeft(0);
+    actionHandler.registerActionLeft(1, {std::bind(focusUp), "UP"});
     // register Panel Settings Left
     if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
-                                         {std::bind(nextLayer), "LAYER"});          // Layer Switch
+        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
     }
     else {
-        actionHandler.registerActionLeft({nullptr, ""}, {std::bind(focusUp), "UP"}, // focus Up
-                                         {nullptr, ""});
+        actionHandler.registerActionLeft(2);
     }
 
     // register Panel Settings Right
-    if (currentFocus.type == FOCUSMODULE) {
-        actionHandler.registerActionRight({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
-    }
-    else {
-        actionHandler.registerActionRight({nullptr, ""}, {nullptr, ""}, {nullptr, ""});
-    }
+    actionHandler.registerActionRight(0);
+    actionHandler.registerActionRight(1);
+    actionHandler.registerActionRight(2);
 }
 
 void GUIPanelFocus::Draw() {
@@ -125,6 +122,8 @@ void GUIPanelFocus::collectEntrys() {
             patch.push_back(p);
         }
         scroll->entrys = patch.size();
+
+        println("patches  ", scroll->entrys);
     }
 
     else if (currentFocus.type == FOCUSMODULE) {
@@ -209,14 +208,14 @@ void GUIPanelFocus::registerModuleSettings() {
 
             panelElements[elementIndex].addAnalogEntry(a);
 
-            // register newFocus
+            // register newFocus position for downMove
             if ((scroll->relPosition) == elementIndex) {
                 if (a->input != nullptr) {
                     newPanelFocus.id = a->input->id;
                     newPanelFocus.modul = a->input->moduleId;
                     newPanelFocus.type = FOCUSINPUT;
 
-                    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "IN"});
+                    actionHandler.registerActionRight(2, {std::bind(focusPatch, newPanelFocus), "IN"});
                 }
             }
         }
@@ -244,9 +243,9 @@ void GUIPanelFocus::registerModuleSettings() {
 
     panelElements[scroll->relPosition].select = 1;
     if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
-        actionHandler.registerActionRight2(
-            {std::bind(focusPatch, location(currentFocus.layer, currentFocus.modul, currentFocus.id, FOCUSOUTPUT)),
-             "OUT"});
+        actionHandler.registerActionRight(
+            1, {std::bind(focusPatch, location(currentFocus.layer, currentFocus.modul, currentFocus.id, FOCUSOUTPUT)),
+                "OUT"});
     }
 }
 
@@ -274,7 +273,7 @@ void GUIPanelFocus::registerModulePatchIn() {
     newPanelFocus.modul = currentFocus.modul;
     newPanelFocus.type = FOCUSINPUT;
 
-    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "PATCH"});
+    actionHandler.registerActionRight(2, {std::bind(focusPatch, newPanelFocus), "PATCH"});
 }
 
 void GUIPanelFocus::registerModulePatchOut() {
@@ -300,7 +299,7 @@ void GUIPanelFocus::registerModulePatchOut() {
     newPanelFocus.modul = currentFocus.modul;
     newPanelFocus.type = FOCUSOUTPUT;
 
-    actionHandler.registerActionRight3({std::bind(focusPatch, newPanelFocus), "PATCH"});
+    actionHandler.registerActionRight(2, {std::bind(focusPatch, newPanelFocus), "PATCH"});
 }
 
 void GUIPanelFocus::registerLayerModules() {
