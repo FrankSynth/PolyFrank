@@ -209,6 +209,8 @@ void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::
 }
 
 void Layer::collectLayerConfiguration() {
+
+    println("collectConfiguration");
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 
@@ -217,10 +219,12 @@ void Layer::collectLayerConfiguration() {
         for (Analog *i : m->getPotis()) {
             buffer[index] = i->value;
             index++;
+            println("value:  ", buffer[index]);
         }
         for (Digital *i : m->getSwitches()) {
             buffer[index] = i->valueMapped;
             index++;
+            println("value:  ", buffer[index]);
         }
     }
 
@@ -255,25 +259,24 @@ void Layer::loadLayerFromPreset(presetStruct *preset) {
     int32_t *buffer = (int32_t *)readPreset(preset);
 
     uint32_t index = 0;
+
     for (BaseModule *m : modules) { //  all modules
 
         for (Analog *i : m->getPotis()) {
             i->setValue(buffer[index]);
+
             index++;
         }
+
         for (Digital *i : m->getSwitches()) {
+
             i->setValueWithoutMapping(buffer[index]);
             index++;
         }
     }
 
-    // Layer specific settings, not part of modules
-    // for (Setting *i : layerSettings.getSettings()) {
-    //     i->setValue(buffer[index]);
-    //     index++;
-    // }
-
     // clear existing patches
+
     clearPatches();
 
     // read number of patches

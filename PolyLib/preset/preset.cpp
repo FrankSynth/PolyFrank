@@ -20,7 +20,6 @@ void updatePresetList() {
     static uint8_t init = 1;
 
     if (init) {
-        println("build preset buffer");
         for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
             presetStruct newEntry;
             newEntry.usageState = PRESET_FREE;
@@ -90,7 +89,7 @@ void writePresetBlock(presetStruct *preset, std::string name) {
         return;
     }
 
-    uint32_t address = PRESET_BLOCKSIZE + preset->storageID * PRESET_BLOCKSIZE;
+    uint32_t address = PRESET_STARTADDRESS + preset->storageID * PRESET_BLOCKSIZE;
 
     EEPROM_SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
 
@@ -121,6 +120,7 @@ void writeConfigBlock() {
 }
 
 uint8_t *readPreset(presetStruct *preset) {
+
     uint32_t address = preset->storageID * PRESET_BLOCKSIZE + PRESET_STARTADDRESS;
 
     EEPROM_SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);

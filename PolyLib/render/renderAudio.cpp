@@ -37,8 +37,6 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
     if (wavetable == sourcesA[position])
         return;
 
-    println(wavetable->name);
-
     oscAwavetable[position].size = wavetable->size;
     oscAwavetable[position].cycles = wavetable->cycles;
     oscAwavetable[position].sizePerCycle = wavetable->sizePerCycle;
