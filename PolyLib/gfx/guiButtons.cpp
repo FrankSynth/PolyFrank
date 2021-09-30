@@ -119,13 +119,13 @@ void GUIFooter::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
     panelAbsY = y;
 
     // create Header Boxes and linkt to action Handler;
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[0].handle_CW, &actionHandler.encoder[0].handle_CW,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[0].handle_CW, &actionHandler.encoder[0].handle_PUSH,
                                     panelWidth * 0 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[1].handle_CW, &actionHandler.encoder[1].handle_CW,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[1].handle_CW, &actionHandler.encoder[1].handle_PUSH,
                                     panelWidth * 1 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[2].handle_CW, &actionHandler.encoder[2].handle_CW,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[2].handle_CW, &actionHandler.encoder[2].handle_PUSH,
                                     panelWidth * 2 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
-    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[3].handle_CW, &actionHandler.encoder[3].handle_CW,
+    boxes.push_back(Footer_PanelBox(&actionHandler.encoder[3].handle_CW, &actionHandler.encoder[3].handle_PUSH,
                                     panelWidth * 3 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
 }
 void GUIFooter::Draw() {

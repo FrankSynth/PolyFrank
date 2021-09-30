@@ -43,6 +43,4 @@ class GUIPanelPreset : public GUIPanelBase {
     const std::vector<std::string> thirdName = {"", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "42", "#"};
 
     Preset_PanelElement PanelElementPreset[PRESETPANELENTRYS];
-
-    std::vector<presetStruct *> presetEntrys;
 };

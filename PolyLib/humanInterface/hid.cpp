@@ -216,41 +216,92 @@ void initPotiMapping() {
         if (allLayers[i]->LayerState.value == 1) {
 
             potiFunctionPointer[i][0][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+
             potiFunctionPointer[i][1][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
+
             potiFunctionPointer[i][2][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
+
             potiFunctionPointer[i][3][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aMaster), std::placeholders::_1);
 
             potiFunctionPointer[i][0][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aLevel), std::placeholders::_1);
+
             potiFunctionPointer[i][1][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
+
             potiFunctionPointer[i][2][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aGlide), std::placeholders::_1);
+
             potiFunctionPointer[i][3][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aDetune), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
 
             potiFunctionPointer[i][0][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->imperfect.aSpread), std::placeholders::_1);
+                std::bind(&Digital::setValue, &(allLayers[i]->oscA.dOctave), std::placeholders::_1);
+
             potiFunctionPointer[i][1][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->imperfect.aSpread), std::placeholders::_1);
+
             potiFunctionPointer[i][2][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+
             potiFunctionPointer[i][3][2] =
                 std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
 
             potiFunctionPointer[i][0][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
+
             potiFunctionPointer[i][1][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
+
             potiFunctionPointer[i][2][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+
             potiFunctionPointer[i][3][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+                std::bind(&Digital::setValue, &(allLayers[i]->oscB.dOctave), std::placeholders::_1);
         }
+
+        // if (allLayers[i]->LayerState.value == 1) {
+
+        //     potiFunctionPointer[i][0][0] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+        //     potiFunctionPointer[i][1][0] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
+        //     potiFunctionPointer[i][2][0] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aVCA), std::placeholders::_1);
+        //     potiFunctionPointer[i][3][0] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aMaster), std::placeholders::_1);
+
+        //     potiFunctionPointer[i][0][1] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+        //     potiFunctionPointer[i][1][1] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->distort.aDistort), std::placeholders::_1);
+        //     potiFunctionPointer[i][2][1] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aGlide), std::placeholders::_1);
+        //     potiFunctionPointer[i][3][1] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aDetune), std::placeholders::_1);
+
+        //     potiFunctionPointer[i][0][2] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->imperfect.aSpread), std::placeholders::_1);
+        //     potiFunctionPointer[i][1][2] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
+        //     potiFunctionPointer[i][2][2] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->oscB.aLevel), std::placeholders::_1);
+        //     potiFunctionPointer[i][3][2] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
+
+        //     potiFunctionPointer[i][0][3] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
+        //     potiFunctionPointer[i][1][3] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
+        //     potiFunctionPointer[i][2][3] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+        //     potiFunctionPointer[i][3][3] =
+        //         std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+        // }
     }
 }
 void renderLED() {

@@ -346,6 +346,58 @@ class Noise : public BaseModule {
     RenderBuffer samplecrusher;
 };
 
+class Mixer : public BaseModule {
+  public:
+    Mixer(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
+
+        inputs.push_back(&iOSCALevel);
+        inputs.push_back(&iOSCBLevel);
+        inputs.push_back(&iSUBLevel);
+        inputs.push_back(&iNOISELevel);
+
+        knobs.push_back(&aOSCALevel);
+        knobs.push_back(&aOSCBLevel);
+        knobs.push_back(&aSUBLevel);
+        knobs.push_back(&aNOISELevel);
+
+        switches.push_back(&dOSCADestSwitch);
+        switches.push_back(&dOSCBDestSwitch);
+        switches.push_back(&dSUBDestSwitch);
+        switches.push_back(&dNOISEDestSwitch);
+
+        // renderBuffer.push_back(&note);
+        // renderBuffer.push_back(&morph);
+        // renderBuffer.push_back(&bitcrusher);
+        // renderBuffer.push_back(&samplecrusher);
+        // renderBuffer.push_back(&levelSteiner);
+        // renderBuffer.push_back(&levelLadder);
+    }
+
+    Input iOSCALevel = Input("LEVEL");
+    Input iOSCBLevel = Input("LEVEL");
+    Input iSUBLevel = Input("LEVEL");
+    Input iNOISELevel = Input("LEVEL");
+
+    Analog aOSCALevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iOSCALevel);
+    Analog aOSCBLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iOSCBLevel);
+    Analog aSUBLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iSUBLevel);
+    Analog aNOISELevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iNOISELevel);
+
+    Digital dOSCADestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+    Digital dOSCBDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+    Digital dSUBDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+    Digital dNOISEDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+
+    // render shizzle
+
+    // RenderBuffer note;
+    // RenderBuffer morph;
+    // RenderBuffer bitcrusher;
+    // RenderBuffer samplecrusher;
+    // RenderBuffer levelSteiner;
+    // RenderBuffer levelLadder;
+};
+
 class Steiner : public BaseModule {
 
   public:

@@ -22,14 +22,16 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 
 void GUIPanelFocus::registerPanelSettings() {
     // register Scroll
-    actionHandler.registerActionEncoder(0, {std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"});
-    actionHandler.registerActionEncoder(1, {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"});
 
     if (newPanelFocus.type != NOFOCUS) {
-        actionHandler.registerActionEncoder(2, {std::bind(focusDown, newPanelFocus), "FOCUS"});
+
+        actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+                                            {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"},
+                                            {std::bind(focusDown, newPanelFocus), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder(2);
+        actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, this->scroll, 1), "SCROLL"},
+                                            {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"});
     }
 
     actionHandler.registerActionLeft(0);
@@ -122,8 +124,6 @@ void GUIPanelFocus::collectEntrys() {
             patch.push_back(p);
         }
         scroll->entrys = patch.size();
-
-        println("patches  ", scroll->entrys);
     }
 
     else if (currentFocus.type == FOCUSMODULE) {

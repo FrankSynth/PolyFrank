@@ -139,8 +139,8 @@ class Data_PanelElement {
                                            nullptr,
                                            nullptr,
                                            nullptr,
-                                           {std::bind(&Digital::nextValue, data), "NEXT"},
-                                           {std::bind(&Digital::previousValue, data), "NEXT"},
+                                           {std::bind(&Digital::nextValue, data), data->getName()},
+                                           {std::bind(&Digital::previousValue, data), data->getName()},
                                            {std::bind(&Digital::resetValue, data), "RESET"}};
 
         numberEntrys++;

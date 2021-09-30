@@ -30,8 +30,9 @@ void GUIPanelConfig::registerPanelElements(categoryStruct &settingsCategory) {
                 }
                 else {
                     panelElements[elementIndex].addSettingsEntry(
-                        settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
-                        {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
+                        settingsElement,
+                        {std::bind(&Setting::increase, settingsElement, 1), settingsElement->getName()},
+                        {std::bind(&Setting::decrease, settingsElement, -1), settingsElement->getName()},
                         {std::bind(&Setting::resetValue, settingsElement), "RESET"});
                 }
                 dataIndex++;

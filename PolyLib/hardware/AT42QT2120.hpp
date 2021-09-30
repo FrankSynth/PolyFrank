@@ -82,7 +82,14 @@ class AT42QT2120 {
         uint8_t command[2];
 
         command[0] = 0x0B; // write to memory Address 11 (Detection Integrator)
-        command[1] = 0x01; // set detection integration to 1
+        command[1] = 1;    // set detection integration to 1
+
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, command, 2, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | COM | AT42QT I2C Transmit Failed");
+        }
+
+        command[0] = 0x0C; // write to memory Address 11 (DTH)
+        command[1] = 100;  // set detection integration to 5 *  160ms
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddress, command, 2, 50) != HAL_OK) {
             PolyError_Handler("ERROR | COM | AT42QT I2C Transmit Failed");

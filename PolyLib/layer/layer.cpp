@@ -201,7 +201,14 @@ void Layer::clearPatches() {
 }
 #ifdef POLYCONTROL
 
-void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName, std::string thirdName) {
+void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName,
+                              std::string thirdName) {
+
+    collectLayerConfiguration();
+    writePresetBlock(preset, firstName + " " + secondName + " " + thirdName);
+}
+
+void Layer::collectLayerConfiguration() {
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 
@@ -217,19 +224,8 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
         }
     }
 
-    // Layer specific settings, not part of modules
-    // for (Setting *i : layerSettings.getSettings()) {
-    //     buffer[index] = i->value;
-    //     index++;
-    // }
-
-    // start Position vom patch buffer bereich
-
     buffer[index] = patchesInOut.size();
     index++;
-
-    // buffer[index] = patchesOutOut.size();
-    // index++;
 
     patchSaveStruct *bufferPatch;
     bufferPatch = (patchSaveStruct *)&(buffer[index]);
@@ -247,32 +243,16 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
         index++;
     }
 
-    // for (PatchElementOutOut p : patchesOutOut) {
-
-    //     patch.sourceID = p.sourceOut->idGlobal;
-    //     patch.targetID = p.targetOut->idGlobal;
-    //     patch.amount = p.amount;
-
-    //     bufferPatch[index] = patch;
-
-    //     index++;
-    // }
-
-    // println((int8_t *)&bufferPatch[index] - (int8_t *)blockBuffer);
-
     if ((uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)blockBuffer) > (PRESET_BLOCKSIZE)) {
         PolyError_Handler("ERROR | FATAL | LAYER -> SaveLayerToPreset -> BufferOverflow!");
     }
-    // println("Index Size : ", index);
-    // println("ID  : ", presetID, "  Name: ", firstName + " " + secondName);
-    writePresetBlock(presetID, firstName + " " + secondName + " " + thirdName);
 }
-void Layer::loadLayerFromPreset(uint32_t presetID) {
-    if (presets[presetID].usageState != PRESET_USED) {
+void Layer::loadLayerFromPreset(presetStruct *preset) {
+    if (preset->usageState != PRESET_USED) {
         return;
     }
 
-    int32_t *buffer = (int32_t *)readPreset(presetID);
+    int32_t *buffer = (int32_t *)readPreset(preset);
 
     uint32_t index = 0;
     for (BaseModule *m : modules) { //  all modules

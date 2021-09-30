@@ -144,21 +144,25 @@ void Scroller::scroll(int16_t change) {
 
 void Scroller::setScroll(int16_t scrollPosition) {
 
-    if (scrollPosition == 0) {
+    if (scrollPosition == 0) { // new position = 0
         position = 0;
+        offset = 0;
+    }
+    else if (entrys == 0) { // zero entrys?
+        position = 0;
+        offset = 0;
     }
     else {
         position = testInt(scrollPosition, 0, entrys - 1);
-    }
 
-    if (position - offset >= maxEntrysVisible) {
-        offset = position - maxEntrysVisible / 2;
+        if (position - offset >= maxEntrysVisible) { // scroll
+            offset = position - maxEntrysVisible / 2;
+        }
+        if (position - offset <= 0) { // scroll
+            offset = position - maxEntrysVisible / 2;
+        }
+        offset = testInt(offset, 0, testInt(entrys - maxEntrysVisible, 0, 0xFF));
     }
-    if (position - offset <= 0) {
-        offset = position - maxEntrysVisible / 2;
-    }
-
-    offset = testInt(offset, 0, testInt(entrys - maxEntrysVisible, 0, 0xFF));
 
     relPosition = position - offset;
 }

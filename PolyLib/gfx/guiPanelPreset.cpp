@@ -46,25 +46,26 @@ void GUIPanelPreset::registerPanelSettings() {
         {std::bind(&Scroller::scroll, &(this->scrollThirdName), -1), ""}, {nullptr, "SCROLL"});
 
     actionHandler.registerActionLeft(
-        0, {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer], freePresetID(),
+        0, {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer], freePreset,
                       firstName[scrollFirstName.position], secondName[scrollSecondName.position],
                       thirdName[scrollThirdName.position]),
-            "SAVE"});
+            "NEW"});
 
     actionHandler.registerActionRight(1);
 
-    if (presetEntrys.size()) {
-        actionHandler.registerActionRight(
-            0, {std::bind(&Layer::loadLayerFromPreset, allLayers[currentFocus.layer], scrollPreset.position), "LOAD"});
-        actionHandler.registerActionRight(
-            2, {std::bind(&removePreset, presetEntrys[scrollPreset.position]->ID), "REMOVE"}, 0);
+    if (presetsSorted.size()) {
+        actionHandler.registerActionRight(0, {std::bind(&Layer::loadLayerFromPreset, allLayers[currentFocus.layer],
+                                                        presetsSorted[scrollPreset.position]),
+                                              "LOAD"});
+        actionHandler.registerActionRight(2, {std::bind(&removePreset, presetsSorted[scrollPreset.position]), "REMOVE"},
+                                          0);
 
         actionHandler.registerActionLeft(
             1,
-            {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer],
-                       presetEntrys[scrollPreset.position]->ID, firstName[scrollFirstName.position],
-                       secondName[scrollSecondName.position], thirdName[scrollThirdName.position]),
-             "OVERRIDE"},
+            {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer], presetsSorted[scrollPreset.position],
+                       firstName[scrollFirstName.position], secondName[scrollSecondName.position],
+                       thirdName[scrollThirdName.position]),
+             "SAVE"},
             0);
     }
     else {
@@ -83,20 +84,8 @@ void GUIPanelPreset::registerPanelSettings() {
 }
 
 void GUIPanelPreset::updateEntrys() {
-    presetEntrys.clear();
 
-    for (uint16_t i = 0; i < presets.size(); i++) {
-        if (presets[i].usageState == PRESET_USED) {
-            presetEntrys.push_back(&presets[i]);
-        }
-    }
-
-    for (presetStruct *p : presetEntrys) {
-
-        println("  name  ", p->name, "  id  ", p->ID, "  state  ", p->usageState);
-    }
-
-    entrys = presetEntrys.size();
+    entrys = presetsSorted.size();
     scrollPreset.entrys = entrys;
 
     // check Scroll position
@@ -116,7 +105,7 @@ void GUIPanelPreset::registerElements() {
         }
 
         if (dataIndex < entrys) {
-            PanelElementPreset[elementIndex].addEntry(presetEntrys[dataIndex]);
+            PanelElementPreset[elementIndex].addEntry(presetsSorted[dataIndex]);
 
             dataIndex++;
         }

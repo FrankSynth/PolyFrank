@@ -69,6 +69,8 @@ class Layer {
     void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
+    void collectLayerConfiguration();
+
     // void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
     // void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
     // void updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount = 0, float offset = 0);
@@ -78,8 +80,8 @@ class Layer {
     // void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
 
 #ifdef POLYCONTROL
-    void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName, std::string thirdName);
-    void loadLayerFromPreset(uint32_t presetID);
+    void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
+    void loadLayerFromPreset(presetStruct *preset);
 #endif
 
     inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }

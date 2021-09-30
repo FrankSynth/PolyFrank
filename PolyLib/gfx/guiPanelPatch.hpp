@@ -10,6 +10,10 @@ class GUIPanelPatch : public GUIPanelBase {
 
     void updateEntrys();
 
+    void collectModules();
+    void collectInputs();
+    void collectOutputs();
+
     void registerElements();
 
     void registerPanelSettings();
@@ -45,7 +49,9 @@ class GUIPanelPatch : public GUIPanelBase {
     }
 
     void toggleFlipView() { flipView = !flipView; }
-    void toggleFilterdView() { filteredView = !filteredView; }
+    void toggleFilterdView() {
+        filteredView = !filteredView;
+    }
 
   private:
     // Boxes

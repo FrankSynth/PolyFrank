@@ -41,8 +41,6 @@ void processEncoder();
 void processControlTouch();
 
 void processPanelTouch(uint8_t layerID);
-void eventPanelTouch(uint16_t touchState, uint8_t port);
-void eventControlTouch(uint16_t touchStateA);
 
 void initPotiMapping();
 void processPanelPotis();
@@ -70,11 +68,13 @@ class PanelTouch {
             if (push & (1 << x)) {
 
                 evaluateLayer(x, port, 1);
+                // println("LAYER::   pin:  ", x, "  port:  ", port, "  event:   ", 1);
             }
 
             else if (release & (1 << x)) {
 
                 evaluateLayer(x, port, 0);
+                // println("LAYER::   pin:  ", x, "  port:  ", port, "  event:   ", 0);
             }
         }
     }
@@ -89,11 +89,14 @@ class PanelTouch {
 
             if (push & (1 << x)) {
                 evaluateControl(x, port, 1);
+
+                // println("CONTROL::   pin:  ", x, "  port:  ", port, "  event:   ", 1);
             }
 
             else if (release & (1 << x)) {
 
                 evaluateControl(x, port, 0);
+                // println("CONTROL::   pin:  ", x, "  port:  ", port, "  event:   ", 0);
             }
         }
     }

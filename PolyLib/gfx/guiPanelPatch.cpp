@@ -118,11 +118,9 @@ void GUIPanelPatch::registerElements() {
     }
 }
 
-void GUIPanelPatch::updateEntrys() {
+void GUIPanelPatch::collectModules() {
 
     allModules.clear();
-    allInputs.clear();
-    allOutputs.clear();
 
     for (BaseModule *module : allLayers[currentFocus.layer]->getModules()) { // Collect Module if inputs available
         uint8_t check = 0;
@@ -141,17 +139,35 @@ void GUIPanelPatch::updateEntrys() {
             allModules.push_back(module);
     }
 
-    for (Input *input : allModules[scrollModule.position]->inputs) {
-        if (input->visible) {
-            if (filteredView) {
-                if (input->patchesInOut.size())
+    entrysModule = allModules.size();
+    scrollModule.entrys = entrysModule;
+    scrollModule.checkScroll();
+}
+
+void GUIPanelPatch::collectInputs() {
+
+    allInputs.clear();
+
+    if (allModules.size()) {
+        for (Input *input : allModules[scrollModule.position]->inputs) {
+            if (input->visible) {
+                if (filteredView) {
+                    if (input->patchesInOut.size())
+                        allInputs.push_back(input);
+                }
+                else {
                     allInputs.push_back(input);
-            }
-            else {
-                allInputs.push_back(input);
+                }
             }
         }
     }
+    entrysTarget = allInputs.size();
+    scrollTarget.entrys = entrysTarget;
+    scrollTarget.checkScroll();
+}
+void GUIPanelPatch::collectOutputs() {
+
+    allOutputs.clear();
 
     for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
         if (output->visible) {
@@ -164,68 +180,52 @@ void GUIPanelPatch::updateEntrys() {
             }
         }
     }
-
-    entrysModule = allModules.size();
-    entrysTarget = allInputs.size();
     entrysSource = allOutputs.size();
-    scrollModule.entrys = entrysModule;
-    scrollTarget.entrys = entrysTarget;
     scrollSource.entrys = entrysSource;
-    scrollModule.checkScroll();
-    scrollTarget.checkScroll();
     scrollSource.checkScroll();
+}
+
+void GUIPanelPatch::updateEntrys() {
+
+    collectModules();
+    collectInputs();
+    collectOutputs();
 }
 
 void GUIPanelPatch::activate() {
 
-    uint16_t counter = 0;
+    collectModules();
 
     if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSMODULE) {
 
-        for (BaseModule *module : allLayers[currentFocus.layer]->getModules()) { // Collect Module if inputs available
-            uint8_t check = 0;
-            for (Input *input : module->inputs) {
-                if (input->visible) {
-                    check = 1;
-                }
-            }
-            if (check) {
-                if (module->id == currentFocus.modul) {
-
-                    scrollModule.setScroll(counter);
-
-                    if (currentFocus.type == FOCUSINPUT) {
-                        counter = 0;
-                        for (Input *input : module->inputs) {
-                            if (input->visible) {
-                                if (input->id == currentFocus.id) {
-                                    scrollTarget.setScroll(counter);
-                                    break;
-                                }
-                                counter++;
-                            }
-                        }
-                    }
-                    break;
-                }
-                counter++;
+        for (uint16_t i = 0; i < allModules.size(); i++) {
+            if (allModules[i]->id == currentFocus.modul) {
+                scrollModule.setScroll(i);
+                break;
             }
         }
     }
+
+    if (currentFocus.type == FOCUSINPUT) {
+        collectInputs();
+        for (uint16_t i = 0; i < allInputs.size(); i++) {
+            if (allInputs[i]->id == currentFocus.id) {
+                scrollTarget.setScroll(i);
+                break;
+            }
+        }
+    }
+
     if (currentFocus.type == FOCUSOUTPUT) {
 
         if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
             uint16_t searchID = allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs[0]->idGlobal;
-            counter = 0;
 
-            for (Output *output : allLayers[currentFocus.layer]->outputs) {
-                if (output->visible) {
-                    if (output->idGlobal == searchID) {
-
-                        scrollSource.setScroll(counter);
-                        break;
-                    }
-                    counter++;
+            collectOutputs();
+            for (uint16_t i = 0; i < allOutputs.size(); i++) {
+                if (allOutputs[i]->idGlobal == searchID) {
+                    scrollSource.setScroll(i);
+                    break;
                 }
             }
         }
@@ -233,8 +233,6 @@ void GUIPanelPatch::activate() {
             scrollSource.setScroll(0);
         }
     }
-
-    updateEntrys();
 }
 
 // Change Focus with PatchPanel Scolling
