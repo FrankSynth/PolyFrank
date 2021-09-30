@@ -92,7 +92,7 @@ const std::string &Digital::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min + 1) {
+        if ((int32_t)valueNameList->size() >= max - min + 1) {
             return (*valueNameList)[valueMapped - min];
         }
         else {

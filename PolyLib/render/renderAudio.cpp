@@ -9,6 +9,11 @@
 
 extern Layer layerA;
 
+std::vector<const WaveTable *> wavetables;
+
+const WaveTable *sourcesA[4] = {nullptr, nullptr, nullptr, nullptr};
+const WaveTable *sourcesB[4] = {nullptr, nullptr, nullptr, nullptr};
+
 RAM1 ALIGN_32BYTES(float oscAwavetableStorage[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
 WaveTable oscAwavetable[MAXWAVETABLESPERVOICE] = {{0, 0, 0, oscAwavetableStorage[0], "defaultName"},
                                                   {0, 0, 0, oscAwavetableStorage[1], "defaultName"},
@@ -28,10 +33,17 @@ WaveTable oscBwavetable[MAXWAVETABLESPERVOICE]{{0, 0, 0, oscBwavetableStorage[0]
  * @param wavetable pointer to new wavetable
  */
 void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
+
+    if (wavetable == sourcesA[position])
+        return;
+
+    println(wavetable->name);
+
     oscAwavetable[position].size = wavetable->size;
     oscAwavetable[position].cycles = wavetable->cycles;
     oscAwavetable[position].sizePerCycle = wavetable->sizePerCycle;
     oscAwavetable[position].name = wavetable->name;
+    sourcesA[position] = wavetable;
 
     MDMA_HandleTypeDef *mdmaHandle = nullptr;
 
@@ -47,8 +59,8 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
     // while (HAL_MDMA_GetState(mdmaHandle) == HAL_MDMA_STATE_BUSY) {
     //     // wait for mdma to finish
     // }
-    HAL_MDMA_Start(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscAwavetableStorage[position],
-                   oscAwavetable[position].size * 4, 1);
+    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscAwavetableStorage[position],
+                      oscAwavetable[position].size * 4, 1);
 }
 /**
  * @brief switch OscB Wavetable at position x
@@ -57,10 +69,15 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
  * @param wavetable pointer to new wavetable
  */
 void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
+
+    if (wavetable == sourcesB[position])
+        return;
+
     oscBwavetable[position].size = wavetable->size;
     oscBwavetable[position].cycles = wavetable->cycles;
     oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
     oscBwavetable[position].name = wavetable->name;
+    sourcesB[position] = wavetable;
 
     MDMA_HandleTypeDef *mdmaHandle = nullptr;
 
@@ -73,8 +90,8 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
         default: PolyError_Handler("renderAudio | switchOscBWavetable | illegal position"); break;
     }
 
-    HAL_MDMA_Start(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscBwavetableStorage[position],
-                   oscBwavetable[position].size * 4, 1);
+    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscBwavetableStorage[position],
+                      oscBwavetable[position].size * 4, 1);
 }
 
 /**
@@ -82,18 +99,38 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  *
  */
 void initAudioRendering() {
-    // Osc A
-    switchOscAWavetable(0, &wavetable_Sine);
-    switchOscAWavetable(1, &wavetable_Triangle);
-    switchOscAWavetable(2, &wavetable_Saw);
-    switchOscAWavetable(3, &wavetable_Square);
+
+    wavetables.push_back(&wavetable_Sine);
+    wavetables.push_back(&wavetable_Saw);
+    wavetables.push_back(&wavetable_Triangle);
+    wavetables.push_back(&wavetable_Square);
+    // wavetables.push_back(&wavetable_FeltPianoLow);
+    // wavetables.push_back(&wavetable_GuitarHigh);
+    // wavetables.push_back(&wavetable_GuitarLow);
+    wavetables.push_back(&wavetable_SSMMix01);
+    wavetables.push_back(&wavetable_SSMMix02);
+    wavetables.push_back(&wavetable_SSMMix03);
+    wavetables.push_back(&wavetable_SSMMix04);
+    // wavetables.push_back(&wavetable_SSMMix05);
+
+    wavetables.push_back(&wavetable_SSMMix06);
+    wavetables.push_back(&wavetable_SSMMix07);
+    wavetables.push_back(&wavetable_SSMMix08);
+    // wavetables.push_back(&wavetable_SSMSaw);
+    // wavetables.push_back(&wavetable_SSMSquare);
+    // wavetables.push_back(&wavetable_SSMTriangle);
+
+    switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.defaultValue]);
+    switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.defaultValue]);
+    switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.defaultValue]);
+    switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.defaultValue]);
     // switchOscAWavetableB(wavetable_nylonGuitar01);
 
     // Osc B
-    switchOscBWavetable(0, &wavetable_SSMMix05);
-    switchOscBWavetable(1, &wavetable_SSMMix06);
-    switchOscBWavetable(2, &wavetable_SSMMix07);
-    switchOscBWavetable(3, &wavetable_SSMMix08);
+    switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.defaultValue]);
+    switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.defaultValue]);
+    switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.defaultValue]);
+    switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.defaultValue]);
     // switchOscBWavetableA(wavetable_sinus01);
     // switchOscBWavetableB(wavetable_wurli02);
 }
@@ -547,6 +584,18 @@ void renderAudio(int32_t *renderDest) {
 
     int32_t intSampleSteiner[VOICESPERCHIP];
     int32_t intSampleLadder[VOICESPERCHIP];
+
+    // Osc A
+    switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.valueMapped]);
+    switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.valueMapped]);
+    switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.valueMapped]);
+    switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.valueMapped]);
+
+    // Osc B
+    switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.valueMapped]);
+    switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.valueMapped]);
+    switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.valueMapped]);
+    switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.valueMapped]);
 
     for (uint32_t sample = 0; sample < SAIDMABUFFERSIZE; sample++) {
 

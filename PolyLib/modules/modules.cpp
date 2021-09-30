@@ -10,3 +10,6 @@ const std::vector<std::string> nlClockSteps = {"1/64T", "1/32T", "1/32", "1/16T"
                                                "1/4T",  "1/8.",  "1/4",  "1/2T",  "1/4.", "1/2",  "1/1T",  "1/2.",
                                                "1/1",   "2/1T",  "1/1.", "2/1",   "4/1T", "2/1.", "4/1"};
 const std::vector<std::string> nlSubOctaves = {"/2", "/4"};
+
+const std::vector<std::string> nlWavetable = {"SINE",  "SAW",   "TRI",   "SQUARE", "SSM 1", "SSM 2",
+                                              "SSM 3", "SSM 4", "SSM 5", "SSM 6",  "SSM 7", "SSM 8"};

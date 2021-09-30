@@ -54,11 +54,13 @@ void GUIPanelPreset::registerPanelSettings() {
     actionHandler.registerActionRight(1);
 
     if (presetsSorted.size()) {
-        actionHandler.registerActionRight(0, {std::bind(&Layer::loadLayerFromPreset, allLayers[currentFocus.layer],
-                                                        presetsSorted[scrollPreset.position]),
-                                              "LOAD"});
+        actionHandler.registerActionRight(0,
+                                          {std::bind(&Layer::loadLayerFromPreset, allLayers[currentFocus.layer],
+                                                     presetsSorted[scrollPreset.position]),
+                                           "LOAD"},
+                                          1);
         actionHandler.registerActionRight(2, {std::bind(&removePreset, presetsSorted[scrollPreset.position]), "REMOVE"},
-                                          0);
+                                          1);
 
         actionHandler.registerActionLeft(
             1,
@@ -66,7 +68,7 @@ void GUIPanelPreset::registerPanelSettings() {
                        firstName[scrollFirstName.position], secondName[scrollSecondName.position],
                        thirdName[scrollThirdName.position]),
              "SAVE"},
-            0);
+            1);
     }
     else {
 
