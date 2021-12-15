@@ -13,6 +13,7 @@
  * @brief wave table size, cycles, sizePerCycle, name and data pointer
  *
  */
+
 typedef struct {
     /**
      * @brief wave table size must be smaller than 13968
@@ -23,7 +24,6 @@ typedef struct {
     float sizePerCycle;
     const float *data;
     const char *name;
-
 } WaveTable;
 
 extern const WaveTable wavetable_FeltPianoLow;

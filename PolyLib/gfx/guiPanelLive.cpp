@@ -101,8 +101,8 @@ void GUIPanelLive::registerPanelSettings() {
         2, {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category},
         &(subPanelSelection[2]));
 
-    actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 0);
-    actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 0);
+    actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 1);
+    actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 1);
 
     if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
         actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});

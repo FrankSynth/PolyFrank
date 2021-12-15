@@ -216,20 +216,20 @@ void handleFlags() {
         if (interChipA_State[i] != READY) {
             if (interChipA_StateTimeout[i] > 10) { // 10ms timeout
                 if (interChipA_State[i] == WAITFORRESPONSE) {
-                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+                    //  PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
                 }
                 else if (interChipA_State[i] == DATARECEIVED) {
-                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
+                    // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
                 }
             }
         }
         if (interChipB_State[i] != READY) {
             if (interChipB_StateTimeout[i] > 10) { // 10ms timeout
                 if (interChipB_State[i] == WAITFORRESPONSE) {
-                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> no reponse");
+                    // PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> no reponse");
                 }
                 else if (interChipB_State[i] == DATARECEIVED) {
-                    PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> Checksum failed");
+                    // PolyError_Handler("ERROR | FATAL | Communication -> layerChip B -> Checksum failed");
                 }
             }
         }

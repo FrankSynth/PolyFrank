@@ -20,7 +20,6 @@ void updatePresetList() {
     static uint8_t init = 1;
 
     if (init) {
-        println("build preset buffer");
         for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
             presetStruct newEntry;
             newEntry.usageState = PRESET_FREE;
@@ -85,29 +84,30 @@ void initPreset() {
 
 void writePresetBlock(presetStruct *preset, std::string name) {
 
-    if (preset == nullptr){
+    if (preset == nullptr) {
         updatePresetList();
         return;
     }
 
-    uint32_t address = PRESET_BLOCKSIZE + preset->storageID * PRESET_BLOCKSIZE;
+    uint32_t address = PRESET_STARTADDRESS + preset->storageID * PRESET_BLOCKSIZE;
 
     EEPROM_SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
 
     // write new entry to table
-    preset->usageState = PRESET_USED;
-    preset->saveCounterID = saveID;
+    if (preset->usageState == PRESET_FREE) {
+        preset->usageState = PRESET_USED;
+        preset->saveCounterID = saveID;
 
-    for (uint32_t i = 0; i < PRESET_NAMELENGTH; i++) {
-        if (i < name.size()) {
+        for (uint32_t i = 0; i < PRESET_NAMELENGTH; i++) {
+            if (i < name.size()) {
 
-            preset->name[i] = name.data()[i];
-        }
-        else {
-            preset->name[i] = '\0';
+                preset->name[i] = name.data()[i];
+            }
+            else {
+                preset->name[i] = '\0';
+            }
         }
     }
-
     address = TABLE_STARTADDRESS + preset->storageID * sizeof(presetStruct);
 
     EEPROM_SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
@@ -120,6 +120,7 @@ void writeConfigBlock() {
 }
 
 uint8_t *readPreset(presetStruct *preset) {
+
     uint32_t address = preset->storageID * PRESET_BLOCKSIZE + PRESET_STARTADDRESS;
 
     EEPROM_SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);

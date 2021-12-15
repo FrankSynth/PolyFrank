@@ -13,28 +13,28 @@ void actionMapping::registerActionFooter(uint8_t index, actionHandle handle) {
     buttonFooter[index] = handle;
 }
 
-void actionMapping::registerActionLeftData(uint8_t index, actionHandle handle, int32_t *data, uint8_t unlock) {
+void actionMapping::registerActionLeftData(uint8_t index, actionHandle handle, int32_t *data, uint8_t lock) {
     buttonLeft[index].handle = handle;
     buttonLeft[index].data = data;
-    buttonLeft[index].unlock = unlock;
+    buttonLeft[index].unlock = !lock;
 }
 
-void actionMapping::registerActionRightData(uint8_t index, actionHandle handle, int32_t *data, uint8_t unlock) {
+void actionMapping::registerActionRightData(uint8_t index, actionHandle handle, int32_t *data, uint8_t lock) {
     buttonRight[index].handle = handle;
     buttonRight[index].data = data;
-    buttonRight[index].unlock = unlock;
+    buttonRight[index].unlock = !lock;
 }
 
-void actionMapping::registerActionLeft(uint8_t index, actionHandle handle, uint8_t unlock) {
+void actionMapping::registerActionLeft(uint8_t index, actionHandle handle, uint8_t lock) {
     buttonLeft[index].handle = handle;
     buttonLeft[index].data = nullptr;
-    buttonLeft[index].unlock = unlock;
+    buttonLeft[index].unlock = !lock;
 }
 
-void actionMapping::registerActionRight(uint8_t index, actionHandle handle, uint8_t unlock) {
+void actionMapping::registerActionRight(uint8_t index, actionHandle handle, uint8_t lock) {
     buttonRight[index].handle = handle;
     buttonRight[index].data = nullptr;
-    buttonRight[index].unlock = unlock;
+    buttonRight[index].unlock = !lock;
 }
 void actionMapping::registerActionEncoder(uint8_t index, actionHandle handleCW, actionHandle handleCCW,
                                           actionHandle handlePUSH) {

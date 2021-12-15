@@ -39,12 +39,12 @@ class actionMapping {
                                actionHandle handleCCW = {nullptr, ""}, actionHandle handlePUSH = {nullptr, ""});
 
     void registerActionLeftData(uint8_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
-                                uint8_t lock = 1);
+                                uint8_t lock = 0);
     void registerActionRightData(uint8_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
-                                 uint8_t lock = 1);
+                                 uint8_t lock = 0);
 
-    void registerActionLeft(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 1);
-    void registerActionRight(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 1);
+    void registerActionLeft(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 0);
+    void registerActionRight(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 0);
 
     void callActionHeader(uint8_t index);
     void callActionLeft(uint8_t index);

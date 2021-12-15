@@ -222,8 +222,8 @@ void GUIPanelFocus::registerModuleSettings() {
     }
 
     Digital *d = nullptr;
+    d = getDigitalEntry();
     for (; elementIndex < entrys; elementIndex++) {
-        d = getDigitalEntry();
 
         if (d == nullptr) // more digitalEntry available?
             break;

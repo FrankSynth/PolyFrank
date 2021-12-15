@@ -327,8 +327,8 @@ void GUIPanelPatch::registerPanelSettings() {
 
     // register Panel Seetings Right
     actionHandler.registerActionRight(0, {std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"});
-    actionHandler.registerActionRight(1, {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, 0);
-    actionHandler.registerActionRight(2, {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, 0);
+    actionHandler.registerActionRight(1, {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, 1);
+    actionHandler.registerActionRight(2, {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, 1);
 
     // clear Encoder 4
     actionHandler.registerActionEncoder(3, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
