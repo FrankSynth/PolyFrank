@@ -550,20 +550,20 @@ void renderAudio(int32_t *renderDest) {
     // speed test led - obsolete
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
 
-    const float *noiseLevelLadder = layerA.noise.levelLadder.currentSample;
-    const float *noiseLevelSteiner = layerA.noise.levelSteiner.currentSample;
+    const float *noiseLevelLadder = layerA.mixer.noiseLevelLadder.currentSample;
+    const float *noiseLevelSteiner = layerA.mixer.noiseLevelSteiner.currentSample;
     float *noiseOut = layerA.noise.out.nextSample;
 
-    const float *subLevelLadder = layerA.sub.levelLadder.currentSample;
-    const float *subLevelSteiner = layerA.sub.levelSteiner.currentSample;
+    const float *subLevelLadder = layerA.mixer.subLevelLadder.currentSample;
+    const float *subLevelSteiner = layerA.mixer.subLevelSteiner.currentSample;
     float *subOut = layerA.sub.out.nextSample;
 
-    const float *oscALevelLadder = layerA.oscA.levelLadder.currentSample;
-    const float *oscALevelSteiner = layerA.oscA.levelSteiner.currentSample;
+    const float *oscALevelLadder = layerA.mixer.oscALevelLadder.currentSample;
+    const float *oscALevelSteiner = layerA.mixer.oscALevelSteiner.currentSample;
     float *oscAOut = layerA.oscA.out.nextSample;
 
-    const float *oscBLevelLadder = layerA.oscB.levelLadder.currentSample;
-    const float *oscBLevelSteiner = layerA.oscB.levelSteiner.currentSample;
+    const float *oscBLevelLadder = layerA.mixer.oscBLevelLadder.currentSample;
+    const float *oscBLevelSteiner = layerA.mixer.oscBLevelSteiner.currentSample;
     float *oscBOut = layerA.oscB.out.nextSample;
 
     static float oscASample[VOICESPERCHIP] = {0};

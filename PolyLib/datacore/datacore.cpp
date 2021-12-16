@@ -186,10 +186,10 @@ void Input::collectCurrentSample() {
 void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 
     if (direction == 0) {
-        amountRaw = amountRaw + (-0.5f * ROTARYENCODERACELLARATION);
+        amountRaw = amountRaw + (-0.5f * ROTARYENCODERACCELERATION);
     }
     if (direction == 1) {
-        amountRaw = amountRaw + 0.5f * ROTARYENCODERACELLARATION;
+        amountRaw = amountRaw + 0.5f * ROTARYENCODERACCELERATION;
     }
     setAmount(amountRaw);
 }

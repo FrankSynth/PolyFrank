@@ -32,6 +32,7 @@ class Layer {
         modules.push_back(&oscB);
         modules.push_back(&sub);
         modules.push_back(&noise);
+        modules.push_back(&mixer);
         modules.push_back(&steiner);
         modules.push_back(&ladder);
         modules.push_back(&envA);
@@ -117,6 +118,7 @@ class Layer {
     OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
     Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
     Noise noise = Noise("NOISE GENERATOR", "NOISE");
+    Mixer mixer = Mixer("MIXER", "MIXER");
     Steiner steiner = Steiner("STEINER FILTER", "STEINER");
     Ladder ladder = Ladder("LADDER FILTER", "LADDER");
     Distortion distort = Distortion("DISTORTION", "DIST");

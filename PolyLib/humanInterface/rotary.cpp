@@ -11,7 +11,7 @@
 
 #include "rotary.hpp"
 
-float ROTARYENCODERACELLARATION = 0; // store the current Encoder Acceleration for calculation changes
+float ROTARYENCODERACCELERATION = 0; // store the current Encoder Acceleration for calculation changes
 
 const unsigned char ttable[7][4] = {
     // R_START
@@ -74,7 +74,7 @@ void rotary::process(uint16_t pinState) {
 }
 
 void rotary::acellaration() {
-    ROTARYENCODERACELLARATION = testFloat(1. / (millis() - lastStepTime), 0.001, 1);
+    ROTARYENCODERACCELERATION = testFloat(1. / (millis() - lastStepTime), 0.001, 1);
 }
 
 #endif

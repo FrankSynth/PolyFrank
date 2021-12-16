@@ -228,10 +228,10 @@ void initPotiMapping() {
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aMaster), std::placeholders::_1);
 
             potiFunctionPointer[i][0][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCBLevel), std::placeholders::_1);
 
             potiFunctionPointer[i][1][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aLevel), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCALevel), std::placeholders::_1);
 
             potiFunctionPointer[i][2][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->globalModule.aGlide), std::placeholders::_1);
@@ -407,7 +407,7 @@ void switchLEDMapping() {
     for (uint8_t i = 0; i < 2; i++) {
         if (allLayers[i]->LayerState.value == 1) {
             dualLEDSetting(ledDriver[i][0].pwmValue[5], ledDriver[i][0].pwmValue[6],
-                           allLayers[i]->oscA.dVcfDestSwitch.valueMapped);
+                           allLayers[i]->mixer.dOSCADestSwitch.valueMapped);
 
             quadLEDSetting(ledDriver[i][0].pwmValue[0], ledDriver[i][0].pwmValue[1], ledDriver[i][0].pwmValue[2],
                            ledDriver[i][0].pwmValue[3], allLayers[i]->ladder.dSlope.valueMapped);

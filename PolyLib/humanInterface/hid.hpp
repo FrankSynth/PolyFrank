@@ -137,7 +137,7 @@ class PanelTouch {
                 case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->globalModule), event); break;
                 case 8: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iPan), event); break;
                 case 9: evaluateSetting((Digital *)&(allLayers[layerID]->ladder.dSlope), event); break;
-                case 10: evaluateSetting((Digital *)&(allLayers[layerID]->oscA.dVcfDestSwitch), event); break;
+                case 10: evaluateSetting((Digital *)&(allLayers[layerID]->mixer.dOSCADestSwitch), event); break;
                 case 11: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iVCA), event); break;
             }
 

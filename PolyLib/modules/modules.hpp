@@ -127,14 +127,14 @@ class OSC_A : public BaseModule {
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
-        inputs.push_back(&iLevel);
+        // inputs.push_back(&iLevel);
         inputs.push_back(&iOctave);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
-        knobs.push_back(&aLevel);
+        // knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
 
@@ -143,28 +143,28 @@ class OSC_A : public BaseModule {
         switches.push_back(&dSample2);
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
-        switches.push_back(&dVcfDestSwitch);
+        // switches.push_back(&dVcfDestSwitch);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
-        renderBuffer.push_back(&levelSteiner);
-        renderBuffer.push_back(&levelLadder);
+        // renderBuffer.push_back(&levelSteiner);
+        // renderBuffer.push_back(&levelLadder);
     }
 
     Output out = Output("OUT");
 
     Input iFM = Input("FM", logMap);
     Input iMorph = Input("MORPH");
-    Input iLevel = Input("LEVEL");
+    // Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
+    // Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
@@ -174,7 +174,7 @@ class OSC_A : public BaseModule {
     Digital dSample3 = Digital("WAVE 4", 0, 10, 3, true, &nlWavetable);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr);
-    Digital dVcfDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+    // Digital dVcfDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
 
     // render shizzle
 
@@ -182,8 +182,8 @@ class OSC_A : public BaseModule {
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    RenderBuffer levelSteiner;
-    RenderBuffer levelLadder;
+    // RenderBuffer levelSteiner;
+    // RenderBuffer levelLadder;
 
     bool newPhase[VOICESPERCHIP] = {false};
     float phaseWavetableA[VOICESPERCHIP] = {0};
@@ -201,13 +201,13 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iMorph);
         inputs.push_back(&iTuning);
         inputs.push_back(&iOctave);
-        inputs.push_back(&iLevel);
+        // inputs.push_back(&iLevel);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
-        knobs.push_back(&aLevel);
+        // knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
 
@@ -216,15 +216,15 @@ class OSC_B : public BaseModule {
         switches.push_back(&dSample2);
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
-        switches.push_back(&dVcfDestSwitch);
+        // switches.push_back(&dVcfDestSwitch);
         switches.push_back(&dSync);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
-        renderBuffer.push_back(&levelSteiner);
-        renderBuffer.push_back(&levelLadder);
+        // renderBuffer.push_back(&levelSteiner);
+        // renderBuffer.push_back(&levelLadder);
     }
 
     Output out = Output("OUT");
@@ -232,7 +232,7 @@ class OSC_B : public BaseModule {
     Input iFM = Input("FM", logMap);
     Input iMorph = Input("MORPH");
     Input iTuning = Input("TUNING");
-    Input iLevel = Input("LEVEL");
+    // Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
@@ -241,13 +241,13 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -0.2, 0.2, 0, true, linMap, &iTuning);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+    // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
     // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
-    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 1, true, &nlVCFDest);
+    // Digital dVcfDestSwitch = Digital("VCF", 0, 3, 1, true, &nlVCFDest);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
     Digital dSample0 = Digital("WAVE 1", 0, 10, 0, true, &nlWavetable);
@@ -261,8 +261,8 @@ class OSC_B : public BaseModule {
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    RenderBuffer levelSteiner;
-    RenderBuffer levelLadder;
+    // RenderBuffer levelSteiner;
+    // RenderBuffer levelLadder;
 
     bool newPhase[VOICESPERCHIP] = {false};
     float cacheOscAstep[VOICESPERCHIP] = {false};
@@ -278,21 +278,21 @@ class Sub : public BaseModule {
         outputs.push_back(&out);
 
         inputs.push_back(&iShape);
-        inputs.push_back(&iLevel);
+        // inputs.push_back(&iLevel);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aShape);
-        knobs.push_back(&aLevel);
+        // knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
 
-        switches.push_back(&dVcfDestSwitch);
+        // switches.push_back(&dVcfDestSwitch);
         switches.push_back(&dOctaveSwitch);
 
         renderBuffer.push_back(&shape);
-        renderBuffer.push_back(&levelSteiner);
-        renderBuffer.push_back(&levelLadder);
+        // renderBuffer.push_back(&levelSteiner);
+        // renderBuffer.push_back(&levelLadder);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
     }
@@ -300,23 +300,23 @@ class Sub : public BaseModule {
     Output out = Output("OUT");
 
     Input iShape = Input("SHAPE");
-    Input iLevel = Input("LEVEL");
+    // Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
     Analog aShape = Analog("SHAPE", 0.01, 1, 0.01, true, linMap, &iShape);
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+    // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
+    // Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
     // render shizzle
 
     RenderBuffer shape;
-    RenderBuffer levelSteiner;
-    RenderBuffer levelLadder;
+    // RenderBuffer levelSteiner;
+    // RenderBuffer levelLadder;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 
@@ -329,38 +329,38 @@ class Noise : public BaseModule {
     Noise(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
         outputs.push_back(&out);
 
-        inputs.push_back(&iLevel);
+        // inputs.push_back(&iLevel);
         // inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
 
-        knobs.push_back(&aLevel);
+        // knobs.push_back(&aLevel);
         // knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
 
-        switches.push_back(&dVcfDestSwitch);
+        // switches.push_back(&dVcfDestSwitch);
 
-        renderBuffer.push_back(&levelSteiner);
-        renderBuffer.push_back(&levelLadder);
+        // renderBuffer.push_back(&levelSteiner);
+        // renderBuffer.push_back(&levelLadder);
         // renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
     }
 
     Output out = Output("OUT");
 
-    Input iLevel = Input("LEVEL");
+    // Input iLevel = Input("LEVEL");
     // Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
+    // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     // Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
-    Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
+    // Digital dVcfDestSwitch = Digital("VCF", 0, 3, 2, true, &nlVCFDest);
 
     // render shizzle
 
-    RenderBuffer levelSteiner;
-    RenderBuffer levelLadder;
+    // RenderBuffer levelSteiner;
+    // RenderBuffer levelLadder;
     // RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 };
@@ -384,12 +384,14 @@ class Mixer : public BaseModule {
         switches.push_back(&dSUBDestSwitch);
         switches.push_back(&dNOISEDestSwitch);
 
-        // renderBuffer.push_back(&note);
-        // renderBuffer.push_back(&morph);
-        // renderBuffer.push_back(&bitcrusher);
-        // renderBuffer.push_back(&samplecrusher);
-        // renderBuffer.push_back(&levelSteiner);
-        // renderBuffer.push_back(&levelLadder);
+        renderBuffer.push_back(&oscALevelSteiner);
+        renderBuffer.push_back(&oscALevelLadder);
+        renderBuffer.push_back(&oscBLevelSteiner);
+        renderBuffer.push_back(&oscBLevelLadder);
+        renderBuffer.push_back(&subLevelSteiner);
+        renderBuffer.push_back(&subLevelLadder);
+        renderBuffer.push_back(&noiseLevelSteiner);
+        renderBuffer.push_back(&noiseLevelLadder);
     }
 
     Input iOSCALevel = Input("LEVEL");
@@ -407,14 +409,14 @@ class Mixer : public BaseModule {
     Digital dSUBDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
     Digital dNOISEDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
 
-    // render shizzle
-
-    // RenderBuffer note;
-    // RenderBuffer morph;
-    // RenderBuffer bitcrusher;
-    // RenderBuffer samplecrusher;
-    // RenderBuffer levelSteiner;
-    // RenderBuffer levelLadder;
+    RenderBuffer oscALevelSteiner;
+    RenderBuffer oscALevelLadder;
+    RenderBuffer oscBLevelSteiner;
+    RenderBuffer oscBLevelLadder;
+    RenderBuffer subLevelSteiner;
+    RenderBuffer subLevelLadder;
+    RenderBuffer noiseLevelSteiner;
+    RenderBuffer noiseLevelLadder;
 };
 
 class Steiner : public BaseModule {

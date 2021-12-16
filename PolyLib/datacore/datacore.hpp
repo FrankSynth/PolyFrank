@@ -19,7 +19,7 @@
 #define VECTORDEFAULTINITSIZE 5
 #define VOICESPERCHIP 4
 
-extern float ROTARYENCODERACELLARATION;
+extern float ROTARYENCODERACCELERATION;
 
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
@@ -197,11 +197,11 @@ class Analog : public DataElement {
             setValue(
                 value -
                 (testInt(
-                    inputRange / 2 * ROTARYENCODERACELLARATION, 1,
+                    inputRange / 2 * ROTARYENCODERACCELERATION, 1,
                     maxInputValue))); // use Acellaration and test for min step of 1 -> for low resolution analog inputs
         }
         if (direction == 1) {
-            setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACELLARATION, 1, maxInputValue)));
+            setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACCELERATION, 1, maxInputValue)));
         }
     }
 
@@ -524,7 +524,7 @@ inline const std::string &Analog::getValueAsString() {
 }
 inline void Setting::increase(int32_t amount) {
     if (useAcceleration) {
-        value = changeInt(value, testInt((max - min) / 2 * ROTARYENCODERACELLARATION, 1, max), min, max);
+        value = changeInt(value, testInt((max - min) / 2 * ROTARYENCODERACCELERATION, 1, max), min, max);
     }
     else {
         value = changeInt(value, amount, min, max);
@@ -540,7 +540,7 @@ inline void Setting::increase(int32_t amount) {
 
 inline void Setting::decrease(int32_t amount) {
     if (useAcceleration) {
-        value = changeInt(value, -testInt((max - min) / 2 * ROTARYENCODERACELLARATION, 1, max), min, max);
+        value = changeInt(value, -testInt((max - min) / 2 * ROTARYENCODERACCELERATION, 1, max), min, max);
     }
     else {
         value = changeInt(value, amount, min, max);

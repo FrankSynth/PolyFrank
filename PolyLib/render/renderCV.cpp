@@ -10,10 +10,12 @@
 #include "renderImperfection.hpp"
 #include "renderLFO.hpp"
 #include "renderLadder.hpp"
+#include "renderMixer.hpp"
 #include "renderNoise.hpp"
 #include "renderOSC.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
+
 
 extern MCP4728 cvDac[10];
 
@@ -384,6 +386,7 @@ void renderCVs() {
     renderOSC_B(layerA.oscB);
     renderSub(layerA.sub);
     renderNoise(layerA.noise);
+    renderMixer(layerA.mixer);
     renderSteiner(layerA.steiner);
     renderLadder(layerA.ladder);
     renderDistort(layerA.distort);
