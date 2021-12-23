@@ -4,7 +4,6 @@
 extern Layer layerA;
 
 #ifdef POLYRENDER
-extern bool chipID;
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -565,7 +564,7 @@ uint8_t COMinterChip::copyReceivedInBuffer() {
 }
 
 uint8_t COMinterChip::checkVoice(uint8_t voice) {
-    if (chipID == 0) {
+    if (layerA.chipID == 0) {
         if (voice < VOICESPERCHIP)
             return voice;
         else

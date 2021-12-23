@@ -6,10 +6,6 @@
 
 extern Layer layerA;
 
-// inline float accumulateLevel(OSC_A &osc_a, uint16_t voice) {
-//     return testFloat(osc_a.iLevel.currentSample[voice] + osc_a.aLevel.valueMapped, osc_a.aLevel.min,
-//     osc_a.aLevel.max);
-// }
 inline float accumulateBitcrusher(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iBitcrusher.currentSample[voice] + osc_a.aBitcrusher.valueMapped, osc_a.aBitcrusher.min,
                      osc_a.aBitcrusher.max);
@@ -29,17 +25,11 @@ inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
 float noteConverted[VOICESPERCHIP];
 
 inline void accumulateNote(OSC_A &osc_a, float *note) {
-    // TODO check glide
-    // TODO detune missing
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / 12.0f;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         noteConverted[i] += layerA.oscA.aMasterTune.valueMapped;
-
-    // TODO settings pitchbend range missing
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        noteConverted[i] += layerA.midi.oPitchbend.currentSample[i]; // * pitchbendrange/12
 
     static float currentNote[VOICESPERCHIP] = {0};
     static float desiredNote[VOICESPERCHIP] = {0};
@@ -51,15 +41,22 @@ inline void accumulateNote(OSC_A &osc_a, float *note) {
         desiredNote[i] += accumulateOctave(osc_a, i);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.feel.detune.currentSample[i];
+
+    // TODO check glide, plus glide settings, i.e. CT & CR
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
             currentNote[i] =
-                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide.currentSample[i], desiredNote[i]);
         else
             currentNote[i] =
-                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide.currentSample[i], desiredNote[i]);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = currentNote[i] + osc_a.iFM.currentSample[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += layerA.midi.oPitchbend.currentSample[i] * layerA.layersettings.dPitchbendRange.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = fastNoteLin2Log_f32(note[i]);
@@ -70,10 +67,6 @@ void renderOSC_A(OSC_A &osc_A) {
     float *outMorph = osc_A.morph.nextSample;
     float *outBitcrusher = osc_A.bitcrusher.nextSample;
     float *outSamplecrusher = osc_A.samplecrusher.nextSample;
-    // float *outLevelSteiner = osc_A.levelSteiner.nextSample;
-    // float *outLevelLadder = osc_A.levelLadder.nextSample;
-    // int32_t &filterSwitch = osc_A.dVcfDestSwitch.valueMapped;
-    // float level[VOICESPERCHIP];
 
     accumulateNote(osc_A, outNote);
 
@@ -83,43 +76,10 @@ void renderOSC_A(OSC_A &osc_A) {
         outBitcrusher[voice] = accumulateBitcrusher(osc_A, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outSamplecrusher[voice] = accumulateSamplecrusher(osc_A, voice);
-    // for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //     level[voice] = accumulateLevel(osc_A, voice);
-
-    // switch (filterSwitch) {
-    //     case 0:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = level[voice];
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = 0;
-    //         break;
-    //     case 1:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = 0;
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = level[voice];
-    //         break;
-    //     case 2:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = level[voice];
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = level[voice];
-    //         break;
-    //     case 3:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = 0;
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = 0;
-    //         break;
-    // }
 }
 
 ///////////////////////////// OSC B /////////////////////////////////
 
-// inline float accumulateLevel(OSC_B &osc_b, uint16_t voice) {
-//     return testFloat(osc_b.iLevel.currentSample[voice] + osc_b.aLevel.valueMapped, osc_b.aLevel.min,
-//     osc_b.aLevel.max);
-// }
 inline float accumulateBitcrusher(OSC_B &osc_b, uint16_t voice) {
     return testFloat(osc_b.iBitcrusher.currentSample[voice] + osc_b.aBitcrusher.valueMapped, osc_b.aBitcrusher.min,
                      osc_b.aBitcrusher.max);
@@ -150,18 +110,27 @@ inline void accumulateNote(OSC_B &osc_b, float *note) {
         desiredNote[i] += layerA.oscB.aTuning.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.oscA.aMasterTune.valueMapped;
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.feel.detune.currentSample[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += accumulateOctave(osc_b, i);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
             currentNote[i] =
-                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+                std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide.currentSample[i], desiredNote[i]);
         else
             currentNote[i] =
-                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.globalModule.aGlide.valueMapped, desiredNote[i]);
+                std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide.currentSample[i], desiredNote[i]);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = currentNote[i] + osc_b.iFM.currentSample[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        note[i] += layerA.midi.oPitchbend.currentSample[i] * layerA.layersettings.dPitchbendRange.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         note[i] = fastNoteLin2Log_f32(note[i]);
@@ -173,10 +142,6 @@ void renderOSC_B(OSC_B &osc_B) {
     float *outMorph = osc_B.morph.nextSample;
     float *outBitcrusher = osc_B.bitcrusher.nextSample;
     float *outSamplecrusher = osc_B.samplecrusher.nextSample;
-    // float *outLevelSteiner = osc_B.levelSteiner.nextSample;
-    // float *outLevelLadder = osc_B.levelLadder.nextSample;
-    // int32_t &filterSwitch = osc_B.dVcfDestSwitch.valueMapped;
-    // float level[VOICESPERCHIP];
 
     accumulateNote(osc_B, outNote);
 
@@ -186,35 +151,6 @@ void renderOSC_B(OSC_B &osc_B) {
         outBitcrusher[voice] = accumulateBitcrusher(osc_B, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outSamplecrusher[voice] = accumulateSamplecrusher(osc_B, voice);
-    // for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //     level[voice] = accumulateLevel(osc_B, voice);
-
-    // switch (filterSwitch) {
-    //     case 0:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = level[voice];
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = 0;
-    //         break;
-    //     case 1:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = 0;
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = level[voice];
-    //         break;
-    //     case 2:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = level[voice];
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = level[voice];
-    //         break;
-    //     case 3:
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelSteiner[voice] = 0;
-    //         for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-    //             outLevelLadder[voice] = 0;
-    //         break;
-    // }
 }
 
 #endif

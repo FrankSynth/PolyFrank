@@ -130,15 +130,15 @@ class PanelTouch {
                 case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
                 case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
                 case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
-                case 3: evaluateInput((Input *)&(allLayers[layerID]->distort.iDistort), event); break;
-                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->distort), event); break;
-                case 5: evaluateOutput((Output *)&(allLayers[layerID]->imperfect.oSpread), event); break;
+                case 3: evaluateInput((Input *)&(allLayers[layerID]->out.iDistort), event); break;
+                case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
+                case 5: evaluateOutput((Output *)&(allLayers[layerID]->feel.oSpread), event); break;
                 case 6: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
-                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->globalModule), event); break;
-                case 8: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iPan), event); break;
+                case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
+                case 8: evaluateInput((Input *)&(allLayers[layerID]->out.iPan), event); break;
                 case 9: evaluateSetting((Digital *)&(allLayers[layerID]->ladder.dSlope), event); break;
                 case 10: evaluateSetting((Digital *)&(allLayers[layerID]->mixer.dOSCADestSwitch), event); break;
-                case 11: evaluateInput((Input *)&(allLayers[layerID]->globalModule.iVCA), event); break;
+                case 11: evaluateInput((Input *)&(allLayers[layerID]->out.iVCA), event); break;
             }
 
             return;

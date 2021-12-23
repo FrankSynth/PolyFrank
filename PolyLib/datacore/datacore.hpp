@@ -29,7 +29,6 @@ enum typeLinLog { linMap, logMap, antilogMap };
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
 uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-// uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset);
 #endif
 
 class DataElement {
@@ -78,7 +77,7 @@ class Error {
 // basic data element
 class Setting : public DataElement {
   public:
-    Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
+    Setting(const char *name, int32_t min = 0, int32_t max = 0, int32_t value = 1, bool sendOutViaCom = true,
             typeDisplayValue type = continuous, const std::vector<std::string> *valueNameList = nullptr) {
 
         this->value = value;
@@ -95,9 +94,9 @@ class Setting : public DataElement {
 #ifdef POLYCONTROL
         if (valueNameList == nullptr)
             valueName = std::to_string(value);
-            // if (sendOutViaCom) {
-            //     sendSetting(layerId, moduleId, id, value);
-            // }
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, value);
+        }
 #endif
     }
 
@@ -316,8 +315,7 @@ class NameElement {
     std::string name;
 };
 
-class PatchElement; // define class to fix no declaration error from Input and Output Class
-// class PatchElementOutOut; // define class to fix no declaration error from Input and Output Class
+class PatchElement; // forward declaration necessary
 
 // input patchesInOut
 class BasePatch {
@@ -332,7 +330,6 @@ class BasePatch {
 
     inline const std::string &getName() { return name; };
     inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
-    // inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
 
     uint8_t id;
     uint8_t moduleId;
@@ -352,7 +349,6 @@ class Input : public BasePatch {
         this->name = name;
         this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-        this->mapping = mapping;
         this->visible = visible;
     }
 
@@ -371,7 +367,6 @@ class Output : public BasePatch {
     Output(const char *name, uint8_t visible = 1) {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-        // patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
 
         currentSample = bufferCurrentSample;
         nextSample = bufferNextSample;
@@ -429,6 +424,10 @@ class ID {
     uint8_t idCounter = 0;
 };
 
+/**
+ * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
+ *
+ */
 class RenderBuffer {
   public:
     RenderBuffer() {
@@ -482,38 +481,13 @@ inline void PatchElement::changeAmount(float change) {
 #endif
 }
 
-// inline void PatchElementOutOut::changeAmount(float change) {
-//     setAmount(amount + change);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
-
-// inline void PatchElementOutOut::changeOffset(float change) {
-//     setOffset(offset + change);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
-
-// inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
-//     setAmount(amount);
-//     setOffset(offset);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
 inline void BasePatch::clearPatches() {
     patchesInOut.clear();
-    // patchesOutOut.clear();
 }
 
 inline void BasePatch::addPatchInOut(PatchElement &patch) {
     patchesInOut.push_back(&patch);
 }
-// inline void BasePatch::addPatchOutOut(PatchElementOutOut &patch) {
-//     patchesOutOut.push_back(&patch);
-// }
 
 inline void Setting::reset() {
     value = defaultValue;

@@ -101,25 +101,6 @@ class Midi : public BaseModule {
     }
 };
 
-class Imperfection : public BaseModule {
-  public:
-    Imperfection(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
-        outputs.push_back(&oSpread);
-        outputs.push_back(&oDrift);
-
-        knobs.push_back(&aSpread);
-        knobs.push_back(&aDrift);
-
-        // switches.push_back(&dGate);
-    }
-
-    Output oSpread = Output("Spread");
-    Output oDrift = Output("Drift");
-
-    Analog aSpread = Analog("Spread", 0, 1, 0, true, linMap);
-    Analog aDrift = Analog("Drift", 0, 1, 0, true, linMap);
-};
-
 class OSC_A : public BaseModule {
   public:
     OSC_A(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
@@ -162,7 +143,7 @@ class OSC_A : public BaseModule {
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
+    Analog aMasterTune = Analog("MASTERTUNE", -7, 7, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     // Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
@@ -240,7 +221,7 @@ class OSC_B : public BaseModule {
     // Input iSync = Input("SYNC");
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -0.2, 0.2, 0, true, linMap, &iTuning);
+    Analog aTuning = Analog("TUNING", -7, 7, 0, true, linMap, &iTuning);
     // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -498,24 +479,6 @@ class Ladder : public BaseModule {
     RenderBuffer cutoff;
 };
 
-class Distortion : public BaseModule {
-  public:
-    Distortion(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
-
-        inputs.push_back(&iDistort);
-
-        knobs.push_back(&aDistort);
-
-        renderBuffer.push_back(&distort);
-    }
-
-    Input iDistort = Input("DRIVE");
-
-    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
-
-    RenderBuffer distort;
-};
-
 class LFO : public BaseModule {
   public:
     LFO(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
@@ -696,39 +659,87 @@ class ADSR : public BaseModule {
     ADSR_State currentState[VOICESPERCHIP] = {OFF};
 };
 
-class GlobalModule : public BaseModule {
-    // TODO spread knob as output? Additional different spreading algos, and knob to select those?
-    // TODO master volume
+class Feel : public BaseModule {
+  public:
+    Feel(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
+
+        inputs.push_back(&iGlide);
+        inputs.push_back(&iDetune);
+
+        outputs.push_back(&oSpread);
+        // outputs.push_back(&oDrift);
+
+        knobs.push_back(&aGlide);
+        knobs.push_back(&aDetune);
+        knobs.push_back(&aSpread);
+        knobs.push_back(&aDrift);
+
+        renderBuffer.push_back(&glide);
+        renderBuffer.push_back(&detune);
+    }
+
+    Input iGlide = Input("GLIDE");
+    Input iDetune = Input("DETUNE");
+
+    Output oSpread = Output("SPREAD");
+    // Output oDrift = Output("DRIFT");
+
+    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
+    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
+    Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
+    Analog aDrift = Analog("DRIFT", 0, 1, 0, true, linMap);
+
+    RenderBuffer glide;
+    RenderBuffer detune;
+};
+
+class Out : public BaseModule {
 
   public:
-    GlobalModule(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
+    Out(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
 
+        inputs.push_back(&iDistort);
         inputs.push_back(&iVCA);
         inputs.push_back(&iPan);
 
+        knobs.push_back(&aDistort);
         knobs.push_back(&aVCA);
         knobs.push_back(&aADSR);
-        knobs.push_back(&aGlide);
         knobs.push_back(&aPan);
-        knobs.push_back(&aSpread);
-        knobs.push_back(&aDetune);
+        knobs.push_back(&aPanSpread);
         knobs.push_back(&aMaster);
 
+        renderBuffer.push_back(&distort);
         renderBuffer.push_back(&left);
         renderBuffer.push_back(&right);
     }
 
+    Input iDistort = Input("DRIVE");
     Input iVCA = Input("VCA", logMap);
     Input iPan = Input("PAN");
 
+    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
-    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
-    Analog aSpread = Analog("SPREAD", 0, 1, 0, true, logMap);
-    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
+    Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true, logMap);
     Analog aMaster = Analog("MASTER", 0, 1, 0, true, linMap);
 
     RenderBuffer left;
     RenderBuffer right;
+
+    RenderBuffer distort;
+};
+
+class LayerSetting : public BaseModule {
+
+  public:
+    LayerSetting(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
+
+        this->displayVis = 0;
+
+        switches.push_back(&dPitchbendRange);
+    }
+
+    Digital dPitchbendRange = Digital("PITCHBEND RANGE", 1, 24, 1, true, nullptr, nullptr);
 };

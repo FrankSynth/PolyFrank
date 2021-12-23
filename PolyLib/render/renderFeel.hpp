@@ -2,4 +2,4 @@
 
 #include "layer/layer.hpp"
 
-void renderDistort(Distortion &distort);
+void renderFeel(Feel feel);
