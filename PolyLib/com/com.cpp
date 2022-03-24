@@ -378,9 +378,6 @@ void COMinterChip::initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t
     dmaOutBufferPointer[0] = dmaBuffer;
     dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
 
-    outBuffer[0].reserve(INTERCHIPBUFFERSIZE);
-    outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
-
     pushDummySizePlaceHolder();
     // FlagHandler::interChipSend_MDMA_FinishedFunc = std::bind(&COMinterChip::startSendDMA, this);
     FlagHandler::interChipSend_DMA_FinishedFunc = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
@@ -393,6 +390,7 @@ uint8_t COMinterChip::startSendDMA() {
 #ifdef POLYCONTROL
 
     // TODO currently wrong? more defined state pls, response vs datareception (last should be separate i think)
+    // !! see comInterchipStates !!
     for (uint8_t i = 0; i < 2; i++) {
         for (uint8_t j = 0; j < 2; j++) {
             FlagHandler::renderChip_State[i][j] = WAITFORRESPONSE;
@@ -402,7 +400,7 @@ uint8_t COMinterChip::startSendDMA() {
 #endif
 
     fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
-                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize >> 2) + 1);
+                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 3) >> 2);
 
     blockNewSendBeginCommand = 1;
 
@@ -426,6 +424,11 @@ uint8_t COMinterChip::startSendDMA() {
     return ret;
 }
 
+/**
+ * @brief out DMA was successfull, executed from DMA callback
+ *
+ * @return uint8_t status
+ */
 uint8_t COMinterChip::sendTransmissionSuccessfull() {
 
 #ifdef POLYCONTROL
@@ -471,7 +474,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         return 1;
     }
 
-    if ((dmaInBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
+    fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentOutBufferSelect]++),
+                  (uint32_t *)(inBufferPointer[currentOutBufferSelect]++), (sizeOfReadBuffer - 1 + 3) >> 2);
+
+    if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
         // last byte must be at this position, sort of CRC
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
         return 1;
@@ -479,7 +485,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     // start with offset, as two bytes were size
     for (uint8_t i = 1; i < sizeOfReadBuffer; i++) {
-        uint8_t currentByte = (dmaInBufferPointer[currentInBufferSelect])[i];
+        uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
 
         if (currentByte == LASTBYTE) {
             beginReceiveTransmission();
@@ -502,14 +508,14 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         // convert voice 4-7 to 0-3 if on chip B
         voice = checkVoiceAgainstChipID(voice);
 
-        currentByte = (dmaInBufferPointer[currentInBufferSelect])[++i];
+        currentByte = (inBufferPointer[currentInBufferSelect])[++i];
         switch (currentByte) {
 
 #ifdef POLYRENDER
             case UPDATEINOUTPATCH:
-                outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id)
@@ -518,9 +524,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case CREATEINOUTPATCH:
-                outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
                 i += 3; // sizeof(float) - 1
 
@@ -530,8 +536,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case DELETEINOUTPATCH:
-                outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
+                outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                inputID = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (layerID == layerA.id)
                     layerA.removePatchInOutById(outputID, inputID);
@@ -545,8 +551,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case NEWNOTE:
-                note = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                velocity = (dmaInBufferPointer[currentInBufferSelect])[++i];
+                note = (inBufferPointer[currentInBufferSelect])[++i];
+                velocity = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (voice != NOVOICE && layerID == layerA.id) {
                     // println("new note played");
@@ -579,8 +585,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case UPDATESETTINGINT:
-                setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
-                amountInt = *(int32_t *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                setting = (inBufferPointer[currentInBufferSelect])[++i];
+                amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(int32_t) - 1
 
                 if (layerID == layerA.id) {
@@ -590,9 +596,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case UPDATESETTINGFLOAT:
-                setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
+                setting = (inBufferPointer[currentInBufferSelect])[++i];
 
-                amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id) {

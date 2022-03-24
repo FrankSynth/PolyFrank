@@ -21,7 +21,7 @@
 #define OUTPUTBUFFERSIZE 512
 #endif
 
-#define INTERCHIPBUFFERSIZE 128
+#define INTERCHIPBUFFERSIZE 128 // max 255, currently uint8_t
 
 #define ERRORCODE_SENDBLOCK 20
 #define ERRORCODE_RECEPTORNOTREADY 21
@@ -250,15 +250,7 @@ class COMdin {
 
 #endif
 
-#ifdef POLYCONTROL
-
 enum comInterchipStates { readyReceive, readySend, Decode };
-
-#elif POLYRENDER
-
-enum comInterchipStates { readyReceive, readySend, Decode };
-
-#endif
 
 // class for interchip communication in both directions
 class COMinterChip {
@@ -282,15 +274,6 @@ class COMinterChip {
 
 #elif POLYRENDER
 
-  public:
-    comInterchipStates state;
-
-    // init as Input Com
-
-    // start DMA reception, user by render chip
-    uint8_t beginReceiveTransmission();
-    uint8_t decodeCurrentInBuffer();
-
   private:
     // decode received Buffer
     uint8_t checkVoiceAgainstChipID(uint8_t voice);
@@ -302,46 +285,59 @@ class COMinterChip {
                             std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
     void initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaTransmitFunc, uint8_t *dmaBuffer);
 
-    // start copying data for render chip A via MDMA
-    uint8_t startSendMDMA();
-
-    // after first MDMA finished, start DMA transfer to render chip A
-    uint8_t startSendDMA();
-
     // send DMA was successfull
     uint8_t sendTransmissionSuccessfull();
 
     // send out current out buffer
     uint8_t beginSendTransmission();
 
-    COMinterChip() {}
+    uint8_t beginReceiveTransmission();
+
+    uint8_t decodeCurrentInBuffer();
+
+    COMinterChip() {
+
+        inBufferPointer[0] = inBuffer;
+        inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE;
+
+        outBuffer[0].reserve(INTERCHIPBUFFERSIZE);
+        outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
+    }
 
   private:
+    comInterchipStates state;
+
+    // setup MDMA for DMA to RAM transfers and vice versa
+    // void prepareSendMDMAHandle();
+
+    // start copying data for render chip A via MDMA
+    // uint8_t startSendMDMA();
+
+    // after first MDMA finished, start DMA transfer to render chip A
+    uint8_t startSendDMA();
+
     // wrap up send buffers with closing bytes
     uint8_t appendLastByte();
 
     // start new send buffers with a 2-byte placeholder for size
     void pushDummySizePlaceHolder();
 
+    // push data into send out buffer
+    uint8_t pushOutBuffer(uint8_t *data, uint32_t size);
+
     // buffer full, send now
     uint8_t invokeBufferFullSend();
-
-    std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA = nullptr;
-
-    uint8_t *dmaOutBufferPointer[2];
-    uint8_t dmaOutCurrentBufferSize;
 
     // flag to block new send commands while send task is in progress
     uint8_t blockNewSendBeginCommand = 0;
 
-    // uint8_t pushOutBuffer(uint8_t data);
-    uint8_t pushOutBuffer(uint8_t *data, uint32_t size);
-
+    uint8_t *dmaOutBufferPointer[2];
+    uint8_t dmaOutCurrentBufferSize;
     std::vector<uint8_t> outBuffer[2];
-    uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2];
 
-    // setup MDMA for DMA to RAM transfers and vice versa
-    // void prepareSendMDMAHandle();
+    uint8_t *inBufferPointer[2];
+    uint8_t *dmaInBufferPointer[2];
+    uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2];
 
     uint8_t currentInBufferSelect = 0;
     uint8_t currentOutBufferSelect = 0;
@@ -349,8 +345,7 @@ class COMinterChip {
     void switchInBuffer();
     void switchOutBuffer();
 
-    std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA;
-    std::function<uint8_t()> stopReceiveViaDMA;
-
-    uint8_t *dmaInBufferPointer[2];
+    std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA = nullptr;
+    std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA = nullptr;
+    std::function<uint8_t()> stopReceiveViaDMA = nullptr;
 };

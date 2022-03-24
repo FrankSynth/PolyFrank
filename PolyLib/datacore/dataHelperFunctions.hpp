@@ -301,7 +301,7 @@ class elapsedSeconds {
  * @brief Copies the elements of a floating-point vector.
  * @param[in]       *pSrc points to input vector
  * @param[out]      *pDst points to output vector
- * @param[in]       length of the input vector
+ * @param[in]       length of the input vector in word
  * @return none.
  *
  */
