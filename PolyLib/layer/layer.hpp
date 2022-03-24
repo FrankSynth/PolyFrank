@@ -7,6 +7,11 @@
 #include <string>
 #include <vector>
 
+#ifdef POLYRENDER
+#include "render/renderAudioDef.h"
+#include "render/renderCVDef.h"
+#endif
+
 typedef struct {
     uint8_t sourceID;
     uint8_t targetID;
@@ -83,8 +88,11 @@ class Layer {
     }
 
     float spreadValues[VOICESPERCHIP];
+    float noteImperfection[OSCPERVOICE][VOICESPERCHIP][NOTEIMPERFECTIONBUFFERSIZE];
+    float lfoImperfection[VOICESPERCHIP];
+    float adsrImperfection[VOICESPERCHIP];
 
-    void initSpreading();
+    void initLayer();
 
     uint8_t chipID;
 
@@ -113,7 +121,7 @@ class Layer {
     std::vector<Output *> outputs;     //  vector of all outputs
     std::list<PatchElement> patchesInOut;
 
-    Setting LayerState = Setting("LayerState", 0, 1, 0, false, binary);
+    Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
 
   private:
 };

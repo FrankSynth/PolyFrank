@@ -10,18 +10,13 @@ namespace FlagHandler {
 #ifdef POLYCONTROL
 
 // InterChip send flags
-extern bool interChipA_MDMA_Started[2];
-extern bool interChipA_MDMA_Finished[2];
-extern std::function<uint8_t()> interChipA_MDMA_FinishedFunc[2];
-extern bool interChipA_DMA_Started[2];
-extern bool interChipA_DMA_Finished[2];
-extern std::function<uint8_t()> interChipA_DMA_FinishedFunc[2];
-extern bool interChipB_MDMA_Started[2];
-extern bool interChipB_MDMA_Finished[2];
-extern std::function<uint8_t()> interChipB_MDMA_FinishedFunc[2];
-extern bool interChipB_DMA_Started[2];
-extern bool interChipB_DMA_Finished[2];
-extern std::function<uint8_t()> interChipB_DMA_FinishedFunc[2];
+
+#define LAYERA 0
+#define LAYERB 1
+#define CHIPA 0
+#define CHIPB 1
+
+extern bool layerActive[2];
 
 extern bool HID_Initialized;
 
@@ -42,11 +37,9 @@ extern bool Panel_0_EOC_Interrupt;
 extern bool Panel_1_EOC_Interrupt;
 extern std::function<void()> Panel_EOC_ISR;
 
-extern interChipState interChipA_State[2];
-extern interChipState interChipB_State[2];
+extern interChipState renderChip_State[2][2];
 
-extern elapsedMillis interChipA_StateTimeout[2];
-extern elapsedMillis interChipB_StateTimeout[2];
+extern elapsedMillis renderChip_StateTimeout[2][2];
 
 extern bool USB_HS_CONNECTED;
 extern bool USB_FS_CONNECTED;
@@ -60,17 +53,6 @@ extern std::function<void()> readTemperature_ISR;
 #elif POLYRENDER
 
 // InterChip receive flags
-extern bool interChipReceive_DMA_Started;
-extern bool interChipReceive_DMA_Finished;
-extern std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
-extern bool interChipReceive_MDMA_Started;
-extern bool interChipReceive_MDMA_Finished;
-extern std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
-
-// extern bool saiHalfCptl;
-// extern std::function<uint8_t()> saiHalfCptlFunc;
-// extern bool saiCptl;
-// extern std::function<uint8_t()> saiCptlFunc;
 
 extern bool cvDacStarted[10];
 extern bool cvDacFinished[10];
@@ -79,10 +61,17 @@ extern bool cvDacLastFinished[3];
 extern bool renderNewCV;
 extern bool cvRendered;
 extern bool cvSent;
-extern std::function<void()> renderNewCVFunc;
-extern std::function<void()> sendRenderedCVsFunc;
+extern void (*renderNewCVFunc)();
+extern void (*sendRenderedCVsFunc)();
 
 #endif
+
+extern bool interChipSend_MDMA_Started;
+extern bool interChipSend_MDMA_Finished;
+extern std::function<uint8_t()> interChipSend_MDMA_FinishedFunc;
+extern bool interChipSend_DMA_Started;
+extern bool interChipSend_DMA_Finished;
+extern std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
 
 void handleFlags();
 void initFlagHandler();

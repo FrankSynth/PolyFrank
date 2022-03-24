@@ -2,4 +2,4 @@
 
 #include "layer/layer.hpp"
 
-void renderOut(Out out);
+void renderOut(Out &out);

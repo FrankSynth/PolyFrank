@@ -3,7 +3,7 @@
 #include "com/com.hpp"
 #include "layer/layer.hpp"
 
-extern COMinterChip layerCom[2];
+extern COMinterChip layerCom;
 extern std::vector<Layer *> allLayers;
 
 void VoiceHandler::playNote(Key &key) {
@@ -38,7 +38,7 @@ void VoiceHandler::playNote(Key &key) {
         v->velocity = key.velocity;
         v->playID = playIDCounter;
 
-        layerCom[v->layerID].sendNewNote(v->voiceID, v->note, v->velocity);
+        layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
         // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
 
@@ -108,7 +108,7 @@ void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 
     v->status = FREE;
 
-    layerCom[v->layerID].sendCloseGate(v->voiceID);
+    layerCom.sendCloseGate(v->layerID, v->voiceID);
 }
 
 void VoiceHandler::sustainOff(uint8_t layer) {
@@ -219,7 +219,7 @@ void VoiceHandler::searchNextVoiceAB() {
 
     // find oldest FREE Voice
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->LayerState.value == 1) { // check layerState
+        if (allLayers[i]->layerState.value == 1) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
                     if (voices[i][x].playID <= nextVoice->playID) {
@@ -234,7 +234,7 @@ void VoiceHandler::searchNextVoiceAB() {
     if (nextVoice == nullptr) {
 
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->LayerState.value == 1) { // check layerState
+            if (allLayers[i]->layerState.value == 1) { // check layerState
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                     if (voices[i][x].status == SELECT) { // not already selected

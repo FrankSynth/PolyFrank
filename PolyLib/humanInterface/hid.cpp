@@ -1,6 +1,8 @@
 #ifdef POLYCONTROL
 
 #include "hid.hpp"
+#include "datacore/dataHelperFunctions.hpp"
+#include <string.h>
 
 #define PANELACTIVE 1
 
@@ -100,7 +102,7 @@ void initHID() {
     // init Panels
     // init Layer 0
 
-    if (allLayers[0]->LayerState.value == 1) {
+    if (allLayers[0]->layerState.value == 1) {
         touchPanel[0][0].init(&i2cBusSwitchLayer[0]); // touch IC
         touchPanel[0][1].init(&i2cBusSwitchLayer[0]); // touch IC
 
@@ -110,7 +112,7 @@ void initHID() {
     }
     // init Layer 1
 
-    if (allLayers[1]->LayerState.value == 1) {
+    if (allLayers[1]->layerState.value == 1) {
         touchPanel[1][0].init(&i2cBusSwitchLayer[1]); // touch IC
         touchPanel[1][1].init(&i2cBusSwitchLayer[1]); // touch IC
 
@@ -189,7 +191,7 @@ void processPanelPotis() {
     multiplexer.nextChannel();
 
     for (uint16_t id = 0; id < 2; id++) {                         // for every layer
-        if (allLayers[id]->LayerState.value == 1) {               // check layer active state
+        if (allLayers[id]->layerState.value == 1) {               // check layer active state
             adc[id].fetchNewData();                               // fetch ADC data
             for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
 
@@ -213,7 +215,7 @@ void resetPanelPotis() {
 void initPotiMapping() {
 
     for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
-        if (allLayers[i]->LayerState.value == 1) {
+        if (allLayers[i]->layerState.value == 1) {
 
             potiFunctionPointer[i][0][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
@@ -264,7 +266,7 @@ void initPotiMapping() {
                 std::bind(&Digital::setValue, &(allLayers[i]->oscB.dOctave), std::placeholders::_1);
         }
 
-        // if (allLayers[i]->LayerState.value == 1) {
+        // if (allLayers[i]->layerState.value == 1) {
 
         //     potiFunctionPointer[i][0][0] =
         //         std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
@@ -307,7 +309,7 @@ void initPotiMapping() {
 void renderLED() {
     for (int i = 0; i < 2; i++) { // for both Layer
 
-        if (allLayers[i]->LayerState.value) {
+        if (allLayers[i]->layerState.value) {
 
             // static location focusCompare = {0, 0, 0, FOCUSLAYER};
             uint8_t pulseBrightness =
@@ -405,7 +407,7 @@ void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness) {
 void switchLEDMapping() {
 
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->LayerState.value == 1) {
+        if (allLayers[i]->layerState.value == 1) {
             dualLEDSetting(ledDriver[i][0].pwmValue[5], ledDriver[i][0].pwmValue[6],
                            allLayers[i]->mixer.dOSCADestSwitch.valueMapped);
 

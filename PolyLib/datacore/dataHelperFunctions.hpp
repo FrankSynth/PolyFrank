@@ -2,6 +2,7 @@
 
 #include "tim.h"
 #include <cmath>
+#include <random>
 #include <stdint.h>
 
 #ifndef ALWAYS_INLINE
@@ -310,11 +311,11 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
     uint32_t in1, in2, in3, in4;
 
     /*loop Unrolling */
-    blkCnt = blockSize >> 2U;
+    blkCnt = blockSize >> 2;
 
     /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
      ** a second loop below computes the remaining 1 to 3 samples. */
-    while (blkCnt > 0U) {
+    while (blkCnt > 0) {
         /* C = A */
         /* Copy and then store the results in the destination buffer */
         in1 = *pSrc++;
@@ -333,9 +334,9 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
 
     /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
      ** No loop unrolling is used. */
-    blkCnt = blockSize % 0x4U;
+    blkCnt = blockSize & 0x03;
 
-    while (blkCnt > 0U) {
+    while (blkCnt > 0) {
         /* C = A */
         /* Copy and then store the results in the destination buffer */
         *pDst++ = *pSrc++;
@@ -385,4 +386,14 @@ inline void microsecondsDelay(const uint32_t delay) {
     while (__HAL_TIM_GetCounter(&htim2) - time < delay) {
         ;
     }
+}
+
+inline float calcRandom() {
+    uint32_t randomNumber;
+
+    randomNumber = std::rand();
+    randomNumber = randomNumber & 0x00FFFFFF;
+
+    // map to -1, 1
+    return ((float)randomNumber / 8388607.0f) - 1.0f;
 }

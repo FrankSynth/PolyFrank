@@ -6,7 +6,11 @@
 #define MIDIRESOLUTION14 16383
 
 LiveData liveData;
-extern COMinterChip layerCom[2];
+extern COMinterChip layerCom;
+
+const std::vector<std::string> offOnNameList = {"OFF", "ON"};
+const std::vector<std::string> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
+const std::vector<std::string> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
 
 uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
 
@@ -46,7 +50,7 @@ void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
 void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
     Key key;
-    key.note = note;
+    key.note = std::max(note, (uint8_t)21);
     key.velocity = velocity;
 
     // check Midi channel
@@ -180,7 +184,7 @@ void LiveData::clockHandling() {
     if (clock.ticked) {
 
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->LayerState.value == 1) { // check layer state
+            if (allLayers[i]->layerState.value == 1) { // check layer state
 
                 // ARP Steps
                 if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||
@@ -193,7 +197,7 @@ void LiveData::clockHandling() {
                 uint32_t clockTicksPerStepLFOA = clockTicksPerStep[allLayers[i]->lfoA.dClockStep.valueMapped];
 
                 if (allLayers[i]->lfoA.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOA)) {
-                    layerCom[i].sendRetrigger(allLayers[i]->lfoA.id, 8); // all voices = 8
+                    layerCom.sendRetrigger(i, allLayers[i]->lfoA.id, 8); // all voices = 8
 
                     if (clock.counter % allLayers[i]->lfoA.dFreqSnap.valueMapped) {
                         float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOA / 60.;
@@ -203,7 +207,7 @@ void LiveData::clockHandling() {
 
                 uint32_t clockTicksPerStepLFOB = clockTicksPerStep[allLayers[i]->lfoB.dClockStep.valueMapped];
                 if (allLayers[i]->lfoB.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOB)) {
-                    layerCom[i].sendRetrigger(allLayers[i]->lfoB.id, 8); // all voices = 8
+                    layerCom.sendRetrigger(i, allLayers[i]->lfoB.id, 8); // all voices = 8
 
                     if (clock.counter % allLayers[i]->lfoB.dFreqSnap.valueMapped) {
                         float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOB;

@@ -16,7 +16,6 @@
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
 
-
 extern MCP4728 cvDac[10];
 
 extern Layer layerA;
@@ -332,15 +331,14 @@ inline void setLEDs() {
     // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_4, ledLog.mapValue(layerA.adsrB.out.currentSample[3]) * 1023.0f);
 }
 
-// elapsedMicros rendertimecv;
 void renderCVs() {
+    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+
     // cvDacA.setLatchPin();
 
     // LED TIMING TEST
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PINo_SET);
-
-    // rendertimecv = 0;
 
     collectAllCurrentInputs();
 
@@ -362,16 +360,11 @@ void renderCVs() {
     updateAllOutputSamples();
     writeDataToDACBuffer();
 
-    // uint32_t time = rendertimecv;
-    // println(time);
-
     setSwitches();
     setLEDs();
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 
     FlagHandler::cvRendered = true;
-
-    // cvDacA.resetLatchPin();
 }
 
 #endif

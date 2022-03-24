@@ -9,22 +9,22 @@
 
 extern Layer layerA;
 
-std::vector<const WaveTable *> wavetables;
+// std::vector<const WaveTable *> wavetables;
 
 const WaveTable *sourcesA[4] = {nullptr, nullptr, nullptr, nullptr};
 const WaveTable *sourcesB[4] = {nullptr, nullptr, nullptr, nullptr};
 
-RAM1 ALIGN_32BYTES(float oscAwavetableStorage[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
-WaveTable oscAwavetable[MAXWAVETABLESPERVOICE] = {{0, 0, 0, oscAwavetableStorage[0], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableStorage[1], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableStorage[2], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableStorage[3], "defaultName"}};
+RAM1 ALIGN_32BYTES(float oscAwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
+WaveTable oscAwavetable[MAXWAVETABLESPERVOICE] = {{0, 0, 0, oscAwavetableRAM[0], "defaultName"},
+                                                  {0, 0, 0, oscAwavetableRAM[1], "defaultName"},
+                                                  {0, 0, 0, oscAwavetableRAM[2], "defaultName"},
+                                                  {0, 0, 0, oscAwavetableRAM[3], "defaultName"}};
 
-RAM1 ALIGN_32BYTES(float oscBwavetableStorage[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
-WaveTable oscBwavetable[MAXWAVETABLESPERVOICE]{{0, 0, 0, oscBwavetableStorage[0], "defaultName"},
-                                               {0, 0, 0, oscBwavetableStorage[1], "defaultName"},
-                                               {0, 0, 0, oscBwavetableStorage[2], "defaultName"},
-                                               {0, 0, 0, oscBwavetableStorage[3], "defaultName"}};
+RAM1 ALIGN_32BYTES(float oscBwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
+WaveTable oscBwavetable[MAXWAVETABLESPERVOICE]{{0, 0, 0, oscBwavetableRAM[0], "defaultName"},
+                                               {0, 0, 0, oscBwavetableRAM[1], "defaultName"},
+                                               {0, 0, 0, oscBwavetableRAM[2], "defaultName"},
+                                               {0, 0, 0, oscBwavetableRAM[3], "defaultName"}};
 
 /**
  * @brief switch OscA Wavetable at position x
@@ -57,7 +57,7 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
     // while (HAL_MDMA_GetState(mdmaHandle) == HAL_MDMA_STATE_BUSY) {
     //     // wait for mdma to finish
     // }
-    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscAwavetableStorage[position],
+    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscAwavetableRAM[position],
                       oscAwavetable[position].size * 4, 1);
 }
 /**
@@ -74,7 +74,7 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
     oscBwavetable[position].size = wavetable->size;
     oscBwavetable[position].cycles = wavetable->cycles;
     oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
-    oscBwavetable[position].name = wavetable->name;
+    // oscBwavetable[position].name = wavetable->name;
     sourcesB[position] = wavetable;
 
     MDMA_HandleTypeDef *mdmaHandle = nullptr;
@@ -88,7 +88,7 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
         default: PolyError_Handler("renderAudio | switchOscBWavetable | illegal position"); break;
     }
 
-    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscBwavetableStorage[position],
+    HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)wavetable->data, (uint32_t)oscBwavetableRAM[position],
                       oscBwavetable[position].size * 4, 1);
 }
 
@@ -98,39 +98,16 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  */
 void initAudioRendering() {
 
-    wavetables.push_back(&wavetable_Sine);
-    wavetables.push_back(&wavetable_Saw);
-    wavetables.push_back(&wavetable_Triangle);
-    wavetables.push_back(&wavetable_Square);
-    // wavetables.push_back(&wavetable_FeltPianoLow);
-    // wavetables.push_back(&wavetable_GuitarHigh);
-    // wavetables.push_back(&wavetable_GuitarLow);
-    wavetables.push_back(&wavetable_SSMMix01);
-    wavetables.push_back(&wavetable_SSMMix02);
-    wavetables.push_back(&wavetable_SSMMix03);
-    wavetables.push_back(&wavetable_SSMMix04);
-    // wavetables.push_back(&wavetable_SSMMix05);
-
-    wavetables.push_back(&wavetable_SSMMix06);
-    wavetables.push_back(&wavetable_SSMMix07);
-    wavetables.push_back(&wavetable_SSMMix08);
-    // wavetables.push_back(&wavetable_SSMSaw);
-    // wavetables.push_back(&wavetable_SSMSquare);
-    // wavetables.push_back(&wavetable_SSMTriangle);
-
     switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.defaultValue]);
     switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.defaultValue]);
     switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.defaultValue]);
     switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.defaultValue]);
-    // switchOscAWavetableB(wavetable_nylonGuitar01);
 
     // Osc B
     switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.defaultValue]);
     switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.defaultValue]);
     switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.defaultValue]);
     switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.defaultValue]);
-    // switchOscBWavetableA(wavetable_sinus01);
-    // switchOscBWavetableB(wavetable_wurli02);
 }
 
 inline void bitcrush(float *dst, const float *bitcrush) {
@@ -233,7 +210,7 @@ inline void getSubSample(float *sample) {
     float phaseLength = octave == 0 ? 0.5f : 0.25f;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        oscAphase[i] = layerA.oscA.phaseWavetableA[i];
+        oscAphase[i] = layerA.oscA.phaseWavetableLower[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (oscAphase[i] >= 1.0f)
@@ -255,60 +232,60 @@ inline void getSubSample(float *sample) {
 }
 
 inline void getOscASample(float *sample) {
-    static float *phaseWavetableA = layerA.oscA.phaseWavetableA;
-    static float *phaseWavetableB = layerA.oscA.phaseWavetableB;
+    static float *phaseWavetableLower = layerA.oscA.phaseWavetableLower;
+    static float *phaseWavetableUpper = layerA.oscA.phaseWavetableUpper;
     const float *morph = layerA.oscA.morph.currentSample;
     const float *noteStep = layerA.oscA.note.currentSample;
     const float *bitcrusher = layerA.oscA.bitcrusher.currentSample;
     const float *samplecrusher = layerA.oscA.samplecrusher.currentSample;
 
-    float stepWavetableA[VOICESPERCHIP];
-    float stepWavetableB[VOICESPERCHIP];
+    float stepWavetableLower[VOICESPERCHIP];
+    float stepWavetableUpper[VOICESPERCHIP];
 
-    WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
-    WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableLower[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableUpper[VOICESPERCHIP] = {nullptr};
 
-    static uint8_t waveTableSelectionA[VOICESPERCHIP] = {0};
-    static uint8_t waveTableSelectionB[VOICESPERCHIP] = {0};
-    static uint8_t oldwaveTableSelectionA[VOICESPERCHIP] = {0};
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        waveTableSelectionA[i] = (uint8_t)morph[i];
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        waveTableSelectionB[i] = (uint8_t)std::ceil(morph[i]);
+    static uint8_t waveTableSelectionLower[VOICESPERCHIP] = {0};
+    static uint8_t waveTableSelectionUpper[VOICESPERCHIP] = {0};
+    static uint8_t oldwaveTableSelectionLower[VOICESPERCHIP] = {0};
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (waveTableSelectionA[i] == oldwaveTableSelectionA[i]) {
+        waveTableSelectionLower[i] = (uint8_t)morph[i];
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        waveTableSelectionUpper[i] = (uint8_t)std::ceil(morph[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        if (waveTableSelectionLower[i] == oldwaveTableSelectionLower[i]) {
         }
-        else if (waveTableSelectionA[i] < oldwaveTableSelectionA[i]) {
-            phaseWavetableB[i] = phaseWavetableA[i];
-            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        else if (waveTableSelectionLower[i] < oldwaveTableSelectionLower[i]) {
+            phaseWavetableUpper[i] = phaseWavetableLower[i];
+            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
         }
         else {
-            phaseWavetableA[i] = phaseWavetableB[i];
-            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+            phaseWavetableLower[i] = phaseWavetableUpper[i];
+            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
         }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableA[i] = &oscAwavetable[waveTableSelectionA[i]];
+        wavetableLower[i] = &oscAwavetable[waveTableSelectionLower[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableB[i] = &oscAwavetable[waveTableSelectionB[i]];
+        wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
     // make sure to be in the right step range
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableA[i] >= wavetableA[i]->cycles)
-            phaseWavetableA[i] -= std::floor(phaseWavetableA[i]);
+        if (phaseWavetableLower[i] >= wavetableLower[i]->cycles)
+            phaseWavetableLower[i] -= std::floor(phaseWavetableLower[i]);
     }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableB[i] >= wavetableB[i]->cycles)
-            phaseWavetableB[i] -= std::floor(phaseWavetableB[i]);
+        if (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles)
+            phaseWavetableUpper[i] -= std::floor(phaseWavetableUpper[i]);
     }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableA[i] = phaseWavetableA[i] * wavetableA[i]->sizePerCycle;
+        stepWavetableLower[i] = phaseWavetableLower[i] * wavetableLower[i]->sizePerCycle;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableB[i] = phaseWavetableB[i] * wavetableB[i]->sizePerCycle;
+        stepWavetableUpper[i] = phaseWavetableUpper[i] * wavetableUpper[i]->sizePerCycle;
 
     uint16_t positionA[VOICESPERCHIP];
     uint16_t positionAb[VOICESPERCHIP];
@@ -317,20 +294,25 @@ inline void getOscASample(float *sample) {
     float sampleAb[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        positionA[i] = stepWavetableA[i];
+        positionA[i] = stepWavetableLower[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionA[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionAb[i] == wavetableA[i]->size)
+        if (positionAb[i] == wavetableLower[i]->size)
             positionAb[i] = 0;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleAPos[i] = stepWavetableA[i] - positionA[i];
+        interSampleAPos[i] = stepWavetableLower[i] - positionA[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleA[i] = wavetableLower[i]->data[positionA[i]];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleAb[i] = wavetableLower[i]->data[positionAb[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleA[i] = wavetableA[i]->data[positionA[i]];
+        sampleA[i] = oscAwavetableRAM[waveTableSelectionLower[i]][positionA[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleAb[i] = wavetableA[i]->data[positionAb[i]];
+        sampleAb[i] = oscAwavetableRAM[waveTableSelectionLower[i]][positionAb[i]];
 
     fast_lerp_f32(sampleA, sampleAb, interSampleAPos, sampleA);
 
@@ -341,20 +323,25 @@ inline void getOscASample(float *sample) {
     float sampleBb[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        positionB[i] = stepWavetableB[i];
+        positionB[i] = stepWavetableUpper[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionB[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionBb[i] == wavetableB[i]->size)
+        if (positionBb[i] == wavetableUpper[i]->size)
             positionBb[i] = 0;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleBPos[i] = stepWavetableB[i] - positionB[i];
+        interSampleBPos[i] = stepWavetableUpper[i] - positionB[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleB[i] = wavetableUpper[i]->data[positionB[i]];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleBb[i] = wavetableUpper[i]->data[positionBb[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleB[i] = wavetableB[i]->data[positionB[i]];
+        sampleB[i] = oscAwavetableRAM[waveTableSelectionUpper[i]][positionB[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleBb[i] = wavetableB[i]->data[positionBb[i]];
+        sampleBb[i] = oscAwavetableRAM[waveTableSelectionUpper[i]][positionBb[i]];
 
     fast_lerp_f32(sampleB, sampleBb, interSampleBPos, sampleB);
 
@@ -367,9 +354,9 @@ inline void getOscASample(float *sample) {
     fast_lerp_f32(sampleA, sampleB, tempMorph, newSample);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableA[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+        phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableB[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+        phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
     bitcrush(newSample, bitcrusher);
 
@@ -387,85 +374,119 @@ inline void getOscASample(float *sample) {
 inline void getOscBSample(float *sample) {
 
     // cache step of osc A, if smaller, new phase has begun.
-    static const float *oscAphaseWavetableA = layerA.oscA.phaseWavetableA;
+    static const float *oscAphaseWavetableLower = layerA.oscA.phaseWavetableLower;
 
     static int32_t &sync = layerA.oscB.dSync.valueMapped;
 
-    static float *cacheOscAstep = layerA.oscB.cacheOscAstep;
-    static float *phaseWavetableA = layerA.oscB.phaseWavetableA;
-    static float *phaseWavetableB = layerA.oscB.phaseWavetableB;
+    static float *cacheOscAPhase = layerA.oscB.cacheOscAPhase;
+    static float *phaseWavetableLower = layerA.oscB.phaseWavetableLower;
+    static float *phaseWavetableUpper = layerA.oscB.phaseWavetableUpper;
     const float *morph = layerA.oscB.morph.currentSample;
     const float *noteStep = layerA.oscB.note.currentSample;
     const float *bitcrusher = layerA.oscB.bitcrusher.currentSample;
     const float *samplecrusher = layerA.oscB.samplecrusher.currentSample;
+    const float *phaseoffset = layerA.oscB.phaseoffset.currentSample;
 
-    float stepWavetableA[VOICESPERCHIP];
-    float stepWavetableB[VOICESPERCHIP];
-    WaveTable *wavetableA[VOICESPERCHIP] = {nullptr};
-    WaveTable *wavetableB[VOICESPERCHIP] = {nullptr};
+    float stepWavetableLower[VOICESPERCHIP];
+    float stepWavetableUpper[VOICESPERCHIP];
+    WaveTable *wavetableLower[VOICESPERCHIP] = {nullptr};
+    WaveTable *wavetableUpper[VOICESPERCHIP] = {nullptr};
     static float checkWavetableLength[VOICESPERCHIP] = {0};
 
-    static uint8_t waveTableSelectionA[VOICESPERCHIP] = {0};
-    static uint8_t waveTableSelectionB[VOICESPERCHIP] = {0};
-    static uint8_t oldwaveTableSelectionA[VOICESPERCHIP] = {0};
+    static uint8_t waveTableSelectionLower[VOICESPERCHIP] = {0};
+    static uint8_t waveTableSelectionUpper[VOICESPERCHIP] = {0};
+    static uint8_t oldwaveTableSelectionLower[VOICESPERCHIP] = {0};
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        waveTableSelectionA[i] = (uint8_t)morph[i];
+        waveTableSelectionLower[i] = (uint8_t)morph[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        waveTableSelectionB[i] = (uint8_t)std::ceil(morph[i]);
+        waveTableSelectionUpper[i] = (uint8_t)std::ceil(morph[i]);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (waveTableSelectionA[i] == oldwaveTableSelectionA[i]) {
+        if (waveTableSelectionLower[i] == oldwaveTableSelectionLower[i]) {
         }
-        else if (waveTableSelectionA[i] < oldwaveTableSelectionA[i]) {
-            phaseWavetableB[i] = phaseWavetableA[i];
-            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+        else if (waveTableSelectionLower[i] < oldwaveTableSelectionLower[i]) {
+            phaseWavetableUpper[i] = phaseWavetableLower[i];
+            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
         }
         else {
-            phaseWavetableA[i] = phaseWavetableB[i];
-            oldwaveTableSelectionA[i] = waveTableSelectionA[i];
+            phaseWavetableLower[i] = phaseWavetableUpper[i];
+            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
         }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableA[i] = &oscAwavetable[waveTableSelectionA[i]];
+        wavetableLower[i] = &oscBwavetable[waveTableSelectionLower[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableB[i] = &oscAwavetable[waveTableSelectionB[i]];
+        wavetableUpper[i] = &oscBwavetable[waveTableSelectionUpper[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (oscAphaseWavetableA[i] >= 1.0f)
-            checkWavetableLength[i] -= std::floor(oscAphaseWavetableA[i]);
+        if (oscAphaseWavetableLower[i] >= 1.0f)
+            checkWavetableLength[i] -= std::floor(oscAphaseWavetableLower[i]);
         else
-            checkWavetableLength[i] = oscAphaseWavetableA[i];
+            checkWavetableLength[i] = oscAphaseWavetableLower[i];
     }
 
     if (sync) {
         for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            if (cacheOscAstep[i] > checkWavetableLength[i]) {
-                stepWavetableA[i] = 0;
-                stepWavetableB[i] = 0;
+            if (cacheOscAPhase[i] > checkWavetableLength[i]) {
+                phaseWavetableLower[i] = 0;
+                phaseWavetableUpper[i] = 0;
             }
         }
     }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        cacheOscAstep[i] = checkWavetableLength[i];
+        cacheOscAPhase[i] = checkWavetableLength[i];
 
     // make sure to be in the right step range
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableA[i] >= wavetableA[i]->cycles) {
-            phaseWavetableA[i] -= std::floor(phaseWavetableA[i]);
+        while (phaseWavetableLower[i] >= wavetableLower[i]->cycles) {
+            phaseWavetableLower[i] -= wavetableLower[i]->cycles;
         }
     }
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableB[i] >= wavetableB[i]->cycles) {
-            phaseWavetableB[i] -= std::floor(phaseWavetableB[i]);
+        while (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles) {
+            phaseWavetableUpper[i] -= wavetableUpper[i]->cycles;
+        }
+    }
+
+    float phaseOffsettedLower[VOICESPERCHIP];
+    float phaseOffsettedUpper[VOICESPERCHIP];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     phaseOffsettedLower[i] = phaseWavetableLower[i] + layerA.oscB.aPhaseoffset.valueMapped;
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     phaseOffsettedUpper[i] = phaseWavetableUpper[i] + layerA.oscB.aPhaseoffset.valueMapped;
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedLower[i] = phaseWavetableLower[i] + phaseoffset[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedUpper[i] = phaseWavetableUpper[i] + phaseoffset[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        while (phaseOffsettedLower[i] >= wavetableLower[i]->cycles) {
+            phaseOffsettedLower[i] -= wavetableLower[i]->cycles;
+        }
+        while (phaseOffsettedLower[i] < 0) {
+            phaseOffsettedLower[i] += wavetableLower[i]->cycles;
+        }
+    }
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        while (phaseOffsettedUpper[i] >= wavetableUpper[i]->cycles) {
+            phaseOffsettedUpper[i] -= wavetableUpper[i]->cycles;
+        }
+        while (phaseOffsettedUpper[i] < 0) {
+            phaseOffsettedUpper[i] += wavetableUpper[i]->cycles;
         }
     }
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableA[i] = phaseWavetableA[i] * wavetableA[i]->sizePerCycle;
+        stepWavetableLower[i] = phaseOffsettedLower[i] * wavetableLower[i]->sizePerCycle;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableB[i] = phaseWavetableB[i] * wavetableB[i]->sizePerCycle;
+        stepWavetableUpper[i] = phaseOffsettedUpper[i] * wavetableUpper[i]->sizePerCycle;
 
     uint16_t positionA[VOICESPERCHIP];
     uint16_t positionAb[VOICESPERCHIP];
@@ -474,20 +495,25 @@ inline void getOscBSample(float *sample) {
     float sampleAb[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        positionA[i] = stepWavetableA[i];
+        positionA[i] = stepWavetableLower[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionA[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionAb[i] == wavetableA[i]->size)
+        if (positionAb[i] == wavetableLower[i]->size)
             positionAb[i] = 0;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleAPos[i] = stepWavetableA[i] - positionA[i];
+        interSampleAPos[i] = stepWavetableLower[i] - positionA[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleA[i] = wavetableLower[i]->data[positionA[i]];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleAb[i] = wavetableLower[i]->data[positionAb[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleA[i] = wavetableA[i]->data[positionA[i]];
+        sampleA[i] = oscBwavetableRAM[waveTableSelectionLower[i]][positionA[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleAb[i] = wavetableA[i]->data[positionAb[i]];
+        sampleAb[i] = oscBwavetableRAM[waveTableSelectionLower[i]][positionAb[i]];
 
     fast_lerp_f32(sampleA, sampleAb, interSampleAPos, sampleA);
 
@@ -498,20 +524,25 @@ inline void getOscBSample(float *sample) {
     float sampleBb[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        positionB[i] = stepWavetableB[i];
+        positionB[i] = stepWavetableUpper[i];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionB[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionBb[i] == wavetableB[i]->size)
+        if (positionBb[i] == wavetableUpper[i]->size)
             positionBb[i] = 0;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleBPos[i] = stepWavetableB[i] - positionB[i];
+        interSampleBPos[i] = stepWavetableUpper[i] - positionB[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleB[i] = wavetableUpper[i]->data[positionB[i]];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     sampleBb[i] = wavetableUpper[i]->data[positionBb[i]];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleB[i] = wavetableB[i]->data[positionB[i]];
+        sampleB[i] = oscBwavetableRAM[waveTableSelectionUpper[i]][positionB[i]];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sampleBb[i] = wavetableB[i]->data[positionBb[i]];
+        sampleBb[i] = oscBwavetableRAM[waveTableSelectionUpper[i]][positionBb[i]];
 
     fast_lerp_f32(sampleB, sampleBb, interSampleBPos, sampleB);
 
@@ -524,9 +555,9 @@ inline void getOscBSample(float *sample) {
     fast_lerp_f32(sampleA, sampleB, tempMorph, newSample);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableA[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+        phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableB[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+        phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
     bitcrush(newSample, bitcrusher);
 
@@ -584,16 +615,16 @@ void renderAudio(int32_t *renderDest) {
     int32_t intSampleLadder[VOICESPERCHIP];
 
     // Osc A
-    switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.valueMapped]);
-    switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.valueMapped]);
-    switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.valueMapped]);
-    switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.valueMapped]);
+    // switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.valueMapped]);
+    // switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.valueMapped]);
+    // switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.valueMapped]);
+    // switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.valueMapped]);
 
     // Osc B
-    switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.valueMapped]);
-    switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.valueMapped]);
-    switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.valueMapped]);
-    switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.valueMapped]);
+    // switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.valueMapped]);
+    // switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.valueMapped]);
+    // switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.valueMapped]);
+    // switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.valueMapped]);
 
     for (uint32_t sample = 0; sample < SAIDMABUFFERSIZE; sample++) {
 

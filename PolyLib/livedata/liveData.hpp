@@ -9,6 +9,10 @@
 extern Clock clock;
 extern ClockSource internalClock;
 
+extern const std::vector<std::string> offOnNameList;
+extern const std::vector<std::string> clockSourceList;
+extern const std::vector<std::string> externalClockMultList;
+
 class LiveData {
   public:
     LiveData() {
@@ -58,10 +62,6 @@ class LiveData {
     Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList);
     Setting livemodeClockSource = Setting("Clock Source", 1, 0, 2, false, binary, &clockSourceList);
     Setting livemodeExternalClockMultiply = Setting("EXT. Clock", 3, 0, 5, false, binary, &externalClockMultList);
-
-    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
-    const std::vector<std::string> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
-    const std::vector<std::string> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
 };
 
 extern LiveData liveData;

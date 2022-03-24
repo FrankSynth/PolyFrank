@@ -44,9 +44,10 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, uint8_t *)> sendSetting;
+    void setValueChangedCallback(void (*fptr)()) { valueChangedCallback = fptr; }
 
   protected:
+    void (*valueChangedCallback)() = nullptr;
     typeDisplayValue type;
 
     uint8_t sendOutViaCom;
@@ -77,7 +78,7 @@ class Error {
 // basic data element
 class Setting : public DataElement {
   public:
-    Setting(const char *name, int32_t min = 0, int32_t max = 0, int32_t value = 1, bool sendOutViaCom = true,
+    Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
             typeDisplayValue type = continuous, const std::vector<std::string> *valueNameList = nullptr) {
 
         this->value = value;
@@ -116,8 +117,16 @@ class Setting : public DataElement {
     void setValue(int32_t newValue);
     void resetValue() { setValue(defaultValue); }
 
-    inline void setValueWithoutMapping(int32_t newValue) { value = newValue; }
-    inline void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(int32_t newValue) {
+        value = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
+    inline void setValueWithoutMapping(uint8_t *newValue) {
+        value = *(int32_t *)newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
     void increase(int32_t amount = 1);
     void decrease(int32_t amount = -1);
     void push();
@@ -190,7 +199,11 @@ class Analog : public DataElement {
 
     int32_t reverseMapping(float newValue);
 
-    inline void changeValue(int32_t change) { setValue(value + change); }
+    inline void changeValue(int32_t change) {
+        setValue(value + change);
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
             setValue(
@@ -202,6 +215,8 @@ class Analog : public DataElement {
         if (direction == 1) {
             setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACCELERATION, 1, maxInputValue)));
         }
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
 
     inline void setValueWithoutMapping(float newValue) {
@@ -212,6 +227,8 @@ class Analog : public DataElement {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
 
     const std::string &getValueAsString();
@@ -277,8 +294,14 @@ class Digital : public DataElement {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
-    inline void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(uint8_t *newValue) {
+        valueMapped = *(int32_t *)newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
 
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values
@@ -491,6 +514,8 @@ inline void BasePatch::addPatchInOut(PatchElement &patch) {
 
 inline void Setting::reset() {
     value = defaultValue;
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline const std::string &Analog::getValueAsString() {
@@ -510,6 +535,8 @@ inline void Setting::increase(int32_t amount) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::decrease(int32_t amount) {
@@ -526,12 +553,16 @@ inline void Setting::decrease(int32_t amount) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::push() {
     int32_t temp = value;
     value = valueToggle;
     valueToggle = temp;
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::pushAndHold() {

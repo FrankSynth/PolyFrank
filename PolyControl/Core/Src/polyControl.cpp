@@ -19,7 +19,7 @@ Layer layerA(layerId.getNewId());
 Layer layerB(layerId.getNewId());
 
 // InterChip Com
-COMinterChip layerCom[2];
+COMinterChip layerCom;
 
 // function pointers
 void initMidi();
@@ -56,25 +56,27 @@ void PolyControlInit() { ////////Hardware init////////
 
     // CheckLayerStatus
 
-    if (FlagHandler::interChipA_State[0] == READY && FlagHandler::interChipB_State[0] == READY) { // Layer A alive
-        layerA.LayerState.value = 1;
+    if (FlagHandler::renderChip_State[0][0] == READY && FlagHandler::renderChip_State[0][1] == READY) { // Layer A alive
+        layerA.layerState.value = 1;
+        FlagHandler::layerActive[0] = true;
     }
     else {
         globalSettings.midiLayerAChannel.disable = 1;
-        FlagHandler::interChipA_State[0] = DISABLED;
-        FlagHandler::interChipB_State[0] = DISABLED;
+        FlagHandler::renderChip_State[0][0] = DISABLED;
+        FlagHandler::renderChip_State[0][1] = DISABLED;
     }
-    if (FlagHandler::interChipA_State[1] == READY && FlagHandler::interChipB_State[1] == READY) { // Layer B alive
-        layerB.LayerState.value = 1;
+    if (FlagHandler::renderChip_State[1][0] == READY && FlagHandler::renderChip_State[1][1] == READY) { // Layer B alive
+        layerB.layerState.value = 1;
+        FlagHandler::layerActive[1] = true;
     }
     else {
         globalSettings.midiLayerBChannel.disable = 1;
 
-        FlagHandler::interChipA_State[1] = DISABLED;
-        FlagHandler::interChipB_State[1] = DISABLED;
+        FlagHandler::renderChip_State[1][0] = DISABLED;
+        FlagHandler::renderChip_State[1][1] = DISABLED;
     }
 
-    if (layerA.LayerState.value && layerB.LayerState.value) {
+    if (layerA.layerState.value && layerB.layerState.value) {
         globalSettings.multiLayer.value = 1;
     }
     else {                                                    // disable multilayerSettings
@@ -82,7 +84,7 @@ void PolyControlInit() { ////////Hardware init////////
         liveData.voiceHandler.livemodeMergeLayer.disable = 1; // disable merge Layers
     }
 
-    if (layerA.LayerState.value == 0 && layerB.LayerState.value == 0) {
+    if (layerA.layerState.value == 0 && layerB.layerState.value == 0) {
         PolyError_Handler("ERROR | FATAL | NO Layer Connected!");
     }
 
@@ -95,26 +97,21 @@ void PolyControlInit() { ////////Hardware init////////
 
     // init UI, Display
     // set default FOCUS
-    if (layerA.LayerState.value == 1) {
+    if (layerA.layerState.value == 1) {
         newFocus = {0, 0, 0, FOCUSMODULE};
     }
-    else if (layerB.LayerState.value == 1) {
+    else if (layerB.layerState.value == 1) {
         newFocus = {1, 0, 0, FOCUSMODULE};
     }
     ui.Init();
 
     ////////Sofware init////////
     // init communication to render chip
-    if (layerA.LayerState.value == 1) {
-        layerCom[0].initOutTransmission(
-            std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
-            (uint8_t *)interChipDMABufferLayerA, 0);
-    }
-    if (layerB.LayerState.value == 1) {
-        layerCom[1].initOutTransmission(
-            std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi5, std::placeholders::_1, std::placeholders::_2),
-            (uint8_t *)interChipDMABufferLayerB, 1);
-    }
+    // if (layerA.layerState.value) {
+    layerCom.initOutTransmission(
+        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
+        (uint8_t *)interChipDMABufferLayerA);
+    // }
 
     // init midi
     initMidi();
@@ -132,10 +129,10 @@ void PolyControlInit() { ////////Hardware init////////
 
     // Say hello
     println("Hi, Frank here!");
-    if (layerA.LayerState.value) {
+    if (layerA.layerState.value) {
         println("Layer A active");
     }
-    if (layerB.LayerState.value) {
+    if (layerB.layerState.value) {
         println("Layer B active");
     }
 
@@ -169,32 +166,36 @@ void PolyControlRun() { // Here the party starts
             renderLED();
         }
 
-        for (uint8_t i = 0; i < 2; i++) {
-            layerCom[i].beginSendTransmission();
-        }
+        // for (uint8_t i = 0; i < 2; i++) {
+        layerCom.beginSendTransmission();
+        // }
     }
 }
 
 //////////////LAYER SPECIFIC HANDLING////////////
 
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
-    return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
+    // println("send i setting ", amount);
+
+    return layerCom.sendSetting(layerId, moduleId, settingsId, amount);
 }
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount) {
-    return layerCom[layerId].sendSetting(moduleId, settingsId, amount);
+    // println("send f setting ", amount);
+
+    return layerCom.sendSetting(layerId, moduleId, settingsId, amount);
 }
 uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
-    return layerCom[layerId].sendCreatePatchInOut(outputId, inputId, amount);
+    return layerCom.sendCreatePatchInOut(layerId, outputId, inputId, amount);
 }
 uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
-    return layerCom[layerId].sendUpdatePatchInOut(outputId, inputId, amount);
+    return layerCom.sendUpdatePatchInOut(layerId, outputId, inputId, amount);
 }
 uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
-    return layerCom[layerId].sendDeletePatchInOut(outputId, inputId);
+    return layerCom.sendDeletePatchInOut(layerId, outputId, inputId);
 }
 
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
-    return layerCom[layerId].sendDeleteAllPatches();
+    return layerCom.sendDeleteAllPatches(layerId);
 }
 
 void readTemperature() {
@@ -215,30 +216,15 @@ void readTemperature() {
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com Layer 1
-    if (layerA.LayerState.value) {
-        if (hspi == &hspi4) {
-            if (FlagHandler::interChipA_DMA_Started[0] == 1) {
-                FlagHandler::interChipA_DMA_Started[0] = 0;
-                FlagHandler::interChipA_DMA_Finished[0] = 1;
-                // close ChipSelectLine
-                HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-                HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
-            }
-        }
-    }
-
-    // second Layer active?
-    if (layerB.LayerState.value) {
-        if (hspi == &hspi5) {
-
-            if (FlagHandler::interChipA_DMA_Started[1] == 1) {
-                FlagHandler::interChipA_DMA_Started[1] = 0;
-                FlagHandler::interChipA_DMA_Finished[1] = 1;
-
-                // close ChipSelectLine
-                HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-                HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
-            }
+    if (hspi == &hspi4) {
+        if (FlagHandler::interChipSend_DMA_Started == 1) {
+            FlagHandler::interChipSend_DMA_Started = 0;
+            FlagHandler::interChipSend_DMA_Finished = 1;
+            // close ChipSelectLine
+            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
         }
     }
 }
@@ -317,47 +303,49 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & GPIO_PIN_5) { //  Touch
         FlagHandler::Panel_1_Touch_Interrupt = true;
     }
-    if (pin & GPIO_PIN_3) { // Layer 2 Ready 1
-        if (FlagHandler::interChipA_State[1] == NOTCONNECT) {
-            FlagHandler::interChipA_State[1] = READY;
+    if (pin & GPIO_PIN_3) { // Layer B Chip 0
+        if (FlagHandler::renderChip_State[1][0] == NOTCONNECT) {
+            FlagHandler::renderChip_State[1][0] = READY;
         }
         else {
-            if (FlagHandler::interChipA_State[1] == WAITFORRESPONSE) {
-                FlagHandler::interChipA_StateTimeout[1] = 0;
-                FlagHandler::interChipA_State[1] = READY;
+            if (FlagHandler::renderChip_State[1][0] == WAITFORRESPONSE) {
+                FlagHandler::renderChip_StateTimeout[1][0] = 0;
+                FlagHandler::renderChip_State[1][0] = READY;
             }
         }
     }
-    if (pin & GPIO_PIN_4) { // Layer 2 Ready 2
-        if (FlagHandler::interChipB_State[1] == NOTCONNECT) {
-            FlagHandler::interChipB_State[1] = READY;
+    if (pin & GPIO_PIN_4) { // Layer B Chip 1
+        if (FlagHandler::renderChip_State[1][1] == NOTCONNECT) {
+            FlagHandler::renderChip_State[1][1] = READY;
         }
         else {
-            if (FlagHandler::interChipB_State[1] == WAITFORRESPONSE) {
-                FlagHandler::interChipB_StateTimeout[1] = 0;
-                FlagHandler::interChipB_State[1] = READY;
+            if (FlagHandler::renderChip_State[1][1] == WAITFORRESPONSE) {
+                FlagHandler::renderChip_StateTimeout[1][1] = 0;
+                FlagHandler::renderChip_State[1][1] = READY;
             }
         }
     }
-    if (pin & GPIO_PIN_6) { // Layer 1 Ready 1
-        if (FlagHandler::interChipA_State[0] == NOTCONNECT) {
-            FlagHandler::interChipA_State[0] = READY;
+    if (pin & GPIO_PIN_6) { // Layer A Chip 0
+        uint8_t layer = 0;
+
+        if (FlagHandler::renderChip_State[0][0] == NOTCONNECT) {
+            FlagHandler::renderChip_State[0][0] = READY;
         }
         else {
-            if (FlagHandler::interChipA_State[0] == WAITFORRESPONSE) {
-                FlagHandler::interChipA_StateTimeout[0] = 0;
-                FlagHandler::interChipA_State[0] = READY;
+            if (FlagHandler::renderChip_State[0][0] == WAITFORRESPONSE) {
+                FlagHandler::renderChip_StateTimeout[0][0] = 0;
+                FlagHandler::renderChip_State[0][0] = READY;
             }
         }
     }
-    if (pin & GPIO_PIN_7) { // Layer 1 Ready 2
-        if (FlagHandler::interChipB_State[0] == NOTCONNECT) {
-            FlagHandler::interChipB_State[0] = READY;
+    if (pin & GPIO_PIN_7) { // Layer A Chip 1
+        if (FlagHandler::renderChip_State[0][1] == NOTCONNECT) {
+            FlagHandler::renderChip_State[0][1] = READY;
         }
         else {
-            if (FlagHandler::interChipB_State[0] == WAITFORRESPONSE) {
-                FlagHandler::interChipB_StateTimeout[0] = 0;
-                FlagHandler::interChipB_State[0] = READY;
+            if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
+                FlagHandler::renderChip_StateTimeout[0][1] = 0;
+                FlagHandler::renderChip_State[0][1] = READY;
             }
         }
     }

@@ -26,7 +26,7 @@ float noteConverted[VOICESPERCHIP];
 
 inline void accumulateNote(OSC_A &osc_a, float *note) {
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        noteConverted[i] = (float)(layerA.midi.rawNote[i] - 21) / 12.0f;
+        noteConverted[i] = (float)(layerA.midi.rawNote[i]) / 12.0f;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         noteConverted[i] += layerA.oscA.aMasterTune.valueMapped;
@@ -36,6 +36,9 @@ inline void accumulateNote(OSC_A &osc_a, float *note) {
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] = noteConverted[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += accumulateOctave(osc_a, i);
@@ -97,6 +100,9 @@ inline int32_t accumulateOctave(OSC_B &osc_b, uint16_t voice) {
     return testInt(std::roundf(osc_b.iOctave.currentSample[voice] + (float)osc_b.dOctave.valueMapped),
                    osc_b.dOctave.min, osc_b.dOctave.max);
 }
+inline float accumulatePhaseoffset(OSC_B &osc_b, uint16_t voice) {
+    return osc_b.iPhaseOffset.currentSample[voice] + osc_b.aPhaseoffset.valueMapped;
+}
 
 inline void accumulateNote(OSC_B &osc_b, float *note) {
 
@@ -105,6 +111,9 @@ inline void accumulateNote(OSC_B &osc_b, float *note) {
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] = noteConverted[i];
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.oscB.aTuning.valueMapped;
@@ -142,6 +151,7 @@ void renderOSC_B(OSC_B &osc_B) {
     float *outMorph = osc_B.morph.nextSample;
     float *outBitcrusher = osc_B.bitcrusher.nextSample;
     float *outSamplecrusher = osc_B.samplecrusher.nextSample;
+    float *phaseoffset = osc_B.phaseoffset.nextSample;
 
     accumulateNote(osc_B, outNote);
 
@@ -151,6 +161,8 @@ void renderOSC_B(OSC_B &osc_B) {
         outBitcrusher[voice] = accumulateBitcrusher(osc_B, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outSamplecrusher[voice] = accumulateSamplecrusher(osc_B, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        phaseoffset[voice] = accumulatePhaseoffset(osc_B, voice);
 }
 
 #endif

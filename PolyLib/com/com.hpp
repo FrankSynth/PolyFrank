@@ -16,22 +16,23 @@
 #include <inttypes.h>
 #include <vector>
 
+#ifdef POLYCONTROL
 #define INPUTBUFFERSIZE 512
 #define OUTPUTBUFFERSIZE 512
+#endif
 
 #define INTERCHIPBUFFERSIZE 128
 
 #define ERRORCODE_SENDBLOCK 20
 #define ERRORCODE_RECEPTORNOTREADY 21
 
-// callback for MDMA operations
-// void comMDMACallback(MDMA_HandleTypeDef *_hmdma);
-
-//  global settings
 #ifdef POLYCONTROL
+//  global settings
 #include "globalsettings/globalSettings.hpp"
 extern GlobalSettings globalSettings;
 #endif
+
+#ifdef POLYCONTROL
 
 namespace midiUSB {
 
@@ -73,28 +74,6 @@ enum MidiType : uint8_t {
     ActiveSensing = 0xFE, ///< System Real Time - Active Sensing
     SystemReset = 0xFF,   ///< System Real Time - System Reset
 };
-
-// static uint8_t type2cin[][2] = {
-//     {MidiType::InvalidType, 0},         {MidiType::NoteOff, 8},         {MidiType::NoteOn, 9},
-//     {MidiType::AfterTouchPoly, 0xA},    {MidiType::ControlChange, 0xB}, {MidiType::ProgramChange, 0xC},
-//     {MidiType::AfterTouchChannel, 0xD}, {MidiType::PitchBend, 0xE}};
-
-// static uint8_t system2cin[][2] = {{MidiType::SystemExclusive, 0},
-//                                   {MidiType::TimeCodeQuarterFrame, 2},
-//                                   {MidiType::SongPosition, 3},
-//                                   {MidiType::SongSelect, 2},
-//                                   {0, 0},
-//                                   {0, 0},
-//                                   {MidiType::TuneRequest, 5},
-//                                   {MidiType::SystemExclusiveEnd, 0},
-//                                   {MidiType::Clock, 0xF},
-//                                   {0, 0},
-//                                   {MidiType::Start, 0xF},
-//                                   {MidiType::Continue, 0xF},
-//                                   {MidiType::Stop, 0xF},
-//                                   {0, 0},
-//                                   {MidiType::ActiveSensing, 0xF},
-//                                   {MidiType::SystemReset, 0xF}};
 
 static int8_t cin2Len[][2] = {{0, 0}, {1, 0}, {2, 2},  {3, 3},  {4, 0},  {5, 0},  {6, 0},  {7, 0},
                               {8, 3}, {9, 3}, {10, 3}, {11, 3}, {12, 2}, {13, 2}, {14, 3}, {15, 1}};
@@ -269,51 +248,75 @@ class COMdin {
     uint8_t writeBufferSelect = 0;                    // switch output buffers
 };
 
-// class for interchip communication in both directions
-class COMinterChip {
-  public:
-    COMinterChip() {}
+#endif
+
 #ifdef POLYCONTROL
-    // init as Output Com
-    void initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaTransmitFunc, uint8_t *dmaBuffer,
-                             uint8_t layer);
-    // Append to out buffer
-    uint8_t sendCreatePatchInOut(uint8_t outputId, uint8_t inputId, float amount = 0);
-    uint8_t sendUpdatePatchInOut(uint8_t outputId, uint8_t inputId, float amount);
-    uint8_t sendDeletePatchInOut(uint8_t outputId, uint8_t inputId);
-    uint8_t sendDeleteAllPatches();
-    uint8_t sendSetting(uint8_t modulID, uint8_t settingID, int32_t amount);
-    uint8_t sendSetting(uint8_t modulID, uint8_t settingID, float amount);
-    uint8_t sendNewNote(uint8_t voiceID, uint8_t note, uint8_t velocity);
-    uint8_t sendOpenGate(uint8_t voiceID);
-    uint8_t sendCloseGate(uint8_t voiceID);
-    uint8_t sendRetrigger(uint8_t modulID, uint8_t voiceID);
-    uint8_t sendResetAll();
 
-    // start copying data for render chip A via MDMA
-    uint8_t startFirstMDMA();
-
-    // after first MDMA finished, start DMA transfer to render chip A
-    uint8_t startFirstDMA();
-
-    // second DMA was successfull
-    uint8_t sendTransmissionSuccessfull();
-
-    // send out current out buffer, used by master chip
-    uint8_t beginSendTransmission();
+enum comInterchipStates { readyReceive, readySend, Decode };
 
 #elif POLYRENDER
+
+enum comInterchipStates { readyReceive, readySend, Decode };
+
+#endif
+
+// class for interchip communication in both directions
+class COMinterChip {
+
+#ifdef POLYCONTROL
+  public:
+    // init as Output Com
+    // Append to out buffer
+    uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount = 0);
+    uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
+    uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
+    uint8_t sendDeleteAllPatches(uint8_t layerId);
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
+    uint8_t sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note, uint8_t velocity);
+    uint8_t sendOpenGate(uint8_t layerId, uint8_t voiceID);
+    uint8_t sendCloseGate(uint8_t layerId, uint8_t voiceID);
+    uint8_t sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t voiceID);
+    uint8_t sendResetAll(uint8_t layerId);
+    uint8_t sendRequestUIData();
+
+#elif POLYRENDER
+
+  public:
+    comInterchipStates state;
+
     // init as Input Com
-    void initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
-                            std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
 
     // start DMA reception, user by render chip
     uint8_t beginReceiveTransmission();
-#endif
+    uint8_t decodeCurrentInBuffer();
 
   private:
-#ifdef POLYCONTROL
+    // decode received Buffer
+    uint8_t checkVoiceAgainstChipID(uint8_t voice);
 
+#endif
+
+  public:
+    void initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
+                            std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
+    void initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaTransmitFunc, uint8_t *dmaBuffer);
+
+    // start copying data for render chip A via MDMA
+    uint8_t startSendMDMA();
+
+    // after first MDMA finished, start DMA transfer to render chip A
+    uint8_t startSendDMA();
+
+    // send DMA was successfull
+    uint8_t sendTransmissionSuccessfull();
+
+    // send out current out buffer
+    uint8_t beginSendTransmission();
+
+    COMinterChip() {}
+
+  private:
     // wrap up send buffers with closing bytes
     uint8_t appendLastByte();
 
@@ -326,43 +329,28 @@ class COMinterChip {
     std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA = nullptr;
 
     uint8_t *dmaOutBufferPointer[2];
-
     uint8_t dmaOutCurrentBufferSize;
-    // uint8_t dmaOutCurrentBufferBSize;
 
     // flag to block new send commands while send task is in progress
     uint8_t blockNewSendBeginCommand = 0;
 
-    uint8_t pushOutBuffer(uint8_t data);
+    // uint8_t pushOutBuffer(uint8_t data);
     uint8_t pushOutBuffer(uint8_t *data, uint32_t size);
-    // uint8_t pushOutBufferChipB(uint8_t data);
-    // uint8_t pushOutBufferChipB(uint8_t *data, uint32_t size);
 
     std::vector<uint8_t> outBuffer[2];
-    // std::vector<uint8_t> outBufferChipB[2];
-    uint8_t layer;
+    uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2];
 
-#elif POLYRENDER
+    // setup MDMA for DMA to RAM transfers and vice versa
+    // void prepareSendMDMAHandle();
 
-    // decode received Buffer
-    uint8_t decodeCurrentInBuffer();
-    uint8_t checkVoice(uint8_t voice);
+    uint8_t currentInBufferSelect = 0;
+    uint8_t currentOutBufferSelect = 0;
 
-    // received new Data, copy from DMA buffer to RAM
-    uint8_t copyReceivedInBuffer();
+    void switchInBuffer();
+    void switchOutBuffer();
 
     std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA;
     std::function<uint8_t()> stopReceiveViaDMA;
+
     uint8_t *dmaInBufferPointer[2];
-    ALIGN_32BYTES(uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2]);
-    uint8_t *inBufferPointer[2];
-
-#endif
-
-    // setup MDMA for DMA to RAM transfers and vice versa
-    void prepareMDMAHandle();
-
-    uint8_t currentBufferSelect = 0;
-
-    void switchBuffer();
 };

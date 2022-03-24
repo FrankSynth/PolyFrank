@@ -14,6 +14,8 @@ void Setting::setValue(int32_t newValue) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 const std::string &Setting::getValueAsString() {
@@ -52,6 +54,8 @@ void Analog::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 int32_t Analog::reverseMapping(float newValue) {
@@ -112,6 +116,8 @@ void Digital::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void Digital::nextValue() {
@@ -123,6 +129,8 @@ void Digital::nextValue() {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void Digital::nextValueLoop() {
@@ -134,6 +142,8 @@ void Digital::nextValueLoop() {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void Digital::previousValue() {
@@ -145,6 +155,8 @@ void Digital::previousValue() {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void BasePatch::removePatchInOut(PatchElement &patch) {

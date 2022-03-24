@@ -3,6 +3,8 @@
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
 
+extern Layer layerA;
+
 LogCurve linlogMapping(32, 0.01);
 
 inline float calcSin(float phase) {
@@ -39,16 +41,6 @@ inline float calcSquare(float phase, float shape) {
     }
 }
 
-inline float calcRandom() {
-    uint32_t randomNumber;
-
-    randomNumber = std::rand();
-    randomNumber = randomNumber & 0x00FFFFFF;
-
-    // map to -1, 1
-    return ((float)randomNumber / 8388607.0f) - 1.0f;
-}
-
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
     return linlogMapping.mapValue((lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped)) * 100; // max 200 Hz
     // return testFloat(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
@@ -75,7 +67,8 @@ void renderLFO(LFO &lfo) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         shape[voice] = accumulateShape(lfo, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        speed[voice] = accumulateSpeed(lfo, voice);
+        speed[voice] =
+            accumulateSpeed(lfo, voice) * (1 + layerA.lfoImperfection[voice] * layerA.feel.aImperfection.valueMapped);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         amount[voice] = accumulateAmount(lfo, voice);
 

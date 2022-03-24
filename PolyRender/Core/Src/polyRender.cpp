@@ -42,15 +42,24 @@ void sendDACs();
 
 void PolyRenderInit() {
 
+    // TODO chip ID maybe also could be sent instead of read.
     // set chip id
     if (HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin))
         layerA.chipID = 1;
     else
         layerA.chipID = 0;
 
-    std::srand(layerA.chipID + 1);
+    // TODO layer id should maybe rather be sent
+    // set layer ID
+    if (!HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin))
+        layerA.id = 1;
+    else
+        layerA.id = 0;
 
-    // CV DACs
+    // init pseudo rand so all chips follow different patterns.
+    std::srand(layerA.chipID + layerA.id + 1);
+
+    // CV DACs init
     initCVRendering();
 
     testMCPI2CAddress(); // check all MCP4728 addressing
@@ -61,10 +70,10 @@ void PolyRenderInit() {
 
     initPoly();
 
-    // init allLayers
+    // init all Layers
     allLayers.push_back(&layerA);
+    layerA.initLayer();
     layerA.resetLayer();
-    layerA.initSpreading();
 
     initAudioRendering();
 
@@ -93,6 +102,8 @@ void PolyRenderInit() {
 void PolyRenderRun() {
 
     println("////////// Hi, it's Render. PolyFrank Render. //////////");
+    println("Layer ID is: ", layerA.id);
+    println("Chip ID is: ", layerA.chipID);
 
     // enable reception line
     HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
@@ -106,26 +117,14 @@ void PolyRenderRun() {
     renderCVs();
     sendDACs();
 
-    // time difference in startup for both chips
-    // if (chipID) {
-    //     microsecondsDelay(125);
-    // }
-
     HAL_TIM_Base_Start_IT(&htim15);
 
-    // elapsedMicros timer = 0;
-    // bool toggle = false;
-    // float calcThis[100] = {0};
     // run loop
     while (true) {
-        FlagHandler::handleFlags();
-        // for (int32_t x = 0; x < 100; x++) {
+        // for timing test purpose
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
 
-        //     calcThis[x] = powf(calcThis[x], calcThis[x]) - 1;
-        //     if (calcThis[x] < 0) {
-        //         HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
-        //     }
-        // }
+        FlagHandler::handleFlags();
     }
 }
 
@@ -133,22 +132,6 @@ void PolyRenderRun() {
 
 // cv DACs Send Callbacks
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-
-    // cvDac[0].setLatchPin();
-    // cvDac[1].setLatchPin();
-    // cvDac[2].setLatchPin();
-    // cvDac[3].setLatchPin();
-
-    // uint32_t rand = std::rand();
-
-    // if (chipID) {
-    //     rand = rand & 0x00000007;
-    //     microsecondsDelay(rand);
-    // }
-    // else {
-    // rand = rand & 0x0000000F;
-    // microsecondsDelay(rand);
-    // }
 
     if (hi2c->Instance == hi2c1.Instance) {
 
@@ -211,7 +194,6 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
     else if (hi2c->Instance == hi2c3.Instance) {
 
         if (FlagHandler::cvDacStarted[7]) {
-            // microsecondsDelay(rand);
 
             cvDac[8].setLatchPin();
             FlagHandler::cvDacStarted[7] = false;
@@ -248,48 +230,59 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
 
     if (FlagHandler::cvDacFinished[3])
         cvDac[3].resetLatchPin();
-
-    // if (FlagHandler::cvDacLastFinished[0] && FlagHandler::cvDacLastFinished[1] &&
-    // FlagHandler::cvDacLastFinished[2])
-    //     FlagHandler::cvSent = true;
 }
-// void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {}
+
+elapsedMicros audiotimer = 0;
+uint32_t counter = 0;
+uint32_t cache = 0;
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    audiotimer = 0;
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
+    if (counter < 100000) {
+        cache += audiotimer;
+        counter++;
+    }
+    else {
+
+        println((float)cache / (float)counter);
+        counter = 0;
+        cache = 0;
+    }
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    audiotimer = 0;
     renderAudio((int32_t *)saiBuffer);
+    if (counter < 100000) {
+        cache += audiotimer;
+        counter++;
+    }
+    else {
+
+        println((float)cache / (float)counter);
+        counter = 0;
+        cache = 0;
+    }
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
     PolyError_Handler("SAI error callback");
 }
 
-// reception from Control SPI
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-
-    // InterChip Com SPI 1
-    if (hspi == &hspi1) {
-        if (FlagHandler::interChipReceive_DMA_Started == 1) {
-            FlagHandler::interChipReceive_DMA_Started = 0;
-            FlagHandler::interChipReceive_DMA_Finished = 1;
-        }
-    }
-}
-
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     // reception Line from Control
 
-    if (pin == GPIO_PIN_3) {
-        // disable reception line
-        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+    if (pin == SPI_CS_fromControl_Pin) {
         // rising flank
-        FlagHandler::interChipReceive_DMA_Finished = true;
+
+        // disable reception line
+        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+        layerCom.decodeCurrentInBuffer();
     }
 }
 
@@ -306,12 +299,7 @@ void sendDACs() {
         FlagHandler::cvDacFinished[0] = false;
 
     // just those 4 will set all as they are shared
-
     cvDac[0].setLatchPin();
-
-    // cvDac[1].setLatchPin();
-    // cvDac[2].setLatchPin();
-    // cvDac[3].setLatchPin();
 
     // out DacB and DacC gets automatially triggered by flags when transmission is done
     FlagHandler::cvDacStarted[0] = true;
@@ -323,39 +311,11 @@ void sendDACs() {
 }
 
 // cv rendering timer IRQ
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
-        // renderCVs();
-        // FlagHandler::cvSent = true;
-
-        // just those 4 will set all as they are shared
-        // cvDac[0].setLatchPin();
-        // cvDac[1].setLatchPin();
-        // cvDac[2].setLatchPin();
-        // cvDac[3].setLatchPin();
-
-        // error callback maybe
-        // if (FlagHandler::cvDacLastFinished[0] == false) {
-        //     PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[0] false");
-        // }
-        // if (FlagHandler::cvDacLastFinished[1] == false) {
-        //     PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[1] false");
-        // }
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
         }
-
-        // FlagHandler::renderNewCV = true;
-        // FlagHandler::cvDacLastFinished[0] = false;
-        // FlagHandler::cvDacLastFinished[1] = false;
-        // FlagHandler::cvDacLastFinished[2] = false;
-
-        // waste just a little bit of time for ldacs to update properly
-        // volatile uint32_t count = 0;
-        // for (uint32_t i = 0; i < 8; i++) {
-        //     count++;
-        // }
         sendDACs();
     }
 }
@@ -374,16 +334,6 @@ void testMCPI2CAddress() {
         println("I2C AddressChange - I2C Busy");
         return;
     }
-
-    // if (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
-
-    // if (HAL_I2C_GetState(&hi2c3) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
 
     // test Address reachable -> set target address
 
@@ -426,16 +376,6 @@ void resetMCPI2CAddress() {
         println("I2C AddressChange - I2C Busy");
         return;
     }
-
-    // if (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
-
-    // if (HAL_I2C_GetState(&hi2c3) != HAL_I2C_STATE_READY) {
-    //     println("I2C AddressChange - I2C Busy");
-    //     return;
-    // }
 
     // test Address reachable -> set target address
     for (uint8_t address = 0x00; address < 0x08; address++) {

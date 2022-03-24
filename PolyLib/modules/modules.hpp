@@ -13,7 +13,7 @@ extern const std::vector<std::string> nlLadderSlopes;
 extern const std::vector<std::string> nlADSRShapes;
 extern const std::vector<std::string> nlClockSteps;
 extern const std::vector<std::string> nlSubOctaves;
-extern const std::vector<std::string> nlWavetable;
+// nlWavetable in wavetables.hpp
 
 // Basemodule
 class BaseModule {
@@ -91,7 +91,7 @@ class Midi : public BaseModule {
     inline void gateOn(uint16_t voice) { rawGate[voice] = 1; }
     inline void gateOff(uint16_t voice) { rawGate[voice] = 0; }
     inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) {
-        rawNote[voice] = note;
+        rawNote[voice] = note - 21;
         rawVelocity[voice] = velocity;
     }
     inline void resetAllNotes() {
@@ -149,10 +149,10 @@ class OSC_A : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
-    Digital dSample0 = Digital("WAVE 1", 0, 10, 0, true, &nlWavetable);
-    Digital dSample1 = Digital("WAVE 2", 0, 10, 1, true, &nlWavetable);
-    Digital dSample2 = Digital("WAVE 3", 0, 10, 2, true, &nlWavetable);
-    Digital dSample3 = Digital("WAVE 4", 0, 10, 3, true, &nlWavetable);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT, 2, true, &nlWavetable);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr);
     // Digital dVcfDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
@@ -167,8 +167,8 @@ class OSC_A : public BaseModule {
     // RenderBuffer levelLadder;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float phaseWavetableA[VOICESPERCHIP] = {0};
-    float phaseWavetableB[VOICESPERCHIP] = {0};
+    float phaseWavetableLower[VOICESPERCHIP] = {0};
+    float phaseWavetableUpper[VOICESPERCHIP] = {0};
 
     // inline void gateOn(uint16_t voice) {}
 };
@@ -182,30 +182,28 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iMorph);
         inputs.push_back(&iTuning);
         inputs.push_back(&iOctave);
-        // inputs.push_back(&iLevel);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
+        inputs.push_back(&iPhaseOffset);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
-        // knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
+        knobs.push_back(&aPhaseoffset);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
         switches.push_back(&dSample2);
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
-        // switches.push_back(&dVcfDestSwitch);
         switches.push_back(&dSync);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
-        // renderBuffer.push_back(&levelSteiner);
-        // renderBuffer.push_back(&levelLadder);
+        renderBuffer.push_back(&phaseoffset);
     }
 
     Output out = Output("OUT");
@@ -217,6 +215,7 @@ class OSC_B : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
+    Input iPhaseOffset = Input("PHASE OFFSET");
 
     // Input iSync = Input("SYNC");
 
@@ -225,16 +224,15 @@ class OSC_B : public BaseModule {
     // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
+    Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
 
-    // Digital dNote = Digital("NOTE", 22, 108, 22, false, nullptr, nullptr, false);
     Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
-    // Digital dVcfDestSwitch = Digital("VCF", 0, 3, 1, true, &nlVCFDest);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
-    Digital dSample0 = Digital("WAVE 1", 0, 10, 0, true, &nlWavetable);
-    Digital dSample1 = Digital("WAVE 2", 0, 10, 1, true, &nlWavetable);
-    Digital dSample2 = Digital("WAVE 3", 0, 10, 2, true, &nlWavetable);
-    Digital dSample3 = Digital("WAVE 4", 0, 10, 3, true, &nlWavetable);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT, 2, true, &nlWavetable);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
 
     // render shizzle
 
@@ -242,13 +240,12 @@ class OSC_B : public BaseModule {
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    // RenderBuffer levelSteiner;
-    // RenderBuffer levelLadder;
+    RenderBuffer phaseoffset;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float cacheOscAstep[VOICESPERCHIP] = {false};
-    float phaseWavetableA[VOICESPERCHIP] = {0};
-    float phaseWavetableB[VOICESPERCHIP] = {0};
+    float cacheOscAPhase[VOICESPERCHIP] = {0};
+    float phaseWavetableLower[VOICESPERCHIP] = {0};
+    float phaseWavetableUpper[VOICESPERCHIP] = {0};
 
     // inline void gateOn(uint16_t voice) {}
 };
@@ -375,20 +372,20 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&noiseLevelLadder);
     }
 
-    Input iOSCALevel = Input("LEVEL");
-    Input iOSCBLevel = Input("LEVEL");
-    Input iSUBLevel = Input("LEVEL");
-    Input iNOISELevel = Input("LEVEL");
+    Input iOSCALevel = Input("OSC A");
+    Input iOSCBLevel = Input("OSC B");
+    Input iSUBLevel = Input("SUB");
+    Input iNOISELevel = Input("NOISE");
 
-    Analog aOSCALevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iOSCALevel);
-    Analog aOSCBLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iOSCBLevel);
-    Analog aSUBLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iSUBLevel);
-    Analog aNOISELevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iNOISELevel);
+    Analog aOSCALevel = Analog("OSC A", 0, 1, 0.8, true, logMap, &iOSCALevel);
+    Analog aOSCBLevel = Analog("OSC B", 0, 1, 0, true, logMap, &iOSCBLevel);
+    Analog aSUBLevel = Analog("SUB", 0, 1, 0, true, logMap, &iSUBLevel);
+    Analog aNOISELevel = Analog("NOISE", 0, 1, 0, true, logMap, &iNOISELevel);
 
-    Digital dOSCADestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
-    Digital dOSCBDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
-    Digital dSUBDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
-    Digital dNOISEDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
+    Digital dOSCADestSwitch = Digital("OSC A", 0, 3, 1, true, &nlVCFDest);
+    Digital dOSCBDestSwitch = Digital("OSC B", 0, 3, 1, true, &nlVCFDest);
+    Digital dSUBDestSwitch = Digital("SUB", 0, 3, 1, true, &nlVCFDest);
+    Digital dNOISEDestSwitch = Digital("NOISE", 0, 3, 1, true, &nlVCFDest);
 
     RenderBuffer oscALevelSteiner;
     RenderBuffer oscALevelLadder;
@@ -421,7 +418,6 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&cutoff);
         renderBuffer.push_back(&toLadder);
     }
-    // TODO Steiner ADSR knob
     Input iCutoff = Input("CUTOFF");
     Input iResonance = Input("RESONANCE");
     Input iLevel = Input("LEVEL");
@@ -672,7 +668,7 @@ class Feel : public BaseModule {
         knobs.push_back(&aGlide);
         knobs.push_back(&aDetune);
         knobs.push_back(&aSpread);
-        knobs.push_back(&aDrift);
+        knobs.push_back(&aImperfection);
 
         renderBuffer.push_back(&glide);
         renderBuffer.push_back(&detune);
@@ -687,7 +683,7 @@ class Feel : public BaseModule {
     Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
     Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
-    Analog aDrift = Analog("DRIFT", 0, 1, 0, true, linMap);
+    Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.5, true, linMap);
 
     RenderBuffer glide;
     RenderBuffer detune;
@@ -723,7 +719,7 @@ class Out : public BaseModule {
     Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true, logMap);
-    Analog aMaster = Analog("MASTER", 0, 1, 0, true, linMap);
+    Analog aMaster = Analog("MASTER", 0, 1, 0.8, true, linMap);
 
     RenderBuffer left;
     RenderBuffer right;
@@ -736,7 +732,7 @@ class LayerSetting : public BaseModule {
   public:
     LayerSetting(const char *name, const char *shortName) : BaseModule(name, shortName) { // call subclass
 
-        this->displayVis = 0;
+        // this->displayVis = 0;
 
         switches.push_back(&dPitchbendRange);
     }

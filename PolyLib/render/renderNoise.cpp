@@ -23,7 +23,7 @@ void renderNoise(Noise &noise) {
     float *outSamplecrusher = noise.samplecrusher.nextSample;
     // int32_t &filterSwitch = noise.dVcfDestSwitch.valueMapped;
 
-    float level[VOICESPERCHIP];
+    // float level[VOICESPERCHIP];
 
     // for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
     //     level[voice] = accumulateLevel(noise, voice);

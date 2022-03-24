@@ -1,9 +1,5 @@
 #include "layer.hpp"
 
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> Layer::sendCreatePatchInOut = nullptr;
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t)> Layer::sendDeletePatchInOut = nullptr;
-// std::function<uint8_t(uint8_t)> Layer::sendDeleteAllPatches = nullptr;
-
 #ifdef POLYCONTROL
 extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
 extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
@@ -142,7 +138,6 @@ void Layer::clearPatches() {
         }
     }
     patchesInOut.clear();
-    // patchesOutOut.clear();
 
 #ifdef POLYCONTROL
     sendDeleteAllPatches(id);
@@ -151,12 +146,31 @@ void Layer::clearPatches() {
 
 #ifdef POLYRENDER
 
-void Layer::initSpreading() {
+/**
+ * @brief load spreading buffer and imperfection base
+ *
+ */
+void Layer::initLayer() {
 
-    float maxVal = chipID ? -1 : 1;
+    // set spread values dependend on chip ID
+    float maxVal = chipID ? -1.0f : 1.0f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        spreadValues[i] = maxVal / ((float)i + 1.0f);
+
+    // load imperfection buffers
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        lfoImperfection[i] = calcRandom() * LFOIMPERFECTIONWEIGHT;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        spreadValues[i] = maxVal / (i + 1);
+        adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT;
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++) {
+        for (uint16_t o = 0; o < OSCPERVOICE; o++) {
+            for (uint16_t x = 0; x < NOTEIMPERFECTIONBUFFERSIZE; x++) {
+                noteImperfection[o][i][x] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+            }
+        }
+    }
 }
 
 #endif

@@ -7,7 +7,7 @@ extern Layer layerA;
 LogCurve panningAntiLog(32, 0.94);
 
 // TODO check this pan spread mapping
-inline float accumulatePan(Out out, uint16_t voice) {
+inline float accumulatePan(Out &out, uint16_t voice) {
     float pan = out.iPan.currentSample[voice] + out.aPan.valueMapped;
     if (layerA.spreadValues[voice] < 0)
         pan = fast_lerp_f32(pan, -1, out.aPanSpread.valueMapped * -layerA.spreadValues[voice]);
@@ -17,7 +17,7 @@ inline float accumulatePan(Out out, uint16_t voice) {
     return pan;
 }
 
-inline float accumulateVCA(Out out, uint16_t voice) {
+inline float accumulateVCA(Out &out, uint16_t voice) {
     return testFloat(out.iVCA.currentSample[voice] + out.aVCA.valueMapped +
                          out.aADSR.valueMapped * layerA.envA.out.currentSample[voice],
                      out.aVCA.min, out.aVCA.max);
@@ -27,7 +27,7 @@ inline float accumulateDistort(Out &out, uint16_t voice) {
     return testFloat(out.iDistort.currentSample[voice] + out.aDistort.valueMapped, 0, 1);
 }
 
-void renderOut(Out out) {
+void renderOut(Out &out) {
 
     float *outDistort = out.distort.nextSample;
     float *outLeft = out.left.nextSample;

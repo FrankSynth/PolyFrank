@@ -48,6 +48,8 @@ void renderADSR(ADSR &adsr) {
         float &currentTime = adsr.currentTime[voice];
         float &gate = layerA.midi.oGate.currentSample[voice];
 
+        float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
+
         switch (adsr.getState(voice)) {
             case adsr.OFF:
                 if (gate == 1 || loop == 1) {
@@ -61,7 +63,7 @@ void renderADSR(ADSR &adsr) {
                 }
                 else {
                     delay = accumulateDelay(adsr, voice);
-                    currentTime += SECONDSPERCVRENDER;
+                    currentTime += SECONDSPERCVRENDER * imperfection;
                     if (currentTime >= delay)
                         adsr.setStatusAttack(voice);
                 }
@@ -69,7 +71,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice);
-                currentLevel += SECONDSPERCVRENDER / attack;
+                currentLevel += (SECONDSPERCVRENDER / attack) * imperfection;
 
                 if (currentLevel >= 1) {
                     currentLevel = 1;
@@ -96,7 +98,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice);
-                currentLevel -= SECONDSPERCVRENDER / decay;
+                currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
 
                 sustain = accumulateSustain(adsr, voice);
 
@@ -140,13 +142,13 @@ void renderADSR(ADSR &adsr) {
                     decay = accumulateDecay(adsr, voice);
 
                     if (currentLevel < sustain) {
-                        currentLevel += SECONDSPERCVRENDER / decay;
+                        currentLevel += (SECONDSPERCVRENDER / decay) * imperfection;
                         if (currentLevel >= sustain) {
                             currentLevel = sustain;
                         }
                     }
                     else {
-                        currentLevel -= SECONDSPERCVRENDER / decay;
+                        currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
                         if (currentLevel <= sustain) {
                             currentLevel = sustain;
                         }
@@ -160,7 +162,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice);
-                currentLevel -= SECONDSPERCVRENDER / release;
+                currentLevel -= (SECONDSPERCVRENDER / release) * imperfection;
 
                 if (currentLevel <= 0) {
                     currentLevel = 0;

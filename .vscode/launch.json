@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "showDevDebugOutput": true,
+            "showDevDebugOutput": "parsed",
             "cwd": "${workspaceRoot}",
             "executable": "PolyControl/build/PolyControl.elf",
             "name": "Debug PolyControl",
@@ -17,7 +17,7 @@
             ]
         },
         {
-            "showDevDebugOutput": true,
+            "showDevDebugOutput": "parsed",
             "cwd": "${workspaceRoot}",
             "executable": "PolyRender/build/PolyRender.elf",
             "name": "Debug PolyRender",
@@ -32,3 +32,5 @@
                 "target/stm32h7x.cfg"
             ]
         }
+    ]
+}

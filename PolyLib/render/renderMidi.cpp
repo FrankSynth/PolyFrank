@@ -1,6 +1,6 @@
 #include "renderMidi.hpp"
 
-void renderMidi(Midi midi) {
+void renderMidi(Midi &midi) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         midi.oMod.nextSample[voice] = midi.aMod.valueMapped;
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)

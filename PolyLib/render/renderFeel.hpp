@@ -2,4 +2,4 @@
 
 #include "layer/layer.hpp"
 
-void renderFeel(Feel feel);
+void renderFeel(Feel &feel);

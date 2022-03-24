@@ -27,7 +27,7 @@ void GUI::Init() { // add settings pointer
     }
     else {
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->LayerState.value == 1) {
+            if (allLayers[i]->layerState.value == 1) {
                 guiPanelVoice.init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
                                    HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
             }

@@ -100,7 +100,7 @@ class MCP4728 {
             println("I2C | init | Dac Transmit Error", "Address :", (uint32_t)i2cAddress);
         }
 
-        //initData = 0x8F; // set output reference to internal 2048mV
+        // initData = 0x8F; // set output reference to internal 2048mV
 
         // if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, &initData, 1, 50) != HAL_OK) {
         //     Error_Handler();
@@ -125,12 +125,11 @@ class MCP4728 {
     }
 
     inline void sendCurrentBuffer() {
-        uint32_t *dataAsInt = (uint32_t *)data.currentSample;
 
-        dataAsInt[0] = __REV16(dataAsInt[0]);
-        dataAsInt[1] = __REV16(dataAsInt[1]);
+        dataBuffer[0] = __REV16(((uint32_t *)data.currentSample)[0]);
+        dataBuffer[1] = __REV16(((uint32_t *)data.currentSample)[1]);
 
-        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, (uint8_t *)data.currentSample, 8, 50) != HAL_OK) {
+        if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, (uint8_t *)dataBuffer, 8, 50) != HAL_OK) {
             Error_Handler();
             println("I2C | sendCurrentBuffer | Dac Transmit Error");
         }
@@ -164,4 +163,5 @@ class MCP4728 {
   private:
     uint16_t *dmabuffer = nullptr;
     uint32_t *bufferAsInt = nullptr;
+    uint32_t dataBuffer[2];
 };
