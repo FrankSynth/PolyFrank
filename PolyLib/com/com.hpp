@@ -263,8 +263,6 @@ class COMinterChip {
     uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
     uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
     uint8_t sendDeleteAllPatches(uint8_t layerId);
-    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
-    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note, uint8_t velocity);
     uint8_t sendOpenGate(uint8_t layerId, uint8_t voiceID);
     uint8_t sendCloseGate(uint8_t layerId, uint8_t voiceID);
@@ -277,6 +275,7 @@ class COMinterChip {
   private:
     // decode received Buffer
     uint8_t checkVoiceAgainstChipID(uint8_t voice);
+    uint8_t sendString(std::string &message);
 
 #endif
 
@@ -302,9 +301,16 @@ class COMinterChip {
 
         outBuffer[0].reserve(INTERCHIPBUFFERSIZE);
         outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
+
+        messagebuffer.reserve(INTERCHIPBUFFERSIZE);
     }
 
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
+
   private:
+    std::string messagebuffer;
+
     comInterchipStates state;
 
     // setup MDMA for DMA to RAM transfers and vice versa

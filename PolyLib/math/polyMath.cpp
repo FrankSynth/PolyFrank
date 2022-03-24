@@ -85,8 +85,8 @@ float fastNoteLin2Log_f32(float x) {
 }
 
 void LogCurve::precomputeTable() {
-    float b = std::pow((1 / curve) - 1, 2);
-    float a = 1 / (b - 1);
+    float b = std::pow((1.0f / curve) - 1.0f, 2.0f);
+    float a = 1.0f / (b - 1.0f);
 
     for (uint16_t i = 0; i < (size + 1); i++) {
         logTable[i] = a * std::pow(b, fastMapCached(i, 0, size, 0, 1)) - a;

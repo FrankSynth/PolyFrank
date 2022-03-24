@@ -16,6 +16,7 @@
 #define LASTBYTECMDSIZE 1
 #define RESETALLCMDSIZE 2
 #define SENDUPDATETOCONTROLSIZE 1
+#define MESSAGECMDSIZE 1
 
 #define VOICE0 0
 #define VOICE1 1
@@ -51,5 +52,6 @@ enum comCommands {
     UPDATESETTINGINT,      // next bytes are setting
     UPDATESETTINGFLOAT,    // next bytes are settings
     SENDUPDATETOCONTROL,   // pull req from control
+    SENDMESSAGE,           // send a string
     LASTBYTE = 0b01111111, // LAST BYTE of transmission
 };

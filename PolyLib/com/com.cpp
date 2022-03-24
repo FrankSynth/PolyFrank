@@ -156,30 +156,6 @@ uint8_t COMinterChip::sendDeleteAllPatches(uint8_t layerId) {
     return 0;
 }
 
-// this function now dows all settings, int & float settings
-uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
-    uint8_t comCommand[SETTINGCMDSIZE];
-    comCommand[0] = (layerId << 7) | (modulID << 3);
-    comCommand[1] = UPDATESETTINGINT;
-    comCommand[2] = settingID;
-    *(int32_t *)(&comCommand[3]) = amount;
-
-    pushOutBuffer(comCommand, SETTINGCMDSIZE);
-    // pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
-    return 0;
-}
-
-uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount) {
-    uint8_t comCommand[SETTINGCMDSIZE];
-    comCommand[0] = (layerId << 7) | (modulID << 3);
-    comCommand[1] = UPDATESETTINGFLOAT;
-    comCommand[2] = settingID;
-    *(float *)(&comCommand[3]) = amount;
-
-    pushOutBuffer(comCommand, SETTINGCMDSIZE);
-    return 0;
-}
-
 uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note, uint8_t velocity) {
     uint8_t comCommand[NEWNOTECMDSIZE];
 
@@ -290,6 +266,48 @@ uint8_t COMinterChip::sendRequestUIData() {
 #endif
 
 #ifdef POLYRENDER
+
+// this function now dows all settings, int & float settings
+uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
+    uint8_t comCommand[SETTINGCMDSIZE];
+    comCommand[0] = (layerId << 7) | (modulID << 3);
+    comCommand[1] = UPDATESETTINGINT;
+    comCommand[2] = settingID;
+    *(int32_t *)(&comCommand[3]) = amount;
+
+    pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    // pushOutBufferChipB(comCommand, SETTINGCMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount) {
+    uint8_t comCommand[SETTINGCMDSIZE];
+    comCommand[0] = (layerId << 7) | (modulID << 3);
+    comCommand[1] = UPDATESETTINGFLOAT;
+    comCommand[2] = settingID;
+    *(float *)(&comCommand[3]) = amount;
+
+    pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendString(std::string &message) {
+
+    uint8_t messagesize = message.size();
+
+    if (messagesize > INTERCHIPBUFFERSIZE - 2 - LASTBYTECMDSIZE - MESSAGECMDSIZE)
+        return 1; // not possible to send this
+
+    messagebuffer.clear();
+
+    messagebuffer = (char)SENDMESSAGE;
+    messagebuffer += (char)messagesize;
+    messagebuffer.append(message);
+
+    pushOutBuffer((uint8_t *)messagebuffer.data(), messagebuffer.size());
+
+    return 0;
+}
 
 // check if voices beling to current render chip, and shift if necessary
 uint8_t COMinterChip::checkVoiceAgainstChipID(uint8_t voice) {
@@ -495,10 +513,31 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 #ifdef POLYRENDER
         if (currentByte == SENDUPDATETOCONTROL) {
-            // TODO send update
+            // TODO send UI update shit
 
             continue;
         }
+#endif
+
+#ifdef POLYCONTROL
+
+        // TODO implement with layer and chip encoding
+        if (currentByte == SENDMESSAGE) {
+
+            messagebuffer.clear();
+
+            uint8_t messagesize = (inBufferPointer[currentInBufferSelect])[++i];
+
+            for (uint8_t i = 0; i < messagesize; i++) {
+                messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
+            }
+
+            // TODO output to debug console
+            println(messagebuffer);
+
+            continue;
+        }
+
 #endif
 
         layerID = (currentByte & CMD_LAYERMASK) >> 7;
