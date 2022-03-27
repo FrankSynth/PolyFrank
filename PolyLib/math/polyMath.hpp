@@ -188,14 +188,6 @@ inline float fastMapLEDBrightness(float value) {
 }
 
 /**
- * @brief map Audio log
- *
- * @param value between 0 and 1
- * @return float mapped value between 0 and 1
- */
-float fastMapAudioToLog(float value);
-
-/**
  * @brief custom log table between 0 and 1 with curve param
  *
  */
@@ -225,4 +217,22 @@ class LogCurve {
     std::vector<float> logTable;
 };
 
-// template <uint32_t _size, uint32_t _curve> LogCurve
+// audio poti Log style
+extern LogCurve audioCurve;
+
+/**
+ * @brief map Audio log
+ *
+ * @param value between 0 and 1
+ * @return float mapped value between 0 and 1
+ */
+inline float fastMapAudioToLog(float value) {
+    return audioCurve.mapValue(value);
+}
+
+float squircle(float value, float curvature);
+float squircleSimplified(float value, float curvature);
+
+template <typename T> T getSign(T val) {
+    return (T(0) < val) - (val < T(0));
+}

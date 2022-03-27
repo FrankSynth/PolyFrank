@@ -77,7 +77,6 @@ float fastNoteLin2Log_f32(float x) {
     b = noteLin2LogTable_f32[index + 1];
 
     /* Linear interpolation process */
-    // ret = (1.0f - fract) * a + fract * b;
     ret = fast_lerp_f32(a, b, fract);
 
     /* Return the output value */
@@ -85,12 +84,11 @@ float fastNoteLin2Log_f32(float x) {
 }
 
 void LogCurve::precomputeTable() {
-    float b = std::pow((1.0f / curve) - 1.0f, 2.0f);
+    float b = std::pow((1.0f / curve) - 1.0f, 2);
     float a = 1.0f / (b - 1.0f);
 
     for (uint16_t i = 0; i < (size + 1); i++) {
         logTable[i] = a * std::pow(b, fastMapCached(i, 0, size, 0, 1)) - a;
-        // logTable.push_back(a * powf(b, fastMap(i, 0, size, 0, 1)) - a);
     }
 }
 
@@ -178,6 +176,37 @@ float LogCurve::mapValueSigned(float value) {
 // audio poti Log style
 LogCurve audioCurve(16, 0.1);
 
-float fastMapAudioToLog(float value) {
-    return audioCurve.mapValue(value);
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+float squircle(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
+
+    float sign = getSign(value);
+
+    float exp = 1.0f / curvature - 1.0f;
+    float firstpow = 1.0f - std::pow(sign * value, exp);
+    return sign * (1.0f - std::pow(firstpow, 1.0f / exp));
+}
+
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+float squircleSimplified(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
+
+    float exp = 1.0f / curvature - 1.0f;
+    float expsq = exp * exp;
+    float ret = std::pow(value, expsq);
+    return ret;
 }

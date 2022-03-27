@@ -326,7 +326,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
     }
     if (pin & GPIO_PIN_6) { // Layer A Chip 0
-        uint8_t layer = 0;
 
         if (FlagHandler::renderChip_State[0][0] == NOTCONNECT) {
             FlagHandler::renderChip_State[0][0] = READY;

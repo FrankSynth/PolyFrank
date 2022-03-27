@@ -11,11 +11,6 @@ namespace FlagHandler {
 
 // InterChip send flags
 
-#define LAYERA 0
-#define LAYERB 1
-#define CHIPA 0
-#define CHIPB 1
-
 extern bool layerActive[2];
 
 extern bool HID_Initialized;
@@ -66,9 +61,6 @@ extern void (*sendRenderedCVsFunc)();
 
 #endif
 
-extern bool interChipSend_MDMA_Started;
-extern bool interChipSend_MDMA_Finished;
-extern std::function<uint8_t()> interChipSend_MDMA_FinishedFunc;
 extern bool interChipSend_DMA_Started;
 extern bool interChipSend_DMA_Finished;
 extern std::function<uint8_t()> interChipSend_DMA_FinishedFunc;

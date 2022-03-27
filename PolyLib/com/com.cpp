@@ -263,10 +263,6 @@ uint8_t COMinterChip::sendRequestUIData() {
     return 0;
 }
 
-#endif
-
-#ifdef POLYRENDER
-
 // this function now dows all settings, int & float settings
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
     uint8_t comCommand[SETTINGCMDSIZE];
@@ -290,6 +286,10 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
     pushOutBuffer(comCommand, SETTINGCMDSIZE);
     return 0;
 }
+
+#endif
+
+#ifdef POLYRENDER
 
 uint8_t COMinterChip::sendString(std::string &message) {
 
@@ -368,8 +368,6 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     // write size into first two bytes of outBuffers
 
-    // HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_CPLT_CB_ID, comMDMACallback);
-    // HAL_MDMA_RegisterCallback(&hmdma_mdma_channel40_sw_0, HAL_MDMA_XFER_ERROR_CB_ID, comMDMACallbackError);
     // prepareSendMDMAHandle();
 
     *outBuffer[currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
@@ -397,7 +395,6 @@ void COMinterChip::initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t
     dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
 
     pushDummySizePlaceHolder();
-    // FlagHandler::interChipSend_MDMA_FinishedFunc = std::bind(&COMinterChip::startSendDMA, this);
     FlagHandler::interChipSend_DMA_FinishedFunc = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
 }
 
@@ -507,7 +504,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
         if (currentByte == LASTBYTE) {
             beginReceiveTransmission();
+#ifdef POLYRENDER
+            // TODO pin for polycontrol
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+#endif
             return 0;
         }
 
@@ -544,8 +544,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         module = (currentByte & CMD_MODULEMASK) >> 3;
         voice = currentByte & CMD_VOICEMASK;
 
+#ifdef POLYRENDER
         // convert voice 4-7 to 0-3 if on chip B
         voice = checkVoiceAgainstChipID(voice);
+#endif
 
         currentByte = (inBufferPointer[currentInBufferSelect])[++i];
         switch (currentByte) {
@@ -668,26 +670,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     return 1;
 }
 
-// void COMinterChip::prepareSendMDMAHandle() {
-//     hmdma_mdma_channel40_sw_0.Instance = MDMA_Channel0;
-//     hmdma_mdma_channel40_sw_0.Init.Request = MDMA_REQUEST_SW;
-//     hmdma_mdma_channel40_sw_0.Init.TransferTriggerMode = MDMA_FULL_TRANSFER;
-//     hmdma_mdma_channel40_sw_0.Init.Priority = MDMA_PRIORITY_HIGH;
-//     hmdma_mdma_channel40_sw_0.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
-//     hmdma_mdma_channel40_sw_0.Init.SourceInc = MDMA_SRC_INC_WORD;
-//     hmdma_mdma_channel40_sw_0.Init.DestinationInc = MDMA_DEST_INC_WORD;
-//     hmdma_mdma_channel40_sw_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_WORD;
-//     hmdma_mdma_channel40_sw_0.Init.DestDataSize = MDMA_DEST_DATASIZE_WORD;
-//     hmdma_mdma_channel40_sw_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
-//     hmdma_mdma_channel40_sw_0.Init.BufferTransferLength = 64;
-//     hmdma_mdma_channel40_sw_0.Init.SourceBurst = MDMA_SOURCE_BURST_SINGLE;
-//     hmdma_mdma_channel40_sw_0.Init.DestBurst = MDMA_DEST_BURST_SINGLE;
-//     hmdma_mdma_channel40_sw_0.Init.SourceBlockAddressOffset = 0;
-//     hmdma_mdma_channel40_sw_0.Init.DestBlockAddressOffset = 0;
-
-//     HAL_MDMA_Init(&hmdma_mdma_channel40_sw_0);
-// }
-
 void COMinterChip::switchInBuffer() {
     currentInBufferSelect = !currentInBufferSelect;
 }
@@ -713,17 +695,6 @@ void COMinterChip::pushDummySizePlaceHolder() {
     uint8_t dummysize = 0;
     pushOutBuffer((uint8_t *)&dummysize, 1);
 }
-
-// uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
-//     if (outBuffer[currentOutBufferSelect].size() >= INTERCHIPBUFFERSIZE - 1) {
-//         uint8_t ret = invokeBufferFullSend();
-//         if (ret) {
-//             return ret;
-//         }
-//     }
-//     outBuffer[currentOutBufferSelect].push_back(data);
-//     return 0;
-// }
 
 uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length = 1) {
     if (outBuffer[currentOutBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {

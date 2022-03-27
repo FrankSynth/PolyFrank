@@ -313,12 +313,6 @@ class COMinterChip {
 
     comInterchipStates state;
 
-    // setup MDMA for DMA to RAM transfers and vice versa
-    // void prepareSendMDMAHandle();
-
-    // start copying data for render chip A via MDMA
-    // uint8_t startSendMDMA();
-
     // after first MDMA finished, start DMA transfer to render chip A
     uint8_t startSendDMA();
 

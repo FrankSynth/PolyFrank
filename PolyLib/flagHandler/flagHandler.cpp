@@ -43,9 +43,6 @@ void initFlagHandler() {
 
 #endif
 
-    interChipSend_MDMA_Started = false;
-    interChipSend_MDMA_Finished = false;
-    interChipSend_MDMA_FinishedFunc = nullptr;
     interChipSend_DMA_Started = false;
     interChipSend_DMA_Finished = false;
     interChipSend_DMA_FinishedFunc = nullptr;
@@ -55,7 +52,7 @@ void initFlagHandler() {
 
 // InterChip send flags
 
-bool layerActive[2] = false;
+bool layerActive[2] = {false};
 
 bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
@@ -103,9 +100,6 @@ std::function<void()> readTemperature_ISR = nullptr;
 bool interChipReceive_DMA_Started;
 bool interChipReceive_DMA_Finished;
 std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
-// bool interChipReceive_MDMA_Started;
-// bool interChipReceive_MDMA_Finished;
-// std::function<uint8_t()> interChipReceive_MDMA_FinishedFunc;
 bool interChipReceive_newDataAvailable;
 std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 
@@ -120,9 +114,6 @@ void (*renderNewCVFunc)();
 void (*sendRenderedCVsFunc)();
 #endif
 
-// bool interChipSend_MDMA_Started;
-// bool interChipSend_MDMA_Finished;
-// std::function<uint8_t()> interChipSend_MDMA_FinishedFunc;
 bool interChipSend_DMA_Started;
 bool interChipSend_DMA_Finished;
 std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
@@ -217,18 +208,6 @@ void handleFlags() {
     }
 
 #endif
-
-    // InterChip send flags
-    // if (interChipSend_MDMA_Finished) {
-    //     if (interChipSend_MDMA_FinishedFunc != nullptr) {
-    //         if (interChipSend_MDMA_FinishedFunc() == 0) {
-    //             interChipSend_MDMA_Finished = 0;
-    //         }
-    //     }
-    //     else {
-    //         interChipSend_MDMA_Finished = 0;
-    //     }
-    // }
 
     if (interChipSend_DMA_Finished) {
         if (interChipSend_DMA_FinishedFunc != nullptr) {
