@@ -123,20 +123,20 @@ void handleFlags() {
 
 #ifdef POLYCONTROL
 
-    for (uint8_t i = 0; i < 2; i++) {
-        for (uint8_t j = 0; j < 2; j++) {
-            if (renderChip_State[i][j] != READY) {
-                if (renderChip_StateTimeout[i][j] > 10) { // 10ms timeout
-                    if (renderChip_State[i][j] == WAITFORRESPONSE) {
-                        //  PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
-                    }
-                    else if (renderChip_State[i][j] == DATARECEIVED) {
-                        // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
-                    }
-                }
-            }
-        }
-    }
+    // for (uint8_t i = 0; i < 2; i++) {
+    //     for (uint8_t j = 0; j < 2; j++) {
+    //         if (renderChip_State[i][j] != READY) {
+    //             if (renderChip_StateTimeout[i][j] > 10) { // 10ms timeout
+    //                 if (renderChip_State[i][j] == WAITFORRESPONSE) {
+    //                     // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
+    //                 }
+    //                 else if (renderChip_State[i][j] == DATARECEIVED) {
+    //                     // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // HID Flags
 
@@ -209,16 +209,11 @@ void handleFlags() {
 
 #endif
 
-    if (interChipSend_DMA_Finished) {
-        if (interChipSend_DMA_FinishedFunc != nullptr) {
-            if (interChipSend_DMA_FinishedFunc() == 0) {
-                interChipSend_DMA_Finished = 0;
-            }
-        }
-        else {
-            interChipSend_DMA_Finished = 0;
-        }
-    }
+    // if (interChipSend_DMA_Finished) {
+    //     if (interChipSend_DMA_FinishedFunc() == 0) {
+    //         interChipSend_DMA_Finished = 0;
+    //     }
+    // }
 }
 
 }; // namespace FlagHandler

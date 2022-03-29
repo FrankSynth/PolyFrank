@@ -241,7 +241,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
     // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    if (counter < 100000) {
+    if (counter < 50000) {
         cache += audiotimer;
         counter++;
     }
@@ -257,7 +257,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio((int32_t *)saiBuffer);
-    if (counter < 100000) {
+    if (counter < 50000) {
         cache += audiotimer;
         counter++;
     }

@@ -98,9 +98,6 @@ uint8_t COMdin::push(uint8_t data) {
 ///////////////////////////////// COMinterChip //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
-// extern void comMDMACallback(MDMA_HandleTypeDef *_hmdma);
-// extern void comMDMACallbackError(MDMA_HandleTypeDef *_hmdma);
-
 #ifdef POLYCONTROL
 
 // Patch functions
@@ -351,7 +348,7 @@ uint8_t COMinterChip::beginSendTransmission() {
 
 #ifdef POLYCONTROL
     if (FlagHandler::layerActive[0]) {
-        if (FlagHandler::renderChip_State[0][0] != READY && FlagHandler::renderChip_State[0][1]) {
+        if (FlagHandler::renderChip_State[0][0] != READY && FlagHandler::renderChip_State[0][1] != READY) {
             return ERRORCODE_RECEPTORNOTREADY;
         }
     }
@@ -364,13 +361,11 @@ uint8_t COMinterChip::beginSendTransmission() {
 #endif
 
     appendLastByte();
-    dmaOutCurrentBufferSize = outBuffer[currentOutBufferSelect].size();
 
     // write size into first two bytes of outBuffers
-
-    // prepareSendMDMAHandle();
-
+    dmaOutCurrentBufferSize = outBuffer[currentOutBufferSelect].size();
     *outBuffer[currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
+
     switchOutBuffer();
 
     startSendDMA();
@@ -395,7 +390,7 @@ void COMinterChip::initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t
     dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
 
     pushDummySizePlaceHolder();
-    FlagHandler::interChipSend_DMA_FinishedFunc = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
+    // FlagHandler::interChipSend_DMA_FinishedFunc = std::bind(&COMinterChip::sendTransmissionSuccessfull, this);
 }
 
 uint8_t COMinterChip::startSendDMA() {
@@ -445,17 +440,6 @@ uint8_t COMinterChip::startSendDMA() {
  * @return uint8_t status
  */
 uint8_t COMinterChip::sendTransmissionSuccessfull() {
-
-#ifdef POLYCONTROL
-
-    // TODO check CS  selection
-    HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
-
-#endif
-
     blockNewSendBeginCommand = 0;
     return 0;
 }
@@ -467,12 +451,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     switchInBuffer();
 
     // necessary decoding vars
-#ifdef POLYRENDER
     volatile uint8_t outputID = 0;
     volatile uint8_t inputID = 0;
     volatile uint8_t note = 0;
     volatile uint8_t velocity = 0;
-#endif
     volatile uint8_t layerID = 0;
     volatile uint8_t setting = 0;
     volatile uint8_t module = 0;
@@ -481,7 +463,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile float amountFloat = 0;
 
     // assemble size
-    uint8_t sizeOfReadBuffer = *dmaInBufferPointer[currentInBufferSelect];
+    uint8_t sizeOfReadBuffer = (dmaInBufferPointer[currentInBufferSelect])[0];
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
@@ -489,8 +471,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         return 1;
     }
 
-    fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentOutBufferSelect]++),
-                  (uint32_t *)(inBufferPointer[currentOutBufferSelect]++), (sizeOfReadBuffer - 1 + 3) >> 2);
+    fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
+                  (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
 
     if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
         // last byte must be at this position, sort of CRC
@@ -503,9 +485,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
 
         if (currentByte == LASTBYTE) {
-            beginReceiveTransmission();
 #ifdef POLYRENDER
+            if (beginReceiveTransmission())
+                PolyError_Handler("ERROR | FATAL | could not start next receive");
+
             // TODO pin for polycontrol
+            // TODO could also be done earlier after copy maybe
+            // receive transmission ready again
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 #endif
             return 0;
@@ -528,7 +514,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
             uint8_t messagesize = (inBufferPointer[currentInBufferSelect])[++i];
 
-            for (uint8_t i = 0; i < messagesize; i++) {
+            for (uint8_t m = 0; m < messagesize; m++) {
                 messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
             }
 
@@ -655,6 +641,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 // TODO add decoding here
 
 #endif
+
+            case NOCOMMAND: PolyError_Handler("ERROR | FATAL | data was empty"); break;
 
             default:
                 // seomething went wrong here

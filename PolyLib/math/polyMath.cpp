@@ -183,7 +183,7 @@ LogCurve audioCurve(16, 0.1);
  * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
  * @return float
  */
-float squircle(float value, float curvature) {
+float calcSquircle(float value, float curvature) {
     if (curvature == 0.5f)
         return value;
 
@@ -201,7 +201,7 @@ float squircle(float value, float curvature) {
  * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
  * @return float
  */
-float squircleSimplified(float value, float curvature) {
+float calcSquircleSimplified(float value, float curvature) {
     if (curvature == 0.5f)
         return value;
 

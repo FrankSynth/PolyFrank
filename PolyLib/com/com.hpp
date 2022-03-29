@@ -21,7 +21,7 @@
 #define OUTPUTBUFFERSIZE 512
 #endif
 
-#define INTERCHIPBUFFERSIZE 128 // max 255, currently uint8_t
+#define INTERCHIPBUFFERSIZE 240 // max 255, currently uint8_t
 
 #define ERRORCODE_SENDBLOCK 20
 #define ERRORCODE_RECEPTORNOTREADY 21

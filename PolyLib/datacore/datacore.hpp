@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dataHelperFunctions.hpp"
+#include "datadef.h"
 #include "debughelper/debughelper.hpp"
 #include "math/polyMath.hpp"
 #include <cmath>
@@ -9,15 +10,10 @@
 #include <valarray>
 #include <vector>
 
+
 #ifdef POLYCONTROL
 #include <string>
 #endif
-
-#define MAX_VALUE_12BIT 4071
-#define MIN_VALUE_12BIT 19
-
-#define VECTORDEFAULTINITSIZE 5
-#define VOICESPERCHIP 4
 
 extern float ROTARYENCODERACCELERATION;
 

@@ -8,7 +8,6 @@ extern ADC_HandleTypeDef hadc3;
 
 // Buffer for InterChip Com
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
-RAM2_DMA volatile uint8_t interChipDMABufferLayerB[2 * INTERCHIPBUFFERSIZE];
 
 // USB
 midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
@@ -39,12 +38,13 @@ void PolyControlInit() { ////////Hardware init////////
     // Enable Control Panel Board
     HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
+    initPoly();
+
     // calibrate adc for temperature reading
     HAL_ADC_Start(&hadc3);
     FlagHandler::readTemperature_ISR = readTemperature; // registerFunction pointer to ISR
 
     // Init for Control and Layer Chips
-    initPoly();
 
     // Prepare Layer
     allLayers.push_back(&layerA);
@@ -65,6 +65,7 @@ void PolyControlInit() { ////////Hardware init////////
         FlagHandler::renderChip_State[0][0] = DISABLED;
         FlagHandler::renderChip_State[0][1] = DISABLED;
     }
+
     if (FlagHandler::renderChip_State[1][0] == READY && FlagHandler::renderChip_State[1][1] == READY) { // Layer B alive
         layerB.layerState.value = 1;
         FlagHandler::layerActive[1] = true;
@@ -107,11 +108,9 @@ void PolyControlInit() { ////////Hardware init////////
 
     ////////Sofware init////////
     // init communication to render chip
-    // if (layerA.layerState.value) {
     layerCom.initOutTransmission(
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerA);
-    // }
 
     // init midi
     initMidi();
@@ -122,7 +121,7 @@ void PolyControlInit() { ////////Hardware init////////
     // Reset all Layer to default configuration,
     for (Layer *l : allLayers) {
         l->resetLayer();
-    };
+    }
 
     // Reset Poti States
     resetPanelPotis();
@@ -215,12 +214,16 @@ void readTemperature() {
 // SPI Callbacks
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
-    // InterChip Com Layer 1
+    // InterChip Com
     if (hspi == &hspi4) {
         if (FlagHandler::interChipSend_DMA_Started == 1) {
             FlagHandler::interChipSend_DMA_Started = 0;
-            FlagHandler::interChipSend_DMA_Finished = 1;
+            // FlagHandler::interChipSend_DMA_Finished = 1;
+            layerCom.sendTransmissionSuccessfull();
             // close ChipSelectLine
+
+            // TODO check CS  selection
+
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
@@ -285,6 +288,8 @@ void initMidi() {
 // EXTI Callback
 
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+
+    println("exti callback ", pin);
 
     if (pin & GPIO_PIN_12) { // ioExpander -> encoder
         FlagHandler::Control_Encoder_Interrupt = true;

@@ -164,8 +164,7 @@ inline void getSubSample(float *sample) {
     float newSample[VOICESPERCHIP];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (phase[i] >= 1.0f)
-            phase[i] -= 1.0f;
+        phase[i] -= std::floor(phase[i]);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
@@ -198,8 +197,7 @@ inline void getSubSample(float *sample) {
         oscAphase[i] = layerA.oscA.phaseWavetableLower[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (oscAphase[i] >= 1.0f)
-            oscAphase[i] -= std::floor(oscAphase[i]);
+        oscAphase[i] -= std::floor(oscAphase[i]);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (oscAphase[i] < oscApreviousPhase[i])
@@ -223,6 +221,7 @@ inline void getOscASample(float *sample) {
     const float *noteStep = layerA.oscA.note.currentSample;
     const float *bitcrusher = layerA.oscA.bitcrusher.currentSample;
     const float *samplecrusher = layerA.oscA.samplecrusher.currentSample;
+    const float *squircle = layerA.oscA.squircle.currentSample;
 
     float stepWavetableLower[VOICESPERCHIP];
     float stepWavetableUpper[VOICESPERCHIP];
@@ -257,15 +256,13 @@ inline void getOscASample(float *sample) {
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
     // make sure to be in the right step range
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableLower[i] >= wavetableLower[i]->cycles)
-            phaseWavetableLower[i] -= std::floor(phaseWavetableLower[i]);
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableLower[i] -=
+            std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles)
-            phaseWavetableUpper[i] -= std::floor(phaseWavetableUpper[i]);
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableUpper[i] -=
+            std::floor(phaseWavetableUpper[i]) * (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         stepWavetableLower[i] = phaseWavetableLower[i] * wavetableLower[i]->sizePerCycle;
@@ -283,8 +280,7 @@ inline void getOscASample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionA[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionAb[i] == wavetableLower[i]->size)
-            positionAb[i] = 0;
+        positionAb[i] = positionAb[i] * (positionAb[i] != wavetableLower[i]->size);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         interSampleAPos[i] = stepWavetableLower[i] - positionA[i];
@@ -307,8 +303,7 @@ inline void getOscASample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionB[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionBb[i] == wavetableUpper[i]->size)
-            positionBb[i] = 0;
+        positionBb[i] = positionBb[i] * (positionBb[i] != wavetableUpper[i]->size);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         interSampleBPos[i] = stepWavetableUpper[i] - positionB[i];
@@ -332,6 +327,9 @@ inline void getOscASample(float *sample) {
         phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+
+    calcSquircle(newSample, squircle);
+    // calcSquircleSimplified(newSample, squircle);
 
     bitcrush(newSample, bitcrusher);
 
@@ -394,37 +392,31 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscBwavetable[waveTableSelectionUpper[i]];
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        if (oscAphaseWavetableLower[i] >= 1.0f)
-            checkWavetableLength[i] -= std::floor(oscAphaseWavetableLower[i]);
-        else
-            checkWavetableLength[i] = oscAphaseWavetableLower[i];
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        checkWavetableLength[i] = oscAphaseWavetableLower[i] - std::floor(oscAphaseWavetableLower[i]);
 
-    if (sync) {
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            if (cacheOscAPhase[i] > checkWavetableLength[i]) {
-                phaseWavetableLower[i] = 0;
-                phaseWavetableUpper[i] = 0;
-            }
-        }
-    }
+    bool syncWavetablesNow[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        syncWavetablesNow[i] = sync && (cacheOscAPhase[i] > checkWavetableLength[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableLower[i] = phaseWavetableLower[i] * !syncWavetablesNow[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableUpper[i] = phaseWavetableUpper[i] * !syncWavetablesNow[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         cacheOscAPhase[i] = checkWavetableLength[i];
 
     // make sure to be in the right step range
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        while (phaseWavetableLower[i] >= wavetableLower[i]->cycles) {
-            phaseWavetableLower[i] -= wavetableLower[i]->cycles;
-        }
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableLower[i] -=
+            std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        while (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles) {
-            phaseWavetableUpper[i] -= wavetableUpper[i]->cycles;
-        }
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseWavetableUpper[i] -=
+            std::floor(phaseWavetableUpper[i]) * (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles);
 
     float phaseOffsettedLower[VOICESPERCHIP];
     float phaseOffsettedUpper[VOICESPERCHIP];
@@ -435,23 +427,25 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseOffsettedUpper[i] = phaseWavetableUpper[i] + phaseoffset[i];
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        while (phaseOffsettedLower[i] >= wavetableLower[i]->cycles) {
-            phaseOffsettedLower[i] -= wavetableLower[i]->cycles;
-        }
-        while (phaseOffsettedLower[i] < 0) {
-            phaseOffsettedLower[i] += wavetableLower[i]->cycles;
-        }
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedLower[i] -=
+            std::floor(phaseOffsettedLower[i]) * (phaseOffsettedLower[i] >= wavetableLower[i]->cycles);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        while (phaseOffsettedUpper[i] >= wavetableUpper[i]->cycles) {
-            phaseOffsettedUpper[i] -= wavetableUpper[i]->cycles;
-        }
-        while (phaseOffsettedUpper[i] < 0) {
-            phaseOffsettedUpper[i] += wavetableUpper[i]->cycles;
-        }
-    }
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedLower[i] =
+            phaseOffsettedLower[i] * !(phaseOffsettedLower[i] < 0) +
+            (wavetableLower[i]->cycles - phaseOffsettedLower[i] - std::floor(phaseOffsettedLower[i])) *
+                (phaseOffsettedLower[i] < 0);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedUpper[i] -=
+            std::floor(phaseOffsettedUpper[i]) * (phaseOffsettedUpper[i] >= wavetableUpper[i]->cycles);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        phaseOffsettedUpper[i] =
+            phaseOffsettedUpper[i] * !(phaseOffsettedUpper[i] < 0) +
+            (wavetableUpper[i]->cycles - phaseOffsettedUpper[i] - std::floor(phaseOffsettedUpper[i])) *
+                (phaseOffsettedUpper[i] < 0);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         stepWavetableLower[i] = phaseOffsettedLower[i] * wavetableLower[i]->sizePerCycle;
@@ -469,8 +463,7 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionA[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionAb[i] == wavetableLower[i]->size)
-            positionAb[i] = 0;
+        positionAb[i] = positionAb[i] * (positionAb[i] != wavetableLower[i]->size);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         interSampleAPos[i] = stepWavetableLower[i] - positionA[i];
@@ -493,8 +486,7 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionB[i] + 1;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (positionBb[i] == wavetableUpper[i]->size)
-            positionBb[i] = 0;
+        positionBb[i] = positionBb[i] * (positionBb[i] != wavetableUpper[i]->size);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         interSampleBPos[i] = stepWavetableUpper[i] - positionB[i];
@@ -518,6 +510,8 @@ inline void getOscBSample(float *sample) {
         phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+
+    // calcSquircleSimplified(newSample, squircle, newSample);
 
     bitcrush(newSample, bitcrusher);
 
@@ -598,21 +592,13 @@ void renderAudio(int32_t *renderDest) {
             maxVolLadder[i] += oscBLevelLadder[i];
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            if (maxVolSteiner[i] > MAXPOSSIBLEVOLUME) {
-                dampSteiner[i] = MAXPOSSIBLEVOLUME / maxVolSteiner[i];
-            }
-            else {
-                dampSteiner[i] = 1;
-            }
+            dampSteiner[i] = (MAXPOSSIBLEVOLUME / maxVolSteiner[i]) * (maxVolSteiner[i] > MAXPOSSIBLEVOLUME) +
+                             (maxVolSteiner[i] <= MAXPOSSIBLEVOLUME);
         }
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            if (maxVolLadder[i] > MAXPOSSIBLEVOLUME) {
-                dampLadder[i] = MAXPOSSIBLEVOLUME / maxVolLadder[i];
-            }
-            else {
-                dampLadder[i] = 1;
-            }
+            dampLadder[i] = (MAXPOSSIBLEVOLUME / maxVolLadder[i]) * (maxVolLadder[i] > MAXPOSSIBLEVOLUME) +
+                            (maxVolLadder[i] <= MAXPOSSIBLEVOLUME);
         }
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)

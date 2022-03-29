@@ -14,7 +14,13 @@
             "configFiles": [
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg"
-            ]
+            ],
+            "overrideLaunchCommands": [
+                "interpreter-exec console \"monitor reset halt\"",
+                //'target-download',
+                //'interpreter-exec console \"monitor reset halt\"',
+                "-enable-pretty-printing"
+            ],
         },
         {
             "showDevDebugOutput": "parsed",
@@ -30,7 +36,13 @@
             "configFiles": [
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg"
-            ]
+            ],
+            "overrideLaunchCommands": [
+                "interpreter-exec console \"monitor reset halt\"",
+                //'target-download',
+                //'interpreter-exec console \"monitor reset halt\"',
+                "-enable-pretty-printing"
+            ],
         }
     ]
 }

@@ -8,6 +8,7 @@ std::vector<Layer *> allLayers;
  *
  */
 void initPoly() {
+
     // set all Flags to default state
 
     // prep lin2log

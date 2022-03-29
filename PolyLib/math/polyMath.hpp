@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/dataHelperFunctions.hpp"
+#include "datacore/datadef.h"
 #include "stdint.h"
 #include <cmath>
 #include <valarray>
@@ -58,7 +59,7 @@ float fast_sin_f32(float x);
  * @param a value a
  * @param b value a
  * @param f fraction between a and b
- * @return ALWAYS_INLINE
+ * @return
  */
 ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
     return (a * (1.0f - f)) + (b * f);
@@ -71,13 +72,13 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
  * @param b value a
  * @param f fraction between a and b
  * @param dst dst pointer
- * @return ALWAYS_INLINE
+ * @return
  */
 ALWAYS_INLINE inline void fast_lerp_f32(const float *a, const float *b, const float *f, float *dst) {
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         dst[i] = a[i] * (1.0f - f[i]);
 
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         dst[i] += b[i] * f[i];
 }
 
@@ -173,6 +174,7 @@ float fastNoteLin2Log_f32(float x);
  * @return float mapped value between 0 and 1
  */
 inline float fastMapLEDBrightness(float value) {
+    // TODO bezier
     if (value < LEDCURVEPOINT1IN) {
         value = fastMap(value, LEDCURVEPOINTSTART, LEDCURVEPOINT1IN, LEDCURVEPOINTSTART, LEDCURVEPOINT1OUT);
     }
@@ -230,9 +232,63 @@ inline float fastMapAudioToLog(float value) {
     return audioCurve.mapValue(value);
 }
 
-float squircle(float value, float curvature);
-float squircleSimplified(float value, float curvature);
+float calcSquircle(float value, float curvature);
+float calcSquircleSimplified(float value, float curvature);
 
-template <typename T> T getSign(T val) {
+template <typename T> inline T getSign(T val) {
     return (T(0) < val) - (val < T(0));
+}
+
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+
+/**
+ * @brief
+ *
+ * @param value [] between 0 and 1
+ * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ */
+ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curvature) {
+    float exp[VOICESPERCHIP];
+    float expsq[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        exp[i] = 1.0f / curvature[i] - 1.0f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        expsq[i] = exp[i] * exp[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        value[i] = std::pow(value[i], expsq[i]);
+}
+
+/**
+ * @brief
+ *
+ * @param value [] between 0 and 1
+ * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline void calcSquircle(float *value, const float *curvature) {
+
+    float sign[VOICESPERCHIP];
+    float exp[VOICESPERCHIP];
+    float firstpow[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sign[i] = getSign(value[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        exp[i] = 1.0f / curvature[i] - 1.0f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        firstpow[i] = 1.0f - std::pow(sign[i] * value[i], exp[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        value[i] = sign[i] * (1.0f - std::pow(firstpow[i], 1.0f / exp[i]));
 }

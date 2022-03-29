@@ -40,6 +40,7 @@
 
 // second byte all commands
 enum comCommands {
+    NOCOMMAND = 0,
     UPDATEINOUTPATCH,      // update patchesInOut
     CREATEINOUTPATCH,      // create patchesInOut
     DELETEINOUTPATCH,      // delete patchesInOut

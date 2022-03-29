@@ -108,30 +108,28 @@ class OSC_A : public BaseModule {
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
-        // inputs.push_back(&iLevel);
         inputs.push_back(&iOctave);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
+        inputs.push_back(&iSquircle);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
-        // knobs.push_back(&aLevel);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
+        knobs.push_back(&aSquircle);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
         switches.push_back(&dSample2);
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
-        // switches.push_back(&dVcfDestSwitch);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
-        // renderBuffer.push_back(&levelSteiner);
-        // renderBuffer.push_back(&levelLadder);
+        renderBuffer.push_back(&squircle);
     }
 
     Output out = Output("OUT");
@@ -142,12 +140,14 @@ class OSC_A : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
+    Input iSquircle = Input("SQUIRCLE");
 
     Analog aMasterTune = Analog("MASTERTUNE", -7, 7, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     // Analog aLevel = Analog("LEVEL", 0, 1, 1, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
+    Analog aSquircle = Analog("SQUIRCLE", 0.0000001f, 0.9999999f, 0.5, true, linMap, &iSamplecrusher);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
@@ -155,22 +155,17 @@ class OSC_A : public BaseModule {
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr);
-    // Digital dVcfDestSwitch = Digital("OUT", 0, 3, 1, true, &nlVCFDest);
 
     // render shizzle
-
     RenderBuffer note;
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    // RenderBuffer levelSteiner;
-    // RenderBuffer levelLadder;
+    RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
     float phaseWavetableLower[VOICESPERCHIP] = {0};
     float phaseWavetableUpper[VOICESPERCHIP] = {0};
-
-    // inline void gateOn(uint16_t voice) {}
 };
 
 class OSC_B : public BaseModule {
@@ -211,17 +206,13 @@ class OSC_B : public BaseModule {
     Input iFM = Input("FM", logMap);
     Input iMorph = Input("MORPH");
     Input iTuning = Input("TUNING");
-    // Input iLevel = Input("LEVEL");
     Input iBitcrusher = Input("BITCRUSH");
     Input iOctave = Input("OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH");
     Input iPhaseOffset = Input("PHASE OFFSET");
 
-    // Input iSync = Input("SYNC");
-
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -7, 7, 0, true, linMap, &iTuning);
-    // Analog aLevel = Analog("LEVEL", 0, 1, 0, true, logMap, &iLevel);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
@@ -235,7 +226,6 @@ class OSC_B : public BaseModule {
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
 
     // render shizzle
-
     RenderBuffer note;
     RenderBuffer morph;
     RenderBuffer bitcrusher;
@@ -246,8 +236,6 @@ class OSC_B : public BaseModule {
     float cacheOscAPhase[VOICESPERCHIP] = {0};
     float phaseWavetableLower[VOICESPERCHIP] = {0};
     float phaseWavetableUpper[VOICESPERCHIP] = {0};
-
-    // inline void gateOn(uint16_t voice) {}
 };
 
 class Sub : public BaseModule {
@@ -501,7 +489,7 @@ class LFO : public BaseModule {
     Input iShape = Input("SHAPE");
     Input iAmount = Input("AMOUNT");
 
-    Analog aFreq = Analog("FREQ", 0, 1, 1, true, linMap, &iFreq);
+    Analog aFreq = Analog("FREQ", 0, 1, 0.1, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 

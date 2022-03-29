@@ -17,6 +17,10 @@ inline float accumulateSamplecrusher(OSC_A &osc_a, uint16_t voice) {
 inline float accumulateMorph(OSC_A &osc_a, uint16_t voice) {
     return testFloat(osc_a.iMorph.currentSample[voice] + osc_a.aMorph.valueMapped, osc_a.aMorph.min, osc_a.aMorph.max);
 }
+inline float accumulateSquircle(OSC_A &osc_a, uint16_t voice) {
+    return testFloat(osc_a.iSquircle.currentSample[voice] + osc_a.aSquircle.valueMapped, osc_a.aSquircle.min,
+                     osc_a.aSquircle.max);
+}
 inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
     return testInt(std::roundf(osc_a.iOctave.currentSample[voice] + (float)osc_a.dOctave.valueMapped),
                    osc_a.dOctave.min, osc_a.dOctave.max);
@@ -70,6 +74,7 @@ void renderOSC_A(OSC_A &osc_A) {
     float *outMorph = osc_A.morph.nextSample;
     float *outBitcrusher = osc_A.bitcrusher.nextSample;
     float *outSamplecrusher = osc_A.samplecrusher.nextSample;
+    float *outSquircle = osc_A.squircle.nextSample;
 
     accumulateNote(osc_A, outNote);
 
@@ -79,6 +84,8 @@ void renderOSC_A(OSC_A &osc_A) {
         outBitcrusher[voice] = accumulateBitcrusher(osc_A, voice);
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outSamplecrusher[voice] = accumulateSamplecrusher(osc_A, voice);
+    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+        outSquircle[voice] = accumulateSquircle(osc_A, voice);
 }
 
 ///////////////////////////// OSC B /////////////////////////////////

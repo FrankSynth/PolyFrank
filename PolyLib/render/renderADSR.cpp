@@ -37,6 +37,7 @@ inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
  */
 void renderADSR(ADSR &adsr) {
 
+    // TODO bezier
     float delay, decay, attack, sustain, release;
     int32_t &loop = adsr.dLoop.valueMapped;
     float &shape = adsr.aShape.valueMapped;
