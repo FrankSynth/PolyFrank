@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "preset.hpp"
+#include "datacore/datalocation.hpp"
 
 std::vector<presetStruct> presets;
 std::vector<presetStruct *> presetsSorted;
@@ -8,7 +9,7 @@ presetStruct *freePreset;
 
 uint32_t saveID = 0;
 
-uint8_t blockBuffer[PRESET_BLOCKSIZE];
+RAM1 uint8_t blockBuffer[PRESET_BLOCKSIZE];
 
 bool comparePtrPresetStruct(presetStruct *a, presetStruct *b) {
     return (*a > *b);

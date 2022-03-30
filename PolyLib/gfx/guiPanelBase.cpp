@@ -3,8 +3,66 @@
 #include "guiPanelBase.hpp"
 
 const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
+
 const GUI_FONTINFO *fontMedium = &GUI_FontBahnschrift24_FontInfo;
 const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift32_FontInfo;
+
+const GUI_FONTINFO *fontConsole = &GUI_FontBahnschrift16_FontInfo;
+
+void drawConsole(std::string *string, uint16_t rows, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+
+    uint8_t characterHeigth = fontConsole->size;
+
+    uint8_t lines = h / characterHeigth;
+
+    renderTask task;
+    task.mode = M2MTRANSPARENT_A4;   // Set DMA2D To copy M2M with Blending
+    task.height = fontConsole->size; // Set Font Height
+    task.color = cFont_Deselect;     // Set Font Height
+
+    uint16_t line = 0;
+    uint16_t row = 0;
+    uint16_t rowWidth = w / rows;
+
+    // For each Char
+    uint16_t relX = 0;
+
+    for (char &c : *string) {
+
+        if (c == '\n') {
+            line += 1;
+        }
+        else if (c == '\r') {
+            relX = 0;
+        }
+        else {
+
+            task.width = fontConsole->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
+            task.pSource = (uint32_t)fontConsole->font[(uint8_t)c - 32].pData; // Pointer to Character
+
+            // check line and row
+            if ((relX + task.width) >= rowWidth) {
+                relX = 0;
+                line += 1;
+            }
+            if (line >= lines) {
+                row += 1;
+                line = 0;
+
+                if (row >= rows)
+                    return;
+            }
+
+            // set character position
+            task.x = x + row * rowWidth + relX;
+            task.y = y + line * characterHeigth;
+
+            relX += task.width;
+
+            addToRenderQueue(task); // Add Task to RenderQueue
+        }
+    }
+}
 
 void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
     // PatchElementOutOut *dataOutOut = nullptr;

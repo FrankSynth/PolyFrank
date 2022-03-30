@@ -35,6 +35,8 @@
 #include "usart.h"
 #include "usb_device.h"
 
+#include "globalsettings/globalSettings.hpp"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -140,6 +142,8 @@ int main(void) {
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
     HAL_TIM_Base_Start_IT(&htim4);
     HAL_TIM_Base_Start_IT(&htim5);
+    // temperature
+    HAL_ADC_Start(&hadc3);
 
     PolyControlInit();
     PolyControlRun();

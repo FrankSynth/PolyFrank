@@ -37,7 +37,7 @@ void GUI::Init() { // add settings pointer
     panels.push_back(&guiPanelLive);
     panels.push_back(&guiPanelPatch);
     panels.push_back(&guiPanelPreset);
-    panels.push_back(&guiPanelConfig);
+    panels.push_back(&guiString);
     panels.push_back(&guiPanelFocus);
 
     // init Header
@@ -57,6 +57,9 @@ void GUI::Init() { // add settings pointer
 
     // init Error
     guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
+
+    // init Error
+    guiString.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
 
     // register Header action
     actionHandler.registerActionHeader(0, {std::bind(setPanelActive, 0), "LIVEMODE"});

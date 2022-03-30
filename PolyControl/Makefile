@@ -22,7 +22,7 @@ TARGET = PolyControl
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Og
+OPT = -O
 
 #######################################
 # paths
@@ -185,7 +185,7 @@ LIBDIR = -LPolyControl/Drivers/CMSIS/Lib/GCC -larm_cortexM7lfdp_math
 # LIBDIR = 
 
 
-LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections,--print-memory-usage
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex 
