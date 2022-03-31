@@ -21,7 +21,7 @@
 #define OUTPUTBUFFERSIZE 512
 #endif
 
-#define INTERCHIPBUFFERSIZE 240 // max 255, currently uint8_t
+#define INTERCHIPBUFFERSIZE 512
 
 #define ERRORCODE_SENDBLOCK 20
 #define ERRORCODE_RECEPTORNOTREADY 21
@@ -250,7 +250,7 @@ class COMdin {
 
 #endif
 
-enum comInterchipStates { readyReceive, readySend, Decode };
+// enum comInterchipStates { readyReceive, readySend, Decode };
 
 // class for interchip communication in both directions
 class COMinterChip {
@@ -268,14 +268,27 @@ class COMinterChip {
     uint8_t sendCloseGate(uint8_t layerId, uint8_t voiceID);
     uint8_t sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t voiceID);
     uint8_t sendResetAll(uint8_t layerId);
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
+    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRequestUIData();
-
-#elif POLYRENDER
+    uint8_t beginReceiveTransmission(uint8_t layer, uint8_t chip);
 
   private:
-    // decode received Buffer
-    uint8_t checkVoiceAgainstChipID(uint8_t voice);
+    uint8_t receiveLayer;
+    uint8_t receiveChip;
+
+#elif POLYRENDER
+  public:
     uint8_t sendString(std::string &message);
+    uint8_t sendString(const char *message);
+    uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount);
+    uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount);
+    uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount);
+
+    uint8_t beginReceiveTransmission();
+
+  private:
+    uint8_t checkVoiceAgainstChipID(uint8_t voice);
 
 #endif
 
@@ -290,8 +303,6 @@ class COMinterChip {
     // send out current out buffer
     uint8_t beginSendTransmission();
 
-    uint8_t beginReceiveTransmission();
-
     uint8_t decodeCurrentInBuffer();
 
     COMinterChip() {
@@ -305,13 +316,10 @@ class COMinterChip {
         messagebuffer.reserve(INTERCHIPBUFFERSIZE);
     }
 
-    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
-    uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
-
   private:
     std::string messagebuffer;
 
-    comInterchipStates state;
+    // comInterchipStates state;
 
     // after first MDMA finished, start DMA transfer to render chip A
     uint8_t startSendDMA();
@@ -324,6 +332,7 @@ class COMinterChip {
 
     // push data into send out buffer
     uint8_t pushOutBuffer(uint8_t *data, uint32_t size);
+    uint8_t pushOutBuffer(uint8_t data);
 
     // buffer full, send now
     uint8_t invokeBufferFullSend();
@@ -332,7 +341,7 @@ class COMinterChip {
     uint8_t blockNewSendBeginCommand = 0;
 
     uint8_t *dmaOutBufferPointer[2];
-    uint8_t dmaOutCurrentBufferSize;
+    uint16_t dmaOutCurrentBufferSize;
     std::vector<uint8_t> outBuffer[2];
 
     uint8_t *inBufferPointer[2];

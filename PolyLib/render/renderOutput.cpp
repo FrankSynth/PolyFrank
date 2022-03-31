@@ -18,13 +18,13 @@ inline float accumulatePan(Out &out, uint16_t voice) {
 }
 
 inline float accumulateVCA(Out &out, uint16_t voice) {
-    return testFloat(out.iVCA.currentSample[voice] + out.aVCA.valueMapped +
-                         out.aADSR.valueMapped * layerA.envA.out.currentSample[voice],
-                     out.aVCA.min, out.aVCA.max);
+    return std::clamp(out.iVCA.currentSample[voice] + out.aVCA.valueMapped +
+                          out.aADSR.valueMapped * layerA.envA.out.currentSample[voice],
+                      out.aVCA.min, out.aVCA.max);
 }
 
 inline float accumulateDistort(Out &out, uint16_t voice) {
-    return testFloat(out.iDistort.currentSample[voice] + out.aDistort.valueMapped, 0, 1);
+    return std::clamp(out.iDistort.currentSample[voice] + out.aDistort.valueMapped, 0.0f, 1.0f);
 }
 
 void renderOut(Out &out) {
@@ -65,9 +65,9 @@ void renderOut(Out &out) {
         right[i] = panningAntiLog.mapValue(vca[i] * panRight[i] * out.aMaster.valueMapped);
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        outLeft[i] = testFloat(left[i], 0, 1);
+        outLeft[i] = std::clamp(left[i], 0.0f, 1.0f);
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        outRight[i] = testFloat(right[i], 0, 1);
+        outRight[i] = std::clamp(right[i], 0.0f, 1.0f);
 }
 
 #endif

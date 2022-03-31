@@ -10,6 +10,8 @@
 #define DELETEPATCHCMDSIZE 4
 #define DELETEALLPATCHESCMDSIZE 2
 #define SETTINGCMDSIZE 7
+#define INPUTCMDSIZE 6
+#define OUTPUTCMDSIZE 6
 #define GATECMDSIZE 2
 #define NEWNOTECMDSIZE 4
 #define RETRIGGERCMDSIZE 2
@@ -52,6 +54,9 @@ enum comCommands {
     RETRIGGER,             // retrigger
     UPDATESETTINGINT,      // next bytes are setting
     UPDATESETTINGFLOAT,    // next bytes are settings
+    UPDATEINPUT,           // next bytes are settings
+    UPDATEOUTPUTFLOAT,     // next bytes are settings
+    UPDATEOUTPUTINT,       // next bytes are settings
     SENDUPDATETOCONTROL,   // pull req from control
     SENDMESSAGE,           // send a string
     LASTBYTE = 0b01111111, // LAST BYTE of transmission

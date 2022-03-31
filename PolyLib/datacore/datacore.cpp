@@ -5,7 +5,7 @@ LogCurve logMapping(32, 0.1);
 LogCurve antiLogMapping(32, 0.9);
 
 void Setting::setValue(int32_t newValue) {
-    value = testInt(newValue, min, max);
+    value = std::clamp(newValue, min, max);
 
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
@@ -34,7 +34,7 @@ const std::string &Setting::getValueAsString() {
 }
 
 void Analog::setValue(int32_t newValue) {
-    value = testInt(newValue, minInputValue, maxInputValue);
+    value = std::clamp(newValue, minInputValue, maxInputValue);
 
     if (mapping == linMap) {
         valueMapped = fast_lerp_f32(min, max, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
@@ -60,7 +60,7 @@ void Analog::setValue(int32_t newValue) {
 
 int32_t Analog::reverseMapping(float newValue) {
 
-    newValue = testFloat(newValue, min, max);
+    newValue = std::clamp(newValue, min, max);
 
     if (min < 0) { // centered value
         newValue = (newValue) / ((max - min) / 2);
@@ -207,7 +207,7 @@ void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 }
 
 void PatchElement::setAmount(float amountRaw) {
-    this->amountRaw = testFloat(amountRaw, -1, 1);
+    this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
 
     if (targetIn->mapping == linMap) {
         amount = this->amountRaw;
@@ -225,7 +225,7 @@ void PatchElement::setAmount(float amountRaw) {
 }
 
 void PatchElement::setAmountWithoutMapping(float amountRaw) {
-    this->amountRaw = testFloat(amountRaw, -1, 1);
+    this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
     amount = this->amountRaw;
 
 #ifdef POLYCONTROL
@@ -234,28 +234,28 @@ void PatchElement::setAmountWithoutMapping(float amountRaw) {
 }
 
 // void PatchElementOutOut::setAmountWithoutMapping(float amount) {
-//     this->amount = testFloat(amount, -1, 1);
+//     this->amount = std::clamp(amount, -1, 1);
 // #ifdef POLYCONTROL
 //     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 // #endif
 // }
 
 // void PatchElementOutOut::setAmount(float amount) {
-//     this->amount = testFloat(amount, -1, 1);
+//     this->amount = std::clamp(amount, -1, 1);
 // #ifdef POLYCONTROL
 //     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 // #endif
 // }
 
 // void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
-//     this->offset = testFloat(offset, -1, 1);
+//     this->offset = std::clamp(offset, -1, 1);
 // #ifdef POLYCONTROL
 //     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 // #endif
 // }
 
 // void PatchElementOutOut::setOffset(float offset) {
-//     this->offset = testFloat(offset, -1, 1);
+//     this->offset = std::clamp(offset, -1, 1);
 // #ifdef POLYCONTROL
 //     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
 // #endif

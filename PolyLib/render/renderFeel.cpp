@@ -5,11 +5,11 @@
 extern Layer layerA;
 
 inline float accumulateGlide(Feel &feel, uint16_t voice) {
-    return testFloat(feel.iGlide.currentSample[voice] + feel.aGlide.valueMapped, feel.aGlide.min, feel.aGlide.max);
+    return std::clamp(feel.iGlide.currentSample[voice] + feel.aGlide.valueMapped, feel.aGlide.min, feel.aGlide.max);
 }
 
 inline float accumulateDetune(Feel &feel, uint16_t voice) {
-    return testFloat(feel.iDetune.currentSample[voice] + feel.aDetune.valueMapped, feel.aDetune.min, feel.aDetune.max);
+    return std::clamp(feel.iDetune.currentSample[voice] + feel.aDetune.valueMapped, feel.aDetune.min, feel.aDetune.max);
 }
 
 void renderFeel(Feel &feel) {

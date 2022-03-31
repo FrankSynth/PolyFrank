@@ -9,25 +9,25 @@ LogCurve adsrConvertLog(128, 0.1);
 LogCurve adsrConvertAntiLog(128, 0.9);
 
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
+    return std::clamp(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
 inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
-                     adsr.aAttack.max * 2);
+    return std::clamp(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
+                      adsr.aAttack.max * 2);
 }
 inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
+    return std::clamp(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
 inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
-                     adsr.aSustain.max);
+    return std::clamp(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
+                      adsr.aSustain.max);
 }
 inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
-                     adsr.aRelease.max * 2);
+    return std::clamp(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
+                      adsr.aRelease.max * 2);
 }
 inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
+    return std::clamp(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
 }
 
 /**

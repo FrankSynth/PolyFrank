@@ -3,7 +3,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 
-typedef enum { DISABLED, NOTCONNECT, WAITFORRESPONSE, DATARECEIVED, READY } interChipState;
+typedef enum { DISABLED, NOTCONNECT, WAITFORRESPONSE, READY } interChipState;
 
 namespace FlagHandler {
 
@@ -33,6 +33,8 @@ extern bool Panel_1_EOC_Interrupt;
 extern std::function<void()> Panel_EOC_ISR;
 
 extern interChipState renderChip_State[2][2];
+extern bool renderChipAwaitingData[2][2];
+extern bool receiveDMARunning;
 
 extern elapsedMillis renderChip_StateTimeout[2][2];
 

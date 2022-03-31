@@ -10,7 +10,6 @@
 #include <valarray>
 #include <vector>
 
-
 #ifdef POLYCONTROL
 #include <string>
 #endif
@@ -200,16 +199,18 @@ class Analog : public DataElement {
         if (valueChangedCallback != nullptr)
             valueChangedCallback();
     }
+
+    // FIXME calc mit ROTARYENCODERACCELERATION float oder int?
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
             setValue(
                 value -
                 (testInt(
-                    inputRange / 2 * ROTARYENCODERACCELERATION, 1,
+                    (float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
                     maxInputValue))); // use Acellaration and test for min step of 1 -> for low resolution analog inputs
         }
         if (direction == 1) {
-            setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACCELERATION, 1, maxInputValue)));
+            setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
         }
         if (valueChangedCallback != nullptr)
             valueChangedCallback();
@@ -519,7 +520,9 @@ inline const std::string &Analog::getValueAsString() {
 }
 inline void Setting::increase(int32_t amount) {
     if (useAcceleration) {
-        value = changeInt(value, testInt((max - min) / 2 * ROTARYENCODERACCELERATION, 1, max), min, max);
+        value = changeInt(value,
+                          std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                          min, max);
     }
     else {
         value = changeInt(value, amount, min, max);
@@ -537,7 +540,9 @@ inline void Setting::increase(int32_t amount) {
 
 inline void Setting::decrease(int32_t amount) {
     if (useAcceleration) {
-        value = changeInt(value, -testInt((max - min) / 2 * ROTARYENCODERACCELERATION, 1, max), min, max);
+        value = changeInt(value,
+                          -std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                          min, max);
     }
     else {
         value = changeInt(value, amount, min, max);

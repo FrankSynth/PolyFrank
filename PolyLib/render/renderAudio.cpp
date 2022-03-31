@@ -107,6 +107,7 @@ void initAudioRendering() {
     switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.defaultValue]);
 }
 
+// TODO new bitcrusher von Jacob??
 inline void bitcrush(float *dst, const float *bitcrush) {
 
     uint8_t moveAmount[VOICESPERCHIP];
@@ -166,30 +167,44 @@ inline void getSubSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phase[i] -= std::floor(phase[i]);
 
+    float shapeDiv[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        shapeDiv[i] = 4.0f / shape[i];
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
-            newSample[i] = phase[i] * (4.0f / shape[i]) - 1.0f;
-            if (newSample[i] > 1.0f)
-                newSample[i] = 1.0f;
+            newSample[i] = phase[i] * (shapeDiv[i]) - 1.0f;
+            newSample[i] = std::min(newSample[i], 1.0f);
         }
         else {
-            newSample[i] = (phase[i] - 0.5f) * (-4.0f / shape[i]) + 1.0f;
-            if (newSample[i] < -1.0f)
-                newSample[i] = -1.0f;
+            newSample[i] = (phase[i] - 0.5f) * (-shapeDiv[i]) + 1.0f;
+            newSample[i] = std::max(newSample[i], -1.0f);
         }
     }
 
     bitcrush(newSample, bitcrusher);
 
     static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
+    bool sampleCrushNow[VOICESPERCHIP];
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (sampleCrushCount[i] > samplecrusher[i]) {
-            sample[i] = newSample[i];
-            sampleCrushCount[i] = 0;
-        }
+        sampleCrushNow[i] = sampleCrushCount[i] > samplecrusher[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i] = !sampleCrushNow;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sample[i] = newSample[i] * sampleCrushNow[i] + sample[i] * !sampleCrushNow[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     if (sampleCrushCount[i] > samplecrusher[i]) {
+    //         sample[i] = newSample[i];
+    //         sampleCrushCount[i] = 0;
+    //     }
 
     float phaseLength = octave == 0 ? 0.5f : 0.25f;
 
@@ -328,20 +343,24 @@ inline void getOscASample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    calcSquircle(newSample, squircle);
-    // calcSquircleSimplified(newSample, squircle);
+    calcSquircleSimplified(newSample, squircle);
 
     bitcrush(newSample, bitcrusher);
 
     static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
+    bool sampleCrushNow[VOICESPERCHIP];
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (sampleCrushCount[i] > samplecrusher[i]) {
-            sample[i] = newSample[i];
-            sampleCrushCount[i] = 0;
-        }
+        sampleCrushNow[i] = sampleCrushCount[i] > samplecrusher[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i] = !sampleCrushNow;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sample[i] = newSample[i] * sampleCrushNow[i] + sample[i] * !sampleCrushNow[i];
 }
 
 inline void getOscBSample(float *sample) {
@@ -359,6 +378,7 @@ inline void getOscBSample(float *sample) {
     const float *bitcrusher = layerA.oscB.bitcrusher.currentSample;
     const float *samplecrusher = layerA.oscB.samplecrusher.currentSample;
     const float *phaseoffset = layerA.oscB.phaseoffset.currentSample;
+    const float *squircle = layerA.oscA.squircle.currentSample;
 
     float stepWavetableLower[VOICESPERCHIP];
     float stepWavetableUpper[VOICESPERCHIP];
@@ -511,19 +531,24 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    // calcSquircleSimplified(newSample, squircle, newSample);
+    calcSquircleSimplified(newSample, squircle);
 
     bitcrush(newSample, bitcrusher);
 
     static uint16_t sampleCrushCount[VOICESPERCHIP] = {0};
+    bool sampleCrushNow[VOICESPERCHIP];
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleCrushCount[i]++;
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (sampleCrushCount[i] > samplecrusher[i]) {
-            sample[i] = newSample[i];
-            sampleCrushCount[i] = 0;
-        }
+        sampleCrushNow[i] = sampleCrushCount[i] > samplecrusher[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sampleCrushCount[i] = !sampleCrushNow;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sample[i] = newSample[i] * sampleCrushNow[i] + sample[i] * !sampleCrushNow[i];
 }
 
 /**

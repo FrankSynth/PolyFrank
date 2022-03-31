@@ -7,23 +7,23 @@
 extern Layer layerA;
 
 inline float accumulateBitcrusher(OSC_A &osc_a, uint16_t voice) {
-    return testFloat(osc_a.iBitcrusher.currentSample[voice] + osc_a.aBitcrusher.valueMapped, osc_a.aBitcrusher.min,
-                     osc_a.aBitcrusher.max);
+    return std::clamp(osc_a.iBitcrusher.currentSample[voice] + osc_a.aBitcrusher.valueMapped, osc_a.aBitcrusher.min,
+                      osc_a.aBitcrusher.max);
 }
 inline float accumulateSamplecrusher(OSC_A &osc_a, uint16_t voice) {
-    return testFloat(osc_a.iSamplecrusher.currentSample[voice] + osc_a.aSamplecrusher.valueMapped,
-                     osc_a.aSamplecrusher.min, osc_a.aSamplecrusher.max);
+    return std::clamp(osc_a.iSamplecrusher.currentSample[voice] + osc_a.aSamplecrusher.valueMapped,
+                      osc_a.aSamplecrusher.min, osc_a.aSamplecrusher.max);
 }
 inline float accumulateMorph(OSC_A &osc_a, uint16_t voice) {
-    return testFloat(osc_a.iMorph.currentSample[voice] + osc_a.aMorph.valueMapped, osc_a.aMorph.min, osc_a.aMorph.max);
+    return std::clamp(osc_a.iMorph.currentSample[voice] + osc_a.aMorph.valueMapped, osc_a.aMorph.min, osc_a.aMorph.max);
 }
 inline float accumulateSquircle(OSC_A &osc_a, uint16_t voice) {
-    return testFloat(osc_a.iSquircle.currentSample[voice] + osc_a.aSquircle.valueMapped, osc_a.aSquircle.min,
-                     osc_a.aSquircle.max);
+    return std::clamp(osc_a.iSquircle.currentSample[voice] + osc_a.aSquircle.valueMapped, osc_a.aSquircle.min,
+                      osc_a.aSquircle.max);
 }
 inline int32_t accumulateOctave(OSC_A &osc_a, uint16_t voice) {
-    return testInt(std::roundf(osc_a.iOctave.currentSample[voice] + (float)osc_a.dOctave.valueMapped),
-                   osc_a.dOctave.min, osc_a.dOctave.max);
+    return std::clamp((int32_t)std::round(osc_a.iOctave.currentSample[voice] + (float)osc_a.dOctave.valueMapped),
+                      osc_a.dOctave.min, osc_a.dOctave.max);
 }
 
 float noteConverted[VOICESPERCHIP];
@@ -91,21 +91,21 @@ void renderOSC_A(OSC_A &osc_A) {
 ///////////////////////////// OSC B /////////////////////////////////
 
 inline float accumulateBitcrusher(OSC_B &osc_b, uint16_t voice) {
-    return testFloat(osc_b.iBitcrusher.currentSample[voice] + osc_b.aBitcrusher.valueMapped, osc_b.aBitcrusher.min,
-                     osc_b.aBitcrusher.max);
+    return std::clamp(osc_b.iBitcrusher.currentSample[voice] + osc_b.aBitcrusher.valueMapped, osc_b.aBitcrusher.min,
+                      osc_b.aBitcrusher.max);
 }
 inline float accumulateSamplecrusher(OSC_B &osc_b, uint16_t voice) {
-    return testFloat(osc_b.iSamplecrusher.currentSample[voice] * osc_b.aSamplecrusher.valueMapped +
-                         osc_b.aSamplecrusher.valueMapped,
-                     osc_b.aSamplecrusher.min, osc_b.aSamplecrusher.max);
+    return std::clamp(osc_b.iSamplecrusher.currentSample[voice] * osc_b.aSamplecrusher.valueMapped +
+                          osc_b.aSamplecrusher.valueMapped,
+                      osc_b.aSamplecrusher.min, osc_b.aSamplecrusher.max);
 }
 inline float accumulateMorph(OSC_B &osc_b, uint16_t voice) {
-    return testFloat(osc_b.iMorph.currentSample[voice] + osc_b.aMorph.valueMapped, osc_b.aMorph.min, osc_b.aMorph.max);
+    return std::clamp(osc_b.iMorph.currentSample[voice] + osc_b.aMorph.valueMapped, osc_b.aMorph.min, osc_b.aMorph.max);
 }
 
 inline int32_t accumulateOctave(OSC_B &osc_b, uint16_t voice) {
-    return testInt(std::roundf(osc_b.iOctave.currentSample[voice] + (float)osc_b.dOctave.valueMapped),
-                   osc_b.dOctave.min, osc_b.dOctave.max);
+    return std::clamp((int32_t)std::round(osc_b.iOctave.currentSample[voice] + (float)osc_b.dOctave.valueMapped),
+                      osc_b.dOctave.min, osc_b.dOctave.max);
 }
 inline float accumulatePhaseoffset(OSC_B &osc_b, uint16_t voice) {
     return osc_b.iPhaseOffset.currentSample[voice] + osc_b.aPhaseoffset.valueMapped;

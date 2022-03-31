@@ -74,7 +74,7 @@ void rotary::process(uint16_t pinState) {
 }
 
 void rotary::acellaration() {
-    ROTARYENCODERACCELERATION = testFloat(1. / (millis() - lastStepTime), 0.001, 1);
+    ROTARYENCODERACCELERATION = std::clamp(1.0f / (float)(millis() - lastStepTime), 0.001f, 1.0f);
 }
 
 #endif

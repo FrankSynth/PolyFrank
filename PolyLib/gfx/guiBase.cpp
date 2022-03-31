@@ -112,7 +112,7 @@ void focusPatch(location focus) {
 void Scroller::scroll(int16_t change) {
 
     if (position + change != 0) {
-        position = testInt(position + change, 0, entrys - 1);
+        position = std::clamp(position + change, 0, entrys - 1);
     }
     else
         position = 0;

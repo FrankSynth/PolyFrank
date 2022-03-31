@@ -91,18 +91,7 @@ ALWAYS_INLINE inline const int32_t testInt(const int32_t value, const int32_t mi
 ALWAYS_INLINE inline const float changeFloat(const float value, const float change, const float minimum,
                                              const float maximum) {
 
-    float changed = value + change;
-
-    if (changed > maximum) { // test max
-
-        return maximum;
-    }
-    else if (changed < minimum) { // test min
-        return minimum;
-    }
-    else {
-        return changed; // return new value
-    }
+    return std::clamp(value + change, minimum, maximum);
 }
 
 /**

@@ -1,5 +1,6 @@
 #include "com.hpp"
 #include "layer/layer.hpp"
+#include <cstring>
 
 extern Layer layerA;
 
@@ -11,7 +12,6 @@ namespace midiUSB {
 
 uint8_t COMusb::write(uint8_t data) {
     wBuffer[writeBufferSelect].push_back(data);
-
     return 0; // might be used for error codes
 }
 
@@ -249,6 +249,13 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
 }
 
 uint8_t COMinterChip::sendRequestUIData() {
+
+    for (uint8_t i = 0; i < 2; i++) {
+        for (uint8_t j = 0; j < 2; j++) {
+            FlagHandler::renderChipAwaitingData[i][j] = FlagHandler::layerActive[i];
+        }
+    }
+
     uint8_t comCommand[SENDUPDATETOCONTROLSIZE];
 
     comCommand[0] = SENDUPDATETOCONTROL;
@@ -284,18 +291,39 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
     return 0;
 }
 
+uint8_t COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
+    if (FlagHandler::receiveDMARunning)
+        return 1;
+    receiveLayer = layer;
+    receiveChip = receiveChip;
+    FlagHandler::receiveDMARunning = true;
+    return receiveViaDMA(dmaInBufferPointer[!currentInBufferSelect], INTERCHIPBUFFERSIZE);
+}
+
 #endif
 
 #ifdef POLYRENDER
 
 uint8_t COMinterChip::sendString(std::string &message) {
 
-    uint8_t messagesize = message.size();
+    uint16_t messagesize = message.size();
 
-    if (messagesize > INTERCHIPBUFFERSIZE - 2 - LASTBYTECMDSIZE - MESSAGECMDSIZE)
+    if (messagesize > 255)
         return 1; // not possible to send this
 
-    messagebuffer.clear();
+    messagebuffer = (char)SENDMESSAGE;
+    messagebuffer += (char)messagesize;
+    messagebuffer.append(message);
+
+    pushOutBuffer((uint8_t *)messagebuffer.data(), messagebuffer.size());
+    return 0;
+}
+uint8_t COMinterChip::sendString(const char *message) {
+
+    uint16_t messagesize = std::strlen(message);
+
+    if (messagesize > 255)
+        return 1; // not possible to send this
 
     messagebuffer = (char)SENDMESSAGE;
     messagebuffer += (char)messagesize;
@@ -303,6 +331,36 @@ uint8_t COMinterChip::sendString(std::string &message) {
 
     pushOutBuffer((uint8_t *)messagebuffer.data(), messagebuffer.size());
 
+    return 0;
+}
+
+uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+    uint8_t comCommand[OUTPUTCMDSIZE];
+    comCommand[0] = (modulID << 4) | settingID;
+    comCommand[1] = UPDATEOUTPUTINT;
+    *(int32_t *)(&comCommand[2]) = amount;
+
+    pushOutBuffer(comCommand, OUTPUTCMDSIZE);
+    return 0;
+}
+uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
+    uint8_t comCommand[OUTPUTCMDSIZE];
+    comCommand[0] = (modulID << 4) | settingID;
+    ;
+    comCommand[1] = UPDATEOUTPUTFLOAT;
+    *(float *)(&comCommand[2]) = amount;
+
+    pushOutBuffer(comCommand, OUTPUTCMDSIZE);
+    return 0;
+}
+uint8_t COMinterChip::sendInput(uint8_t modulID, uint8_t settingID, float amount) {
+    uint8_t comCommand[INPUTCMDSIZE];
+    comCommand[0] = (modulID << 4) | settingID;
+    ;
+    comCommand[1] = UPDATEINPUT;
+    *(float *)(&comCommand[2]) = amount;
+
+    pushOutBuffer(comCommand, INPUTCMDSIZE);
     return 0;
 }
 
@@ -322,21 +380,18 @@ uint8_t COMinterChip::checkVoiceAgainstChipID(uint8_t voice) {
     }
 }
 
-#endif
-
-/////////////////////////// MASTER & SLAVE ////////////////////////
-
 uint8_t COMinterChip::beginReceiveTransmission() {
     return receiveViaDMA(dmaInBufferPointer[!currentInBufferSelect], INTERCHIPBUFFERSIZE);
 }
 
+#endif
+
+/////////////////////////// MASTER & SLAVE ////////////////////////
+
 uint8_t COMinterChip::beginSendTransmission() {
 
-    if (sendViaDMA == nullptr) {
-        return 0;
-    }
     // buffers empty
-    if (outBuffer[currentOutBufferSelect].size() < 2) {
+    if (outBuffer[currentOutBufferSelect].size() < 3) {
         // println("buffer empty, skip send");
         return 0;
     }
@@ -364,7 +419,7 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     // write size into first two bytes of outBuffers
     dmaOutCurrentBufferSize = outBuffer[currentOutBufferSelect].size();
-    *outBuffer[currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
+    *(uint16_t *)outBuffer[currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
 
     switchOutBuffer();
 
@@ -450,6 +505,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     switchInBuffer();
 
+#ifdef POLYRENDER
+
     // necessary decoding vars
     volatile uint8_t outputID = 0;
     volatile uint8_t inputID = 0;
@@ -459,11 +516,12 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile uint8_t setting = 0;
     volatile uint8_t module = 0;
     volatile uint8_t voice = 0;
+#endif
     volatile int32_t amountInt = 0;
     volatile float amountFloat = 0;
 
     // assemble size
-    uint8_t sizeOfReadBuffer = (dmaInBufferPointer[currentInBufferSelect])[0];
+    uint16_t sizeOfReadBuffer = *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect]));
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
@@ -481,7 +539,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // start with offset, as two bytes were size
-    for (uint8_t i = 1; i < sizeOfReadBuffer; i++) {
+    for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
 
         if (currentByte == LASTBYTE) {
@@ -500,7 +558,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #ifdef POLYRENDER
         if (currentByte == SENDUPDATETOCONTROL) {
             // TODO send UI update shit
-
+            sendString("Hello");
+            beginSendTransmission();
             continue;
         }
 #endif
@@ -519,6 +578,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             // TODO output to debug console
+            println("layer ", receiveLayer);
+            println("chip ", receiveChip);
             println(messagebuffer);
 
             continue;
@@ -526,11 +587,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 #endif
 
+#ifdef POLYRENDER
         layerID = (currentByte & CMD_LAYERMASK) >> 7;
         module = (currentByte & CMD_MODULEMASK) >> 3;
         voice = currentByte & CMD_VOICEMASK;
 
-#ifdef POLYRENDER
         // convert voice 4-7 to 0-3 if on chip B
         voice = checkVoiceAgainstChipID(voice);
 #endif
@@ -637,12 +698,15 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #endif
 
 #ifdef POLYCONTROL
-
                 // TODO add decoding here
+
+            case UPDATEINPUT: println("UPDATEINPUT"); break;
+            case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
+            case UPDATEOUTPUTFLOAT: println("UPDATEOUTPUTFLOAT"); break;
 
 #endif
 
-            case NOCOMMAND: PolyError_Handler("ERROR | FATAL | data was empty"); break;
+            case NOCOMMAND: PolyError_Handler("ERROR | FATAL | command was empty"); return 1;
 
             default:
                 // seomething went wrong here
@@ -680,11 +744,23 @@ uint8_t COMinterChip::appendLastByte() {
 
 // reserve place for size byte
 void COMinterChip::pushDummySizePlaceHolder() {
-    uint8_t dummysize = 0;
-    pushOutBuffer((uint8_t *)&dummysize, 1);
+    uint16_t dummysize = 0;
+    pushOutBuffer((uint8_t *)&dummysize, 2);
 }
 
-uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length = 1) {
+uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
+    if (outBuffer[currentOutBufferSelect].size() + 1 >= INTERCHIPBUFFERSIZE - 1) {
+        uint8_t ret = invokeBufferFullSend();
+        if (ret) {
+            return ret;
+        }
+    }
+
+    outBuffer[currentOutBufferSelect].push_back(data);
+    return 0;
+}
+
+uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
     if (outBuffer[currentOutBufferSelect].size() + length >= INTERCHIPBUFFERSIZE - 1) {
         uint8_t ret = invokeBufferFullSend();
         if (ret) {

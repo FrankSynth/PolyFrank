@@ -89,6 +89,10 @@ void PolyRenderInit() {
 
     layerCom.beginReceiveTransmission();
 
+    layerCom.initOutTransmission(
+        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
+        (uint8_t *)interChipDMABuffer);
+
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
     HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
@@ -286,6 +290,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     }
 }
 
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+    // InterChip Com
+    if (hspi == &hspi1) {
+    }
+}
+
 void sendDACs() {
     for (uint16_t i = 0; i < ALLDACS; i++) {
         cvDac[0].switchIC2renderBuffer();
@@ -396,4 +407,17 @@ void resetMCPI2CAddress() {
     for (uint8_t address = 0x00; address < 0x08; address++) {
         sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin, address, 0x00);
     }
+}
+
+uint8_t sendString(std::string &message) {
+    return layerCom.sendString(message);
+}
+uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+    return layerCom.sendOutput(modulID, settingID, amount);
+}
+uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
+    return layerCom.sendOutput(modulID, settingID, amount);
+}
+uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
+    return layerCom.sendInput(modulID, settingID, amount);
 }

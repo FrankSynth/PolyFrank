@@ -43,13 +43,13 @@ inline float calcSquare(float phase, float shape) {
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
     return linlogMapping.mapValue((lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped)) * 100; // max 200 Hz
-    // return testFloat(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
+    // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline float accumulateShape(LFO &lfo, uint16_t voice) {
-    return testFloat(lfo.iShape.currentSample[voice] + lfo.aShape.valueMapped, lfo.aShape.min, lfo.aShape.max);
+    return std::clamp(lfo.iShape.currentSample[voice] + lfo.aShape.valueMapped, lfo.aShape.min, lfo.aShape.max);
 }
 inline float accumulateAmount(LFO &lfo, uint16_t voice) {
-    return testFloat(lfo.iAmount.currentSample[voice] + lfo.aAmount.valueMapped, lfo.aAmount.min, lfo.aAmount.max);
+    return std::clamp(lfo.iAmount.currentSample[voice] + lfo.aAmount.valueMapped, lfo.aAmount.min, lfo.aAmount.max);
 }
 
 void renderLFO(LFO &lfo) {
@@ -75,10 +75,8 @@ void renderLFO(LFO &lfo) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
             phase[voice] += speed[voice] * SECONDSPERCVRENDER;
-            if (phase[voice] > 1.0f) {
-                phase[voice] -= 1.0f;
-                newPhase[voice] = true;
-            }
+            newPhase[voice] = phase[voice] > 1.0f;
+            phase[voice] -= std::floor(phase[voice]);
         }
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)

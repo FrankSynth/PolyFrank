@@ -54,6 +54,8 @@ void initFlagHandler() {
 
 bool layerActive[2] = {false};
 
+bool receiveDMARunning = false;
+
 bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
 elapsedMicros Control_Encoder_Interrupt_Timer;
@@ -82,6 +84,8 @@ std::function<void()> Panel_1_Touch_ISR = nullptr;
 
 interChipState renderChip_State[2][2] = {{NOTCONNECT, NOTCONNECT},
                                          {NOTCONNECT, NOTCONNECT}}; // init State wait for ready
+
+bool renderChipAwaitingData[2][2] = {false};
 
 elapsedMillis renderChip_StateTimeout[2][2] = {{0, 0}, {0, 0}};
 
@@ -123,20 +127,22 @@ void handleFlags() {
 
 #ifdef POLYCONTROL
 
-    // for (uint8_t i = 0; i < 2; i++) {
-    //     for (uint8_t j = 0; j < 2; j++) {
-    //         if (renderChip_State[i][j] != READY) {
-    //             if (renderChip_StateTimeout[i][j] > 10) { // 10ms timeout
-    //                 if (renderChip_State[i][j] == WAITFORRESPONSE) {
-    //                     // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> no reponse");
-    //                 }
-    //                 else if (renderChip_State[i][j] == DATARECEIVED) {
-    //                     // PolyError_Handler("ERROR | FATAL | Communication -> layerChip A -> Checksum failed");
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    for (uint8_t i = 0; i < 2; i++) {
+        for (uint8_t j = 0; j < 2; j++) {
+            if (renderChip_State[i][j] != READY) {
+                if (renderChip_StateTimeout[i][j] > 100) { // 100ms timeout
+                    if (renderChip_State[i][j] == WAITFORRESPONSE) {
+                        if (renderChipAwaitingData[i][j]) {
+                            PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
+                        }
+                        else {
+                            PolyError_Handler("ERROR | FATAL | Communication > no ready");
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // HID Flags
 

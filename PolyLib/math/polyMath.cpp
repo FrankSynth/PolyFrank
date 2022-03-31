@@ -62,7 +62,7 @@ float fastNoteLin2Log_f32(float x) {
     // int32_t n;
     float findex;
 
-    x = fastMap(testFloat(x, noteLin2logMIN, noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
+    x = fastMap(std::clamp(x, (float)noteLin2logMIN, (float)noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
 
     /* Calculation of index of the table */
     findex = (float)FAST_NOTELIN2LOG_TABLE_SIZE * x;
@@ -88,7 +88,7 @@ void LogCurve::precomputeTable() {
     float a = 1.0f / (b - 1.0f);
 
     for (uint16_t i = 0; i < (size + 1); i++) {
-        logTable[i] = a * std::pow(b, fastMapCached(i, 0, size, 0, 1)) - a;
+        logTable[i] = a * std::pow(b, fastMap(i, 0, size, 0, 1)) - a;
     }
 }
 
@@ -107,7 +107,7 @@ float LogCurve::mapValue(float value) {
     float findex;
 
     /* Calculation of index of the table */
-    findex = (float)size * testFloat(value, 0, 1);
+    findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
     index = ((uint16_t)findex);
 
@@ -150,7 +150,7 @@ float LogCurve::mapValueSigned(float value) {
     float findex;
 
     /* Calculation of index of the table */
-    findex = (float)size * testFloat(value, 0, 1);
+    findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
     index = ((uint16_t)findex);
 
@@ -206,7 +206,7 @@ float calcSquircleSimplified(float value, float curvature) {
         return value;
 
     float exp = 1.0f / curvature - 1.0f;
-    float expsq = exp * exp;
-    float ret = std::pow(value, expsq);
+    // float expsq = exp * exp;
+    float ret = std::pow(value, exp);
     return ret;
 }

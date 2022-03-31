@@ -17,6 +17,8 @@ ID layerId;
 Layer layerA(layerId.getNewId());
 Layer layerB(layerId.getNewId());
 
+uint8_t sendRequestUIData();
+
 // InterChip Com
 COMinterChip layerCom;
 
@@ -112,6 +114,10 @@ void PolyControlInit() { ////////Hardware init////////
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABufferLayerA);
 
+    layerCom.initInTransmission(
+        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
+        std::bind<uint8_t>(HAL_SPI_Abort, &hspi4), (uint8_t *)interChipDMABufferLayerA);
+
     // init midi
     initMidi();
 
@@ -143,17 +149,18 @@ void PolyControlInit() { ////////Hardware init////////
     liveData.voiceHandler.playNote(startKey); */
 }
 
+elapsedMillis askMessage = 0;
+
 void PolyControlRun() { // Here the party starts
 
     while (1) {
 
+        if (askMessage > 1000) {
+            askMessage = 0;
+            sendRequestUIData();
+        }
+
         mididevice.read();
-
-        // Com Receive Buffer
-        //        if (comAvailable()) {
-        //            print("received : ", (char)comRead());
-        //        }
-
         liveData.serviceRoutine();
 
         FlagHandler::handleFlags();
@@ -165,9 +172,7 @@ void PolyControlRun() { // Here the party starts
             renderLED();
         }
 
-        // for (uint8_t i = 0; i < 2; i++) {
         layerCom.beginSendTransmission();
-        // }
     }
 }
 
@@ -195,6 +200,9 @@ uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId)
 
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom.sendDeleteAllPatches(layerId);
+}
+uint8_t sendRequestUIData() {
+    return layerCom.sendRequestUIData();
 }
 
 void readTemperature() {
@@ -229,6 +237,15 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
             HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
         }
+    }
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+    // InterChip Com
+    if (hspi == &hspi4) {
+        layerCom.decodeCurrentInBuffer();
+        FlagHandler::receiveDMARunning = false;
     }
 }
 
@@ -285,11 +302,20 @@ void initMidi() {
     mididevice.setHandleSongPosition(receivedSPP);
 }
 
-// EXTI Callback
+void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
+    while (layerCom.beginReceiveTransmission(layer, chip)) {
+        mididevice.read();
+        liveData.serviceRoutine();
+        FlagHandler::handleFlags();
+    }
 
+    FlagHandler::renderChipAwaitingData[layer][chip] = false;
+}
+
+// EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
-    println("exti callback ", pin);
+    // println("exti callback ", pin);
 
     if (pin & GPIO_PIN_12) { // ioExpander -> encoder
         FlagHandler::Control_Encoder_Interrupt = true;
@@ -312,45 +338,48 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         if (FlagHandler::renderChip_State[1][0] == NOTCONNECT) {
             FlagHandler::renderChip_State[1][0] = READY;
         }
-        else {
-            if (FlagHandler::renderChip_State[1][0] == WAITFORRESPONSE) {
-                FlagHandler::renderChip_StateTimeout[1][0] = 0;
-                FlagHandler::renderChip_State[1][0] = READY;
-            }
+        else if (FlagHandler::renderChip_State[1][0] == WAITFORRESPONSE) {
+            if (FlagHandler::renderChipAwaitingData[1][0])
+                receiveFromRenderChip(1, 0);
+            FlagHandler::renderChip_StateTimeout[1][0] = 0;
+            FlagHandler::renderChip_State[1][0] = READY;
         }
     }
+
     if (pin & GPIO_PIN_4) { // Layer B Chip 1
         if (FlagHandler::renderChip_State[1][1] == NOTCONNECT) {
             FlagHandler::renderChip_State[1][1] = READY;
         }
-        else {
-            if (FlagHandler::renderChip_State[1][1] == WAITFORRESPONSE) {
-                FlagHandler::renderChip_StateTimeout[1][1] = 0;
-                FlagHandler::renderChip_State[1][1] = READY;
-            }
+        else if (FlagHandler::renderChip_State[1][1] == WAITFORRESPONSE) {
+            if (FlagHandler::renderChipAwaitingData[1][1])
+                receiveFromRenderChip(1, 1);
+            FlagHandler::renderChip_StateTimeout[1][1] = 0;
+            FlagHandler::renderChip_State[1][1] = READY;
         }
     }
+
     if (pin & GPIO_PIN_6) { // Layer A Chip 0
 
         if (FlagHandler::renderChip_State[0][0] == NOTCONNECT) {
             FlagHandler::renderChip_State[0][0] = READY;
         }
-        else {
-            if (FlagHandler::renderChip_State[0][0] == WAITFORRESPONSE) {
-                FlagHandler::renderChip_StateTimeout[0][0] = 0;
-                FlagHandler::renderChip_State[0][0] = READY;
-            }
+        else if (FlagHandler::renderChip_State[0][0] == WAITFORRESPONSE) {
+            if (FlagHandler::renderChipAwaitingData[0][0])
+                receiveFromRenderChip(0, 0);
+            FlagHandler::renderChip_StateTimeout[0][0] = 0;
+            FlagHandler::renderChip_State[0][0] = READY;
         }
     }
+
     if (pin & GPIO_PIN_7) { // Layer A Chip 1
         if (FlagHandler::renderChip_State[0][1] == NOTCONNECT) {
             FlagHandler::renderChip_State[0][1] = READY;
         }
-        else {
-            if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
-                FlagHandler::renderChip_StateTimeout[0][1] = 0;
-                FlagHandler::renderChip_State[0][1] = READY;
-            }
+        else if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
+            if (FlagHandler::renderChipAwaitingData[0][1])
+                receiveFromRenderChip(0, 1);
+            FlagHandler::renderChip_StateTimeout[0][1] = 0;
+            FlagHandler::renderChip_State[0][1] = READY;
         }
     }
 }

@@ -260,47 +260,53 @@ inline void setSwitches() {
     const int32_t &steinerMode = layerA.steiner.dMode.valueMapped;
     const int32_t &ladderMode = layerA.ladder.dSlope.valueMapped;
 
-    switch (steinerMode) {
-        case 0:
-            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-            break;
-        case 1:
-            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-            break;
-        case 2:
-            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-            break;
-        case 3:
-            HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-            break;
+    HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, (GPIO_PinState)(steinerMode < 2));
+    HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
 
-        default: PolyError_Handler("renderCV | setSwitches | wrong steinerMode"); break;
-    }
+    // switch (steinerMode) {
+    //     case 0:
+    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
+    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
+    //         break;
+    //     case 1:
+    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
+    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
+    //         break;
+    //     case 2:
+    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
+    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
+    //         break;
+    //     case 3:
+    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
+    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
+    //         break;
 
-    switch (ladderMode) {
-        case 0:
-            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
-            break;
-        case 1:
-            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
-            break;
-        case 2:
-            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
-            break;
-        case 3:
-            HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
-            break;
+    //     default: PolyError_Handler("renderCV | setSwitches | wrong steinerMode"); break;
+    // }
 
-        default: PolyError_Handler("renderCV | setSwitches | wrong ladderMode"); break;
-    }
+    HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, (GPIO_PinState)(ladderMode < 2));
+    HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
+
+    // switch (ladderMode) {
+    //     case 0:
+    //         HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
+    //         HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
+    //         break;
+    //     case 1:
+    //         HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
+    //         HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_SET);
+    //         break;
+    //     case 2:
+    //         HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_SET);
+    //         HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
+    //         break;
+    //     case 3:
+    //         HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, GPIO_PIN_RESET);
+    //         HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, GPIO_PIN_RESET);
+    //         break;
+    //
+    //     default: PolyError_Handler("renderCV | setSwitches | wrong ladderMode"); break;
+    // }
 }
 
 LogCurve ledLog(16, 0.1);

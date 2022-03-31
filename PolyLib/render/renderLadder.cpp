@@ -5,15 +5,15 @@
 extern Layer layerA;
 
 inline float accumulateLevel(Ladder &ladder, uint16_t voice) {
-    return testFloat(ladder.iLevel.currentSample[voice] + ladder.aLevel.valueMapped, 0, 1);
+    return std::clamp(ladder.iLevel.currentSample[voice] + ladder.aLevel.valueMapped, 0.0f, 1.0f);
 }
 inline float accumulateCutoff(Ladder &ladder, uint16_t voice) {
-    return testFloat(ladder.iCutoff.currentSample[voice] + ladder.aCutoff.valueMapped +
-                         layerA.envF.out.currentSample[voice] * ladder.aADSR.valueMapped,
-                     ladder.aCutoff.min, ladder.aCutoff.max);
+    return std::clamp(ladder.iCutoff.currentSample[voice] + ladder.aCutoff.valueMapped +
+                          layerA.envF.out.currentSample[voice] * ladder.aADSR.valueMapped,
+                      ladder.aCutoff.min, ladder.aCutoff.max);
 }
 inline float accumulateResonance(Ladder &ladder, uint16_t voice) {
-    return testFloat(ladder.iResonance.currentSample[voice] + ladder.aResonance.valueMapped, 0, 1);
+    return std::clamp(ladder.iResonance.currentSample[voice] + ladder.aResonance.valueMapped, 0.0f, 1.0f);
 }
 
 void renderLadder(Ladder &ladder) {
