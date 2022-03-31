@@ -54,8 +54,6 @@ class actionMapping {
     void callActionEncoder_CCW(uint8_t index);
     void callActionEncoder_Push(uint8_t index);
 
-    void lock(uint8_t unlock) { unlocked = unlock; }
-
     actionHandle buttonFooter[NUMBUTTONBOTTOM];
     actionHandle buttonHeader[NUMBUTTONTOP];
 
@@ -63,8 +61,6 @@ class actionMapping {
     ButtonActionHandle buttonRight[NUMBUTTONSIDE];
 
     EncoderActionHandle encoder[NUMENCODER];
-
-    uint8_t unlocked = 0;
 };
 
 extern actionMapping actionHandler;

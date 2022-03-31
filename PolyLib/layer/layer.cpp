@@ -195,12 +195,12 @@ void Layer::collectLayerConfiguration() {
         for (Analog *i : m->getPotis()) {
             buffer[index] = i->value;
             index++;
-            println("value:  ", buffer[index]);
+            // println("value:  ", buffer[index]);
         }
         for (Digital *i : m->getSwitches()) {
             buffer[index] = i->valueMapped;
             index++;
-            println("value:  ", buffer[index]);
+            // println("value:  ", buffer[index]);
         }
     }
 

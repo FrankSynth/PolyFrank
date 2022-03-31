@@ -1,7 +1,5 @@
 #pragma once
 
-#include "hardware/M95M01.hpp"
-#include "spi.h"
 #include <string>
 #include <vector>
 
@@ -40,9 +38,7 @@ typedef struct presetStruct {
 
 extern std::vector<presetStruct> presets;
 extern std::vector<presetStruct *> presetsSorted;
-
 extern presetStruct *freePreset;
-
 extern uint8_t blockBuffer[PRESET_BLOCKSIZE];
 
 std::vector<presetStruct> *getPresetList();
@@ -58,5 +54,4 @@ uint8_t *readConfig();
 uint8_t *readPreset(presetStruct *preset);
 uint8_t *readLiveData();
 
-void initPreset();
 void removePreset(presetStruct *preset);

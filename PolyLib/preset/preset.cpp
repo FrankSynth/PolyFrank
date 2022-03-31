@@ -2,6 +2,9 @@
 
 #include "preset.hpp"
 #include "datacore/datalocation.hpp"
+#include "hardware/device.hpp"
+
+extern M95M01 eeprom;
 
 std::vector<presetStruct> presets;
 std::vector<presetStruct *> presetsSorted;
@@ -36,7 +39,7 @@ void updatePresetList() {
 
     // println("preset Size: ", presets.size());
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, TABLE_STARTADDRESS, TABLE_BLOCKSIZE);
+    eeprom.SPI_ReadBuffer(blockBuffer, TABLE_STARTADDRESS, TABLE_BLOCKSIZE);
 
     for (uint32_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
 
@@ -70,17 +73,13 @@ void removePreset(presetStruct *preset) {
 
     uint32_t address = TABLE_STARTADDRESS + preset->storageID * sizeof(presetStruct);
 
-    EEPROM_SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
+    eeprom.SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
 
     updatePresetList();
 }
 
 std::vector<presetStruct> *getPresetList() {
     return &presets;
-}
-
-void initPreset() {
-    EEPROM_SPI_INIT(&hspi6);
 }
 
 void writePresetBlock(presetStruct *preset, std::string name) {
@@ -92,7 +91,7 @@ void writePresetBlock(presetStruct *preset, std::string name) {
 
     uint32_t address = PRESET_STARTADDRESS + preset->storageID * PRESET_BLOCKSIZE;
 
-    EEPROM_SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
+    eeprom.SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
 
     // write new entry to table
     if (preset->usageState == PRESET_FREE) {
@@ -111,38 +110,38 @@ void writePresetBlock(presetStruct *preset, std::string name) {
     }
     address = TABLE_STARTADDRESS + preset->storageID * sizeof(presetStruct);
 
-    EEPROM_SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
+    eeprom.SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
 
     updatePresetList();
 }
 
 void writeConfigBlock() {
-    EEPROM_SPI_WriteBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
+    eeprom.SPI_WriteBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
 }
 
 uint8_t *readPreset(presetStruct *preset) {
 
     uint32_t address = preset->storageID * PRESET_BLOCKSIZE + PRESET_STARTADDRESS;
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
+    eeprom.SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
 
     return blockBuffer;
 }
 
 uint8_t *readConfig() {
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
+    eeprom.SPI_ReadBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
 
     return blockBuffer;
 }
 
 void writeLiveDataBlock() {
-    EEPROM_SPI_WriteBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
+    eeprom.SPI_WriteBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
 }
 
 uint8_t *readLiveData() {
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
+    eeprom.SPI_ReadBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
 
     return blockBuffer;
 }

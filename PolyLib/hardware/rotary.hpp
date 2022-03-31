@@ -1,7 +1,10 @@
 #pragma once
 
-#include "gfx/gui.hpp"
 #include <functional>
+#include <stdio.h>
+
+#include "datacore/dataHelperFunctions.hpp"
+
 #define DIR_NONE 0x0
 #define DIR_CW 0x10
 #define DIR_CCW 0x20

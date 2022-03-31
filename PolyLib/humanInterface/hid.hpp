@@ -1,9 +1,10 @@
 #pragma once
-#include "Rotary.hpp"
-#include "gfx/gui.hpp"
-#include "hardware/TS3A5017D.hpp"
+#include "datacore/datacore.hpp"
+#include "gfx/guiActionHandler.hpp"
+#include "gfx/guiBase.hpp"
+#include "modules/modules.hpp"
+#include <stdio.h>
 
-#include "poly.hpp"
 #define LEDBRIGHTNESS_OFF 0
 #define LEDBRIGHTNESS_LOW 10
 #define LEDBRIGHTNESS_MEDIUM 50
@@ -36,7 +37,6 @@ void processPanelTouch(uint8_t layerID);
 
 void potiMapping();
 void processPanelPotis();
-void resetPanelPotis();
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
 void renderLED();

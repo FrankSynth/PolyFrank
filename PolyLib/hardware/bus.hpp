@@ -18,7 +18,7 @@ class spiBus : public busInterface {
     }
 
     std::string *report() {
-        status = "SPI\r\n";
+        status = "\nSPI\r\n";
 
         // DMA
         if ((hspi->hdmarx != nullptr) | (hspi->hdmatx != nullptr)) {
@@ -30,13 +30,13 @@ class spiBus : public busInterface {
             status += "\r\n";
         }
         // STATE
-        status += " STATE: ";
+        status += " State: ";
         if (state == BUS_READY)
-            status += "READY";
+            status += "ready";
         if (state == BUS_BUSY)
-            status += "BUSY";
+            status += "busy";
         if (state == BUS_ERROR)
-            status += "ERROR";
+            status += "error";
         status += "\r\n";
 
         // DATA
@@ -153,7 +153,7 @@ class i2cBus : public busInterface {
     }
 
     std::string *report() {
-        status = "I2C\r\n";
+        status = "\nI2C\r\n";
 
         // DMA
         if ((hi2c->hdmarx != nullptr) | (hi2c->hdmatx != nullptr)) {
@@ -166,13 +166,13 @@ class i2cBus : public busInterface {
         }
 
         // STATE
-        status += " STATE: ";
+        status += " State: ";
         if (state == BUS_READY)
-            status += "READY";
+            status += "ready";
         if (state == BUS_BUSY)
-            status += "BUSY";
+            status += "busy";
         if (state == BUS_ERROR)
-            status += "ERROR";
+            status += "error";
         status += "\r\n";
 
         // DATA
@@ -295,7 +295,7 @@ class i2cVirtualBus : public busInterface {
 
         status.clear();
 
-        status = "virtual I2C Bus   :";
+        status = "\nVirtual I2C Bus | ID: ";
         status += std::to_string(virtualBusAddress);
         status += "\r\n";
         // DATA

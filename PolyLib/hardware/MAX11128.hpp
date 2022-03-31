@@ -7,11 +7,10 @@
 
 class MAX11128 : public baseDevice {
   public:
-    void configurate(spiBus *busInterface, uint8_t i2cAddress, uint8_t nChannels, GPIO_TypeDef *cs_pinPort,
-                     uint16_t cs_pin) {
+    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin) {
         this->busInterface = busInterface;
-        this->cs_pin = cs_pin;
-        this->cs_pinPort = cs_pinPort;
+        this->gpioPin = gpioPin;
+        this->gpioPort = gpioPort;
         this->nChannels = nChannels;
 
         setup();
@@ -52,23 +51,23 @@ class MAX11128 : public baseDevice {
         uint32_t resetCommand = ((uint32_t)0x840) << 1; // reset command
 
         // Reset the ADC for a clean start!
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&resetCommand, 1);
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
         microsecondsDelay(50);
 
         // Send Config Register
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&commandConfigRegister32, 1);
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
         microsecondsDelay(10);
 
         // start Init sample Command.. data receive will be triggered by EOC interrupt.
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&standardSampleCommand, 1);
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     }
 
     void fetchNewData() {
@@ -81,9 +80,9 @@ class MAX11128 : public baseDevice {
 
         // receive new samples and send sample command
         for (uint16_t i = 0; i < nChannels; i++) {
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
             busInterface->transmitReceive((uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1);
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
         }
     }
 
@@ -95,7 +94,7 @@ class MAX11128 : public baseDevice {
   private:
     spiBus *busInterface;
     uint8_t nChannels;
-    uint16_t cs_pin;
-    GPIO_TypeDef *cs_pinPort;
+    uint16_t gpioPin;
+    GPIO_TypeDef *gpioPort;
     uint32_t standardSampleCommand;
 };

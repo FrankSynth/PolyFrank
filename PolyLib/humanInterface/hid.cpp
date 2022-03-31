@@ -1,10 +1,10 @@
 #ifdef POLYCONTROL
 
 #include "hid.hpp"
-#include "datacore/dataHelperFunctions.hpp"
-#include <string.h>
-
+#include "gfx/gui.hpp"
 #include "hardware/device.hpp"
+
+#include <functional>
 
 // Control Touch
 extern std::vector<AT42QT2120> touchControl;
@@ -24,20 +24,18 @@ extern MAX11128 adcB;
 extern std::vector<IS31FL3216> ledDriverA;
 extern std::vector<IS31FL3216> ledDriverB;
 
+extern TS3A5017D multiplexer;
+
+// Encoder
+extern rotary encoders[NUMBERENCODERS];
+extern tactileSwitch switches[NUMBERENCODERS];
+
 // Touch
 PanelTouch touch;
 
-// Encoder
-rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9), rotary(13, 12)};
-tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11),
-                                          tactileSwitch(14)};
-
-// ADC
-TS3A5017D multiplexer(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
-                      Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
-
-std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16]; // number layer, number multiplex, number channels
-int16_t panelADCStates[2][4][16];                                   // number layer, number multiplex, number channels
+// number layer, number multiplex, number channels
+std::function<void(uint16_t amount)> potiFunctionPointer[2][4][16];
+int16_t panelADCStates[2][4][16];
 
 void HIDConfig() {
 
@@ -75,11 +73,7 @@ void HIDConfig() {
     switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 0), nullptr);
 
     potiMapping();
-
     patchLEDMappingInit();
-
-    // Reset Poti States
-    resetPanelPotis();
 
     // activate FlagHandling for HID ICs
     FlagHandler::HID_Initialized = true;
@@ -181,9 +175,9 @@ void processPanelPotis() {
         }
     }
 }
-void resetPanelPotis() {
-    memset(panelADCStates, 0, 2 * 2 * 16 * 4);
-}
+// void resetPanelPotis() {
+//     memset(panelADCStates, 0, 2 * 2 * 16 * 4);
+// }
 
 void potiMapping() {
     for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
@@ -567,7 +561,7 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
     }
     if (port == TOUCH_IO_PORT_B) {
         switch (pin) {
-            case 0: actionHandler.lock(event);
+            case 0: globalSettings.setShift(event);
             case 1: break;
             case 2: break;
             case 3: break;
@@ -664,7 +658,7 @@ void PanelTouch::evaluateActionButton(ButtonActionHandle *pButton, uint8_t event
 
     if (event) { // push Event
         pButton->state = PRESSED;
-        if ((pButton->handle.functionPointer != nullptr) && (actionHandler.unlocked || pButton->unlock))
+        if ((pButton->handle.functionPointer != nullptr) && (globalSettings.shift || pButton->unlock))
             pButton->handle.functionPointer();
     }
     else {

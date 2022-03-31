@@ -4,14 +4,17 @@
 ///////DRAW ELEMENTS//////
 // GUIHeader Box for Panel Selection
 
-void Header_PanelBox::Draw(uint8_t active) {
+void Header_PanelBox::Draw(GUIPanelBase *panel, uint8_t active) {
+    if (panel == nullptr)
+        return;
+
     if (active) {
         drawRectangleFill(cHighlight, x, y, width, heigth);
-        drawString(pSource->name, cFont_Select, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
+        drawString(panel->name, cFont_Select, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
     else {
         drawRectangleFill(cGreyLight, x, y, width, heigth);
-        drawString(pSource->name, cFont_Deselect, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
+        drawString(panel->name, cFont_Deselect, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
 }
 
@@ -39,7 +42,7 @@ void Side_PanelBox::Draw() {
         return;
     }
 
-    if (actionHandler.unlocked || actionHandle->unlock) {
+    if (globalSettings.shift || actionHandle->unlock) {
         if (actionHandle->data != nullptr) {
             if (*(actionHandle->data)) {
                 drawRectangleFill(cHighlight, x, y, width, heigth);
@@ -95,18 +98,29 @@ void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID
     panelAbsX = x;
     panelAbsY = y;
     this->activePanelID = activePanelID;
+    this->panels = panels;
 
     // create Header Boxes;
     for (unsigned int p = 0; p < panelCount; p++) {
-        boxes.push_back(
-            Header_PanelBox((*panels)[p], panelWidth * p + panelAbsX, 0 + panelAbsY, panelWidth, panelHeight));
+        boxes.push_back(Header_PanelBox(panelWidth * p + panelAbsX, 0 + panelAbsY, panelWidth, panelHeight));
     }
 }
 void GUIHeader::Draw() {
 
-    for (int i = 0; i < panelCount; i++)
-        boxes[i].Draw(i == *activePanelID);
+    GUIPanelBase *entry;
+    for (int i = 0; i < panelCount; i++) {
+        if ((i + globalSettings.shift * panelCount) < (int)(panels->size())) {
+            entry = (*panels)[i + globalSettings.shift * panelCount];
+            actionHandler.registerActionHeader(i,
+                                               {std::bind(setPanelActive, i + globalSettings.shift * panelCount), ""});
+        }
+        else {
+            entry = nullptr;
+            actionHandler.registerActionHeader(i);
+        }
 
+        boxes[i].Draw(entry, (i + globalSettings.shift * panelCount) == *activePanelID);
+    }
     for (unsigned int p = 1; p < panelCount; p++) {
         drawRectangleFill(cWhite, panelWidth * p + panelAbsX, 0 + panelAbsY, 1, panelHeight);
     }
@@ -129,7 +143,6 @@ void GUIFooter::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
                                     panelWidth * 3 + panelAbsX, panelAbsY - panelHeight, panelWidth, panelHeight));
 }
 void GUIFooter::Draw() {
-
     // draw boxes
 
     for (Footer_PanelBox i : boxes) {

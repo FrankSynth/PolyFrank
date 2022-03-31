@@ -8,8 +8,11 @@
 
 #include "hardware/AT42QT2120.hpp"
 #include "hardware/IS31FL3216.hpp"
+#include "hardware/M95M01.hpp"
 #include "hardware/MAX11128.hpp"
 #include "hardware/PCA9555.hpp"
+#include "hardware/TS3A5017D.hpp"
+#include "hardware/rotary.hpp"
 
 //////DEVICES Manager////////
 // this class contain all external peripherie. deviceManager is split in BUS and devices. Bus get connnected to the
@@ -33,8 +36,7 @@ class devManager {
     std::string *report() { // return status of all devices
         status.clear();
 
-        status = "DeviceManager\r\n";
-        status += "\nInterfaces\r\n";
+        status += "Interfaces\r\n";
 
         // collect interface status
         for (busInterface *interface : interfaces) {
@@ -49,7 +51,7 @@ class devManager {
         }
 
         // collect device status
-        status += "\nDevices : \r\n";
+        status += "Devices : \r\n";
 
         for (baseDevice *device : devices) {
             status += *device->report();

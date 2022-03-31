@@ -52,9 +52,21 @@ PCA9555 ioExpander;
 //  ADC
 MAX11128 adcA;
 MAX11128 adcB;
+TS3A5017D multiplexer(4, Panel_ADC_Mult_C_GPIO_Port, Panel_ADC_Mult_C_Pin, Panel_ADC_Mult_A_GPIO_Port,
+                      Panel_ADC_Mult_A_Pin, Panel_ADC_Mult_B_GPIO_Port, Panel_ADC_Mult_B_Pin);
 
+// LED Driver
 std::vector<IS31FL3216> ledDriverA;
 std::vector<IS31FL3216> ledDriverB;
+
+M95M01 eeprom;
+
+// Encoder
+rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(4, 3), rotary(7, 6), rotary(10, 9), rotary(13, 12)};
+tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(8), tactileSwitch(11),
+                                          tactileSwitch(14)};
+
+// ADC
 
 // Buffer for InterChip Com
 RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
@@ -76,6 +88,10 @@ void deviceConfig();
 
 void PolyControlInit() {
 
+    // Layer
+    allLayers.push_back(&layerA);
+    allLayers.push_back(&layerB);
+
     initPoly();
 
     // Enable Layer Board
@@ -86,18 +102,17 @@ void PolyControlInit() {
     HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
-    HAL_Delay(100);
+    HAL_Delay(500);
 
-    // Layer
-    allLayers.push_back(&layerA);
-    allLayers.push_back(&layerB);
+    // Device Configuration
+    deviceConfig();
+    HIDConfig();
 
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
 
     // Preset
-    initPreset();                        // TODO einpflegen
     updatePresetList();                  // read preset List from EEPROM
     globalSettings.loadGlobalSettings(); // load global Settings
 
@@ -138,11 +153,7 @@ void PolyControlInit() {
     FlagHandler::readTemperature_ISR = temperature; // registerFunction pointer to ISR
 
     // Init Encoder, Touchbuttons,..
-    HAL_Delay(100);
-
-    // Device Configuration
-    deviceConfig();
-    HIDConfig();
+    HAL_Delay(500);
 
     // User Interface
     if (layerA.layerState.value == 1) {
@@ -249,8 +260,10 @@ void deviceConfig() {
     ledDriverA[0].configurate(&i2cBusPanel1H, 0);
     // ledDriverB[0].configurate(&i2cBusPanel1H, 0);
 
-    adcA.configurate(&spiBusPanel, 0x00, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-    adcB.configurate(&spiBusPanel, 0x00, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin);
+    adcA.configurate(&spiBusPanel, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
+    adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin);
+
+    eeprom.configurate(&spiBusEEPROM, EEPROM_CS_GPIO_Port, EEPROM_CS_Pin);
 
     // device Mananger
 
@@ -283,7 +296,9 @@ void deviceConfig() {
 
     deviceManager.addDevice(&ledDriverA[0]);
 
-    println(*(deviceManager.report()));
+    deviceManager.addDevice(&eeprom);
+
+    // println(*(deviceManager.report()));
 }
 
 //////////////LAYER SPECIFIC HANDLING////////////
@@ -381,7 +396,6 @@ void midiConfig() {
 //////////////Callback////////////
 // SPI Callback
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-
     // InterChip Com
     if (hspi == &hspi4) {
         if (FlagHandler::interChipSend_DMA_Started == 1) {

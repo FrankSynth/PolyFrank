@@ -37,8 +37,9 @@ void GUI::Init() { // add settings pointer
     panels.push_back(&guiPanelLive);
     panels.push_back(&guiPanelPatch);
     panels.push_back(&guiPanelPreset);
-    panels.push_back(&guiString);
+    panels.push_back(&guiPanelConfig);
     panels.push_back(&guiPanelFocus);
+    panels.push_back(&guiPanelDebug);
 
     // init Header
     guiHeader.init(&panels, &activePanelID, LCDWIDTH - 2 * BOARDERWIDTH, HEADERHEIGHT, BOARDERWIDTH);
@@ -59,13 +60,7 @@ void GUI::Init() { // add settings pointer
     guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
     // init Error
-    guiString.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
-
-    // register Header action
-    actionHandler.registerActionHeader(0, {std::bind(setPanelActive, 0), "LIVEMODE"});
-    actionHandler.registerActionHeader(1, {std::bind(setPanelActive, 1), "PATCH"});
-    actionHandler.registerActionHeader(2, {std::bind(setPanelActive, 2), "PRESET"});
-    actionHandler.registerActionHeader(3, {std::bind(setPanelActive, 3), "CONFIG"});
+    guiPanelDebug.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
 
     Clear();
     checkFocusChange();

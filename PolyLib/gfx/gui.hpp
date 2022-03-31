@@ -3,7 +3,6 @@
 #include "datacore/datacore.hpp"
 #include "gfx.hpp"
 #include "guiActionHandler.hpp"
-// #include "guiBase.hpp"
 #include "guiButtons.hpp"
 #include "guiPanelConfig.hpp"
 #include "guiPanelError.hpp"
@@ -16,7 +15,6 @@
 #include "guiPanelString.hpp"
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
-// #include "tim.h"
 
 /// GUI///
 class GUI {
@@ -45,7 +43,7 @@ class GUI {
     GUIPanelPath guiPath;
     GUIPanelState guiState;
 
-    GUIPanelString guiString;
+    GUIPanelString guiPanelDebug;
 
     GUISide guiSide;
     GUIFooter guiFooter;
