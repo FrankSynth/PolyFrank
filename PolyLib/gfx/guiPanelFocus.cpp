@@ -18,6 +18,8 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
     for (int i = 0; i < FOCUSPANELENTRYS; i++) {
         panelElements[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i, elementWidth, elementHeight);
     }
+
+    name = "FOCUS";
 }
 
 void GUIPanelFocus::registerPanelSettings() {

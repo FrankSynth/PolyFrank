@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "gfx.hpp"
+#include "datacore/datalocation.hpp"
 
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
@@ -19,7 +20,7 @@ RENDERSTATE renderState = RENDER_DONE;
 // renderQueue
 // std::list<renderTask> renderQueueList;
 
-CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
+RAM1 CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 
 void GFX_Init() {
     // IRQHandler();

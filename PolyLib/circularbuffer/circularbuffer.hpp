@@ -26,7 +26,6 @@ template <typename T, size_t Size> class CircularBuffer {
     typedef value_type *pointer;
     typedef size_t size_type;
 
-  private:
     value_type m_buffer[Size];
     pointer m_head;
     pointer m_end;

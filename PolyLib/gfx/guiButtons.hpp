@@ -6,20 +6,18 @@
 // GUIHeader Box for Panel Selection
 class Header_PanelBox {
   public:
-    Header_PanelBox(GUIPanelBase *panel, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
-        this->pSource = panel;
+    Header_PanelBox(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
         this->x = x;
         this->y = y;
         this->width = width;
         this->heigth = heigth;
     }
 
-    void Draw(uint8_t active);
+    void Draw(GUIPanelBase *panel, uint8_t active);
 
   private:
     const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 
-    GUIPanelBase *pSource;
     uint16_t x;
     uint16_t y;
     uint16_t width;
@@ -88,6 +86,7 @@ class GUIHeader {
   private:
     // Boxes
     uint8_t *activePanelID = nullptr;
+    std::vector<GUIPanelBase *> *panels;
     std::vector<Header_PanelBox> boxes;
     uint16_t panelWidth;
     uint16_t panelHeight;

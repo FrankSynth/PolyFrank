@@ -94,6 +94,8 @@ class GlobalSettings {
         // }
     }
 
+    void setShift(uint8_t shift) { this->shift = shift; }
+
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
     categoryStruct __globSettingsSystem;
     categoryStruct __globSettingsMIDI;
@@ -114,6 +116,8 @@ class GlobalSettings {
     Error error;
 
     uint32_t temperature = 0;
+
+    uint8_t shift = 0;
 
   private:
     const std::vector<std::string> amountLayerNameList = {"OFF", "ON"};
