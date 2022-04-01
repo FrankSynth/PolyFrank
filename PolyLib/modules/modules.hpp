@@ -452,7 +452,7 @@ class LFO : public BaseModule {
     Input iShape = Input("SHAPE");
     Input iAmount = Input("AMOUNT");
 
-    Analog aFreq = Analog("FREQ", 0, 1, 0.1, true, linMap, &iFreq);
+    Analog aFreq = Analog("FREQ", 0, 1, 0.6, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 

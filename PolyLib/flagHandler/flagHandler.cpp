@@ -44,8 +44,8 @@ void initFlagHandler() {
 #endif
 
     interChipSend_DMA_Started = false;
-    interChipSend_DMA_Finished = false;
-    interChipSend_DMA_FinishedFunc = nullptr;
+    // interChipSend_DMA_Finished = false;
+    // interChipSend_DMA_FinishedFunc = nullptr;
 }
 
 #ifdef POLYCONTROL
@@ -100,6 +100,8 @@ std::function<void()> readTemperature_ISR = nullptr;
 
 #elif POLYRENDER
 
+bool decodingData = false;
+
 // InterChip receive flags
 bool interChipReceive_DMA_Started;
 bool interChipReceive_DMA_Finished;
@@ -119,8 +121,8 @@ void (*sendRenderedCVsFunc)();
 #endif
 
 bool interChipSend_DMA_Started;
-bool interChipSend_DMA_Finished;
-std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
+// bool interChipSend_DMA_Finished;
+// std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
 
 // handle all interrupts
 void handleFlags() {
@@ -129,14 +131,14 @@ void handleFlags() {
 
     for (uint8_t i = 0; i < 2; i++) {
         for (uint8_t j = 0; j < 2; j++) {
-            if (renderChip_State[i][j] != READY) {
+            if (renderChip_State[i][j] != READY && layerActive[i]) {
                 if (renderChip_StateTimeout[i][j] > 100) { // 100ms timeout
                     if (renderChip_State[i][j] == WAITFORRESPONSE) {
                         if (renderChipAwaitingData[i][j]) {
-                            PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
+                            // PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
                         }
                         else {
-                            PolyError_Handler("ERROR | FATAL | Communication > no ready");
+                            // PolyError_Handler("ERROR | FATAL | Communication > no ready");
                         }
                     }
                 }

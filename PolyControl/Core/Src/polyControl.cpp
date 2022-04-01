@@ -110,10 +110,6 @@ void PolyControlInit() {
     deviceConfig();
     HIDConfig();
 
-    for (Layer *l : allLayers) {
-        l->resetLayer();
-    }
-
     // Preset
     updatePresetList();                  // read preset List from EEPROM
     globalSettings.loadGlobalSettings(); // load global Settings
@@ -176,6 +172,9 @@ void PolyControlInit() {
         std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
         std::bind<uint8_t>(HAL_SPI_Abort, &hspi4), (uint8_t *)interChipDMABufferLayerA);
 
+    for (Layer *l : allLayers) {
+        l->resetLayer();
+    }
     // Midi configuration
     midiConfig();
 
@@ -192,12 +191,12 @@ void PolyControlInit() {
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
 }
 
-elapsedMillis askMessage = 0;
-
 void PolyControlRun() { // Here the party starts
+    elapsedMillis askMessage = 0;
     while (1) {
 
-        if (askMessage > 1000) {
+        if (askMessage > 3000) {
+            println("send request");
             askMessage = 0;
             sendRequestUIData();
         }
@@ -206,19 +205,12 @@ void PolyControlRun() { // Here the party starts
         liveData.serviceRoutine();
         FlagHandler::handleFlags();
 
-        for (uint8_t i = 0; i < 2; i++) {
-            layerCom.beginSendTransmission();
-        }
+        layerCom.beginSendTransmission();
 
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             renderLED();
         }
-
-        // Com Receive Buffer
-        //        if (comAvailable()) {
-        //            print("received : ", (char)comRead());
-        //        }
     }
 }
 
@@ -317,13 +309,9 @@ void deviceConfig() {
 //////////////LAYER SPECIFIC HANDLING////////////
 
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount) {
-    // println("send i setting ", amount);
-
     return layerCom.sendSetting(layerId, moduleId, settingsId, amount);
 }
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount) {
-    // println("send f setting ", amount);
-
     return layerCom.sendSetting(layerId, moduleId, settingsId, amount);
 }
 uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
@@ -335,11 +323,9 @@ uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId,
 uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
     return layerCom.sendDeletePatchInOut(layerId, outputId, inputId);
 }
-
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom.sendDeleteAllPatches(layerId);
 }
-
 uint8_t sendRequestUIData() {
     return layerCom.sendRequestUIData();
 }
@@ -360,15 +346,6 @@ void temperature() {
     }
 }
 
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-
-    // InterChip Com
-    if (hspi == &hspi4) {
-        layerCom.decodeCurrentInBuffer();
-        FlagHandler::receiveDMARunning = false;
-    }
-}
-
 //////////////MIDI////////////
 inline void midiNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
     liveData.keyPressed(channel, note, velocity);
@@ -377,7 +354,6 @@ inline void midiNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
     liveData.keyReleased(channel, note);
 }
 inline void midiControlChange(uint8_t channel, uint8_t cc, uint8_t value) {
-
     liveData.controlChange(channel, cc, value);
 }
 inline void midiPitchBend(uint8_t channel, int value) {
@@ -385,7 +361,6 @@ inline void midiPitchBend(uint8_t channel, int value) {
 }
 
 inline void midiAfterTouch(uint8_t channel, byte value) {
-
     liveData.controlChange(channel, midi::AfterTouchChannel, value);
 }
 inline void midiClock() {
@@ -430,6 +405,21 @@ void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     FlagHandler::renderChipAwaitingData[layer][chip] = false;
 }
 
+void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
+    if (layer) {
+        if (chip)
+            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, state);
+        else
+            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, state);
+    }
+    else {
+        if (chip)
+            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, state);
+        else
+            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, state);
+    }
+}
+
 //////////////Callback////////////
 // SPI Callback
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -448,6 +438,14 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
             HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
         }
+    }
+}
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+    // InterChip Com
+    if (hspi == &hspi4) {
+        layerCom.decodeCurrentInBuffer();
+        FlagHandler::receiveDMARunning = false;
     }
 }
 

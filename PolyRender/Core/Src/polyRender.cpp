@@ -6,6 +6,8 @@
 ID layerId;
 Layer layerA(layerId.getNewId());
 
+uint8_t sendString(const char *message);
+
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE]);
 COMinterChip layerCom;
@@ -87,11 +89,11 @@ void PolyRenderInit() {
         std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
         std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
 
-    layerCom.beginReceiveTransmission();
-
     layerCom.initOutTransmission(
         std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
         (uint8_t *)interChipDMABuffer);
+
+    layerCom.beginReceiveTransmission();
 
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
@@ -123,11 +125,16 @@ void PolyRenderRun() {
 
     HAL_TIM_Base_Start_IT(&htim15);
 
+    elapsedMillis askMessage = 0;
+
     // run loop
     while (true) {
         // for timing test purpose
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
-
+        if (askMessage > 3000) {
+            askMessage = 0;
+            sendString("Hello by Render");
+        }
         FlagHandler::handleFlags();
     }
 }
@@ -281,12 +288,13 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     // reception Line from Control
 
+    // rising flank
     if (pin == SPI_CS_fromControl_Pin) {
-        // rising flank
 
         // disable reception line
         HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
-        layerCom.decodeCurrentInBuffer();
+        if (!FlagHandler::interChipSend_DMA_Started)
+            layerCom.decodeCurrentInBuffer();
     }
 }
 
@@ -294,6 +302,12 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com
     if (hspi == &hspi1) {
+        if (FlagHandler::interChipSend_DMA_Started) {
+            layerCom.sendTransmissionSuccessfull();
+            FlagHandler::interChipSend_DMA_Started = 0;
+            if (FlagHandler::decodingData == 0)
+                HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+        }
     }
 }
 
@@ -410,6 +424,9 @@ void resetMCPI2CAddress() {
 }
 
 uint8_t sendString(std::string &message) {
+    return layerCom.sendString(message);
+}
+uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
 uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {

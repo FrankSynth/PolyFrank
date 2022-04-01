@@ -5,6 +5,8 @@
 extern Layer layerA;
 
 #ifdef POLYCONTROL
+
+extern void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state);
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////// COMusb //////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -295,9 +297,16 @@ uint8_t COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
     if (FlagHandler::receiveDMARunning)
         return 1;
     receiveLayer = layer;
-    receiveChip = receiveChip;
+    receiveChip = chip;
+
+    setCSLine(receiveLayer, receiveChip, GPIO_PIN_RESET);
+
+    uint16_t receiveSize;
+
+    HAL_SPI_Receive(&hspi4, dmaInBufferPointer[!currentInBufferSelect], 2, 10);
     FlagHandler::receiveDMARunning = true;
-    return receiveViaDMA(dmaInBufferPointer[!currentInBufferSelect], INTERCHIPBUFFERSIZE);
+    receiveSize = *(uint16_t *)dmaInBufferPointer[!currentInBufferSelect];
+    return receiveViaDMA(&dmaInBufferPointer[!currentInBufferSelect][2], receiveSize - 2);
 }
 
 #endif
@@ -390,11 +399,13 @@ uint8_t COMinterChip::beginReceiveTransmission() {
 
 uint8_t COMinterChip::beginSendTransmission() {
 
-    // buffers empty
+// buffers empty
+#ifdef POLYCONTROL
     if (outBuffer[currentOutBufferSelect].size() < 3) {
         // println("buffer empty, skip send");
         return 0;
     }
+#endif
 
     // block new transmissions as long as a transmission is already running
     if (blockNewSendBeginCommand) {
@@ -423,9 +434,15 @@ uint8_t COMinterChip::beginSendTransmission() {
 
     switchOutBuffer();
 
-    startSendDMA();
+    uint8_t ret = startSendDMA();
 
-    return 0;
+#ifdef POLYRENDER
+    if (ret == 0)
+        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+
+#endif
+
+    return ret;
 }
 
 void COMinterChip::initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
@@ -501,7 +518,10 @@ uint8_t COMinterChip::sendTransmissionSuccessfull() {
 
 uint8_t COMinterChip::decodeCurrentInBuffer() {
 
+#ifdef POLYRENDER
+    FlagHandler::decodingData = 1;
     stopReceiveViaDMA();
+#endif
 
     switchInBuffer();
 
@@ -523,9 +543,32 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     // assemble size
     uint16_t sizeOfReadBuffer = *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect]));
 
+    if (sizeOfReadBuffer == 0) {
+        println("sizeOfReadBuffer=0");
+#ifdef POLYCONTROL
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
+#endif
+#ifdef POLYRENDER
+        FlagHandler::decodingData = 0;
+
+        if (beginReceiveTransmission())
+            PolyError_Handler("ERROR | FATAL | could not start next receive");
+
+        if (FlagHandler::interChipSend_DMA_Started == 0)
+            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+#endif
+        return 0;
+    }
+
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         // buffer too big, sth went wrong
         PolyError_Handler("ERROR | FATAL | com buffer too big");
+#ifdef POLYCONTROL
+
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
+#endif
         return 1;
     }
 
@@ -535,6 +578,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
         // last byte must be at this position, sort of CRC
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
+#ifdef POLYCONTROL
+
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
+#endif
         return 1;
     }
 
@@ -543,14 +591,21 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
 
         if (currentByte == LASTBYTE) {
+            *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect])) = 0;
 #ifdef POLYRENDER
+            FlagHandler::decodingData = 0;
+
             if (beginReceiveTransmission())
                 PolyError_Handler("ERROR | FATAL | could not start next receive");
 
-            // TODO pin for polycontrol
             // TODO could also be done earlier after copy maybe
             // receive transmission ready again
-            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+            if (FlagHandler::interChipSend_DMA_Started == 0)
+                HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+#endif
+#ifdef POLYCONTROL
+            FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+            setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
 #endif
             return 0;
         }
@@ -744,7 +799,7 @@ uint8_t COMinterChip::appendLastByte() {
 
 // reserve place for size byte
 void COMinterChip::pushDummySizePlaceHolder() {
-    uint16_t dummysize = 0;
+    uint16_t dummysize = 2;
     pushOutBuffer((uint8_t *)&dummysize, 2);
 }
 

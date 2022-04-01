@@ -51,6 +51,8 @@ extern std::function<void()> readTemperature_ISR;
 
 // InterChip receive flags
 
+extern bool decodingData;
+
 extern bool cvDacStarted[10];
 extern bool cvDacFinished[10];
 extern bool cvDacLastFinished[3];
@@ -64,8 +66,8 @@ extern void (*sendRenderedCVsFunc)();
 #endif
 
 extern bool interChipSend_DMA_Started;
-extern bool interChipSend_DMA_Finished;
-extern std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
+// extern bool interChipSend_DMA_Finished;
+// extern std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
 
 void handleFlags();
 void initFlagHandler();
