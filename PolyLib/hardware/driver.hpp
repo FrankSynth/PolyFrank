@@ -18,13 +18,13 @@ class baseDevice {
         if (state == DEVICE_NOTINIT) {
             status += "not init";
         }
-        if (state == DEVICE_READY) {
+        else if (state == DEVICE_READY) {
             status += "ready";
         }
-        if (state == DEVICE_BUSY) {
+        else if (state == DEVICE_BUSY) {
             status += "busy";
         }
-        if (state == DEVICE_ERROR) {
+        else if (state == DEVICE_ERROR) {
             status += "error";
         }
 

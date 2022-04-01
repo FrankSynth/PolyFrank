@@ -42,10 +42,6 @@ void initFlagHandler() {
     sendRenderedCVsFunc = nullptr;
 
 #endif
-
-    interChipSend_DMA_Started = false;
-    // interChipSend_DMA_Finished = false;
-    // interChipSend_DMA_FinishedFunc = nullptr;
 }
 
 #ifdef POLYCONTROL
@@ -54,7 +50,7 @@ void initFlagHandler() {
 
 bool layerActive[2] = {false};
 
-bool receiveDMARunning = false;
+// bool receiveDMARunning = false;
 
 bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
@@ -100,8 +96,6 @@ std::function<void()> readTemperature_ISR = nullptr;
 
 #elif POLYRENDER
 
-bool decodingData = false;
-
 // InterChip receive flags
 bool interChipReceive_DMA_Started;
 bool interChipReceive_DMA_Finished;
@@ -119,10 +113,6 @@ bool cvSent;
 void (*renderNewCVFunc)();
 void (*sendRenderedCVsFunc)();
 #endif
-
-bool interChipSend_DMA_Started;
-// bool interChipSend_DMA_Finished;
-// std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
 
 // handle all interrupts
 void handleFlags() {
@@ -216,12 +206,6 @@ void handleFlags() {
     }
 
 #endif
-
-    // if (interChipSend_DMA_Finished) {
-    //     if (interChipSend_DMA_FinishedFunc() == 0) {
-    //         interChipSend_DMA_Finished = 0;
-    //     }
-    // }
 }
 
 }; // namespace FlagHandler

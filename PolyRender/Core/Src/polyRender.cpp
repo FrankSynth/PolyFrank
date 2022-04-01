@@ -1,19 +1,25 @@
 #include "polyRender.hpp"
+#include "hardware/device.hpp"
 #include "render/renderAudioDef.h"
+
 // #include <cstdlib>
 
 /// LAYER
 ID layerId;
 Layer layerA(layerId.getNewId());
 
+extern devManager deviceManager;
+spiBus spiBusLayer;
+
 uint8_t sendString(const char *message);
 
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE]);
-COMinterChip layerCom;
 
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
+
+COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMABuffer);
 
 MCP4728 cvDac[] = {
 
@@ -43,6 +49,9 @@ void resetMCPI2CAddress();
 void sendDACs();
 
 void PolyRenderInit() {
+
+    spiBusLayer.connectToInterface(&hspi1);
+    deviceManager.addBus(&spiBusLayer);
 
     // TODO chip ID maybe also could be sent instead of read.
     // set chip id
@@ -77,21 +86,12 @@ void PolyRenderInit() {
     layerA.initLayer();
     layerA.resetLayer();
 
-    initAudioRendering();
+    loadInitialWavetables();
 
     // empty buffers
     uint32_t emptyData = 0;
     fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
     fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
-
-    // interChipCom
-    layerCom.initInTransmission(
-        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
-        std::bind<uint8_t>(HAL_SPI_Abort, &hspi1), (uint8_t *)interChipDMABuffer);
-
-    layerCom.initOutTransmission(
-        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi1, std::placeholders::_1, std::placeholders::_2),
-        (uint8_t *)interChipDMABuffer);
 
     layerCom.beginReceiveTransmission();
 
@@ -286,28 +286,28 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-    // reception Line from Control
 
     // rising flank
     if (pin == SPI_CS_fromControl_Pin) {
 
-        // disable reception line
-        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
-        if (!FlagHandler::interChipSend_DMA_Started)
+        if (layerCom.spi->state == BUS_RECEIVE) {
+            // disable reception line
+            layerCom.spi->callTxComplete();
+            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
             layerCom.decodeCurrentInBuffer();
+        }
+        else if (layerCom.spi->state == BUS_READY && layerCom.state == COM_READY) {
+            if (layerCom.beginReceiveTransmission() != BUS_OK)
+                PolyError_Handler("ERROR | FATAL | receive bus occuppied");
+        }
     }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com
-    if (hspi == &hspi1) {
-        if (FlagHandler::interChipSend_DMA_Started) {
-            layerCom.sendTransmissionSuccessfull();
-            FlagHandler::interChipSend_DMA_Started = 0;
-            if (FlagHandler::decodingData == 0)
-                HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
-        }
+    if (hspi == layerCom.spi->hspi) {
+        layerCom.spi->callTxComplete();
     }
 }
 

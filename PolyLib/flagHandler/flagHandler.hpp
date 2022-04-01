@@ -34,7 +34,7 @@ extern std::function<void()> Panel_EOC_ISR;
 
 extern interChipState renderChip_State[2][2];
 extern bool renderChipAwaitingData[2][2];
-extern bool receiveDMARunning;
+// extern bool receiveDMARunning;
 
 extern elapsedMillis renderChip_StateTimeout[2][2];
 
@@ -51,8 +51,6 @@ extern std::function<void()> readTemperature_ISR;
 
 // InterChip receive flags
 
-extern bool decodingData;
-
 extern bool cvDacStarted[10];
 extern bool cvDacFinished[10];
 extern bool cvDacLastFinished[3];
@@ -64,10 +62,6 @@ extern void (*renderNewCVFunc)();
 extern void (*sendRenderedCVsFunc)();
 
 #endif
-
-extern bool interChipSend_DMA_Started;
-// extern bool interChipSend_DMA_Finished;
-// extern std::function<uint8_t()> interChipSend_DMA_FinishedFunc;
 
 void handleFlags();
 void initFlagHandler();

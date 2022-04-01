@@ -93,7 +93,7 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  * @brief set and load default wavetables
  *
  */
-void initAudioRendering() {
+void loadInitialWavetables() {
 
     switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.defaultValue]);
     switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.defaultValue]);

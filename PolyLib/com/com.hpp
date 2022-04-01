@@ -5,13 +5,13 @@
 #include "datacore/datalocation.hpp"
 #include "debughelper/debughelper.hpp"
 #include "flagHandler/flagHandler.hpp"
+#include "hardware/device.hpp"
 #include "mdma.h"
 #include "midiInterface/midi_Defs.h"
 
 #include "midiInterface/midi_Namespace.h"
 
 // #include "poly.hpp"
-#include "spi.h"
 #include <functional>
 #include <inttypes.h>
 #include <vector>
@@ -22,9 +22,6 @@
 #endif
 
 #define INTERCHIPBUFFERSIZE 512
-
-#define ERRORCODE_SENDBLOCK 20
-#define ERRORCODE_RECEPTORNOTREADY 21
 
 #ifdef POLYCONTROL
 //  global settings
@@ -250,12 +247,19 @@ class COMdin {
 
 #endif
 
-// enum comInterchipStates { readyReceive, readySend, Decode };
-
 // class for interchip communication in both directions
-class COMinterChip {
 
 #ifdef POLYCONTROL
+
+enum comInterchipState { COM_READY, COM_SENDINGDATA, COM_AWAITINGDATA, COM_DECODE };
+#endif
+#ifdef POLYRENDER
+enum comInterchipState { COM_READY, COM_DECODE };
+#endif
+
+class COMinterChip {
+#ifdef POLYCONTROL
+
   public:
     // init as Output Com
     // Append to out buffer
@@ -271,7 +275,7 @@ class COMinterChip {
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRequestUIData();
-    uint8_t beginReceiveTransmission(uint8_t layer, uint8_t chip);
+    busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
 
   private:
     uint8_t receiveLayer;
@@ -285,7 +289,7 @@ class COMinterChip {
     uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount);
 
-    uint8_t beginReceiveTransmission();
+    busState beginReceiveTransmission();
 
   private:
     uint8_t checkVoiceAgainstChipID(uint8_t voice);
@@ -293,20 +297,7 @@ class COMinterChip {
 #endif
 
   public:
-    void initInTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaReceiveFunc,
-                            std::function<uint8_t()> dmaStopReceiveFunc, uint8_t *dmaBuffer);
-    void initOutTransmission(std::function<uint8_t(uint8_t *, uint16_t)> dmaTransmitFunc, uint8_t *dmaBuffer);
-
-    // send DMA was successfull
-    uint8_t sendTransmissionSuccessfull();
-
-    // send out current out buffer
-    uint8_t beginSendTransmission();
-
-    uint8_t decodeCurrentInBuffer();
-
-    COMinterChip() {
-
+    COMinterChip(spiBus *spi, uint8_t *dmaBuffer) {
         inBufferPointer[0] = inBuffer;
         inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE;
 
@@ -314,15 +305,33 @@ class COMinterChip {
         outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
 
         messagebuffer.reserve(INTERCHIPBUFFERSIZE);
+
+        dmaInBufferPointer[0] = dmaBuffer;
+        dmaInBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
+
+        dmaOutBufferPointer[0] = dmaBuffer;
+        dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
+
+        this->spi = spi;
+
+        pushDummySizePlaceHolder();
+
+        state = COM_READY;
     }
+
+    // send out current out buffer
+    busState beginSendTransmission();
+
+    uint8_t decodeCurrentInBuffer();
+
+    spiBus *spi;
+    comInterchipState state;
 
   private:
     std::string messagebuffer;
 
-    // comInterchipStates state;
-
     // after first MDMA finished, start DMA transfer to render chip A
-    uint8_t startSendDMA();
+    busState startSendDMA();
 
     // wrap up send buffers with closing bytes
     uint8_t appendLastByte();
@@ -335,10 +344,10 @@ class COMinterChip {
     uint8_t pushOutBuffer(uint8_t data);
 
     // buffer full, send now
-    uint8_t invokeBufferFullSend();
+    busState invokeBufferFullSend();
 
     // flag to block new send commands while send task is in progress
-    uint8_t blockNewSendBeginCommand = 0;
+    // uint8_t blockNewSendBeginCommand = 0;
 
     uint8_t *dmaOutBufferPointer[2];
     uint16_t dmaOutCurrentBufferSize;
@@ -353,8 +362,4 @@ class COMinterChip {
 
     void switchInBuffer();
     void switchOutBuffer();
-
-    std::function<uint8_t(uint8_t *, uint16_t)> sendViaDMA = nullptr;
-    std::function<uint8_t(uint8_t *, uint16_t)> receiveViaDMA = nullptr;
-    std::function<uint8_t()> stopReceiveViaDMA = nullptr;
 };

@@ -69,7 +69,7 @@ tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), ta
 // ADC
 
 // Buffer for InterChip Com
-RAM2_DMA volatile uint8_t interChipDMABufferLayerA[2 * INTERCHIPBUFFERSIZE];
+RAM2_DMA volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE];
 
 // USB
 midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
@@ -82,7 +82,7 @@ Layer layerB(layerId.getNewId());
 uint8_t sendRequestUIData();
 
 // InterChip Com
-COMinterChip layerCom;
+COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMABuffer);
 
 void midiConfig();
 void temperature();
@@ -163,15 +163,6 @@ void PolyControlInit() {
 
     ui.Init();
 
-    // Interchip communication
-    layerCom.initOutTransmission(
-        std::bind<uint8_t>(HAL_SPI_Transmit_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
-        (uint8_t *)interChipDMABufferLayerA);
-
-    layerCom.initInTransmission(
-        std::bind<uint8_t>(HAL_SPI_Receive_DMA, &hspi4, std::placeholders::_1, std::placeholders::_2),
-        std::bind<uint8_t>(HAL_SPI_Abort, &hspi4), (uint8_t *)interChipDMABufferLayerA);
-
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
@@ -196,7 +187,6 @@ void PolyControlRun() { // Here the party starts
     while (1) {
 
         if (askMessage > 3000) {
-            println("send request");
             askMessage = 0;
             sendRequestUIData();
         }
@@ -396,7 +386,7 @@ void midiConfig() {
 }
 
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
-    while (layerCom.beginReceiveTransmission(layer, chip)) {
+    while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
         mididevice.read();
         liveData.serviceRoutine();
         FlagHandler::handleFlags();
@@ -424,28 +414,26 @@ void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
 // SPI Callback
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
-    if (hspi == &hspi4) {
-        if (FlagHandler::interChipSend_DMA_Started == 1) {
-            FlagHandler::interChipSend_DMA_Started = 0;
-            // FlagHandler::interChipSend_DMA_Finished = 1;
-            layerCom.sendTransmissionSuccessfull();
-            // close ChipSelectLine
+    if (hspi == layerCom.spi->hspi) {
+        layerCom.spi->callTxComplete();
 
-            // TODO check CS  selection
+        // FlagHandler::interChipSend_DMA_Finished = 1;
+        // layerCom.sendTransmissionSuccessfull();
+        // close ChipSelectLine
 
-            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
-        }
+        // TODO check CS  selection
+        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
     }
 }
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com
-    if (hspi == &hspi4) {
+    if (hspi == layerCom.spi->hspi) {
         layerCom.decodeCurrentInBuffer();
-        FlagHandler::receiveDMARunning = false;
+        layerCom.spi->callRxComplete();
     }
 }
 

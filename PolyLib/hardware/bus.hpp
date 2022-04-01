@@ -33,9 +33,15 @@ class spiBus : public busInterface {
         status += " State: ";
         if (state == BUS_READY)
             status += "ready";
-        if (state == BUS_BUSY)
+        else if (state == BUS_BUSY)
             status += "busy";
-        if (state == BUS_ERROR)
+        else if (state == BUS_SEND)
+            status += "send";
+        else if (state == BUS_RECEIVE)
+            status += "receive";
+        else if (state == BUS_SENDRECEIVE)
+            status += "send receive";
+        else if (state == BUS_ERROR)
             status += "error";
         status += "\r\n";
 
@@ -50,92 +56,121 @@ class spiBus : public busInterface {
     }
 
     uint8_t checkState() {
-        if (state == BUS_READY) {
-            return 0;
-        }
+        // if (state == BUS_READY) {
+        // return 0;
+        // }
         if (state == BUS_ERROR) {
             PolyError_Handler("SPI  | bus in BUS_error state");
-            return 2;
+            // return 2;
         }
-        if (state == BUS_BUSY) {
-            PolyError_Handler("SPI  | bus in use");
-            return 1;
-        }
-        return 2;
+        // if (state == BUS_BUSY) {
+        // PolyError_Handler("SPI  | bus in use");
+        // return 1;
+        // }
+        return state;
     }
 
-    void transmitReceive(uint8_t *txData, uint8_t *rxdata, uint16_t size, bool enableDMA = false) {
+    busState transmitReceive(uint8_t *txData, uint8_t *rxdata, uint16_t size, bool enableDMA = false) {
 
-        if (checkState())
-            return;
+        if (checkState() != BUS_READY)
+            return state;
 
         rxCounter += size;
         txCounter += size;
 
-        state = BUS_BUSY;
+        state = BUS_SENDRECEIVE;
 
-        if (enableDMA == true) {
-            if ((hspi->hdmarx != nullptr) && (hspi->hdmatx != nullptr))
-                if (HAL_SPI_TransmitReceive_DMA(hspi, txData, rxdata, size) != HAL_OK)
+        if (enableDMA) {
+            if ((hspi->hdmarx != nullptr) && (hspi->hdmatx != nullptr)) {
+
+                HAL_StatusTypeDef ret = HAL_SPI_TransmitReceive_DMA(hspi, txData, rxdata, size);
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
+                    return state;
+                }
+            }
         }
-        else if (enableDMA == false) {
+        else {
             if (HAL_SPI_TransmitReceive(hspi, txData, rxdata, size, timeout) != HAL_OK) {
-
                 state = BUS_ERROR;
+                return state;
             }
             else {
                 state = BUS_READY;
             }
         }
-    };
-    void transmit(uint8_t *data, uint16_t size, bool enableDMA = false) {
+        return BUS_OK;
+    }
+    busState transmit(uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState())
-            return;
+        if (checkState() != BUS_READY)
+            return state;
 
         txCounter += size;
 
-        state = BUS_BUSY;
+        state = BUS_SEND;
 
-        if (enableDMA == true) {
-            if (hspi->hdmarx != nullptr)
+        if (enableDMA) {
+            if (hspi->hdmarx != nullptr) {
 
-                if (HAL_SPI_Transmit_DMA(hspi, data, size) != HAL_OK)
+                HAL_StatusTypeDef ret = HAL_SPI_Transmit_DMA(hspi, data, size);
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
+                    return state;
+                }
+            }
         }
-        else if (enableDMA == false) {
+        else {
             if (HAL_SPI_Transmit(hspi, data, size, timeout) != HAL_OK) {
                 state = BUS_ERROR;
+                return state;
             }
             else {
                 state = BUS_READY;
             }
         }
-    };
-    void receive(uint8_t *data, uint16_t size, bool enableDMA = false) {
+        return BUS_OK;
+    }
+    busState receive(uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState())
-            return;
+        if (checkState() != BUS_READY)
+            return state;
 
         rxCounter += size;
 
-        state = BUS_BUSY;
+        state = BUS_RECEIVE;
 
-        if (enableDMA == true) {
-            if (hspi->hdmatx != nullptr)
-                if (HAL_SPI_Receive_DMA(hspi, data, size) != HAL_OK)
+        if (enableDMA) {
+            if (hspi->hdmatx != nullptr) {
+
+                HAL_StatusTypeDef ret = HAL_SPI_Receive_DMA(hspi, data, size);
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
+                    return state;
+                }
+            }
         }
-        else if (enableDMA == false) {
+        else {
             if (HAL_SPI_Receive(hspi, data, size, timeout) != HAL_OK) {
                 state = BUS_ERROR;
+                return state;
             }
             else {
                 state = BUS_READY;
             }
         }
-    };
+        return BUS_OK;
+    }
+    busState stopDMA() {
+        if (state == BUS_RECEIVE || state == BUS_SEND || state == BUS_BUSY)
+            if (HAL_SPI_Abort(hspi) == HAL_OK) {
+                state = BUS_READY;
+                return BUS_OK;
+            }
+
+        state = BUS_ERROR;
+        return state;
+    }
 
     SPI_HandleTypeDef *hspi;
 
@@ -188,63 +223,76 @@ class i2cBus : public busInterface {
     uint8_t checkState() {
 
         if (state == BUS_READY) {
-            return 0;
+            // return 0;
         }
         if (state == BUS_ERROR) {
             PolyError_Handler("I2C  | bus in BUS_error state");
-            return 2;
+            // return 2;
         }
         if (state == BUS_BUSY) {
-            PolyError_Handler("I2C  | bus in use");
-            return 1;
+            // PolyError_Handler("I2C  | bus in use");
+            // return 1;
         }
-        return 2;
+        return state;
     }
-    void transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
+    busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState())
-            return;
+        if (checkState() != BUS_READY)
+            return state;
 
         txCounter += size;
 
-        state = BUS_BUSY;
+        state = BUS_SEND;
 
-        if (enableDMA == true) {
-            if (hi2c->hdmarx != nullptr)
-                if (HAL_I2C_Master_Transmit_DMA(hi2c, address, data, size) != HAL_OK)
+        if (enableDMA) {
+            if (hi2c->hdmarx != nullptr) {
+
+                HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(hi2c, address, data, size);
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
+                    return state;
+                }
+            }
         }
-        else if (enableDMA == false) {
+        else {
             if (HAL_I2C_Master_Transmit(hi2c, address, data, size, timeout) != HAL_OK) {
                 state = BUS_ERROR;
+                return state;
             }
             else {
                 state = BUS_READY;
             }
         }
-    };
-    void receive(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
-        if (checkState())
-            return;
+        return BUS_OK;
+    }
+    busState receive(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
+        if (checkState() != BUS_READY)
+            return state;
 
         rxCounter += size;
 
-        state = BUS_BUSY;
+        state = BUS_RECEIVE;
 
-        if (enableDMA == true) {
-            if (hi2c->hdmatx != nullptr)
-                if (HAL_I2C_Master_Receive_DMA(hi2c, address, data, size) != HAL_OK)
+        if (enableDMA) {
+            if (hi2c->hdmatx != nullptr) {
+                HAL_StatusTypeDef ret = HAL_I2C_Master_Receive_DMA(hi2c, address, data, size);
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
+                    return state;
+                }
+            }
         }
-        else if (enableDMA == false) {
+        else {
             if (HAL_I2C_Master_Receive(hi2c, address, data, size, timeout) != HAL_OK) {
                 state = BUS_ERROR;
+                return state;
             }
             else {
                 state = BUS_READY;
             }
         }
-    };
+        return BUS_OK;
+    }
 
     I2C_HandleTypeDef *hi2c;
 
@@ -283,7 +331,7 @@ class i2cVirtualBus : public busInterface {
     i2cVirtualBus() {
         type = VIRTUALI2C;
         state = BUS_READY;
-    };
+    }
 
     void connectToMultiplexer(PCA9548 *busMultiplexer, uint8_t virtualBusAddress) {
         this->busMultiplexer = busMultiplexer;
@@ -310,16 +358,16 @@ class i2cVirtualBus : public busInterface {
         return &status;
     }
 
-    void transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
+    busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
         VirtualTxCounter += size;
 
         busMultiplexer->switchVirtualBus(virtualBusAddress);
-        busi2c->transmit(address, data, size, enableDMA);
-    };
-    void receive(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
+        return busi2c->transmit(address, data, size, enableDMA);
+    }
+    busState receive(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
         VirtualRxCounter += size;
-        busi2c->receive(address, data, size, enableDMA);
-    };
+        return busi2c->receive(address, data, size, enableDMA);
+    }
 
     i2cBus *busi2c;
 
