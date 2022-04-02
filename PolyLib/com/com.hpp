@@ -251,7 +251,7 @@ class COMdin {
 
 #ifdef POLYCONTROL
 
-enum comInterchipState { COM_READY, COM_SENDINGDATA, COM_AWAITINGDATA, COM_DECODE };
+enum comInterchipState { COM_READY, COM_AWAITINGDATA, COM_DECODE };
 #endif
 #ifdef POLYRENDER
 enum comInterchipState { COM_READY, COM_DECODE };
@@ -280,6 +280,7 @@ class COMinterChip {
   private:
     uint8_t receiveLayer;
     uint8_t receiveChip;
+    bool sentRequestUICommand = false;
 
 #elif POLYRENDER
   public:

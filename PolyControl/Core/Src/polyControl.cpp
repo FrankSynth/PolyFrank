@@ -385,6 +385,12 @@ void midiConfig() {
     mididevice.setHandleSongPosition(receivedSPP);
 }
 
+/**
+ * @brief retreive data from other chips
+ *
+ * @param layer layer to retreive
+ * @param chip chip to retreive
+ */
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
         mididevice.read();
@@ -393,6 +399,11 @@ void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     }
 
     FlagHandler::renderChipAwaitingData[layer][chip] = false;
+
+    if (!(FlagHandler::renderChipAwaitingData[0][0] || FlagHandler::renderChipAwaitingData[0][1] ||
+          FlagHandler::renderChipAwaitingData[1][0] || FlagHandler::renderChipAwaitingData[1][1])) {
+        layerCom.sentRequestUICommand = false;
+    }
 }
 
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
@@ -416,24 +427,34 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
         layerCom.spi->callTxComplete();
-
-        // FlagHandler::interChipSend_DMA_Finished = 1;
-        // layerCom.sendTransmissionSuccessfull();
         // close ChipSelectLine
 
+        if (layerCom.sentRequestUICommand) {
+            for (uint8_t i = 0; i < 2; i++) {
+                for (uint8_t j = 0; j < 2; j++) {
+                    FlagHandler::renderChipAwaitingData[i][j] = FlagHandler::layerActive[i];
+                }
+            }
+        }
+
         // TODO check CS  selection
-        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
+
+        if (FlagHandler::layerActive[0]) {
+            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
+        }
+        if (FlagHandler::layerActive[1]) {
+            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
+        }
     }
 }
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
-        layerCom.decodeCurrentInBuffer();
         layerCom.spi->callRxComplete();
+        layerCom.decodeCurrentInBuffer();
     }
 }
 
@@ -464,8 +485,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         else if (FlagHandler::renderChip_State[1][0] == WAITFORRESPONSE) {
             if (FlagHandler::renderChipAwaitingData[1][0])
                 receiveFromRenderChip(1, 0);
-            FlagHandler::renderChip_StateTimeout[1][0] = 0;
             FlagHandler::renderChip_State[1][0] = READY;
+            FlagHandler::renderChip_StateTimeout[1][0] = 0;
         }
     }
 

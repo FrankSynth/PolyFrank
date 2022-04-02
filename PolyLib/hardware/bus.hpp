@@ -162,11 +162,13 @@ class spiBus : public busInterface {
         return BUS_OK;
     }
     busState stopDMA() {
-        if (state == BUS_RECEIVE || state == BUS_SEND || state == BUS_BUSY)
+        if (state == BUS_RECEIVE || state == BUS_SEND || state == BUS_SENDRECEIVE)
             if (HAL_SPI_Abort(hspi) == HAL_OK) {
                 state = BUS_READY;
                 return BUS_OK;
             }
+        if (state == BUS_READY)
+            return BUS_OK;
 
         state = BUS_ERROR;
         return state;

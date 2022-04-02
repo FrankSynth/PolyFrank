@@ -292,8 +292,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
         if (layerCom.spi->state == BUS_RECEIVE) {
             // disable reception line
-            layerCom.spi->callTxComplete();
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+            layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
         }
         else if (layerCom.spi->state == BUS_READY && layerCom.state == COM_READY) {
@@ -304,9 +304,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
+        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
         layerCom.spi->callTxComplete();
     }
 }
