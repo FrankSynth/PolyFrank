@@ -51,40 +51,26 @@ class MAX11128 : public baseDevice {
         uint32_t resetCommand = ((uint32_t)0x840) << 1; // reset command
 
         // Reset the ADC for a clean start!
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&resetCommand, 1);
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
         microsecondsDelay(50);
 
         // Send Config Register
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&commandConfigRegister32, 1);
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
         microsecondsDelay(10);
 
         // start Init sample Command.. data receive will be triggered by EOC interrupt.
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&standardSampleCommand, 1);
-        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     }
 
-    void fetchNewData() {
-
-        // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
-        static uint32_t zero = 0;
-        fastMemset(&zero, command, nChannels - 1);
-
-        command[nChannels - 1] = standardSampleCommand;
-
-        // receive new samples and send sample command
-        for (uint16_t i = 0; i < nChannels; i++) {
-            HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
-            busInterface->transmitReceive((uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1);
-            HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
-        }
-    }
+    void fetchNewData();
 
     uint32_t command[16];
     uint32_t data[16];

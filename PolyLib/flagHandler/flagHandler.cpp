@@ -119,22 +119,22 @@ void handleFlags() {
 
 #ifdef POLYCONTROL
 
-    for (uint8_t i = 0; i < 2; i++) {
-        for (uint8_t j = 0; j < 2; j++) {
-            if (renderChip_State[i][j] != READY && layerActive[i]) {
-                if (renderChip_StateTimeout[i][j] > 100) { // 100ms timeout
-                    if (renderChip_State[i][j] == WAITFORRESPONSE) {
-                        if (renderChipAwaitingData[i][j]) {
-                            // PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
-                        }
-                        else {
-                            // PolyError_Handler("ERROR | FATAL | Communication > no ready");
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // for (uint8_t i = 0; i < 2; i++) {
+    //     for (uint8_t j = 0; j < 2; j++) {
+    //         if (renderChip_State[i][j] != READY && layerActive[i]) {
+    //             if (renderChip_StateTimeout[i][j] > 100) { // 100ms timeout
+    //                 if (renderChip_State[i][j] == WAITFORRESPONSE) {
+    //                     if (renderChipAwaitingData[i][j]) {
+    //                         // PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
+    //                     }
+    //                     else {
+    //                         // PolyError_Handler("ERROR | FATAL | Communication > no ready");
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // HID Flags
 

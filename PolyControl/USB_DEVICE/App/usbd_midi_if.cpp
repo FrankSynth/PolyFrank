@@ -21,6 +21,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_midi_if.hpp"
+#include "midiInterface/MIDIInterface.h"
 
 /* USER CODE BEGIN INCLUDE */
 
@@ -108,6 +109,7 @@ midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
  */
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
+// extern midi::MidiInterface<midiUSB::COMusb> mididevice;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
 

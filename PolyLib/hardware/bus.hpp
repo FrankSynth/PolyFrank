@@ -72,7 +72,7 @@ class spiBus : public busInterface {
 
     busState transmitReceive(uint8_t *txData, uint8_t *rxdata, uint16_t size, bool enableDMA = false) {
 
-        if (checkState() != BUS_READY)
+        if (state == BUS_ERROR)
             return state;
 
         rxCounter += size;
@@ -91,8 +91,15 @@ class spiBus : public busInterface {
             }
         }
         else {
-            if (HAL_SPI_TransmitReceive(hspi, txData, rxdata, size, timeout) != HAL_OK) {
+            disableInterruptBelowLevel(1);
+            HAL_StatusTypeDef ret = HAL_SPI_TransmitReceive(hspi, txData, rxdata, size, timeout);
+            enableAllInterruptLevels();
+            if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                return state;
+            }
+            else if (ret == HAL_BUSY) {
+                state = BUS_BUSY;
                 return state;
             }
             else {
@@ -103,7 +110,7 @@ class spiBus : public busInterface {
     }
     busState transmit(uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState() != BUS_READY)
+        if (state == BUS_ERROR)
             return state;
 
         txCounter += size;
@@ -121,8 +128,15 @@ class spiBus : public busInterface {
             }
         }
         else {
-            if (HAL_SPI_Transmit(hspi, data, size, timeout) != HAL_OK) {
+            disableInterruptBelowLevel(1);
+            HAL_StatusTypeDef ret = HAL_SPI_Transmit(hspi, data, size, timeout);
+            enableAllInterruptLevels();
+            if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                return state;
+            }
+            else if (ret == HAL_BUSY) {
+                state = BUS_BUSY;
                 return state;
             }
             else {
@@ -133,7 +147,7 @@ class spiBus : public busInterface {
     }
     busState receive(uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState() != BUS_READY)
+        if (state == BUS_ERROR)
             return state;
 
         rxCounter += size;
@@ -142,7 +156,6 @@ class spiBus : public busInterface {
 
         if (enableDMA) {
             if (hspi->hdmatx != nullptr) {
-
                 HAL_StatusTypeDef ret = HAL_SPI_Receive_DMA(hspi, data, size);
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
@@ -151,8 +164,15 @@ class spiBus : public busInterface {
             }
         }
         else {
-            if (HAL_SPI_Receive(hspi, data, size, timeout) != HAL_OK) {
+            disableInterruptBelowLevel(1);
+            HAL_StatusTypeDef ret = HAL_SPI_Receive(hspi, data, size, timeout);
+            enableAllInterruptLevels();
+            if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                return state;
+            }
+            else if (ret == HAL_BUSY) {
+                state = BUS_BUSY;
                 return state;
             }
             else {
@@ -176,7 +196,7 @@ class spiBus : public busInterface {
 
     SPI_HandleTypeDef *hspi;
 
-    uint32_t timeout = 100;
+    uint32_t timeout = 1000;
 };
 
 // I2C bus class
@@ -239,7 +259,7 @@ class i2cBus : public busInterface {
     }
     busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
 
-        if (checkState() != BUS_READY)
+        if (state == BUS_ERROR)
             return state;
 
         txCounter += size;
@@ -257,8 +277,15 @@ class i2cBus : public busInterface {
             }
         }
         else {
-            if (HAL_I2C_Master_Transmit(hi2c, address, data, size, timeout) != HAL_OK) {
+            disableInterruptBelowLevel(1);
+            HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(hi2c, address, data, size, timeout);
+            enableAllInterruptLevels();
+            if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                return state;
+            }
+            else if (ret == HAL_BUSY) {
+                state = BUS_BUSY;
                 return state;
             }
             else {
@@ -268,7 +295,7 @@ class i2cBus : public busInterface {
         return BUS_OK;
     }
     busState receive(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
-        if (checkState() != BUS_READY)
+        if (state == BUS_ERROR)
             return state;
 
         rxCounter += size;
@@ -285,8 +312,15 @@ class i2cBus : public busInterface {
             }
         }
         else {
-            if (HAL_I2C_Master_Receive(hi2c, address, data, size, timeout) != HAL_OK) {
+            disableInterruptBelowLevel(1);
+            HAL_StatusTypeDef ret = HAL_I2C_Master_Receive(hi2c, address, data, size, timeout);
+            enableAllInterruptLevels();
+            if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                return state;
+            }
+            else if (ret == HAL_BUSY) {
+                state = BUS_BUSY;
                 return state;
             }
             else {
@@ -298,7 +332,7 @@ class i2cBus : public busInterface {
 
     I2C_HandleTypeDef *hi2c;
 
-    uint32_t timeout = 100;
+    uint32_t timeout = 1000;
 };
 
 class PCA9548 : public baseDevice {

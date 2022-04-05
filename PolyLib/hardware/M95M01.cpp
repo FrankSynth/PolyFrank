@@ -2,9 +2,12 @@
 
 #include "M95M01.hpp"
 
+extern uint8_t presetDMABlockBuffer[];
+extern void PolyControlNonUIRunWithSend();
+
 void M95M01::SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite) {
     while (busInterface->hspi->State != HAL_SPI_STATE_READY) {
-        HAL_Delay(1);
+        // HAL_Delay(1);
     }
 
     sEE_WriteEnable();
@@ -24,7 +27,13 @@ void M95M01::SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByt
 
     SPI_SendInstruction((uint8_t *)header, 4);
 
-    busInterface->transmit(pBuffer, NumByteToWrite);
+    fast_copy_f32((uint32_t *)pBuffer, (uint32_t *)presetDMABlockBuffer, (NumByteToWrite + 3) >> 2);
+
+    while (busInterface->transmit(presetDMABlockBuffer, NumByteToWrite, true) != BUS_OK) {
+    }
+
+    while (busInterface->state != BUS_READY)
+        PolyControlNonUIRunWithSend();
 
     // Deselect the EEPROM: Chip Select high
     HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
@@ -115,7 +124,7 @@ void M95M01::SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumB
 void M95M01::SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead) {
 
     while (busInterface->hspi->State != HAL_SPI_STATE_READY) {
-        HAL_Delay(1);
+        // HAL_Delay(1);
     }
 
     /*
@@ -154,7 +163,12 @@ void M95M01::SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByt
         /* Send WriteAddr address byte to read from */
         SPI_SendInstruction(header, 4);
 
-        busInterface->receive(pToBuffer, nbBytes);
+        while (busInterface->receive(presetDMABlockBuffer, nbBytes, true) != BUS_OK) {
+        }
+        while (busInterface->state != BUS_READY)
+            PolyControlNonUIRunWithSend();
+
+        fast_copy_f32((uint32_t *)presetDMABlockBuffer, (uint32_t *)pToBuffer, (nbBytes + 3) >> 2);
 
         // Deselect the EEPROM: Chip Select high
         HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
@@ -166,19 +180,21 @@ uint8_t M95M01::SendByte(uint8_t byte) {
 
     /* Loop while DR register in not empty */
     while (busInterface->hspi->State == HAL_SPI_STATE_RESET) {
-        HAL_Delay(1);
+        // HAL_Delay(1);
     }
 
     /* Send byte through the SPI peripheral */
-    busInterface->transmit(&byte, 1);
+    while (busInterface->transmit(&byte, 1) != BUS_OK) {
+    }
 
     /* Wait to receive a byte */
     while (busInterface->hspi->State == HAL_SPI_STATE_RESET) {
-        HAL_Delay(1);
+        // HAL_Delay(1);
     }
 
     /* Return the byte read from the SPI bus */
-    busInterface->receive(&answerByte, 1);
+    while (busInterface->receive(&answerByte, 1) != BUS_OK) {
+    }
 
     return (uint8_t)answerByte;
 }
@@ -242,7 +258,8 @@ uint8_t M95M01::SPI_WaitStandbyState(void) {
 
     // Loop as long as the memory is busy with a write cycle
     do {
-        busInterface->receive((uint8_t *)sEEstatus, 1);
+        while (busInterface->receive((uint8_t *)sEEstatus, 1) != BUS_OK) {
+        }
         HAL_Delay(1);
     } while ((sEEstatus[0] & EEPROM_WIP_FLAG) == SET); // Write in progress
 
@@ -254,10 +271,12 @@ uint8_t M95M01::SPI_WaitStandbyState(void) {
 
 void M95M01::SPI_SendInstruction(uint8_t *instruction, uint8_t size) {
     while (busInterface->hspi->State == HAL_SPI_STATE_RESET) {
-        HAL_Delay(1);
+        // HAL_Delay(1);
     }
 
-    busInterface->transmit((uint8_t *)instruction, (uint16_t)size);
+    while (busInterface->transmit((uint8_t *)instruction, (uint16_t)size) != BUS_OK) {
+        // HAL_Delay(1);
+    }
 }
 
 #endif

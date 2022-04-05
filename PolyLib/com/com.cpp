@@ -106,8 +106,8 @@ uint8_t COMdin::push(uint8_t data) {
 uint8_t COMinterChip::sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
     uint8_t comCommand[CREATEINOUTPATCHCMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = CREATEINOUTPATCH;
+    comCommand[0] = CREATEINOUTPATCH;
+    comCommand[1] = layerId << 7;
     comCommand[2] = outputId;
     comCommand[3] = inputId;
     *(float *)(&comCommand[4]) = amount;
@@ -120,8 +120,8 @@ uint8_t COMinterChip::sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, ui
 uint8_t COMinterChip::sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
     uint8_t comCommand[UPDATEINOUTPATCHCMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = UPDATEINOUTPATCH;
+    comCommand[0] = UPDATEINOUTPATCH;
+    comCommand[1] = layerId << 7;
     comCommand[2] = outputId;
     comCommand[3] = inputId;
     *(float *)(&comCommand[4]) = amount;
@@ -134,8 +134,8 @@ uint8_t COMinterChip::sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, ui
 uint8_t COMinterChip::sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId) {
     uint8_t comCommand[DELETEPATCHCMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = DELETEINOUTPATCH;
+    comCommand[0] = DELETEINOUTPATCH;
+    comCommand[1] = layerId << 7;
     comCommand[2] = outputId;
     comCommand[3] = inputId;
 
@@ -147,8 +147,8 @@ uint8_t COMinterChip::sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, ui
 uint8_t COMinterChip::sendDeleteAllPatches(uint8_t layerId) {
     uint8_t comCommand[DELETEALLPATCHESCMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = DELETEALLPATCHES;
+    comCommand[0] = DELETEALLPATCHES;
+    comCommand[1] = layerId << 7;
 
     pushOutBuffer(comCommand, DELETEALLPATCHESCMDSIZE);
     // pushOutBufferChipB(comCommand[0]);
@@ -158,19 +158,19 @@ uint8_t COMinterChip::sendDeleteAllPatches(uint8_t layerId) {
 uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note, uint8_t velocity) {
     uint8_t comCommand[NEWNOTECMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = NEWNOTE;
+    comCommand[0] = NEWNOTE;
+    comCommand[1] = layerId << 7;
     comCommand[2] = note;
     comCommand[3] = velocity;
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[0] |= voice;
+            comCommand[1] |= voice;
             pushOutBuffer(comCommand, NEWNOTECMDSIZE);
         }
     }
     else {
-        comCommand[0] |= voiceID;
+        comCommand[1] |= voiceID;
         pushOutBuffer(comCommand, NEWNOTECMDSIZE);
     }
 
@@ -180,17 +180,17 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
 uint8_t COMinterChip::sendOpenGate(uint8_t layerId, uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = OPENGATE;
+    comCommand[0] = OPENGATE;
+    comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[0] |= voice;
+            comCommand[1] |= voice;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
     }
     else {
-        comCommand[0] |= voiceID;
+        comCommand[1] |= voiceID;
         pushOutBuffer(comCommand, GATECMDSIZE);
     }
 
@@ -200,17 +200,17 @@ uint8_t COMinterChip::sendOpenGate(uint8_t layerId, uint8_t voiceID) {
 uint8_t COMinterChip::sendCloseGate(uint8_t layerId, uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = CLOSEGATE;
+    comCommand[0] = CLOSEGATE;
+    comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[0] |= voice;
+            comCommand[1] |= voice;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
     }
     else {
-        comCommand[0] |= voiceID;
+        comCommand[1] |= voiceID;
         pushOutBuffer(comCommand, GATECMDSIZE);
     }
 
@@ -220,18 +220,18 @@ uint8_t COMinterChip::sendCloseGate(uint8_t layerId, uint8_t voiceID) {
 uint8_t COMinterChip::sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t voiceID) {
     uint8_t comCommand[RETRIGGERCMDSIZE];
 
-    comCommand[0] = (layerId << 7) | (modulID << 3);
-    comCommand[1] = RETRIGGER;
+    comCommand[0] = RETRIGGER;
+    comCommand[1] = (layerId << 7) | (modulID << 3);
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[0] |= voice;
+            comCommand[1] |= voice;
 
             pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
         }
     }
     else {
-        comCommand[0] |= voiceID;
+        comCommand[1] |= voiceID;
 
         pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
     }
@@ -242,8 +242,8 @@ uint8_t COMinterChip::sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t vo
 uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
     uint8_t comCommand[RESETALLCMDSIZE];
 
-    comCommand[0] = layerId << 7;
-    comCommand[1] = RESETALL;
+    comCommand[0] = RESETALL;
+    comCommand[1] = layerId << 7;
 
     pushOutBuffer(comCommand, RESETALLCMDSIZE);
 
@@ -252,15 +252,21 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
 
 uint8_t COMinterChip::sendRequestUIData() {
 
-    if (sentRequestUICommand == false) {
-        uint8_t comCommand[SENDUPDATETOCONTROLSIZE];
+    invokeBufferFullSend();
 
-        comCommand[0] = SENDUPDATETOCONTROL;
+    while (spi->state != BUS_READY)
+        ;
+
+    if (sentRequestUICommand == false) {
+        uint8_t comCommand;
+
+        comCommand = SENDUPDATETOCONTROL;
 
         // TODO set flags for data reception, separaate flags pls
 
-        pushOutBuffer(comCommand, SENDUPDATETOCONTROLSIZE);
+        pushOutBuffer(comCommand);
 
+        invokeBufferFullSend();
         sentRequestUICommand = true;
     }
 
@@ -270,8 +276,8 @@ uint8_t COMinterChip::sendRequestUIData() {
 // this function now dows all settings, int & float settings
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
     uint8_t comCommand[SETTINGCMDSIZE];
-    comCommand[0] = (layerId << 7) | (modulID << 3);
-    comCommand[1] = UPDATESETTINGINT;
+    comCommand[0] = UPDATESETTINGINT;
+    comCommand[1] = (layerId << 7) | (modulID << 3);
     comCommand[2] = settingID;
     *(int32_t *)(&comCommand[3]) = amount;
 
@@ -282,8 +288,8 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount) {
     uint8_t comCommand[SETTINGCMDSIZE];
-    comCommand[0] = (layerId << 7) | (modulID << 3);
-    comCommand[1] = UPDATESETTINGFLOAT;
+    comCommand[0] = UPDATESETTINGFLOAT;
+    comCommand[1] = (layerId << 7) | (modulID << 3);
     comCommand[2] = settingID;
     *(float *)(&comCommand[3]) = amount;
 
@@ -301,9 +307,24 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
 
     uint16_t receiveSize;
 
-    spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, false);
+    requestSize = true;
+    spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, true);
+    while (spi->state != BUS_READY) {
+    }
 
     receiveSize = *(uint16_t *)dmaInBufferPointer[!currentInBufferSelect];
+
+    if (receiveSize > INTERCHIPBUFFERSIZE) {
+        PolyError_Handler("ERROR | FATAL | com buffer too big");
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        return BUS_ERROR;
+    }
+
+    if (receiveSize < 2) {
+        println("retreive buffer was 0, chip", receiveChip);
+        return BUS_OK;
+    }
+
     spi->receive(&dmaInBufferPointer[!currentInBufferSelect][2], receiveSize - 2, true);
     return BUS_OK;
 }
@@ -344,8 +365,8 @@ uint8_t COMinterChip::sendString(const char *message) {
 
 uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
-    comCommand[0] = (modulID << 4) | settingID;
-    comCommand[1] = UPDATEOUTPUTINT;
+    comCommand[0] = UPDATEOUTPUTINT;
+    comCommand[1] = (modulID << 4) | settingID;
     *(int32_t *)(&comCommand[2]) = amount;
 
     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
@@ -353,9 +374,8 @@ uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amo
 }
 uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
-    comCommand[0] = (modulID << 4) | settingID;
-    ;
-    comCommand[1] = UPDATEOUTPUTFLOAT;
+    comCommand[0] = UPDATEOUTPUTFLOAT;
+    comCommand[1] = (modulID << 4) | settingID;
     *(float *)(&comCommand[2]) = amount;
 
     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
@@ -363,29 +383,12 @@ uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, float amoun
 }
 uint8_t COMinterChip::sendInput(uint8_t modulID, uint8_t settingID, float amount) {
     uint8_t comCommand[INPUTCMDSIZE];
-    comCommand[0] = (modulID << 4) | settingID;
-    ;
-    comCommand[1] = UPDATEINPUT;
+    comCommand[0] = UPDATEINPUT;
+    comCommand[1] = (modulID << 4) | settingID;
     *(float *)(&comCommand[2]) = amount;
 
     pushOutBuffer(comCommand, INPUTCMDSIZE);
     return 0;
-}
-
-// check if voices beling to current render chip, and shift if necessary
-uint8_t COMinterChip::checkVoiceAgainstChipID(uint8_t voice) {
-    if (layerA.chipID == 0) {
-        if (voice < VOICESPERCHIP)
-            return voice;
-        else
-            return NOVOICE;
-    }
-    else {
-        if (voice < VOICESPERCHIP)
-            return NOVOICE;
-        else
-            return voice - VOICESPERCHIP;
-    }
 }
 
 busState COMinterChip::beginReceiveTransmission() {
@@ -415,13 +418,15 @@ busState COMinterChip::beginSendTransmission() {
 
 #ifdef POLYCONTROL
     if (FlagHandler::layerActive[0]) {
-        if (FlagHandler::renderChip_State[0][0] != READY && FlagHandler::renderChip_State[0][1] != READY) {
+        if (FlagHandler::renderChip_State[0][0] != READY || FlagHandler::renderChip_State[0][1] != READY ||
+            sentRequestUICommand) {
             return BUS_BUSY;
         }
     }
 
     if (FlagHandler::layerActive[1]) {
-        if (FlagHandler::renderChip_State[1][0] != READY && FlagHandler::renderChip_State[1][1] != READY) {
+        if (FlagHandler::renderChip_State[1][0] != READY || FlagHandler::renderChip_State[1][1] != READY ||
+            sentRequestUICommand) {
             return BUS_BUSY;
         }
     }
@@ -429,17 +434,18 @@ busState COMinterChip::beginSendTransmission() {
 
     appendLastByte();
 
-    // write size into first two bytes of outBuffers
-    dmaOutCurrentBufferSize = outBuffer[currentOutBufferSelect].size();
-    *(uint16_t *)outBuffer[currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
-
     switchOutBuffer();
+
+    // write size into first two bytes of outBuffers
+    dmaOutCurrentBufferSize = outBuffer[!currentOutBufferSelect].size();
+    *(uint16_t *)outBuffer[!currentOutBufferSelect].data() = dmaOutCurrentBufferSize;
 
     busState ret = startSendDMA();
 
 #ifdef POLYRENDER
-    if (ret == BUS_OK)
+    if (ret == BUS_OK) {
         HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+    }
 #endif
 
     return ret;
@@ -453,10 +459,16 @@ busState COMinterChip::startSendDMA() {
 
     // TODO currently wrong? more defined state pls, response vs datareception (last should be separate i think)
     // !! see comInterchipStates !!
-    for (uint8_t i = 0; i < 2; i++) {
+    if (FlagHandler::layerActive[0]) {
         for (uint8_t j = 0; j < 2; j++) {
-            FlagHandler::renderChip_State[i][j] = WAITFORRESPONSE;
-            FlagHandler::renderChip_StateTimeout[i][j] = 0;
+            FlagHandler::renderChip_State[0][j] = WAITFORRESPONSE;
+            FlagHandler::renderChip_StateTimeout[0][j] = 0;
+        }
+    }
+    if (FlagHandler::layerActive[1]) {
+        for (uint8_t j = 0; j < 2; j++) {
+            FlagHandler::renderChip_State[1][j] = WAITFORRESPONSE;
+            FlagHandler::renderChip_StateTimeout[1][j] = 0;
         }
     }
 #endif
@@ -482,17 +494,40 @@ busState COMinterChip::startSendDMA() {
     return spi->transmit(dmaOutBufferPointer[!currentOutBufferSelect], dmaOutCurrentBufferSize, true);
 }
 
+#ifdef POLYRENDER
+
+// check if voices beling to current render chip, and shift if necessary
+ALWAYS_INLINE inline void checkVoiceAgainstChipID(uint8_t *voice) {
+    if (layerA.chipID == 0) {
+        if (*voice >= VOICESPERCHIP)
+            *voice = NOVOICE;
+    }
+    else {
+        if (*voice < VOICESPERCHIP)
+            *voice = NOVOICE;
+        else
+            *voice = *voice - VOICESPERCHIP;
+    }
+}
+
+ALWAYS_INLINE inline void readLayerModuleVoice(uint8_t *layerID, uint8_t *module, uint8_t *voice,
+                                               uint8_t *currentByte) {
+    *layerID = (*currentByte & CMD_LAYERMASK) >> 7;
+    *module = (*currentByte & CMD_MODULEMASK) >> 3;
+    *voice = *currentByte & CMD_VOICEMASK;
+    checkVoiceAgainstChipID(voice);
+}
+
+#endif
+
 uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     state = COM_DECODE;
-
-    spi->stopDMA();
 
 #ifdef POLYCONTROL
     setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
 #endif
 
-#ifdef POLYRENDER
     // necessary decoding vars
     volatile uint8_t outputID = 0;
     volatile uint8_t inputID = 0;
@@ -502,7 +537,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     volatile uint8_t setting = 0;
     volatile uint8_t module = 0;
     volatile uint8_t voice = 0;
-#endif
+    volatile uint8_t messagesize = 0;
     volatile int32_t amountInt = 0;
     volatile float amountFloat = 0;
 
@@ -511,13 +546,16 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     // assemble size
     uint16_t sizeOfReadBuffer = *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect]));
 
+    // no data received
     if (sizeOfReadBuffer == 0) {
-        state = COM_READY;
 
+        state = COM_READY;
 #ifdef POLYCONTROL
         FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
 #endif
 #ifdef POLYRENDER
+        PolyError_Handler("ERROR | FATAL | size=0");
+
         if (spi->state == BUS_READY) {
             if (beginReceiveTransmission() != BUS_OK)
                 PolyError_Handler("ERROR | FATAL | size=0, receive bus occuppied");
@@ -528,26 +566,39 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     if (sizeOfReadBuffer > INTERCHIPBUFFERSIZE) {
         state = COM_READY;
-
-        // buffer too big, sth went wrong
-        PolyError_Handler("ERROR | FATAL | com buffer too big");
+        println("com size: ", sizeOfReadBuffer);
+        PolyError_Handler("ERROR | FATAL | decode com buffer too big");
 #ifdef POLYCONTROL
         FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+#endif
+#ifdef POLYRENDER
+        if (spi->state == BUS_READY) {
+            if (beginReceiveTransmission() != BUS_OK)
+                PolyError_Handler("ERROR | FATAL | too big, receive bus occuppied");
+        }
 #endif
         return 1;
     }
 
+    // copy dma buffer to local space with word speed
     fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
                   (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
 
+    // quick check of valid data, buffer should always end with LASTBYTE
     if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
-        // last byte must be at this position, sort of CRC
         PolyError_Handler("ERROR | FATAL | com buffer last byte wrong");
 #ifdef POLYCONTROL
+        println("chip: ", receiveChip);
+        println("lastbyte: ", (inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1]);
         FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
 #endif
         state = COM_READY;
-
+#ifdef POLYRENDER
+        if (spi->state == BUS_READY) {
+            if (beginReceiveTransmission() != BUS_OK)
+                PolyError_Handler("ERROR | FATAL | last byte wrong, receive bus occuppied");
+        }
+#endif
         return 1;
     }
 
@@ -555,66 +606,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
 
-        // this would mean we're done
-        if (currentByte == LASTBYTE) {
-            *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect])) = 0;
-
-            state = COM_READY;
-
-#ifdef POLYRENDER
-            if (spi->state == BUS_READY)
-                if (beginReceiveTransmission() != BUS_OK)
-                    PolyError_Handler("ERROR | FATAL | receive bus occuppied");
-#endif
-#ifdef POLYCONTROL
-            FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
-#endif
-            return 0;
-        }
-
-#ifdef POLYRENDER
-        if (currentByte == SENDUPDATETOCONTROL) {
-            // TODO send UI update shit
-            sendString("Update to Control"); // temporary stuff
-            if (beginSendTransmission() != BUS_OK)
-                PolyError_Handler("ERROR | FATAL | send bus occuppied");
-            continue;
-        }
-#endif
-#ifdef POLYCONTROL
-        if (currentByte == SENDMESSAGE) {
-
-            messagebuffer.clear();
-
-            uint8_t messagesize = (inBufferPointer[currentInBufferSelect])[++i];
-
-            for (uint8_t m = 0; m < messagesize; m++) {
-                messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
-            }
-
-            print("layer ", receiveLayer);
-            println(", chip ", receiveChip, ":");
-            println(messagebuffer);
-
-            continue;
-        }
-
-#endif
-
-#ifdef POLYRENDER
-        layerID = (currentByte & CMD_LAYERMASK) >> 7;
-        module = (currentByte & CMD_MODULEMASK) >> 3;
-        voice = currentByte & CMD_VOICEMASK;
-
-        // convert voice 4-7 to 0-3 if on chip B
-        voice = checkVoiceAgainstChipID(voice);
-#endif
-
-        currentByte = (inBufferPointer[currentInBufferSelect])[++i];
         switch (currentByte) {
 
 #ifdef POLYRENDER
             case UPDATEINOUTPATCH:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
+
                 outputID = (inBufferPointer[currentInBufferSelect])[++i];
                 inputID = (inBufferPointer[currentInBufferSelect])[++i];
                 amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
@@ -626,6 +624,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case CREATEINOUTPATCH:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 outputID = (inBufferPointer[currentInBufferSelect])[++i];
                 inputID = (inBufferPointer[currentInBufferSelect])[++i];
                 amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
@@ -638,6 +638,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case DELETEINOUTPATCH:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 outputID = (inBufferPointer[currentInBufferSelect])[++i];
                 inputID = (inBufferPointer[currentInBufferSelect])[++i];
 
@@ -647,12 +649,16 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case DELETEALLPATCHES:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 // delete all patchesInOut at once
                 if (layerID == layerA.id)
                     layerA.clearPatches();
                 break;
 
             case NEWNOTE:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 note = (inBufferPointer[currentInBufferSelect])[++i];
                 velocity = (inBufferPointer[currentInBufferSelect])[++i];
 
@@ -666,27 +672,37 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case OPENGATE:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOn(voice);
                 break;
 
             case CLOSEGATE:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOff(voice);
                 break;
 
             case RESETALL:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 // clear everything
                 if (layerID == layerA.id)
                     layerA.resetLayer();
                 break;
 
             case RETRIGGER:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.getModules()[module]->resetPhase(voice);
                 break;
 
             case UPDATESETTINGINT:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 setting = (inBufferPointer[currentInBufferSelect])[++i];
                 amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(int32_t) - 1
@@ -698,6 +714,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case UPDATESETTINGFLOAT:
+                readLayerModuleVoice((uint8_t *)&layerID, (uint8_t *)&module, (uint8_t *)&voice,
+                                     &(inBufferPointer[currentInBufferSelect])[++i]);
                 setting = (inBufferPointer[currentInBufferSelect])[++i];
 
                 amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
@@ -709,21 +727,65 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 }
 
                 break;
-#endif
 
+            case SENDUPDATETOCONTROL:
+                // TODO send UI update shit
+                HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+                sendString("Update to Control"); // temporary stuff
+                sendUpdateToRender = true;
+                break;
+
+            case LASTBYTE:
+                // *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect])) = 0;
+
+                state = COM_READY;
+
+                if (sendUpdateToRender) {
+                    if (beginSendTransmission() != BUS_OK)
+                        PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
+                    sendUpdateToRender = false;
+                }
+                else if (spi->state == BUS_READY)
+                    if (beginReceiveTransmission() != BUS_OK)
+                        PolyError_Handler("ERROR | FATAL | last received, receive bus occuppied");
+                return 0;
+
+#endif
 #ifdef POLYCONTROL
                 // TODO add decoding here
+
+            case SENDMESSAGE:
+
+                messagebuffer.clear();
+
+                messagesize = (inBufferPointer[currentInBufferSelect])[++i];
+
+                for (uint8_t m = 0; m < messagesize; m++) {
+                    messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
+                }
+
+                print("layer ", receiveLayer);
+                println(", chip ", receiveChip, ":");
+                println(messagebuffer);
+
+                break;
 
             case UPDATEINPUT: println("UPDATEINPUT"); break;
             case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
             case UPDATEOUTPUTFLOAT: println("UPDATEOUTPUTFLOAT"); break;
+            case LASTBYTE:
+                // *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect])) = 0;
+                state = COM_READY;
+                // FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+                return 0;
+                break;
 
 #endif
 
             case NOCOMMAND: PolyError_Handler("ERROR | FATAL | command was empty"); return 1;
 
             default:
-                // seomething went wrong here
+                // something went wrong here
                 PolyError_Handler("ERROR | FATAL | Decode error");
 
                 return 1;
@@ -791,6 +853,12 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
 }
 
 busState COMinterChip::invokeBufferFullSend() {
+
+#ifdef POLYRENDER
+    PolyError_Handler("ERROR | COMMUNICATION | COM -> Buffer full ");
+    return BUS_ERROR;
+#endif
+
     busState ret = beginSendTransmission();
 
     if (ret != BUS_OK) {
@@ -798,9 +866,10 @@ busState COMinterChip::invokeBufferFullSend() {
         while (ret != BUS_OK) { // wait...
             if ((millis() - timer) > 100) {
                 PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
+                return BUS_ERROR;
             }
 
-            FlagHandler::handleFlags(); // so we don't get stuck
+            // FlagHandler::handleFlags(); // so we don't get stuck
             ret = beginSendTransmission();
         }
     }

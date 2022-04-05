@@ -276,12 +276,12 @@ class COMinterChip {
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRequestUIData();
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
-
-  private:
+    bool sentRequestUICommand = false;
+    bool requestSize = false;
     uint8_t receiveLayer;
     uint8_t receiveChip;
-    bool sentRequestUICommand = false;
 
+  private:
 #elif POLYRENDER
   public:
     uint8_t sendString(std::string &message);
@@ -293,12 +293,12 @@ class COMinterChip {
     busState beginReceiveTransmission();
 
   private:
-    uint8_t checkVoiceAgainstChipID(uint8_t voice);
+    bool sendUpdateToRender = false;
 
 #endif
 
   public:
-    COMinterChip(spiBus *spi, uint8_t *dmaBuffer) {
+    COMinterChip(spiBus *spi, uint8_t *dmaInBuffer, uint8_t *dmaOutBuffer) {
         inBufferPointer[0] = inBuffer;
         inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE;
 
@@ -307,11 +307,11 @@ class COMinterChip {
 
         messagebuffer.reserve(INTERCHIPBUFFERSIZE);
 
-        dmaInBufferPointer[0] = dmaBuffer;
-        dmaInBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
+        dmaInBufferPointer[0] = dmaInBuffer;
+        dmaInBufferPointer[1] = dmaInBuffer + INTERCHIPBUFFERSIZE;
 
-        dmaOutBufferPointer[0] = dmaBuffer;
-        dmaOutBufferPointer[1] = dmaBuffer + INTERCHIPBUFFERSIZE;
+        dmaOutBufferPointer[0] = dmaOutBuffer;
+        dmaOutBufferPointer[1] = dmaOutBuffer + INTERCHIPBUFFERSIZE;
 
         this->spi = spi;
 

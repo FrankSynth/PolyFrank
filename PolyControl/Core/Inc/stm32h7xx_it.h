@@ -69,17 +69,22 @@ void SPI2_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
+void DMA2_Stream3_IRQHandler(void);
+void DMA2_Stream4_IRQHandler(void);
+void OTG_HS_IRQHandler(void);
 void SPI4_IRQHandler(void);
 void SPI5_IRQHandler(void);
+void SPI6_IRQHandler(void);
 void LTDC_IRQHandler(void);
 void LTDC_ER_IRQHandler(void);
 void DMA2D_IRQHandler(void);
 void MDMA_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
-void OTG_HS_IRQHandler(void);
+
 void TIM5_IRQHandler(void);
 void TIM4_IRQHandler(void);
-
+void BDMA_Channel0_IRQHandler(void);
+void BDMA_Channel1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

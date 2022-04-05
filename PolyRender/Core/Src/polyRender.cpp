@@ -14,12 +14,13 @@ spiBus spiBusLayer;
 uint8_t sendString(const char *message);
 
 // InterChip Com
-RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMABuffer[2 * INTERCHIPBUFFERSIZE]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * INTERCHIPBUFFERSIZE]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * INTERCHIPBUFFERSIZE]);
 
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
 
-COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMABuffer);
+COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
 
 MCP4728 cvDac[] = {
 
@@ -55,17 +56,11 @@ void PolyRenderInit() {
 
     // TODO chip ID maybe also could be sent instead of read.
     // set chip id
-    if (HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin))
-        layerA.chipID = 1;
-    else
-        layerA.chipID = 0;
+    layerA.chipID = !HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin);
 
     // TODO layer id should maybe rather be sent
     // set layer ID
-    if (!HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin))
-        layerA.id = 1;
-    else
-        layerA.id = 0;
+    layerA.id = !HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin);
 
     // init pseudo rand so all chips follow different patterns.
     std::srand(layerA.chipID + layerA.id + 1);
@@ -90,7 +85,8 @@ void PolyRenderInit() {
 
     // empty buffers
     uint32_t emptyData = 0;
-    fastMemset(&emptyData, (uint32_t *)interChipDMABuffer, 2 * INTERCHIPBUFFERSIZE / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAInBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
     fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
 
     layerCom.beginReceiveTransmission();
@@ -112,12 +108,12 @@ void PolyRenderRun() {
     println("Chip ID is: ", layerA.chipID);
 
     // enable reception line
-    HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
     // start audio rendering
-    renderAudio((int32_t *)saiBuffer);
-    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    audioDacA.startSAI();
+    // renderAudio((int32_t *)saiBuffer);
+    // renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
+    // audioDacA.startSAI();
 
     // start cv rendering
     renderCVs();
@@ -130,11 +126,11 @@ void PolyRenderRun() {
     // run loop
     while (true) {
         // for timing test purpose
-        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
-        if (askMessage > 3000) {
-            askMessage = 0;
-            sendString("Hello by Render");
-        }
+        // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
+        // if (askMessage > 3000) {
+        //     askMessage = 0;
+        //     sendString("Hello by Render");
+        // }
         FlagHandler::handleFlags();
     }
 }
@@ -293,6 +289,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         if (layerCom.spi->state == BUS_RECEIVE) {
             // disable reception line
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+            layerCom.spi->stopDMA();
             layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
         }
@@ -306,7 +303,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
-        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
         layerCom.spi->callTxComplete();
     }
 }
