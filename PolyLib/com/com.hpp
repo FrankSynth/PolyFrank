@@ -251,7 +251,7 @@ class COMdin {
 
 #ifdef POLYCONTROL
 
-enum comInterchipState { COM_READY, COM_AWAITINGDATA, COM_DECODE };
+enum comInterchipState { COM_READY, COM_AWAITINGDATA, COM_DECODE, COM_ERROR };
 #endif
 #ifdef POLYRENDER
 enum comInterchipState { COM_READY, COM_DECODE };
@@ -276,10 +276,10 @@ class COMinterChip {
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRequestUIData();
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
-    bool sentRequestUICommand = false;
-    bool requestSize = false;
-    uint8_t receiveLayer;
-    uint8_t receiveChip;
+    volatile bool sentRequestUICommand = false;
+    volatile bool requestSize = false;
+    volatile uint8_t receiveLayer;
+    volatile uint8_t receiveChip;
 
   private:
 #elif POLYRENDER
@@ -300,18 +300,18 @@ class COMinterChip {
   public:
     COMinterChip(spiBus *spi, uint8_t *dmaInBuffer, uint8_t *dmaOutBuffer) {
         inBufferPointer[0] = inBuffer;
-        inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE;
+        inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE + 4;
 
-        outBuffer[0].reserve(INTERCHIPBUFFERSIZE);
-        outBuffer[1].reserve(INTERCHIPBUFFERSIZE);
+        outBuffer[0].reserve(INTERCHIPBUFFERSIZE + 4);
+        outBuffer[1].reserve(INTERCHIPBUFFERSIZE + 4);
 
-        messagebuffer.reserve(INTERCHIPBUFFERSIZE);
+        messagebuffer.reserve(INTERCHIPBUFFERSIZE + 4);
 
         dmaInBufferPointer[0] = dmaInBuffer;
-        dmaInBufferPointer[1] = dmaInBuffer + INTERCHIPBUFFERSIZE;
+        dmaInBufferPointer[1] = dmaInBuffer + INTERCHIPBUFFERSIZE + 4;
 
         dmaOutBufferPointer[0] = dmaOutBuffer;
-        dmaOutBufferPointer[1] = dmaOutBuffer + INTERCHIPBUFFERSIZE;
+        dmaOutBufferPointer[1] = dmaOutBuffer + INTERCHIPBUFFERSIZE + 4;
 
         this->spi = spi;
 
@@ -320,13 +320,15 @@ class COMinterChip {
         state = COM_READY;
     }
 
+    void resetCom();
+
     // send out current out buffer
     busState beginSendTransmission();
 
     uint8_t decodeCurrentInBuffer();
 
     spiBus *spi;
-    comInterchipState state;
+    volatile comInterchipState state;
 
   private:
     std::string messagebuffer;
@@ -356,10 +358,10 @@ class COMinterChip {
 
     uint8_t *inBufferPointer[2];
     uint8_t *dmaInBufferPointer[2];
-    uint8_t inBuffer[INTERCHIPBUFFERSIZE * 2];
+    uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
 
-    uint8_t currentInBufferSelect = 0;
-    uint8_t currentOutBufferSelect = 0;
+    volatile uint8_t currentInBufferSelect = 0;
+    volatile uint8_t currentOutBufferSelect = 0;
 
     void switchInBuffer();
     void switchOutBuffer();

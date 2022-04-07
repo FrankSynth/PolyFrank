@@ -91,7 +91,7 @@ class spiBus : public busInterface {
             }
         }
         else {
-            disableInterruptBelowLevel(1);
+            disableInterruptBelowLevel(2);
             HAL_StatusTypeDef ret = HAL_SPI_TransmitReceive(hspi, txData, rxdata, size, timeout);
             enableAllInterruptLevels();
             if (ret == HAL_ERROR) {
@@ -128,7 +128,7 @@ class spiBus : public busInterface {
             }
         }
         else {
-            disableInterruptBelowLevel(1);
+            disableInterruptBelowLevel(2);
             HAL_StatusTypeDef ret = HAL_SPI_Transmit(hspi, data, size, timeout);
             enableAllInterruptLevels();
             if (ret == HAL_ERROR) {
@@ -164,7 +164,7 @@ class spiBus : public busInterface {
             }
         }
         else {
-            disableInterruptBelowLevel(1);
+            disableInterruptBelowLevel(2);
             HAL_StatusTypeDef ret = HAL_SPI_Receive(hspi, data, size, timeout);
             enableAllInterruptLevels();
             if (ret == HAL_ERROR) {
@@ -277,7 +277,7 @@ class i2cBus : public busInterface {
             }
         }
         else {
-            disableInterruptBelowLevel(1);
+            disableInterruptBelowLevel(2);
             HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(hi2c, address, data, size, timeout);
             enableAllInterruptLevels();
             if (ret == HAL_ERROR) {
@@ -312,7 +312,7 @@ class i2cBus : public busInterface {
             }
         }
         else {
-            disableInterruptBelowLevel(1);
+            disableInterruptBelowLevel(2);
             HAL_StatusTypeDef ret = HAL_I2C_Master_Receive(hi2c, address, data, size, timeout);
             enableAllInterruptLevels();
             if (ret == HAL_ERROR) {

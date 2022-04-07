@@ -14,7 +14,7 @@ uint32_t saveID = 0;
 
 RAM1 uint8_t blockBuffer[PRESET_BLOCKSIZE];
 
-RAM3_DMA uint8_t presetDMABlockBuffer[PRESET_BLOCKSIZE];
+RAM3_DMA volatile uint8_t presetDMABlockBuffer[PRESET_BLOCKSIZE];
 
 bool comparePtrPresetStruct(presetStruct *a, presetStruct *b) {
     return (*a > *b);

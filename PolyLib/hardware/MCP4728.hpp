@@ -118,7 +118,7 @@ class MCP4728 {
         bufferAsInt[1] = __REV16(((uint32_t *)data.currentSample)[1]);
 
         HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8);
-        if (ret != HAL_OK) {
+        if (ret == HAL_ERROR) {
             Error_Handler();
             println("I2C | fastUpdate | DMA Transmit Error ", (uint32_t)ret);
         }

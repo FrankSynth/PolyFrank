@@ -155,7 +155,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         hdma_i2c1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_i2c1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_i2c1_tx.Init.Mode = DMA_NORMAL;
-        hdma_i2c1_tx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_i2c1_tx.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_i2c1_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         hdma_i2c1_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
         hdma_i2c1_tx.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -167,9 +167,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c1_tx);
 
         /* I2C1 interrupt Init */
-        HAL_NVIC_SetPriority(I2C1_EV_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(I2C1_EV_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
-        HAL_NVIC_SetPriority(I2C1_ER_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(I2C1_ER_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
         /* USER CODE BEGIN I2C1_MspInit 1 */
 
@@ -180,17 +180,17 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         /* USER CODE END I2C2_MspInit 0 */
 
-    __HAL_RCC_GPIOF_CLK_ENABLE();
-    /**I2C2 GPIO Configuration
-    PF0     ------> I2C2_SDA
-    PF1     ------> I2C2_SCL
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+        __HAL_RCC_GPIOF_CLK_ENABLE();
+        /**I2C2 GPIO Configuration
+        PF0     ------> I2C2_SDA
+        PF1     ------> I2C2_SCL
+        */
+        GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
+        HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
         /* I2C2 clock enable */
         __HAL_RCC_I2C2_CLK_ENABLE();
@@ -205,7 +205,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         hdma_i2c2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_i2c2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_i2c2_tx.Init.Mode = DMA_NORMAL;
-        hdma_i2c2_tx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_i2c2_tx.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_i2c2_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         hdma_i2c2_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
         hdma_i2c2_tx.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -217,9 +217,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c2_tx);
 
         /* I2C2 interrupt Init */
-        HAL_NVIC_SetPriority(I2C2_EV_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(I2C2_EV_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
-        HAL_NVIC_SetPriority(I2C2_ER_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(I2C2_ER_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
         /* USER CODE BEGIN I2C2_MspInit 1 */
 
@@ -255,7 +255,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         hdma_i2c3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_i2c3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_i2c3_tx.Init.Mode = DMA_NORMAL;
-        hdma_i2c3_tx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_i2c3_tx.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_i2c3_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         hdma_i2c3_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
         hdma_i2c3_tx.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -267,9 +267,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c3_tx);
 
         /* I2C3 interrupt Init */
-        HAL_NVIC_SetPriority(I2C3_EV_IRQn, 3, 0);
+        HAL_NVIC_SetPriority(I2C3_EV_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
-        HAL_NVIC_SetPriority(I2C3_ER_IRQn, 3, 0);
+        HAL_NVIC_SetPriority(I2C3_ER_IRQn, 2, 0);
         HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
         /* USER CODE BEGIN I2C3_MspInit 1 */
 

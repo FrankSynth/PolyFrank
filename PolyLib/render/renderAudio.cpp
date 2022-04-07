@@ -343,7 +343,7 @@ inline void getOscASample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    calcSquircleSimplified(newSample, squircle);
+    // calcSquircleSimplified(newSample, squircle);
 
     bitcrush(newSample, bitcrusher);
 
@@ -531,7 +531,7 @@ inline void getOscBSample(float *sample) {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    calcSquircleSimplified(newSample, squircle);
+    // calcSquircleSimplified(newSample, squircle);
 
     bitcrush(newSample, bitcrusher);
 

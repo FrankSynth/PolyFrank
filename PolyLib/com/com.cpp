@@ -252,7 +252,7 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
 
 uint8_t COMinterChip::sendRequestUIData() {
 
-    invokeBufferFullSend();
+    // invokeBufferFullSend();
 
     while (spi->state != BUS_READY)
         ;
@@ -266,7 +266,7 @@ uint8_t COMinterChip::sendRequestUIData() {
 
         pushOutBuffer(comCommand);
 
-        invokeBufferFullSend();
+        // invokeBufferFullSend();
         sentRequestUICommand = true;
     }
 
@@ -316,12 +316,14 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
 
     if (receiveSize > INTERCHIPBUFFERSIZE) {
         PolyError_Handler("ERROR | FATAL | com buffer too big");
-        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = INTERCHIPERROR;
         return BUS_ERROR;
     }
 
     if (receiveSize < 2) {
         println("retreive buffer was 0, chip", receiveChip);
+        while (true)
+            ;
         return BUS_OK;
     }
 
@@ -418,23 +420,35 @@ busState COMinterChip::beginSendTransmission() {
 
 #ifdef POLYCONTROL
     if (FlagHandler::layerActive[0]) {
-        if (FlagHandler::renderChip_State[0][0] != READY || FlagHandler::renderChip_State[0][1] != READY ||
-            sentRequestUICommand) {
+        if ((FlagHandler::renderChip_State[0][0] != READY) || (FlagHandler::renderChip_State[0][1] != READY)) {
             return BUS_BUSY;
         }
     }
 
     if (FlagHandler::layerActive[1]) {
-        if (FlagHandler::renderChip_State[1][0] != READY || FlagHandler::renderChip_State[1][1] != READY ||
-            sentRequestUICommand) {
+        if ((FlagHandler::renderChip_State[1][0] != READY) || (FlagHandler::renderChip_State[1][1] != READY)) {
             return BUS_BUSY;
         }
     }
+
+    if (!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
+          HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) {
+        println("blocked send");
+        return BUS_BUSY;
+    }
+
+    if (sentRequestUICommand) {
+        for (uint8_t i = 0; i < 2; i++) {
+            for (uint8_t j = 0; j < 2; j++) {
+                FlagHandler::renderChipAwaitingData[i][j] = FlagHandler::layerActive[i];
+            }
+        }
+    }
+
 #endif
 
-    appendLastByte();
-
     switchOutBuffer();
+    appendLastByte();
 
     // write size into first two bytes of outBuffers
     dmaOutCurrentBufferSize = outBuffer[!currentOutBufferSelect].size();
@@ -473,8 +487,11 @@ busState COMinterChip::startSendDMA() {
     }
 #endif
 
-    fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
-                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 3) >> 2);
+    // fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
+    //               (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 4) >> 2);
+
+    fast_copy_byte(outBuffer[!currentOutBufferSelect].data(), dmaOutBufferPointer[!currentOutBufferSelect],
+                   dmaOutCurrentBufferSize);
 
 #ifdef POLYCONTROL
     // enable NSS to Render Chip A
@@ -489,6 +506,33 @@ busState COMinterChip::startSendDMA() {
         HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
     }
 
+#endif
+#ifdef POLYRENDER
+
+    // hspi1.Instance = SPI1;
+    // hspi1.Init.Mode = SPI_MODE_SLAVE;
+    // hspi1.Init.Direction = SPI_DIRECTION_1LINE;
+    // hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+    // hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+    // hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+    // hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
+    // hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    // hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+    // hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    // hspi1.Init.CRCPolynomial = 0x0;
+    // hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+    // hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+    // hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+    // hspi1.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    // hspi1.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    // hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+    // hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    // hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+    // hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+    // hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+    // if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+    //     Error_Handler();
+    // }
 #endif
 
     return spi->transmit(dmaOutBufferPointer[!currentOutBufferSelect], dmaOutCurrentBufferSize, true);
@@ -524,10 +568,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     state = COM_DECODE;
 
-#ifdef POLYCONTROL
-    setCSLine(receiveLayer, receiveChip, GPIO_PIN_SET);
-#endif
-
     // necessary decoding vars
     volatile uint8_t outputID = 0;
     volatile uint8_t inputID = 0;
@@ -551,7 +591,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
         state = COM_READY;
 #ifdef POLYCONTROL
-        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = INTERCHIPERROR;
 #endif
 #ifdef POLYRENDER
         PolyError_Handler("ERROR | FATAL | size=0");
@@ -569,7 +609,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         println("com size: ", sizeOfReadBuffer);
         PolyError_Handler("ERROR | FATAL | decode com buffer too big");
 #ifdef POLYCONTROL
-        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = INTERCHIPERROR;
 #endif
 #ifdef POLYRENDER
         if (spi->state == BUS_READY) {
@@ -581,8 +621,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // copy dma buffer to local space with word speed
-    fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
-                  (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
+    // fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
+    //               (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 4) >> 2);
+    fast_copy_byte(dmaInBufferPointer[currentInBufferSelect], inBufferPointer[currentInBufferSelect], sizeOfReadBuffer);
 
     // quick check of valid data, buffer should always end with LASTBYTE
     if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
@@ -590,9 +631,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #ifdef POLYCONTROL
         println("chip: ", receiveChip);
         println("lastbyte: ", (inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1]);
-        FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        // FlagHandler::renderChip_State[receiveLayer][receiveChip] = READY;
+        FlagHandler::renderChip_State[receiveLayer][receiveChip] = INTERCHIPERROR;
 #endif
-        state = COM_READY;
 #ifdef POLYRENDER
         if (spi->state == BUS_READY) {
             if (beginReceiveTransmission() != BUS_OK)
@@ -730,9 +771,12 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
             case SENDUPDATETOCONTROL:
                 // TODO send UI update shit
-                HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+                // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
                 sendString("Update to Control"); // temporary stuff
-                sendUpdateToRender = true;
+                println("send trans");
+                if (beginSendTransmission() != BUS_OK)
+                    PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
+                // sendUpdateToRender = true;
                 break;
 
             case LASTBYTE:
@@ -740,12 +784,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 state = COM_READY;
 
-                if (sendUpdateToRender) {
-                    if (beginSendTransmission() != BUS_OK)
-                        PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
-                    sendUpdateToRender = false;
-                }
-                else if (spi->state == BUS_READY)
+                if (spi->state == BUS_READY)
                     if (beginReceiveTransmission() != BUS_OK)
                         PolyError_Handler("ERROR | FATAL | last received, receive bus occuppied");
                 return 0;
@@ -764,9 +803,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
                 }
 
-                print("layer ", receiveLayer);
-                println(", chip ", receiveChip, ":");
-                println(messagebuffer);
+                // print("layer ", receiveLayer);
+                // println(", chip ", receiveChip, ":");
+                // println(messagebuffer);
 
                 break;
 
@@ -782,11 +821,12 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 #endif
 
-            case NOCOMMAND: PolyError_Handler("ERROR | FATAL | command was empty"); return 1;
+            case NOCOMMAND: PolyError_Handler("ERROR | FATAL | command was empty"); break;
 
             default:
                 // something went wrong here
                 PolyError_Handler("ERROR | FATAL | Decode error");
+                state = COM_READY;
 
                 return 1;
         }
@@ -794,6 +834,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     // we should always exit with LASTBYTE
     PolyError_Handler("no LASTBYTE received");
+    state = COM_READY;
 
     return 1;
 }
@@ -813,7 +854,8 @@ void COMinterChip::switchOutBuffer() {
 uint8_t COMinterChip::appendLastByte() {
     uint8_t comCommand[LASTBYTECMDSIZE];
     comCommand[0] = LASTBYTE;
-    outBuffer[currentOutBufferSelect].push_back(comCommand[0]);
+    // buffer has been switched already
+    outBuffer[!currentOutBufferSelect].push_back(comCommand[0]);
 
     return 0;
 }
@@ -852,6 +894,50 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
     return 0;
 }
 
+void COMinterChip::resetCom() {
+    println("COMERROR");
+
+#ifdef POLYCONTROL
+
+    __disable_irq();
+    volatile uint8_t data[50] = {0};
+    volatile uint8_t dataIn[50] = {0};
+    *(uint16_t *)data = 50;
+    spi->state = BUS_READY;
+    state = COM_READY;
+    outBuffer[0].clear();
+    outBuffer[1].clear();
+
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    spi->receive((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 0, GPIO_PIN_SET);
+
+    setCSLine(0, 1, GPIO_PIN_RESET);
+    spi->receive((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 1, GPIO_PIN_SET);
+
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    spi->receive((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 0, GPIO_PIN_SET);
+
+    setCSLine(0, 1, GPIO_PIN_RESET);
+    spi->receive((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 1, GPIO_PIN_SET);
+
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    setCSLine(0, 1, GPIO_PIN_RESET);
+
+    spi->transmit((uint8_t *)data, 50, false);
+
+    setCSLine(0, 0, GPIO_PIN_SET);
+    setCSLine(0, 1, GPIO_PIN_SET);
+
+    pushDummySizePlaceHolder();
+
+    __enable_irq();
+#endif
+}
+
 busState COMinterChip::invokeBufferFullSend() {
 
 #ifdef POLYRENDER
@@ -859,14 +945,15 @@ busState COMinterChip::invokeBufferFullSend() {
     return BUS_ERROR;
 #endif
 
-    busState ret = beginSendTransmission();
+    volatile busState ret = beginSendTransmission();
 
     if (ret != BUS_OK) {
-        uint32_t timer = millis();
+        elapsedMillis timer = 0;
         while (ret != BUS_OK) { // wait...
-            if ((millis() - timer) > 100) {
-                PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
-                return BUS_ERROR;
+            if (timer > 100) {
+                // PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
+                // resetCom();
+                return BUS_OK;
             }
 
             // FlagHandler::handleFlags(); // so we don't get stuck

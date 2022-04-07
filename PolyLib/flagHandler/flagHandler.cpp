@@ -36,10 +36,10 @@ void initFlagHandler() {
         cvDacLastFinished[i] = true;
 
     renderNewCV = false;
-    cvRendered = false;
-    cvSent = false;
+    // cvRendered = false;
+    // cvSent = false;
     renderNewCVFunc = nullptr;
-    sendRenderedCVsFunc = nullptr;
+    // sendRenderedCVsFunc = nullptr;
 
 #endif
 }
@@ -48,26 +48,26 @@ void initFlagHandler() {
 
 // InterChip send flags
 
-bool layerActive[2] = {false};
+volatile bool layerActive[2] = {false};
 
 // bool receiveDMARunning = false;
 
-bool Control_Encoder_Interrupt = false;
+volatile bool Control_Encoder_Interrupt = false;
 std::function<void()> Control_Encoder_ISR = nullptr;
 elapsedMicros Control_Encoder_Interrupt_Timer;
-bool HID_Initialized = false;
+volatile bool HID_Initialized = false;
 
-bool Panel_0_EOC_Interrupt = false;
-bool Panel_1_EOC_Interrupt = false;
+volatile bool Panel_0_EOC_Interrupt = false;
+volatile bool Panel_1_EOC_Interrupt = false;
 std::function<void()> Panel_EOC_ISR = nullptr;
 
-bool Control_Touch_Interrupt = false;
+volatile bool Control_Touch_Interrupt = false;
 std::function<void()> Control_Touch_ISR = nullptr;
 
-bool Panel_0_Touch_Interrupt = false;
+volatile bool Panel_0_Touch_Interrupt = false;
 std::function<void()> Panel_0_Touch_ISR = nullptr;
 
-bool Panel_1_Touch_Interrupt = false;
+volatile bool Panel_1_Touch_Interrupt = false;
 std::function<void()> Panel_1_Touch_ISR = nullptr;
 
 /* interChipx_state:
@@ -78,20 +78,20 @@ std::function<void()> Panel_1_Touch_ISR = nullptr;
     state == 4 -> READY
 */
 
-interChipState renderChip_State[2][2] = {{NOTCONNECT, NOTCONNECT},
-                                         {NOTCONNECT, NOTCONNECT}}; // init State wait for ready
+volatile interChipState renderChip_State[2][2] = {{NOTCONNECT, NOTCONNECT},
+                                                  {NOTCONNECT, NOTCONNECT}}; // init State wait for ready
 
-bool renderChipAwaitingData[2][2] = {false};
+volatile bool renderChipAwaitingData[2][2] = {false};
 
 elapsedMillis renderChip_StateTimeout[2][2] = {{0, 0}, {0, 0}};
 
-bool USB_HS_CONNECTED = false;
-bool USB_FS_CONNECTED = false;
+volatile bool USB_HS_CONNECTED = false;
+volatile bool USB_FS_CONNECTED = false;
 
 // Display
-bool renderingDoneSwitchBuffer;
+volatile bool renderingDoneSwitchBuffer;
 
-bool readTemperature;
+volatile bool readTemperature;
 std::function<void()> readTemperature_ISR = nullptr;
 
 #elif POLYRENDER
@@ -108,10 +108,7 @@ bool cvDacFinished[10];
 bool cvDacLastFinished[3];
 
 bool renderNewCV;
-bool cvRendered;
-bool cvSent;
 void (*renderNewCVFunc)();
-void (*sendRenderedCVsFunc)();
 #endif
 
 // handle all interrupts
@@ -197,12 +194,6 @@ void handleFlags() {
     if (renderNewCV) {
         renderNewCV = false;
         renderNewCVFunc();
-    }
-
-    if (cvRendered && cvSent) {
-        cvRendered = false;
-        cvSent = false;
-        sendRenderedCVsFunc();
     }
 
 #endif

@@ -14,8 +14,8 @@ spiBus spiBusLayer;
 uint8_t sendString(const char *message);
 
 // InterChip Com
-RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * INTERCHIPBUFFERSIZE]);
-RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * INTERCHIPBUFFERSIZE]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
 
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
@@ -85,8 +85,8 @@ void PolyRenderInit() {
 
     // empty buffers
     uint32_t emptyData = 0;
-    fastMemset(&emptyData, (uint32_t *)interChipDMAInBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
-    fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAInBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
     fastMemset(&emptyData, (uint32_t *)saiBuffer, SAIDMABUFFERSIZE * 2);
 
     layerCom.beginReceiveTransmission();
@@ -97,7 +97,7 @@ void PolyRenderInit() {
     HAL_Delay(1);
     audioDacA.init();
 
-    FlagHandler::sendRenderedCVsFunc = sendDACs;
+    // FlagHandler::sendRenderedCVsFunc = sendDACs;
     FlagHandler::renderNewCVFunc = renderCVs;
 }
 
@@ -111,9 +111,9 @@ void PolyRenderRun() {
     // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
     // start audio rendering
-    // renderAudio((int32_t *)saiBuffer);
-    // renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    // audioDacA.startSAI();
+    renderAudio((int32_t *)saiBuffer);
+    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
+    audioDacA.startSAI();
 
     // start cv rendering
     renderCVs();
@@ -126,11 +126,10 @@ void PolyRenderRun() {
     // run loop
     while (true) {
         // for timing test purpose
-        // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
-        // if (askMessage > 3000) {
-        //     askMessage = 0;
-        //     sendString("Hello by Render");
-        // }
+        if (askMessage > 5000) {
+            println("alive");
+            askMessage = 0;
+        }
         FlagHandler::handleFlags();
     }
 }
@@ -283,8 +282,12 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
-    // rising flank
     if (pin == SPI_CS_fromControl_Pin) {
+
+        if (layerCom.spi->state == BUS_SEND) {
+            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+            layerCom.spi->callTxComplete();
+        }
 
         if (layerCom.spi->state == BUS_RECEIVE) {
             // disable reception line
@@ -302,9 +305,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
-    if (hspi == layerCom.spi->hspi) {
-        layerCom.spi->callTxComplete();
-    }
+    // if (hspi == layerCom.spi->hspi) {
+    //     layerCom.spi->callTxComplete();
+    // }
+}
+
+void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
+    // InterChip Com
+    // if (hspi == layerCom.spi->hspi) {
+    //     layerCom.spi->callTxComplete();
+    // }
+    PolyError_Handler("ERROR | FATAL | SPI Error");
 }
 
 void sendDACs() {

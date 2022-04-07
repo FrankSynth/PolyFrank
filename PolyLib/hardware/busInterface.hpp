@@ -25,16 +25,16 @@ class busInterface {
         status = "undefined bus interface \n\r";
         return &status;
     };
-    void callRxComplete() { state = BUS_READY; };
-    void callTxComplete() { state = BUS_READY; };
-    void callError() { state = BUS_ERROR; };
+    inline void callRxComplete() { state = BUS_READY; };
+    inline void callTxComplete() { state = BUS_READY; };
+    inline void callError() { state = BUS_ERROR; };
 
     // std::function<void()> rxCompleteFunction = nullptr;
     // std::function<void()> txCompleteFunction = nullptr;
     // std::function<void()> BUS_errorFunction = nullptr;
 
     std::string status;
-    busState state = BUS_NOTINIT;
+    volatile busState state = BUS_NOTINIT;
 
     busType type = UNDEFINED;
 

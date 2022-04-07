@@ -69,8 +69,8 @@ tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), ta
 // ADC
 
 // Buffer for InterChip Com
-RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * INTERCHIPBUFFERSIZE]);
-RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * INTERCHIPBUFFERSIZE]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
+RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
 
 // USB
 midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
@@ -97,8 +97,8 @@ void PolyControlInit() {
 
     // empty buffers
     uint32_t emptyData = 0;
-    fastMemset(&emptyData, (uint32_t *)interChipDMAInBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
-    fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * INTERCHIPBUFFERSIZE / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAInBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
+    fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
 
     initPoly();
 
@@ -189,13 +189,7 @@ void PolyControlInit() {
 }
 
 void PolyControlRun() { // Here the party starts
-    elapsedMillis askMessage = 0;
     while (1) {
-
-        if (askMessage > 25) {
-            askMessage = 0;
-            sendRequestUIData();
-        }
 
         mididevice.read();
         liveData.serviceRoutine();
@@ -206,6 +200,7 @@ void PolyControlRun() { // Here the party starts
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             renderLED();
+            sendRequestUIData();
         }
     }
 }
@@ -437,14 +432,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         layerCom.spi->callTxComplete();
         // close ChipSelectLine
 
-        if (layerCom.sentRequestUICommand) {
-            for (uint8_t i = 0; i < 2; i++) {
-                for (uint8_t j = 0; j < 2; j++) {
-                    FlagHandler::renderChipAwaitingData[i][j] = FlagHandler::layerActive[i];
-                }
-            }
-        }
-
         // TODO check CS  selection
 
         if (FlagHandler::layerActive[0]) {
@@ -458,7 +445,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     }
     else if (hspi == spiBusEEPROM.hspi) {
         spiBusEEPROM.callTxComplete();
-        // HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_SET);
     }
     else if (hspi == spiBusPanel.hspi) {
         spiBusPanel.callTxComplete();
@@ -474,6 +460,9 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.requestSize = false;
         }
         else {
+            setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
+
+            layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
 
             FlagHandler::renderChipAwaitingData[layerCom.receiveLayer][layerCom.receiveChip] = false;
@@ -482,13 +471,10 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
                   FlagHandler::renderChipAwaitingData[1][0] || FlagHandler::renderChipAwaitingData[1][1])) {
                 layerCom.sentRequestUICommand = false;
             }
-            FlagHandler::renderChip_State[layerCom.receiveLayer][layerCom.receiveChip] = READY;
-            layerCom.spi->callRxComplete();
         }
     }
     else if (hspi == spiBusEEPROM.hspi) {
         spiBusEEPROM.callRxComplete();
-        // HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_SET);
     }
     else if (hspi == spiBusPanel.hspi) {
         spiBusPanel.callRxComplete();
@@ -509,6 +495,8 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
         spiBusPanel.callRxComplete();
     }
 }
+
+volatile bool readygo[2] = {false};
 
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
@@ -556,6 +544,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
     }
 
+    if (pin & GPIO_PIN_7) { // Layer A Chip 1
+        if (FlagHandler::renderChip_State[0][1] == NOTCONNECT) {
+            FlagHandler::renderChip_State[0][1] = READY;
+        }
+        else if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
+            if (FlagHandler::renderChipAwaitingData[0][1]) {
+                if (readygo[0]) {
+                    readygo[0] = false;
+                    readygo[1] = false;
+                    receiveFromRenderChip(0, 0);
+                    receiveFromRenderChip(0, 1);
+                }
+                else
+                    readygo[1] = true;
+            }
+            else
+                FlagHandler::renderChip_State[0][1] = READY;
+            FlagHandler::renderChip_StateTimeout[0][1] = 0;
+        }
+    }
+
     if (pin & GPIO_PIN_6) { // Layer A Chip 0
 
         if (FlagHandler::renderChip_State[0][0] == NOTCONNECT) {
@@ -563,23 +572,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else if (FlagHandler::renderChip_State[0][0] == WAITFORRESPONSE) {
             if (FlagHandler::renderChipAwaitingData[0][0])
-                receiveFromRenderChip(0, 0);
+                if (readygo[1]) {
+                    readygo[0] = false;
+                    readygo[1] = false;
+                    receiveFromRenderChip(0, 0);
+                    receiveFromRenderChip(0, 1);
+                }
+                else
+                    readygo[0] = true;
             else
                 FlagHandler::renderChip_State[0][0] = READY;
             FlagHandler::renderChip_StateTimeout[0][0] = 0;
-        }
-    }
-
-    if (pin & GPIO_PIN_7) { // Layer A Chip 1
-        if (FlagHandler::renderChip_State[0][1] == NOTCONNECT) {
-            FlagHandler::renderChip_State[0][1] = READY;
-        }
-        else if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
-            if (FlagHandler::renderChipAwaitingData[0][1])
-                receiveFromRenderChip(0, 1);
-            else
-                FlagHandler::renderChip_State[0][1] = READY;
-            FlagHandler::renderChip_StateTimeout[0][1] = 0;
         }
     }
 }

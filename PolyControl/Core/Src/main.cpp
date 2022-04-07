@@ -230,7 +230,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL3.PLL3M = 4;
     PeriphClkInitStruct.PLL3.PLL3N = 120;
     PeriphClkInitStruct.PLL3.PLL3P = 2;
-    PeriphClkInitStruct.PLL3.PLL3Q = 3;
+    PeriphClkInitStruct.PLL3.PLL3Q = 6;
     PeriphClkInitStruct.PLL3.PLL3R = 5;
     PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_1;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;

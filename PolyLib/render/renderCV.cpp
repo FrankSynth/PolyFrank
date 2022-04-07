@@ -370,7 +370,7 @@ void renderCVs() {
     setLEDs();
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 
-    FlagHandler::cvRendered = true;
+    // FlagHandler::cvRendered = true;
 }
 
 #endif
