@@ -46,10 +46,6 @@ void initFlagHandler() {
 
 #ifdef POLYCONTROL
 
-// InterChip send flags
-
-volatile bool layerActive[2] = {false};
-
 // bool receiveDMARunning = false;
 
 volatile bool Control_Encoder_Interrupt = false;
@@ -69,21 +65,6 @@ std::function<void()> Panel_0_Touch_ISR = nullptr;
 
 volatile bool Panel_1_Touch_Interrupt = false;
 std::function<void()> Panel_1_Touch_ISR = nullptr;
-
-/* interChipx_state:
-    state == 0 -> Transmitted
-    state == 1 -> Received
-    state == 2 -> DMA copied
-    state == 3 -> Checksum
-    state == 4 -> READY
-*/
-
-volatile interChipState renderChip_State[2][2] = {{NOTCONNECT, NOTCONNECT},
-                                                  {NOTCONNECT, NOTCONNECT}}; // init State wait for ready
-
-volatile bool renderChipAwaitingData[2][2] = {false};
-
-elapsedMillis renderChip_StateTimeout[2][2] = {{0, 0}, {0, 0}};
 
 volatile bool USB_HS_CONNECTED = false;
 volatile bool USB_FS_CONNECTED = false;
@@ -115,23 +96,6 @@ void (*renderNewCVFunc)();
 void handleFlags() {
 
 #ifdef POLYCONTROL
-
-    // for (uint8_t i = 0; i < 2; i++) {
-    //     for (uint8_t j = 0; j < 2; j++) {
-    //         if (renderChip_State[i][j] != READY && layerActive[i]) {
-    //             if (renderChip_StateTimeout[i][j] > 100) { // 100ms timeout
-    //                 if (renderChip_State[i][j] == WAITFORRESPONSE) {
-    //                     if (renderChipAwaitingData[i][j]) {
-    //                         // PolyError_Handler("ERROR | FATAL | Communication > awaiting data, no reponse");
-    //                     }
-    //                     else {
-    //                         // PolyError_Handler("ERROR | FATAL | Communication > no ready");
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     // HID Flags
 

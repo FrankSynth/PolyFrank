@@ -120,25 +120,22 @@ void PolyControlInit() {
     globalSettings.loadGlobalSettings(); // load global Settings
 
     // CheckLayerStatus
-    if (FlagHandler::renderChip_State[0][0] == READY && FlagHandler::renderChip_State[0][1] == READY) { // Layer A alive
+    if (layerCom.chipState[0][0] == CHIP_READY && layerCom.chipState[0][1] == CHIP_READY) { // Layer A alive
         layerA.layerState.value = 1;
-        FlagHandler::layerActive[0] = true;
     }
     else {
         globalSettings.midiLayerAChannel.disable = 1;
-        FlagHandler::renderChip_State[0][0] = DISABLED;
-        FlagHandler::renderChip_State[0][1] = DISABLED;
+        layerCom.chipState[0][0] = CHIP_DISABLED;
+        layerCom.chipState[0][1] = CHIP_DISABLED;
     }
 
-    if (FlagHandler::renderChip_State[1][0] == READY && FlagHandler::renderChip_State[1][1] == READY) { // Layer B alive
+    if (layerCom.chipState[1][0] == CHIP_READY && layerCom.chipState[1][1] == CHIP_READY) { // Layer B alive
         layerB.layerState.value = 1;
-        FlagHandler::layerActive[1] = true;
     }
     else {
         globalSettings.midiLayerBChannel.disable = 1;
-
-        FlagHandler::renderChip_State[1][0] = DISABLED;
-        FlagHandler::renderChip_State[1][1] = DISABLED;
+        layerCom.chipState[1][0] = CHIP_DISABLED;
+        layerCom.chipState[1][1] = CHIP_DISABLED;
     }
 
     if (layerA.layerState.value && layerB.layerState.value) {
@@ -407,6 +404,28 @@ void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
         PolyControlNonUIRunWithoutSend();
     }
 }
+/**
+ * @brief retreive data from all chips
+ *
+ */
+void receiveFromAllRenderChip() {
+
+    if (layerA.layerState.value)
+        if (!(layerCom.chipState[0][0] == CHIP_DATAREADY && layerCom.chipState[0][1] == CHIP_DATAREADY))
+            return;
+    if (layerB.layerState.value)
+        if (!(layerCom.chipState[1][0] == CHIP_DATAREADY && layerCom.chipState[1][1] == CHIP_DATAREADY))
+            return;
+
+    if (layerA.layerState.value) {
+        receiveFromRenderChip(0, 0);
+        receiveFromRenderChip(0, 1);
+    }
+    if (layerB.layerState.value) {
+        receiveFromRenderChip(1, 0);
+        receiveFromRenderChip(1, 1);
+    }
+}
 
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
     if (layer) {
@@ -433,12 +452,11 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         // close ChipSelectLine
 
         // TODO check CS  selection
-
-        if (FlagHandler::layerActive[0]) {
+        if (layerA.layerState.value) {
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
         }
-        if (FlagHandler::layerActive[1]) {
+        if (layerB.layerState.value) {
             HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
         }
@@ -465,10 +483,10 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
 
-            FlagHandler::renderChipAwaitingData[layerCom.receiveLayer][layerCom.receiveChip] = false;
+            layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
 
-            if (!(FlagHandler::renderChipAwaitingData[0][0] || FlagHandler::renderChipAwaitingData[0][1] ||
-                  FlagHandler::renderChipAwaitingData[1][0] || FlagHandler::renderChipAwaitingData[1][1])) {
+            if (!(layerCom.chipState[0][0] == CHIP_DATAREADY || layerCom.chipState[0][1] == CHIP_DATAREADY ||
+                  layerCom.chipState[1][0] == CHIP_DATAREADY || layerCom.chipState[1][1] == CHIP_DATAREADY)) {
                 layerCom.sentRequestUICommand = false;
             }
         }
@@ -518,71 +536,64 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & GPIO_PIN_5) { //  Touch
         FlagHandler::Panel_1_Touch_Interrupt = true;
     }
+
     if (pin & GPIO_PIN_3) { // Layer B Chip 0
-        if (FlagHandler::renderChip_State[1][0] == NOTCONNECT) {
-            FlagHandler::renderChip_State[1][0] = READY;
+        if (layerCom.chipState[1][0] == CHIP_DATASENT) {
+            layerCom.chipState[1][0] = CHIP_READY;
+            layerCom.chipStateTimeout[1][0] = 0;
         }
-        else if (FlagHandler::renderChip_State[1][0] == WAITFORRESPONSE) {
-            if (FlagHandler::renderChipAwaitingData[1][0])
-                receiveFromRenderChip(1, 0);
-            else
-                FlagHandler::renderChip_State[1][0] = READY;
-            FlagHandler::renderChip_StateTimeout[1][0] = 0;
+        else if (layerCom.chipState[1][0] == CHIP_WAITFORDATA) {
+            layerCom.chipState[1][0] = CHIP_DATAREADY;
+            receiveFromAllRenderChip();
+            layerCom.chipStateTimeout[1][0] = 0;
+        }
+        else if (layerCom.chipState[1][0] == CHIP_NOTINIT) {
+            layerCom.chipState[1][0] = CHIP_READY;
         }
     }
 
     if (pin & GPIO_PIN_4) { // Layer B Chip 1
-        if (FlagHandler::renderChip_State[1][1] == NOTCONNECT) {
-            FlagHandler::renderChip_State[1][1] = READY;
+        if (layerCom.chipState[1][1] == CHIP_DATASENT) {
+            layerCom.chipState[1][1] = CHIP_READY;
+            layerCom.chipStateTimeout[1][1] = 0;
         }
-        else if (FlagHandler::renderChip_State[1][1] == WAITFORRESPONSE) {
-            if (FlagHandler::renderChipAwaitingData[1][1])
-                receiveFromRenderChip(1, 1);
-            else
-                FlagHandler::renderChip_State[1][1] = READY;
-            FlagHandler::renderChip_StateTimeout[1][1] = 0;
+        else if (layerCom.chipState[1][1] == CHIP_WAITFORDATA) {
+            layerCom.chipState[1][1] = CHIP_DATAREADY;
+            receiveFromAllRenderChip();
+            layerCom.chipStateTimeout[1][1] = 0;
+        }
+        else if (layerCom.chipState[1][1] == CHIP_NOTINIT) {
+            layerCom.chipState[1][1] = CHIP_READY;
         }
     }
 
     if (pin & GPIO_PIN_7) { // Layer A Chip 1
-        if (FlagHandler::renderChip_State[0][1] == NOTCONNECT) {
-            FlagHandler::renderChip_State[0][1] = READY;
+        if (layerCom.chipState[0][1] == CHIP_DATASENT) {
+            layerCom.chipState[0][1] = CHIP_READY;
+            layerCom.chipStateTimeout[0][1] = 0;
         }
-        else if (FlagHandler::renderChip_State[0][1] == WAITFORRESPONSE) {
-            if (FlagHandler::renderChipAwaitingData[0][1]) {
-                if (readygo[0]) {
-                    readygo[0] = false;
-                    readygo[1] = false;
-                    receiveFromRenderChip(0, 0);
-                    receiveFromRenderChip(0, 1);
-                }
-                else
-                    readygo[1] = true;
-            }
-            else
-                FlagHandler::renderChip_State[0][1] = READY;
-            FlagHandler::renderChip_StateTimeout[0][1] = 0;
+        else if (layerCom.chipState[0][1] == CHIP_WAITFORDATA) {
+            layerCom.chipState[0][1] = CHIP_DATAREADY;
+            receiveFromAllRenderChip();
+            layerCom.chipStateTimeout[0][1] = 0;
+        }
+        else if (layerCom.chipState[0][1] == CHIP_NOTINIT) {
+            layerCom.chipState[0][1] = CHIP_READY;
         }
     }
 
     if (pin & GPIO_PIN_6) { // Layer A Chip 0
-
-        if (FlagHandler::renderChip_State[0][0] == NOTCONNECT) {
-            FlagHandler::renderChip_State[0][0] = READY;
+        if (layerCom.chipState[0][0] == CHIP_DATASENT) {
+            layerCom.chipState[0][0] = CHIP_READY;
+            layerCom.chipStateTimeout[0][0] = 0;
         }
-        else if (FlagHandler::renderChip_State[0][0] == WAITFORRESPONSE) {
-            if (FlagHandler::renderChipAwaitingData[0][0])
-                if (readygo[1]) {
-                    readygo[0] = false;
-                    readygo[1] = false;
-                    receiveFromRenderChip(0, 0);
-                    receiveFromRenderChip(0, 1);
-                }
-                else
-                    readygo[0] = true;
-            else
-                FlagHandler::renderChip_State[0][0] = READY;
-            FlagHandler::renderChip_StateTimeout[0][0] = 0;
+        else if (layerCom.chipState[0][0] == CHIP_WAITFORDATA) {
+            layerCom.chipState[0][0] = CHIP_DATAREADY;
+            receiveFromAllRenderChip();
+            layerCom.chipStateTimeout[0][0] = 0;
+        }
+        else if (layerCom.chipState[0][0] == CHIP_NOTINIT) {
+            layerCom.chipState[0][0] = CHIP_READY;
         }
     }
 }

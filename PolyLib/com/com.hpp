@@ -247,16 +247,20 @@ class COMdin {
 
 #endif
 
-// class for interchip communication in both directions
-
-#ifdef POLYCONTROL
-
-enum comInterchipState { COM_READY, COM_AWAITINGDATA, COM_DECODE, COM_ERROR };
-#endif
-#ifdef POLYRENDER
 enum comInterchipState { COM_READY, COM_DECODE };
+#ifdef POLYCONTROL
+enum renderChipState {
+    CHIP_NOTINIT,
+    CHIP_READY,
+    CHIP_DATASENT,
+    CHIP_WAITFORDATA,
+    CHIP_DATAREADY,
+    CHIP_ERROR,
+    CHIP_DISABLED
+};
 #endif
 
+// class for interchip communication in both directions
 class COMinterChip {
 #ifdef POLYCONTROL
 
@@ -280,6 +284,9 @@ class COMinterChip {
     volatile bool requestSize = false;
     volatile uint8_t receiveLayer;
     volatile uint8_t receiveChip;
+
+    volatile renderChipState chipState[2][2] = {{CHIP_NOTINIT}};
+    elapsedMillis chipStateTimeout[2][2] = {{0}};
 
   private:
 #elif POLYRENDER
@@ -320,11 +327,11 @@ class COMinterChip {
         state = COM_READY;
     }
 
+    // prints com error, could be ussed some day to reset on com error
     void resetCom();
 
     // send out current out buffer
     busState beginSendTransmission();
-
     uint8_t decodeCurrentInBuffer();
 
     spiBus *spi;
@@ -348,9 +355,6 @@ class COMinterChip {
 
     // buffer full, send now
     busState invokeBufferFullSend();
-
-    // flag to block new send commands while send task is in progress
-    // uint8_t blockNewSendBeginCommand = 0;
 
     uint8_t *dmaOutBufferPointer[2];
     uint16_t dmaOutCurrentBufferSize;
