@@ -10,6 +10,10 @@ class GUIPanelPatch : public GUIPanelBase {
 
     void updateEntrys();
 
+    void collectModules();
+    void collectInputs();
+    void collectOutputs();
+
     void registerElements();
 
     void registerPanelSettings();
@@ -17,6 +21,12 @@ class GUIPanelPatch : public GUIPanelBase {
     void addCurrentPatch();
     void removeCurrentPatch();
     void clearPatches();
+
+    void activate();
+
+    void scrollModulePosition(int16_t scroll);
+    void scrollTargetPosition(int16_t scroll);
+    void scrollSourcePosition(int16_t scroll);
 
     void setFocus(FOCUSMODE focusMode) {
 
@@ -39,7 +49,9 @@ class GUIPanelPatch : public GUIPanelBase {
     }
 
     void toggleFlipView() { flipView = !flipView; }
-    void toggleFilterdView() { filteredView = !filteredView; }
+    void toggleFilterdView() {
+        filteredView = !filteredView;
+    }
 
   private:
     // Boxes
@@ -49,6 +61,10 @@ class GUIPanelPatch : public GUIPanelBase {
     uint16_t entrysModule = 0;
     uint16_t entrysSource = 0;
     uint16_t entrysTarget = 0;
+
+    std::vector<BaseModule *> allModules;
+    std::vector<Input *> allInputs;
+    std::vector<Output *> allOutputs;
 
     const uint16_t maxEntrys = PATCHPANELENTRYS;
 
@@ -61,8 +77,8 @@ class GUIPanelPatch : public GUIPanelBase {
     Scroller scrollSource = Scroller(PATCHPANELENTRYS);
     Scroller scrollTarget = Scroller(PATCHPANELENTRYS);
 
-    uint8_t flipView = 0;
-    uint8_t filteredView = 0;
+    int32_t flipView = 0;
+    int32_t filteredView = 0;
 
     uint16_t absXPositions[3];
 

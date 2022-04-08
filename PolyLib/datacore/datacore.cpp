@@ -1,10 +1,11 @@
 #include "datacore.hpp"
+#include "debughelper/debughelper.hpp"
 
 LogCurve logMapping(32, 0.1);
 LogCurve antiLogMapping(32, 0.9);
 
 void Setting::setValue(int32_t newValue) {
-    value = testInt(newValue, min, max);
+    value = std::clamp(newValue, min, max);
 
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
@@ -13,6 +14,8 @@ void Setting::setValue(int32_t newValue) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 const std::string &Setting::getValueAsString() {
@@ -31,18 +34,18 @@ const std::string &Setting::getValueAsString() {
 }
 
 void Analog::setValue(int32_t newValue) {
-    value = testInt(newValue, minInputValue, maxInputValue);
+    value = std::clamp(newValue, minInputValue, maxInputValue);
 
     if (mapping == linMap) {
         valueMapped = fast_lerp_f32(min, max, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
     }
     else if (mapping == logMap) {
         valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
-        valueMapped = logMapping.mapValue(valueMapped) * (max - min) + min;
+        valueMapped = logMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
     else if (mapping == antilogMap) {
         valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
-        valueMapped = antiLogMapping.mapValue(valueMapped) * (max - min) + min;
+        valueMapped = antiLogMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
 
 #ifdef POLYCONTROL
@@ -51,27 +54,41 @@ void Analog::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 int32_t Analog::reverseMapping(float newValue) {
 
-    newValue = testFloat(newValue, min, max);
+    newValue = std::clamp(newValue, min, max);
+
+    if (min < 0) { // centered value
+        newValue = (newValue) / ((max - min) / 2);
+    }
+    else {
+        newValue = (newValue - min) / (max - min);
+    }
 
     int32_t reverseMapped = minInputValue;
 
     if (mapping == linMap) {
-        newValue = (newValue - min) / (max - min);
         reverseMapped = (int32_t)(newValue * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == antilogMap) {
-        newValue = (newValue - min) / (max - min);
-        reverseMapped = (int32_t)(logMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
+        reverseMapped =
+            (int32_t)(logMapping.mapValueSigned(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
     else if (mapping == logMap) {
-        newValue = (newValue - min) / (max - min);
-        reverseMapped = (int32_t)(antiLogMapping.mapValue(newValue) * (maxInputValue - minInputValue) + minInputValue);
+        reverseMapped =
+            (int32_t)(antiLogMapping.mapValueSigned(newValue) * (maxInputValue - minInputValue) + minInputValue);
     }
-    return reverseMapped;
+
+    if (min < 0) { // centered value
+        return reverseMapped + inputRange / 2;
+    }
+    else {
+        return reverseMapped;
+    }
 }
 
 const std::string &Digital::getValueAsString() {
@@ -79,7 +96,7 @@ const std::string &Digital::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == max - min + 1) {
+        if ((int32_t)valueNameList->size() >= max - min + 1) {
             return (*valueNameList)[valueMapped - min];
         }
         else {
@@ -99,6 +116,8 @@ void Digital::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void Digital::nextValue() {
@@ -110,6 +129,21 @@ void Digital::nextValue() {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+}
+
+void Digital::nextValueLoop() {
+    valueMapped = changeIntLoop(valueMapped, 1, min, max);
+
+#ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 void Digital::previousValue() {
@@ -121,9 +155,11 @@ void Digital::previousValue() {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
-void BasePatch::removePatchInOut(PatchElementInOut &patch) {
+void BasePatch::removePatchInOut(PatchElement &patch) {
     for (uint32_t i = 0; i < patchesInOut.size(); i++) {
         if (patchesInOut[i] == &patch) {
             patchesInOut.erase(patchesInOut.begin() + i);
@@ -132,15 +168,15 @@ void BasePatch::removePatchInOut(PatchElementInOut &patch) {
     }
 }
 
-// TODO remove all out out patch stuff
-
-void BasePatch::removePatchOutOut(PatchElementOutOut &patch) {
-    for (uint32_t i = 0; i < patchesOutOut.size(); i++) {
-        if (patchesOutOut[i] == &patch) {
-            patchesOutOut.erase(patchesOutOut.begin() + i);
-            return;
+bool BasePatch::findPatchInOut(uint8_t output, uint8_t input) {
+    for (PatchElement *p : patchesInOut) {
+        if (p == nullptr) {
+            return false;
         }
+        if (p->sourceOut->idGlobal == output && p->targetIn->idGlobal == input)
+            return true;
     }
+    return false;
 }
 
 void Input::collectCurrentSample() {
@@ -149,7 +185,7 @@ void Input::collectCurrentSample() {
     currentSample[1] = 0;
     currentSample[2] = 0;
     currentSample[3] = 0;
-    for (PatchElementInOut *patch : patchesInOut) {
+    for (PatchElement *patch : patchesInOut) {
         Output *sourceOut = patch->sourceOut;
         const float &amount = patch->amount;
         currentSample[0] += sourceOut->currentSample[0] * amount;
@@ -159,19 +195,19 @@ void Input::collectCurrentSample() {
     }
 }
 
-void PatchElementInOut::changeAmountEncoderAccelerationMapped(bool direction) {
+void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 
     if (direction == 0) {
-        amountRaw = amountRaw + (-0.5f * ROTARYENCODERACELLARATION);
+        amountRaw = amountRaw + (-0.5f * ROTARYENCODERACCELERATION);
     }
     if (direction == 1) {
-        amountRaw = amountRaw + 0.5f * ROTARYENCODERACELLARATION;
+        amountRaw = amountRaw + 0.5f * ROTARYENCODERACCELERATION;
     }
     setAmount(amountRaw);
 }
 
-void PatchElementInOut::setAmount(float amountRaw) {
-    this->amountRaw = testFloat(amountRaw, -1, 1);
+void PatchElement::setAmount(float amountRaw) {
+    this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
 
     if (targetIn->mapping == linMap) {
         amount = this->amountRaw;
@@ -188,8 +224,8 @@ void PatchElementInOut::setAmount(float amountRaw) {
 #endif
 }
 
-void PatchElementInOut::setAmountWithoutMapping(float amountRaw) {
-    this->amountRaw = testFloat(amountRaw, -1, 1);
+void PatchElement::setAmountWithoutMapping(float amountRaw) {
+    this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
     amount = this->amountRaw;
 
 #ifdef POLYCONTROL
@@ -197,30 +233,30 @@ void PatchElementInOut::setAmountWithoutMapping(float amountRaw) {
 #endif
 }
 
-void PatchElementOutOut::setAmountWithoutMapping(float amount) {
-    this->amount = testFloat(amount, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setAmountWithoutMapping(float amount) {
+//     this->amount = std::clamp(amount, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setAmount(float amount) {
-    this->amount = testFloat(amount, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setAmount(float amount) {
+//     this->amount = std::clamp(amount, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
-    this->offset = testFloat(offset, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
+//     this->offset = std::clamp(offset, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }
 
-void PatchElementOutOut::setOffset(float offset) {
-    this->offset = testFloat(offset, -1, 1);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
+// void PatchElementOutOut::setOffset(float offset) {
+//     this->offset = std::clamp(offset, -1, 1);
+// #ifdef POLYCONTROL
+//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
+// #endif
+// }

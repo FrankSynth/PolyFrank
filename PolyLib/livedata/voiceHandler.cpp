@@ -3,7 +3,7 @@
 #include "com/com.hpp"
 #include "layer/layer.hpp"
 
-extern COMinterChip layerCom[2];
+extern COMinterChip layerCom;
 extern std::vector<Layer *> allLayers;
 
 void VoiceHandler::playNote(Key &key) {
@@ -38,7 +38,7 @@ void VoiceHandler::playNote(Key &key) {
         v->velocity = key.velocity;
         v->playID = playIDCounter;
 
-        layerCom[v->layerID].sendNewNote(v->voiceID, v->note, v->velocity);
+        layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
         // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
 
@@ -75,6 +75,26 @@ void VoiceHandler::freeNote(Key &key) {
     }
 }
 
+void VoiceHandler::reset(uint8_t layer) {
+    if (livemodeMergeLayer.value == 1) {
+        if (layer == 0) {
+            for (uint8_t i = 0; i < 2; i++) {
+                for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                    sendGateOff(&voices[i][x]);
+                }
+                sustain[i] = 0;
+            }
+        }
+    }
+
+    else {
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            sendGateOff(&voices[layer][i]);
+        }
+        sustain[layer] = 0;
+    }
+}
+
 void VoiceHandler::setSustain(uint8_t value, uint8_t layer) {
     if (value >= 64) {
         sustainOn(layer);
@@ -88,7 +108,7 @@ void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 
     v->status = FREE;
 
-    layerCom[v->layerID].sendCloseGate(v->voiceID);
+    layerCom.sendCloseGate(v->layerID, v->voiceID);
 }
 
 void VoiceHandler::sustainOff(uint8_t layer) {
@@ -161,11 +181,14 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             }
             else { // first found
                 oldestVoiceID = voiceLayer[i].voiceID;
+                // break; // FIXME break possible, no?  Was meinst du damit? also ich will aus den for loop breaken
             }
         }
     }
 
-    // no voice free voice found, take the oldest played one
+    // FIXME what about SUSTAIN note status? What is SELECT? //select makiert schon ausgewählte voices, falls man
+    // mehrere auf einmal spielt
+    // no free voice found, take the oldest played one
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE
@@ -182,7 +205,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
         }
     }
     if (oldestVoiceID == 0xFF) {
-        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to many voices?");
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for too many voices?");
         return;
     }
 
@@ -196,7 +219,7 @@ void VoiceHandler::searchNextVoiceAB() {
 
     // find oldest FREE Voice
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->LayerState.value == 1) { // check layerState
+        if (allLayers[i]->layerState.value == 1) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
                     if (voices[i][x].playID <= nextVoice->playID) {
@@ -211,7 +234,7 @@ void VoiceHandler::searchNextVoiceAB() {
     if (nextVoice == nullptr) {
 
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->LayerState.value == 1) { // check layerState
+            if (allLayers[i]->layerState.value == 1) { // check layerState
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                     if (voices[i][x].status == SELECT) { // not already selected

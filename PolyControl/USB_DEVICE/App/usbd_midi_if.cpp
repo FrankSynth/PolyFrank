@@ -21,6 +21,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_midi_if.hpp"
+#include "midiInterface/MIDIInterface.h"
 
 /* USER CODE BEGIN INCLUDE */
 
@@ -89,10 +90,10 @@
 /* Create buffer for reception and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
+volatile uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 
 /** Data to send over USB MIDI are stored in this buffer   */
-uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+volatile uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
@@ -108,6 +109,7 @@ midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
  */
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
+// extern midi::MidiInterface<midiUSB::COMusb> mididevice;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
 
@@ -147,8 +149,8 @@ USBD_MIDI_ItfTypeDef USBD_Interface_MIDI_fops_FS = {MIDI_Init_FS, MIDI_DeInit_FS
 static int8_t MIDI_Init_FS(void) {
     /* USER CODE BEGIN 3 */
     /* Set Application Buffers */
-    USBD_MIDI_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-    USBD_MIDI_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+    USBD_MIDI_SetTxBuffer(&hUsbDeviceFS, (uint8_t *)UserTxBufferFS, 0);
+    USBD_MIDI_SetRxBuffer(&hUsbDeviceFS, (uint8_t *)UserRxBufferFS);
     return (USBD_OK);
     /* USER CODE END 3 */
 }

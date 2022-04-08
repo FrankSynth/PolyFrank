@@ -1,4 +1,5 @@
 #include "poly.hpp"
+#include "modules/moduleCallbacks.hpp"
 
 std::vector<Layer *> allLayers;
 
@@ -7,11 +8,17 @@ std::vector<Layer *> allLayers;
  *
  */
 void initPoly() {
-    // set all Flags to default state
 
     // prep lin2log
     precomputeNoteLin2LogTable();
 
+    // set all Flags to default state
     FlagHandler::initFlagHandler();
-    // init global settings if necessary
+
+    // load knob changed callbacks
+    setModuleCallbacks();
+}
+
+void comMDMACallbackError(MDMA_HandleTypeDef *_hmdma) {
+    println("MDMA ERROR");
 }

@@ -1,19 +1,15 @@
 #pragma once
-#include "Rotary.hpp"
-#include "gfx/gui.hpp"
-#include "hardware/AT42QT2120.hpp"
-#include "hardware/IS31FL3216.hpp"
-#include "hardware/MAX11128.hpp"
-#include "hardware/PCA9555.hpp"
-#include "hardware/TS3A5017D.hpp"
+#include "datacore/datacore.hpp"
+#include "gfx/guiActionHandler.hpp"
+#include "gfx/guiBase.hpp"
+#include "modules/modules.hpp"
+#include <stdio.h>
 
-#include "poly.hpp"
-#define LEDBRIGHTNESS_LOW 50
-#define LEDBRIGHTNESS_MEDIUM 100
-#define LEDBRIGHTNESS_MAX 220
-#define NUMBERENCODERS 4
-#define NUMBER_PANELTOUCHICS 4
-#define NUMBER_LEDDRIVER 4
+#define LEDBRIGHTNESS_OFF 0
+#define LEDBRIGHTNESS_LOW 10
+#define LEDBRIGHTNESS_MEDIUM 50
+#define LEDBRIGHTNESS_MAX 255
+#define NUMBERENCODERS 5
 
 typedef enum {
     TOUCH_IO_PIN_0,
@@ -32,232 +28,56 @@ typedef enum {
 
 typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D } TOUCH_IO_PORT;
 
-void initHID();
+void HIDConfig();
+
 void processEncoder();
 
 void processControlTouch();
-
 void processPanelTouch(uint8_t layerID);
-void eventPanelTouch(uint16_t touchState, uint8_t port);
-void eventControlTouch(uint16_t touchState);
 
-void initPotiMapping();
+void potiMapping();
 void processPanelPotis();
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
-uint16_t patchLEDMapping(FOCUSMODE type, uint32_t id);
+void renderLED();
+
+void patchLEDMappingInit();
+void switchLEDMapping();
+void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness);
+void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness);
+
+void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);
+void quadLEDSetting(uint8_t &LED1, uint8_t &LED2, uint8_t &LED3, uint8_t &LED4, int32_t &value);
+void dualLEDSetting(uint8_t &LED1, uint8_t &LED2, int32_t &value);
+void singleLEDSetting(uint8_t &LED, int32_t &value);
 
 class PanelTouch {
-
   public:
-    PanelTouch(uint8_t layerID) { this->layerID = layerID; }
-    void event(uint16_t touchState, uint8_t port) {
+    void eventLayer(uint8_t layerID, uint16_t touchState, uint8_t port);
+    void eventControl(uint16_t touchState, uint8_t port);
+    void evaluateLayer(uint8_t pin, uint8_t port, uint8_t event);
+    void evaluateControl(uint8_t pin, uint8_t port, uint8_t event);
 
-        uint16_t event = pinState[port] ^ touchState;
+    void evaluateInput(Input *pInput, uint8_t event);
+    void evaluateOutput(Output *pOutput, uint8_t event);
+    void evaluateModul(BaseModule *pModule, uint8_t event);
+    void evaluateActionButton(ButtonActionHandle *pButton, uint8_t event);
+    void evaluateActionHandle(actionHandle *pAction, uint8_t event);
+    void evaluateSetting(Digital *pSwitch, uint8_t event);
 
-        // println("------> eval");
-        uint16_t push = event & touchState;
-        uint16_t release = event & (~touchState);
-        // println("------ > event ", event);
+    void setInputFocus(Input *pInput);
+    void setOutputFocus(Output *pOutput);
 
-        // println("------ > push ", push);
+    void forceSetOutputFocus(Output *pOutput);
+    void forceSetInputFocus(Input *pInput);
 
-        // println("------ > release ", release);
-
-        for (int x = 0; x < 12; x++) { // pins per port
-
-            if (push & (1 << x)) {
-                // println("--------> eval Push");
-
-                evaluate(x, port, 1);
-            }
-
-            else if (release & (1 << x)) {
-                // println("--------> eval Release");
-
-                evaluate(x, port, 0);
-            }
-        }
-        // uint8_t newPinState = pinState[port] |= (1 << pin);
-        // uint8_t oldPinState = pinState[port] |= (1 << pin);
-    }
-
-    // TODO panel touch buttons Mapping
-    void evaluate(uint8_t pin, uint8_t port, uint8_t event) {
-        if (event) {
-            pinState[port] |= 1 << pin; // set pin State to 1
-        }
-        else {
-            pinState[port] &= ~(1 << pin);
-        }
-        if (port == TOUCH_IO_PORT_A) {
-            switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
-                case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-            }
-
-            return;
-        }
-        if (port == TOUCH_IO_PORT_B) {
-            switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: break;
-                case 11: break;
-            }
-
-            return;
-        }
-        if (port == TOUCH_IO_PORT_C) {
-            switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: break;
-                case 11: break;
-            }
-
-            return;
-        }
-        if (port == TOUCH_IO_PORT_D) {
-            switch (pin) {
-                case 0: break;
-                case 1: break;
-                case 2: break;
-                case 3: break;
-                case 4: break;
-                case 5: break;
-                case 6: break;
-                case 7: break;
-                case 8: break;
-                case 9: break;
-                case 10: break;
-                case 11: break;
-            }
-
-            return;
-        }
-    }
-
-    // TODO löschen eines Patches durch erneut klicken
-
-    void evaluateInput(Input *pInput, uint8_t event) {
-        // println("-------------> input");
-        if (event) { // push Event
-            if (activeOutput != nullptr) {
-                allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
-                // println("-------------> patch INOUT");
-            }
-            else {
-                // println("-------------> create Focus IN");
-
-                setInputFocus(pInput);
-            }
-        }
-        else { // release Event -> clear active input
-            if (pInput == activeInput) {
-                // println("-------------> Release Focus IN");
-
-                activeInput = nullptr;
-            }
-        }
-    }
-    void evaluateOutput(Output *pOutput, uint8_t event) {
-        // println("-------------> output");
-
-        if (event) { // push Event
-
-            if (activeInput != nullptr) {
-                allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
-                // println("-------------> patch OUTIN");
-            }
-            else if (activeOutput != nullptr) {
-
-                if (activeOutput != pOutput) {
-
-                    allLayers[layerID]->addPatchOutOutById(pOutput->idGlobal, activeOutput->idGlobal, 1);
-                    // println("-------------> patch OUTOUT");
-                }
-            }
-            else {
-                setOutputFocus(pOutput);
-                // println("-------------> create Focus OUT");
-            }
-        }
-
-        else { // release Event -> clear active output
-            if (pOutput == activeOutput) {
-                // println("-------------> Release Focus OUT");
-
-                activeOutput = nullptr;
-            }
-        }
-    }
-
-    void evaluateModul(BaseModule *pModule, uint8_t event) {
-
-        if (event) { // push Event
-            activeOutput = nullptr;
-            activeInput = nullptr;
-            setModulFocus(pModule);
-        }
-    }
-
-    void evaluateSetting(Digital *pSwitch) { pSwitch->nextValue(); }
-
-    void setInputFocus(Input *pInput) {
-        if (activeInput == nullptr && activeOutput == nullptr) {
-            activeInput = pInput;
-
-            newFocus = {pInput->layerId, pInput->moduleId, pInput->id, FOCUSINPUT};
-        }
-    }
-
-    void setOutputFocus(Output *pOutput) {
-        if (activeInput == nullptr && activeOutput == nullptr) {
-            activeOutput = pOutput;
-
-            newFocus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
-        }
-    }
-
-    void setModulFocus(BaseModule *pModule) { newFocus = {pModule->layerId, pModule->id, 0, FOCUSMODULE}; }
+    void setModulFocus(BaseModule *pModule);
 
     Output *activeOutput = nullptr;
     Input *activeInput = nullptr;
 
+    uint16_t pinStateLayer[2][8];
+    uint16_t pinStateControl[8];
+
     uint8_t layerID;
-
-    // soviele anlegen wie es ports gibt
-    uint16_t pinState[8];
 };
-
-void updatePatchLED();
-void switchLEDMapping();
-
-void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);

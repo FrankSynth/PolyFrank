@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "showDevDebugOutput": true,
+            "showDevDebugOutput": "parsed",
             "cwd": "${workspaceRoot}",
             "executable": "PolyControl/build/PolyControl.elf",
             "name": "Debug PolyControl",
@@ -14,10 +14,13 @@
             "configFiles": [
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg"
+            ],
+            "overrideLaunchCommands": [
+                "interpreter-exec console \"monitor reset halt\"",
             ]
         },
         {
-            "showDevDebugOutput": true,
+            "showDevDebugOutput": "parsed",
             "cwd": "${workspaceRoot}",
             "executable": "PolyRender/build/PolyRender.elf",
             "name": "Debug PolyRender",
@@ -30,5 +33,13 @@
             "configFiles": [
                 "interface/stlink.cfg",
                 "target/stm32h7x.cfg"
-            ]
+            ],
+            "overrideLaunchCommands": [
+                "interpreter-exec console \"monitor reset halt\"",
+                //'target-download',
+                //'interpreter-exec console \"monitor reset halt\"',
+                "-enable-pretty-printing"
+            ],
         }
+    ]
+}

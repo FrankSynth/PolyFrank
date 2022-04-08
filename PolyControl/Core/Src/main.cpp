@@ -19,6 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "bdma.h"
 #include "dma.h"
 #include "dma2d.h"
 #include "fmc.h"
@@ -33,6 +35,8 @@
 #include "tim.h"
 #include "usart.h"
 #include "usb_device.h"
+
+#include "globalsettings/globalSettings.hpp"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -98,7 +102,7 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(10); //
+    // HAL_Delay(10); //
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
@@ -106,6 +110,7 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_USB_DEVICE_Init();
+    MX_BDMA_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
     MX_FMC_Init();
@@ -121,19 +126,26 @@ int main(void) {
     MX_UART5_Init();
     MX_TIM13_Init();
     MX_I2C4_Init();
-    MX_TIM3_Init();
+    // MX_TIM3_Init();
+    MX_TIM4_Init();
+    MX_TIM5_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
+    MX_ADC3_Init();
 
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
     HAL_TIM_Base_Start(&htim2);
-    HAL_TIM_Base_Start(&htim3);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    // HAL_TIM_Base_Start(&htim3);
+    // HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_Base_Start(&htim13);
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
+    HAL_TIM_Base_Start_IT(&htim4);
+    HAL_TIM_Base_Start_IT(&htim5);
+    // temperature
+    HAL_ADC_Start(&hadc3);
 
     PolyControlInit();
     PolyControlRun();
@@ -206,7 +218,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PeriphClockSelection =
         RCC_PERIPHCLK_LTDC | RCC_PERIPHCLK_UART5 | RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI5 | RCC_PERIPHCLK_SPI4 |
         RCC_PERIPHCLK_SPI1 | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_I2C3 | RCC_PERIPHCLK_I2C1 |
-        RCC_PERIPHCLK_SPI6 | RCC_PERIPHCLK_I2C4 | RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC;
+        RCC_PERIPHCLK_SPI6 | RCC_PERIPHCLK_I2C4 | RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC | RCC_PERIPHCLK_ADC;
     PeriphClkInitStruct.PLL2.PLL2M = 4;
     PeriphClkInitStruct.PLL2.PLL2N = 128;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
@@ -218,7 +230,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL3.PLL3M = 4;
     PeriphClkInitStruct.PLL3.PLL3N = 120;
     PeriphClkInitStruct.PLL3.PLL3P = 2;
-    PeriphClkInitStruct.PLL3.PLL3Q = 3;
+    PeriphClkInitStruct.PLL3.PLL3Q = 6;
     PeriphClkInitStruct.PLL3.PLL3R = 5;
     PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_1;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
@@ -231,6 +243,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
     PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
     PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_D3PCLK1;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL2;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
         Error_Handler();
@@ -280,6 +293,21 @@ void MPU_Config(void) {
     MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
     HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+    MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+    MPU_InitStruct.Number = MPU_REGION_NUMBER5;
+    MPU_InitStruct.BaseAddress = 0x38000000;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_4KB;
+    MPU_InitStruct.SubRegionDisable = 0x0;
+    MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+    MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+    MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+    MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
     /* Enables the MPU */
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
@@ -297,6 +325,12 @@ void PolyError_Handler(const char *errorMessage) {
 
     globalSettings.error.setErrorMessage(errorMessage); // set Error Message for Display
     println(errorMessage);                              // print Error Message
+}
+
+void PolyError_HandlerClear() {
+
+    globalSettings.error.resetError(); // set Error Message for Display
+    println("ERROR | ErrorCleared");   // print Error Message
 }
 
 void Error_Handler() {

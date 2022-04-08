@@ -22,7 +22,7 @@ TARGET = PolyControl
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -O1
+OPT = -O2
 
 #######################################
 # paths
@@ -66,6 +66,8 @@ PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rng.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rng_ex.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c \
+PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c \
+PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c 
 
 C_SOURCES += $(wildcard PolyControl/Core/**/*.c)
@@ -108,7 +110,6 @@ CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
-BIN = $(CP) -O binary -S
 
 #######################################
 # CFLAGS
@@ -184,10 +185,10 @@ LIBDIR = -LPolyControl/Drivers/CMSIS/Lib/GCC -larm_cortexM7lfdp_math
 # LIBDIR = 
 
 
-LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections,--print-memory-usage
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex 
 
 
 #######################################
@@ -219,8 +220,6 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) PolyControl/Makefile
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
 
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-	$(BIN) $< $@
 
 $(BUILD_DIR):
 	mkdir "$@"

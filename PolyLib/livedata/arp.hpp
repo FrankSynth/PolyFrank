@@ -28,11 +28,13 @@ class Arpeggiator {
         __liveSettingsArp.settings.push_back(&arpLatch);
         __liveSettingsArp.settings.push_back(&arpMode);
         __liveSettingsArp.settings.push_back(&arpOctave);
-        __liveSettingsArp.settings.push_back(&arpPresseKeysParallel);
+        __liveSettingsArp.settings.push_back(&arpPlayedKeysParallel);
         __liveSettingsArp.settings.push_back(&arpRep);
         __liveSettingsArp.settings.push_back(&arpPolyrythm);
         __liveSettingsArp.settings.push_back(&arpStepsA);
         __liveSettingsArp.settings.push_back(&arpStepsB);
+
+        orderedKeys.reserve(30);
     }
 
     // functions
@@ -46,6 +48,7 @@ class Arpeggiator {
     void checkLatch();
     void ratched();
     void release();
+    void restart();
     void serviceRoutine();
 
     void mode_down();
@@ -67,16 +70,17 @@ class Arpeggiator {
     void decreaseArpOct();
     void increaseArpOct();
 
-    uint16_t direction = 1;        // arp direction for updown etc, 1 = up
-    uint16_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
-    uint16_t retrigger = 0;        // clears Arp Array on next iteration
-    uint16_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
-    uint16_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
-    uint16_t restarted = 0;        // arp was reset
-    uint16_t currentOctave = 0;    // current arp octave being played
+    int16_t direction = 1;        // arp direction for updown etc, 1 = up
+    int16_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
+    int16_t retrigger = 0;        // clears Arp Array on next iteration
+    int16_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
+    int16_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
+    int16_t restarted = 0;        // arp was reset
+    int16_t reorder = 0;          // arp was reset
+    int16_t currentOctave = 0;    // current arp octave being played
 
-    uint16_t stepArp = 0; // current arp step
-    uint16_t stepSeq = 0; // current seq step
+    int16_t stepArp = 0; // current arp step
+                         // uint16_t stepSeq = 0; // current seq step
 
     Key lastKey; // always holds the last played key, if no keys are pressed
     Key arpKey;  // always holds the last played key, if no keys are pressed
@@ -84,6 +88,7 @@ class Arpeggiator {
     uint16_t randomCounter;
 
     std::list<Key> pressedKeys;
+    std::list<Key> retriggerKeys;
     std::list<Key> inputKeys;
 
     std::vector<Key> orderedKeys;
@@ -92,6 +97,9 @@ class Arpeggiator {
 
     uint8_t allKeysReleased = 0;
     uint8_t arpSustain = 0;
+
+    elapsedMicros midiUpdateDelayTimer = 0;
+    uint8_t arpStepDelayed = 0;
 
     VoiceHandler *voiceHandler;
 
@@ -106,7 +114,7 @@ class Arpeggiator {
     Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList);
     Setting arpStepsB = Setting("STEPB", 9, 0, 22, false, binary, &arpStepNameList);
 
-    Setting arpPresseKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
+    Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
 
     const std::vector<std::string> offOnNameList = {"OFF", "ON"};
 
@@ -119,5 +127,5 @@ class Arpeggiator {
 
     const std::vector<std::string> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
                                                       "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
-                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANNDOM"};
+                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
 };

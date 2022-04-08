@@ -1,22 +1,25 @@
 #pragma once
 
-#include "datacore/dataHelperFunctions.hpp"
-#include "datacore/datalocation.hpp"
-#include "debughelper/debughelper.hpp"
-#include "spi.h"
+#include "hardware/bus.hpp"
+#include "hardware/driver.hpp"
 
 // Power management = 00
 
-class MAX11128 {
+class MAX11128 : public baseDevice {
   public:
-    MAX11128(SPI_HandleTypeDef *spi, uint8_t nChannels, GPIO_TypeDef *cs_pinPort, uint16_t cs_pin) {
-        this->spi = spi;
-        this->cs_pin = cs_pin;
-        this->cs_pinPort = cs_pinPort;
+    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin) {
+        this->busInterface = busInterface;
+        this->gpioPin = gpioPin;
+        this->gpioPort = gpioPort;
         this->nChannels = nChannels;
+
+        setup();
+
+        deviceName = "MAX11128";
+        state = DEVICE_READY;
     }
 
-    void init() {
+    void setup() {
 
         // config register
 
@@ -45,62 +48,29 @@ class MAX11128 {
 
         command[nChannels - 1] = standardSampleCommand;
 
-        uint32_t resetCommand = 0x40; // reset command
-
-        // microsecondsDelay(500);
+        uint32_t resetCommand = ((uint32_t)0x840) << 1; // reset command
 
         // Reset the ADC for a clean start!
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-        if (HAL_SPI_Transmit(spi, (uint8_t *)&resetCommand, 1, 50) != HAL_OK) {
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
-        }
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        busInterface->transmit((uint8_t *)&resetCommand, 1);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
-        // microsecondsDelay(500);
-
-        // Send Config Register
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-        if (HAL_SPI_Transmit(spi, (uint8_t *)&commandConfigRegister32, 1, 50) != HAL_OK) {
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
-        }
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
         microsecondsDelay(50);
 
+        // Send Config Register
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        busInterface->transmit((uint8_t *)&commandConfigRegister32, 1);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
+
+        microsecondsDelay(10);
+
         // start Init sample Command.. data receive will be triggered by EOC interrupt.
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-        if (HAL_SPI_Transmit(spi, (uint8_t *)&standardSampleCommand, 1, 50) != HAL_OK) {
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-            PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI Transmit");
-            Error_Handler();
-        }
-        HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+        busInterface->transmit((uint8_t *)&standardSampleCommand, 1);
+        // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     }
 
-    void fetchNewData() {
-
-        // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
-        uint32_t zero = 0;
-        fastMemset(&zero, command, nChannels - 1);
-
-        command[nChannels - 1] = standardSampleCommand;
-
-        // receive new samples and send sample command
-        for (uint16_t i = 0; i < nChannels; i++) {
-
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_RESET);
-            if (HAL_SPI_TransmitReceive(spi, (uint8_t *)&(command[i]), (uint8_t *)&(adcData[i]), 1, 50) != HAL_OK) {
-                HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-                PolyError_Handler("Error | COMMUNICATION | MAX11128 SPI RECEIVE");
-                Error_Handler();
-                return;
-            }
-            HAL_GPIO_WritePin(cs_pinPort, cs_pin, GPIO_PIN_SET);
-        }
-    }
+    void fetchNewData();
 
     uint32_t command[16];
     uint32_t data[16];
@@ -108,9 +78,9 @@ class MAX11128 {
     uint32_t adcData[16];
 
   private:
-    SPI_HandleTypeDef *spi;
+    spiBus *busInterface;
     uint8_t nChannels;
-    uint16_t cs_pin;
-    GPIO_TypeDef *cs_pinPort;
+    uint16_t gpioPin;
+    GPIO_TypeDef *gpioPort;
     uint32_t standardSampleCommand;
 };

@@ -6,6 +6,13 @@
 #include "poly.hpp"
 #include "voiceHandler.hpp"
 
+extern Clock clock;
+extern ClockSource internalClock;
+
+extern const std::vector<std::string> offOnNameList;
+extern const std::vector<std::string> clockSourceList;
+extern const std::vector<std::string> externalClockMultList;
+
 class LiveData {
   public:
     LiveData() {
@@ -13,6 +20,9 @@ class LiveData {
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceMode);
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeMergeLayer);
         __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
+        __liveSettingsLivemode.settings.push_back(&livemodeClockSource);
+        __liveSettingsLivemode.settings.push_back(&internalClock.clockBPM);
+        __liveSettingsLivemode.settings.push_back(&livemodeExternalClockMultiply);
     }
     ~LiveData() {}
 
@@ -23,24 +33,35 @@ class LiveData {
     void keyPressed(uint8_t channel, uint8_t note, uint8_t velocity);
     void keyReleased(uint8_t channel, uint8_t note);
 
-    void clockTick();
+    void midiClockTick();
+    void receivedStart();
+    void receivedContinue();
+    void receivedStop();
+    void receivedReset();
+    void receivedMidiSongPosition(unsigned int spp);
+    void internalClockTick();
+    void externalClockTick();
+
     void clockHandling();
 
     void serviceRoutine();
+
+    void saveLiveDataSettings();
+    void loadLiveDataSettings();
+
+    void reset();
+
     VoiceHandler voiceHandler;
 
-    Arpeggiator arpA = Arpeggiator(&voiceHandler);
-    Arpeggiator arpB = Arpeggiator(&voiceHandler);
+    Arpeggiator arps[2] = {Arpeggiator(&voiceHandler), Arpeggiator(&voiceHandler)};
 
     uint16_t bpm = 0;
-
-    std::vector<Arpeggiator *> arps = {&arpA, &arpB};
 
     categoryStruct __liveSettingsLivemode;
 
     Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList);
-
-    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
+    Setting livemodeClockSource = Setting("Clock Source", 1, 0, 2, false, binary, &clockSourceList);
+    Setting livemodeExternalClockMultiply = Setting("EXT. Clock", 3, 0, 5, false, binary, &externalClockMultList);
 };
 
 extern LiveData liveData;

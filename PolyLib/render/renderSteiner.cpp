@@ -2,17 +2,18 @@
 
 #include "renderSteiner.hpp"
 
-#define INPUTWEIGHTING 1.0f
+extern Layer layerA;
 
 inline float accumulateLevel(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iLevel.currentSample[voice] + steiner.aLevel.valueMapped, 0, 1);
+    return std::clamp(steiner.iLevel.currentSample[voice] + steiner.aLevel.valueMapped, 0.0f, 1.0f);
 }
 inline float accumulateCutoff(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iCutoff.currentSample[voice] * INPUTWEIGHTING + steiner.aCutoff.valueMapped,
-                     steiner.aCutoff.min, steiner.aCutoff.max);
+    return std::clamp(steiner.iCutoff.currentSample[voice] + steiner.aCutoff.valueMapped +
+                          layerA.envF.out.currentSample[voice] * steiner.aADSR.valueMapped,
+                      steiner.aCutoff.min, steiner.aCutoff.max);
 }
 inline float accumulateResonance(Steiner &steiner, uint16_t voice) {
-    return testFloat(steiner.iResonance.currentSample[voice] * INPUTWEIGHTING + steiner.aResonance.valueMapped, 0, 1);
+    return std::clamp(steiner.iResonance.currentSample[voice] + steiner.aResonance.valueMapped, 0.0f, 1.0f);
 }
 
 void renderSteiner(Steiner &steiner) {
@@ -20,7 +21,6 @@ void renderSteiner(Steiner &steiner) {
     float *outResonance = steiner.resonance.nextSample;
     float *outCutoff = steiner.cutoff.nextSample;
     float *outToLadder = steiner.toLadder.nextSample;
-    // TODO balance with par/ser value
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         outLevel[voice] = accumulateLevel(steiner, voice);

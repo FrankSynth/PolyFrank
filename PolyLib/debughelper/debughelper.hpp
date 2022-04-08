@@ -7,7 +7,7 @@
 #include "datacore/dataHelperFunctions.hpp"
 #ifdef POLYCONTROL
 #include "flagHandler/flagHandler.hpp"
-#include "usbd_cdc_if.h"
+#include "usbd_cdc_if.hpp"
 
 extern elapsedMicros USBHSTIMEOUT;
 
@@ -23,11 +23,15 @@ extern elapsedMicros USBHSTIMEOUT;
 
 // std::string printString;
 
+void appendBuffer(std::string *string);
+
 template <typename T> void printViaSTLink(T &&arg) {
     std::string str;
     str.append(std::to_string(arg));
 
 #ifdef POLYCONTROL
+    appendBuffer(&str);
+
     if (FlagHandler::USB_HS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {

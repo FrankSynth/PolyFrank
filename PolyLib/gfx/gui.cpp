@@ -10,9 +10,12 @@ void GUI::Init() { // add settings pointer
     guiPanelFocus.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
     guiPanelLive.init(CENTERWIDTH, CENTERHEIGHT - VOICEHEIGHT - SPACER, BOARDERWIDTH,
                       HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 0);
-    guiPanel_1.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH", 1);
-    guiPanel_2.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET", 2);
-    guiPanel_3.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG", 3);
+    guiPanelPatch.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH",
+                       1);
+    guiPanelPreset.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET",
+                        2);
+    guiPanelConfig.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG",
+                        3);
 
     // multiLayer detected
     if (globalSettings.multiLayer.value == 1) {
@@ -24,7 +27,7 @@ void GUI::Init() { // add settings pointer
     }
     else {
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->LayerState.value == 1) {
+            if (allLayers[i]->layerState.value == 1) {
                 guiPanelVoice.init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
                                    HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
             }
@@ -32,34 +35,34 @@ void GUI::Init() { // add settings pointer
 
     } // add Panels to vector
     panels.push_back(&guiPanelLive);
-    panels.push_back(&guiPanel_1);
-    panels.push_back(&guiPanel_2);
-    panels.push_back(&guiPanel_3);
+    panels.push_back(&guiPanelPatch);
+    panels.push_back(&guiPanelPreset);
+    panels.push_back(&guiPanelConfig);
     panels.push_back(&guiPanelFocus);
+    panels.push_back(&guiPanelDebug);
 
     // init Header
-    guiHeader.init(&panels, &activePanelID, LCDWIDTH, HEADERHEIGHT);
+    guiHeader.init(&panels, &activePanelID, LCDWIDTH - 2 * BOARDERWIDTH, HEADERHEIGHT, BOARDERWIDTH);
 
     // init Footer
-    guiFooter.init(LCDWIDTH, FOOTERHEIGHT);
+    guiFooter.init(LCDWIDTH - 2 * BOARDERWIDTH, FOOTERHEIGHT, BOARDERWIDTH);
 
     // init side
-    guiSide.init(BOARDERWIDTH, CENTERHEIGHT, HEADERHEIGHT + SPACER);
-
-    // init Footer
-    guiFooter.init(LCDWIDTH, FOOTERHEIGHT);
+    guiSide.init(BOARDERWIDTH, LCDHEIGHT);
 
     // init Path
     guiPath.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
 
+    // init State
+    guiState.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
+
     // init Error
     guiError.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
-    // register Header action
-    actionHandler.registerActionHeader(
-        {std::bind(&GUI::setPanelActive, this, 0), "LIVEMODE"}, {std::bind(&GUI::setPanelActive, this, 1), "PATCH"},
-        {std::bind(&GUI::setPanelActive, this, 2), "PRESET"}, {std::bind(&GUI::setPanelActive, this, 3), "CONFIG"});
+    // init Error
+    guiPanelDebug.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
 
+    Clear();
     checkFocusChange();
     setPanelActive(0);
 
@@ -89,6 +92,12 @@ void GUI::Draw() {
     else {
         checkFocusChange();
 
+        if (panelChanged) {
+            activePanel = panels[activePanelID];
+            activePanel->activate();
+            panelChanged = 0;
+        }
+
         // Draw Panel
         if (activePanel != nullptr) {
             activePanel->Draw();
@@ -114,6 +123,9 @@ void GUI::Draw() {
         // Draw Header
         guiHeader.Draw();
 
+        // Draw Header
+        guiState.Draw();
+
         // Draw Footer
         guiFooter.Draw();
     }
@@ -138,20 +150,6 @@ void GUI::checkFocusChange() {
             setPanelActive(4);
             newFocus.type = NOFOCUS;
         }
-    }
-}
-
-// PanelSelect
-void GUI::setPanelActive(uint8_t panelID) {
-    // zurück zum letzen panel
-    if (activePanelID == panelID) {
-        activePanel = panels[oldActivePanelID];
-        activePanelID = oldActivePanelID;
-    }
-    else {
-        oldActivePanelID = activePanelID;
-        activePanel = panels[panelID];
-        activePanelID = panelID;
     }
 }
 

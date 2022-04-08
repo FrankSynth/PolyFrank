@@ -18,6 +18,18 @@ class TS3A5017D {
 
         this->maxChannel = maxChannel;
     }
+    TS3A5017D(uint16_t maxChannel, GPIO_TypeDef *adrAPinPort, uint16_t adrAPin, GPIO_TypeDef *adrBPinPort,
+              uint16_t adrBPin) {
+
+        // this->enablePinPort = enablePinPort;
+        // this->enablePin = enablePin;
+        this->adrAPinPort = adrAPinPort;
+        this->adrAPin = adrAPin;
+        this->adrBPinPort = adrBPinPort;
+        this->adrBPin = adrBPin;
+
+        this->maxChannel = maxChannel;
+    }
 
     void enableChannels() { HAL_GPIO_WritePin(enablePinPort, enablePin, GPIO_PIN_RESET); }
     void disableChannels() { HAL_GPIO_WritePin(enablePinPort, enablePin, GPIO_PIN_SET); }

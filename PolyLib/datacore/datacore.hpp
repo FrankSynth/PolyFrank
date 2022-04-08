@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dataHelperFunctions.hpp"
+#include "datadef.h"
 #include "debughelper/debughelper.hpp"
 #include "math/polyMath.hpp"
 #include <cmath>
@@ -13,13 +14,7 @@
 #include <string>
 #endif
 
-#define MAX_VALUE_12BIT 3340 // TODO andere rail to rail Opamp.. dann auf größere range setzen
-#define MIN_VALUE_12BIT 66   // TODO andere rail to rail Opamp.. dann auf größere range setzen
-
-#define VECTORDEFAULTINITSIZE 5
-#define VOICESPERCHIP 4
-
-extern float ROTARYENCODERACELLARATION;
+extern float ROTARYENCODERACCELERATION;
 
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
@@ -29,7 +24,6 @@ enum typeLinLog { linMap, logMap, antilogMap };
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
 uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount, float offset);
 #endif
 
 class DataElement {
@@ -45,9 +39,10 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, uint8_t *)> sendSetting;
+    void setValueChangedCallback(void (*fptr)()) { valueChangedCallback = fptr; }
 
   protected:
+    void (*valueChangedCallback)() = nullptr;
     typeDisplayValue type;
 
     uint8_t sendOutViaCom;
@@ -95,9 +90,9 @@ class Setting : public DataElement {
 #ifdef POLYCONTROL
         if (valueNameList == nullptr)
             valueName = std::to_string(value);
-            // if (sendOutViaCom) {
-            //     sendSetting(layerId, moduleId, id, value);
-            // }
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, value);
+        }
 #endif
     }
 
@@ -107,6 +102,7 @@ class Setting : public DataElement {
     int32_t min;
     int32_t max;
     uint8_t disable;
+    uint8_t useAcceleration = 0;
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
@@ -116,8 +112,16 @@ class Setting : public DataElement {
     void setValue(int32_t newValue);
     void resetValue() { setValue(defaultValue); }
 
-    inline void setValueWithoutMapping(int32_t newValue) { value = newValue; }
-    inline void setValueWithoutMapping(uint8_t *newValue) { value = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(int32_t newValue) {
+        value = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
+    inline void setValueWithoutMapping(uint8_t *newValue) {
+        value = *(int32_t *)newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
     void increase(int32_t amount = 1);
     void decrease(int32_t amount = -1);
     void push();
@@ -190,18 +194,26 @@ class Analog : public DataElement {
 
     int32_t reverseMapping(float newValue);
 
-    inline void changeValue(int32_t change) { setValue(value + change); }
+    inline void changeValue(int32_t change) {
+        setValue(value + change);
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
+
+    // FIXME calc mit ROTARYENCODERACCELERATION float oder int?
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
             setValue(
                 value -
                 (testInt(
-                    inputRange / 2 * ROTARYENCODERACELLARATION, 1,
+                    (float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
                     maxInputValue))); // use Acellaration and test for min step of 1 -> for low resolution analog inputs
         }
         if (direction == 1) {
-            setValue(value + (testInt(inputRange / 2 * ROTARYENCODERACELLARATION, 1, maxInputValue)));
+            setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
         }
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
 
     inline void setValueWithoutMapping(float newValue) {
@@ -212,6 +224,8 @@ class Analog : public DataElement {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
 
     const std::string &getValueAsString();
@@ -262,6 +276,8 @@ class Digital : public DataElement {
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
     void nextValue();
+    void nextValueLoop();
+
     void previousValue();
     inline void resetValue() { setValueWithoutMapping(defaultValue); }
 
@@ -275,8 +291,14 @@ class Digital : public DataElement {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
     }
-    inline void setValueWithoutMapping(uint8_t *newValue) { valueMapped = *(int32_t *)newValue; }
+    inline void setValueWithoutMapping(uint8_t *newValue) {
+        valueMapped = *(int32_t *)newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
 
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values
@@ -313,44 +335,41 @@ class NameElement {
     std::string name;
 };
 
-class PatchElementInOut;  // define class to fix no declaration error from Input and Output Class
-class PatchElementOutOut; // define class to fix no declaration error from Input and Output Class
+class PatchElement; // forward declaration necessary
 
 // input patchesInOut
 class BasePatch {
   public:
     void clearPatches();
 
-    void addPatchInOut(PatchElementInOut &patch);
-    void addPatchOutOut(PatchElementOutOut &patch);
-    void removePatchInOut(PatchElementInOut &patch);
-    void removePatchOutOut(PatchElementOutOut &patch);
+    void addPatchInOut(PatchElement &patch);
+    // void addPatchOutOut(PatchElementOutOut &patch);
+    void removePatchInOut(PatchElement &patch);
+    // void removePatchOutOut(PatchElementOutOut &patch);
+    bool findPatchInOut(uint8_t output, uint8_t input);
 
     inline const std::string &getName() { return name; };
-    inline std::vector<PatchElementInOut *> &getPatchesInOut() { return patchesInOut; }
-    inline std::vector<PatchElementOutOut *> &getPatchesOutOut() { return patchesOutOut; }
+    inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
 
     uint8_t id;
     uint8_t moduleId;
     uint8_t layerId;
-
+    uint8_t visible;
     uint8_t idGlobal;
     std::string name;
 
     typeLinLog mapping = linMap;
 
-  protected:
-    std::vector<PatchElementInOut *> patchesInOut;
-    std::vector<PatchElementOutOut *> patchesOutOut;
+    std::vector<PatchElement *> patchesInOut;
 };
 
 class Input : public BasePatch {
   public:
-    Input(const char *name, typeLinLog mapping = linMap) {
+    Input(const char *name, typeLinLog mapping = linMap, uint8_t visible = 1) {
         this->name = name;
         this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-        this->mapping = mapping;
+        this->visible = visible;
     }
 
     float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
@@ -359,18 +378,19 @@ class Input : public BasePatch {
     void collectCurrentSample();
     typeLinLog mapping;
 
-  protected:
+    uint8_t LEDPortID;
+    uint8_t LEDPinID;
 };
 
 class Output : public BasePatch {
   public:
-    Output(const char *name) {
+    Output(const char *name, uint8_t visible = 1) {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-        patchesOutOut.reserve(VECTORDEFAULTINITSIZE);
 
         currentSample = bufferCurrentSample;
         nextSample = bufferNextSample;
+        this->visible = visible;
     }
 
     // set next calculatedSample as current sample
@@ -383,6 +403,9 @@ class Output : public BasePatch {
     float *currentSample;
     float *nextSample;
 
+    uint8_t LEDPortID = 0xFF;
+    uint8_t LEDPinID = 0xFF;
+
   private:
     float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
     float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
@@ -392,18 +415,10 @@ class PatchElement {
   public:
     inline float getAmount() { return amount; }
 
-    float offset;
-    float amount;
-
     uint8_t layerId;
-};
-
-class PatchElementInOut : public PatchElement {
-  public:
-    PatchElementInOut(Output &source, Input &targetIn, uint8_t layerId, float amount = 0) {
+    PatchElement(Output &source, Input &targetIn, uint8_t layerId) {
         this->sourceOut = &source;
         this->targetIn = &targetIn;
-        this->amount = amount;
         this->layerId = layerId;
     }
 
@@ -412,37 +427,13 @@ class PatchElementInOut : public PatchElement {
     void changeAmount(float change);
     void changeAmountEncoderAccelerationMapped(bool direction); // create Mapped
 
+    float offset;
+    float amount;
+
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
     float amountRaw = 0;
-};
-
-class PatchElementOutOut : public PatchElement {
-  public:
-    PatchElementOutOut(Output &source, Output &targetOut, uint8_t layerId, float amount = 0, float offset = 0) {
-        this->sourceOut = &source;
-        this->targetOut = &targetOut;
-        this->amount = amount;
-        this->offset = offset;
-        this->layerId = layerId;
-    }
-    inline float getOffset() { return offset; }
-
-    void setAmount(float amount);
-    void setAmountWithoutMapping(float amount);
-    void changeAmount(float change);
-    void setOffset(float offset);
-    void setOffsetWithoutMapping(float offset);
-    void changeOffset(float change);
-    void setAmountAndOffset(float amount, float offset);
-
-    bool remove = false;
-    Output *sourceOut;
-    Output *targetOut;
-
-  private:
-    float offset;
 };
 
 class ID {
@@ -453,6 +444,10 @@ class ID {
     uint8_t idCounter = 0;
 };
 
+/**
+ * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
+ *
+ */
 class RenderBuffer {
   public:
     RenderBuffer() {
@@ -499,55 +494,39 @@ class I2CBuffer {
 
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
 
-inline void PatchElementInOut::changeAmount(float change) {
+inline void PatchElement::changeAmount(float change) {
     setAmount(amount + change);
 #ifdef POLYCONTROL
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
 #endif
 }
 
-inline void PatchElementOutOut::changeAmount(float change) {
-    setAmount(amount + change);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
-
-inline void PatchElementOutOut::changeOffset(float change) {
-    setOffset(offset + change);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
-
-inline void PatchElementOutOut::setAmountAndOffset(float amount, float offset) {
-    setAmount(amount);
-    setOffset(offset);
-#ifdef POLYCONTROL
-    sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-#endif
-}
 inline void BasePatch::clearPatches() {
     patchesInOut.clear();
-    patchesOutOut.clear();
 }
 
-inline void BasePatch::addPatchInOut(PatchElementInOut &patch) {
+inline void BasePatch::addPatchInOut(PatchElement &patch) {
     patchesInOut.push_back(&patch);
-}
-inline void BasePatch::addPatchOutOut(PatchElementOutOut &patch) {
-    patchesOutOut.push_back(&patch);
 }
 
 inline void Setting::reset() {
     value = defaultValue;
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline const std::string &Analog::getValueAsString() {
     return valueName;
 }
 inline void Setting::increase(int32_t amount) {
-    value = changeInt(value, amount, min, max);
+    if (useAcceleration) {
+        value = changeInt(value,
+                          std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                          min, max);
+    }
+    else {
+        value = changeInt(value, amount, min, max);
+    }
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
@@ -555,10 +534,19 @@ inline void Setting::increase(int32_t amount) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::decrease(int32_t amount) {
-    value = changeInt(value, amount, min, max);
+    if (useAcceleration) {
+        value = changeInt(value,
+                          -std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                          min, max);
+    }
+    else {
+        value = changeInt(value, amount, min, max);
+    }
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
@@ -566,12 +554,16 @@ inline void Setting::decrease(int32_t amount) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::push() {
     int32_t temp = value;
     value = valueToggle;
     valueToggle = temp;
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 }
 
 inline void Setting::pushAndHold() {

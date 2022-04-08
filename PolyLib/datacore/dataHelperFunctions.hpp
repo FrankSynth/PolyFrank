@@ -2,6 +2,7 @@
 
 #include "tim.h"
 #include <cmath>
+#include <random>
 #include <stdint.h>
 
 #ifndef ALWAYS_INLINE
@@ -90,18 +91,7 @@ ALWAYS_INLINE inline const int32_t testInt(const int32_t value, const int32_t mi
 ALWAYS_INLINE inline const float changeFloat(const float value, const float change, const float minimum,
                                              const float maximum) {
 
-    float changed = value + change;
-
-    if (changed > maximum) { // test max
-
-        return maximum;
-    }
-    else if (changed < minimum) { // test min
-        return minimum;
-    }
-    else {
-        return changed; // return new value
-    }
+    return std::clamp(value + change, minimum, maximum);
 }
 
 /**
@@ -300,7 +290,7 @@ class elapsedSeconds {
  * @brief Copies the elements of a floating-point vector.
  * @param[in]       *pSrc points to input vector
  * @param[out]      *pDst points to output vector
- * @param[in]       length of the input vector
+ * @param[in]       length of the input vector in word
  * @return none.
  *
  */
@@ -310,11 +300,11 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
     uint32_t in1, in2, in3, in4;
 
     /*loop Unrolling */
-    blkCnt = blockSize >> 2U;
+    blkCnt = blockSize >> 2;
 
     /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
      ** a second loop below computes the remaining 1 to 3 samples. */
-    while (blkCnt > 0U) {
+    while (blkCnt > 0) {
         /* C = A */
         /* Copy and then store the results in the destination buffer */
         in1 = *pSrc++;
@@ -333,9 +323,49 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
 
     /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
      ** No loop unrolling is used. */
-    blkCnt = blockSize % 0x4U;
+    blkCnt = blockSize & 0x03;
 
-    while (blkCnt > 0U) {
+    while (blkCnt > 0) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+        *pDst++ = *pSrc++;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+}
+
+/**
+ * @brief Copies the elements of a floating-point vector.
+ * @param[in]       *pSrc points to input vector
+ * @param[out]      *pDst points to output vector
+ * @param[in]       length of the input vector in byte
+ * @return none.
+ *
+ */
+ALWAYS_INLINE inline void fast_copy_byte(uint8_t *pSrc, uint8_t *pDst, uint32_t blockSize) {
+    uint32_t blkCnt; /* loop counter */
+
+    /*loop Unrolling */
+    blkCnt = blockSize >> 2;
+
+    /* First part of the processing with loop unrolling.  Compute 4 outputs at a time.
+     ** a second loop below computes the remaining 1 to 3 samples. */
+    while (blkCnt > 0) {
+        /* C = A */
+        /* Copy and then store the results in the destination buffer */
+
+        *((uint32_t *&)pDst)++ = *((uint32_t *&)pSrc)++;
+
+        /* Decrement the loop counter */
+        blkCnt--;
+    }
+
+    /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
+     ** No loop unrolling is used. */
+    blkCnt = blockSize & 0x03;
+
+    while (blkCnt > 0) {
         /* C = A */
         /* Copy and then store the results in the destination buffer */
         *pDst++ = *pSrc++;
@@ -380,9 +410,31 @@ ALWAYS_INLINE inline void fastMemset(uint32_t *data, uint32_t *pDst, uint32_t bl
     }
 }
 
-inline void microsecondsDelay(uint32_t delay) {
+inline void microsecondsDelay(const uint32_t delay) {
     uint32_t time = __HAL_TIM_GetCounter(&htim2);
     while (__HAL_TIM_GetCounter(&htim2) - time < delay) {
         ;
     }
+}
+
+inline float calcRandom() {
+    uint32_t randomNumber;
+
+    randomNumber = std::rand();
+    randomNumber = randomNumber & 0x00FFFFFF;
+
+    // map to -1, 1
+    return ((float)randomNumber / 8388607.0f) - 1.0f;
+}
+
+inline void disableInterruptBelowLevel(uint32_t level) {
+    __disable_irq();
+    // __ASM volatile("MSR basepri, %0" : : "r"(level) : "memory");
+    // // __enable_irq();
+}
+
+inline void enableAllInterruptLevels() {
+    // __disable_irq();
+    // __ASM volatile("MSR basepri, %0" : : "r"(0U) : "memory");
+    __enable_irq();
 }

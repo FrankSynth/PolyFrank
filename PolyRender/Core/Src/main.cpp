@@ -96,23 +96,23 @@ int main(void) {
 
     /* Configure the system clock */
     SystemClock_Config();
-    HAL_Delay(10); // !!
+    // HAL_Delay(10); // !!
     /* USER CODE BEGIN SysInit */
 
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
-    MX_BDMA_Init();
+    // MX_BDMA_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
     MX_I2C1_Init();
     MX_I2C2_Init();
     MX_I2C3_Init();
-    MX_I2C4_Init();
+    // MX_I2C4_Init();
     MX_SAI1_Init();
     MX_SPI1_Init();
-    MX_SPI4_Init();
+    MX_SPI2_Init();
     MX_TIM3_Init();
     MX_TIM4_Init();
     MX_TIM8_Init();
@@ -132,23 +132,17 @@ int main(void) {
     // timer LEDs
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
     // HAL_Delay(200);
 
-    println("PolyRender Init");
+    // println("PolyRender Init");
     PolyRenderInit();
-
-    // some example LED Brightness
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, 0);
-    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2, 0);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 0);
-    __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_4, 0);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
-    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2, 0);
 
     // start main programm
     PolyRenderRun();
@@ -188,7 +182,7 @@ void SystemClock_Config(void) {
     RCC_OscInitStruct.PLL.PLLM = 4;
     RCC_OscInitStruct.PLL.PLLN = 480;
     RCC_OscInitStruct.PLL.PLLP = 2;
-    RCC_OscInitStruct.PLL.PLLQ = 12;
+    RCC_OscInitStruct.PLL.PLLQ = 24;
     RCC_OscInitStruct.PLL.PLLR = 2;
     RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_1;
     RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -211,7 +205,7 @@ void SystemClock_Config(void) {
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
         Error_Handler();
     }
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SPI1 |
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
                                                RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_I2C3 |
                                                RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_I2C4;
     PeriphClkInitStruct.PLL2.PLL2M = 5;
@@ -257,7 +251,7 @@ void MPU_Config(void) {
     MPU_InitStruct.Enable = MPU_REGION_ENABLE;
     MPU_InitStruct.Number = MPU_REGION_NUMBER4;
     MPU_InitStruct.BaseAddress = 0x30000000;
-    MPU_InitStruct.Size = MPU_REGION_SIZE_16KB;
+    MPU_InitStruct.Size = MPU_REGION_SIZE_8KB;
     MPU_InitStruct.SubRegionDisable = 0x0;
     MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
     MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
@@ -302,7 +296,7 @@ void PolyError_Handler(const char *errorMessage) {
 
 /**
  * @brief  This function is executed in case of error occurrence.
- * @retval None
+ * @retval None\
  */
 void Error_Handler(void) {
     /* USER CODE BEGIN Error_Handler_Debug */

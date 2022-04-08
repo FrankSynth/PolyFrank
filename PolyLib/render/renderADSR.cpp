@@ -1,42 +1,33 @@
 #ifdef POLYRENDER
 
 #include "renderADSR.hpp"
-#include "renderCV.hpp"
+#include "renderCVDef.h"
 
 extern Layer layerA;
 
-LogCurve adsrConvertLog(32, 0.1);
-LogCurve adsrConvertAntiLog(32, 0.9);
-
-#define INPUTWEIGHTING 1
+LogCurve adsrConvertLog(128, 0.1);
+LogCurve adsrConvertAntiLog(128, 0.9);
 
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDelay.currentSample[voice] * adsr.aDelay.valueMapped * INPUTWEIGHTING +
-                         adsr.aDelay.valueMapped,
-                     adsr.aDelay.min, adsr.aDelay.max * 2);
+    return std::clamp(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
 inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAttack.currentSample[voice] * adsr.aAttack.valueMapped * INPUTWEIGHTING +
-                         adsr.aAttack.valueMapped,
-                     adsr.aAttack.min, adsr.aAttack.max * 2);
+    return std::clamp(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
+                      adsr.aAttack.max * 2);
 }
 inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iDecay.currentSample[voice] * adsr.aDecay.valueMapped * INPUTWEIGHTING +
-                         adsr.aDecay.valueMapped,
-                     adsr.aDecay.min, adsr.aDecay.max * 2);
+    return std::clamp(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
 inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iSustain.currentSample[voice] * adsr.aSustain.valueMapped * INPUTWEIGHTING +
-                         adsr.aSustain.valueMapped,
-                     adsr.aSustain.min, adsr.aSustain.max);
+    return std::clamp(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
+                      adsr.aSustain.max);
 }
 inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iRelease.currentSample[voice] * adsr.aRelease.valueMapped * INPUTWEIGHTING +
-                         adsr.aRelease.valueMapped,
-                     adsr.aRelease.min, adsr.aRelease.max * 2);
+    return std::clamp(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
+                      adsr.aRelease.max * 2);
 }
 inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
-    return testFloat(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
+    return std::clamp(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
 }
 
 /**
@@ -46,6 +37,7 @@ inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
  */
 void renderADSR(ADSR &adsr) {
 
+    // TODO bezier
     float delay, decay, attack, sustain, release;
     int32_t &loop = adsr.dLoop.valueMapped;
     float &shape = adsr.aShape.valueMapped;
@@ -56,6 +48,8 @@ void renderADSR(ADSR &adsr) {
         float &currentLevel = adsr.currentLevel[voice];
         float &currentTime = adsr.currentTime[voice];
         float &gate = layerA.midi.oGate.currentSample[voice];
+
+        float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
 
         switch (adsr.getState(voice)) {
             case adsr.OFF:
@@ -70,7 +64,7 @@ void renderADSR(ADSR &adsr) {
                 }
                 else {
                     delay = accumulateDelay(adsr, voice);
-                    currentTime += secondsPerCVRender;
+                    currentTime += SECONDSPERCVRENDER * imperfection;
                     if (currentTime >= delay)
                         adsr.setStatusAttack(voice);
                 }
@@ -78,7 +72,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice);
-                currentLevel += secondsPerCVRender / attack;
+                currentLevel += (SECONDSPERCVRENDER / attack) * imperfection;
 
                 if (currentLevel >= 1) {
                     currentLevel = 1;
@@ -105,9 +99,21 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice);
-                currentLevel -= secondsPerCVRender / decay;
+                currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
 
                 sustain = accumulateSustain(adsr, voice);
+
+                // fix Sustain level
+                if (shape < 1) {
+                    // shape between 0 and 1, 1 is linear
+                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
+                }
+                else {
+                    // shape between 1 and 2, 1 is linear
+                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
+                }
+                //
+
                 if (currentLevel <= sustain) {
                     currentLevel = sustain;
                     adsr.setStatusSustain(voice);
@@ -119,18 +125,31 @@ void renderADSR(ADSR &adsr) {
                 break;
 
             case adsr.SUSTAIN:
+
                 sustain = accumulateSustain(adsr, voice);
+
+                // fix Sustain level
+                if (shape < 1) {
+                    // shape between 0 and 1, 1 is linear
+                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
+                }
+                else {
+                    // shape between 1 and 2, 1 is linear
+                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
+                }
+                //
+
                 if (currentLevel != sustain) {
                     decay = accumulateDecay(adsr, voice);
 
                     if (currentLevel < sustain) {
-                        currentLevel += secondsPerCVRender / decay;
+                        currentLevel += (SECONDSPERCVRENDER / decay) * imperfection;
                         if (currentLevel >= sustain) {
                             currentLevel = sustain;
                         }
                     }
                     else {
-                        currentLevel -= secondsPerCVRender / decay;
+                        currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
                         if (currentLevel <= sustain) {
                             currentLevel = sustain;
                         }
@@ -144,7 +163,7 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice);
-                currentLevel -= secondsPerCVRender / release;
+                currentLevel -= (SECONDSPERCVRENDER / release) * imperfection;
 
                 if (currentLevel <= 0) {
                     currentLevel = 0;

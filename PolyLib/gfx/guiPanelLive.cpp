@@ -25,8 +25,9 @@ void GUIPanelLive::registerSettingsElements() {
                 }
                 else {
                     panelElements[elementIndex].addSettingsEntry(
-                        settingsElement, {std::bind(&Setting::increase, settingsElement, 1), "NEXT"},
-                        {std::bind(&Setting::decrease, settingsElement, -1), "NEXT"},
+                        settingsElement,
+                        {std::bind(&Setting::increase, settingsElement, 1), settingsElement->getName()},
+                        {std::bind(&Setting::decrease, settingsElement, -1), settingsElement->getName()},
                         {std::bind(&Setting::resetValue, settingsElement), "RESET"});
                 }
                 dataIndex++;
@@ -49,7 +50,7 @@ void GUIPanelLive::updateEntrys() {
         pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &liveData.arps[currentFocus.layer]->__liveSettingsArp;
+        pCategory = &liveData.arps[currentFocus.layer].__liveSettingsArp;
     }
     if (subPanelSelect == 2) {
         pCategory = &liveData.__liveSettingsLivemode;
@@ -62,6 +63,9 @@ void GUIPanelLive::updateEntrys() {
 }
 
 void GUIPanelLive::selectSubPanel(uint8_t subPanelSelect) {
+    for (uint8_t i = 0; i < 6; i++) {
+        subPanelSelection[i] = subPanelSelect == i;
+    }
     this->subPanelSelect = subPanelSelect;
 }
 
@@ -83,24 +87,28 @@ void GUIPanelLive::Draw() {
 }
 
 void GUIPanelLive::registerPanelSettings() {
-    actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
-                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
+    actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
+                                        {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
-    // register Panel Seetings Rigth
-    actionHandler.registerActionRight(
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 1),
-         liveData.arps[currentFocus.layer]->__liveSettingsArp.category},
-        {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category});
-    // register Panel Seetings Left
+    actionHandler.registerActionRightData(
+        0, {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
+        &(subPanelSelection[0]));
+    actionHandler.registerActionRightData(1,
+                                          {std::bind(&GUIPanelLive::selectSubPanel, this, 1),
+                                           liveData.arps[currentFocus.layer].__liveSettingsArp.category},
+                                          &(subPanelSelection[1]));
+    actionHandler.registerActionRightData(
+        2, {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category},
+        &(subPanelSelection[2]));
+
+    actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 1);
+    actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 1);
 
     if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
-                                         {nullptr, ""}, {std::bind(nextLayer), "LAYER"});
+        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
     }
     else {
-        actionHandler.registerActionLeft({nullptr, "SAVE"}, // SAVE
-                                         {nullptr, ""}, {nullptr, ""});
+        actionHandler.registerActionLeft(2);
     }
 }
 
@@ -115,8 +123,8 @@ void GUIPanelLive::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y,
     this->pathVisible = pathVisible;
 
     // elements Sizes
-    uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
-    uint16_t elementSpace = 3;
+    uint16_t elementWidth = width;
+    uint16_t elementSpace = 2;
     uint16_t elementHeight = (height - (LIVEPANELENTRYS - 2) * elementSpace) / LIVEPANELENTRYS;
 
     // init Elements

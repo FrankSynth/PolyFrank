@@ -62,7 +62,7 @@ float fastNoteLin2Log_f32(float x) {
     // int32_t n;
     float findex;
 
-    x = fastMap(testFloat(x, noteLin2logMIN, noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
+    x = fastMap(std::clamp(x, (float)noteLin2logMIN, (float)noteLin2logMAX), noteLin2logMIN, noteLin2logMAX, 0, 1);
 
     /* Calculation of index of the table */
     findex = (float)FAST_NOTELIN2LOG_TABLE_SIZE * x;
@@ -77,7 +77,6 @@ float fastNoteLin2Log_f32(float x) {
     b = noteLin2LogTable_f32[index + 1];
 
     /* Linear interpolation process */
-    // ret = (1.0f - fract) * a + fract * b;
     ret = fast_lerp_f32(a, b, fract);
 
     /* Return the output value */
@@ -85,12 +84,11 @@ float fastNoteLin2Log_f32(float x) {
 }
 
 void LogCurve::precomputeTable() {
-    float b = std::pow((1 / curve) - 1, 2);
-    float a = 1 / (b - 1);
+    float b = std::pow((1.0f / curve) - 1.0f, 2);
+    float a = 1.0f / (b - 1.0f);
 
     for (uint16_t i = 0; i < (size + 1); i++) {
-        logTable[i] = a * std::pow(b, fastMapCached(i, 0, size, 0, 1)) - a;
-        // logTable.push_back(a * powf(b, fastMap(i, 0, size, 0, 1)) - a);
+        logTable[i] = a * std::pow(b, fastMap(i, 0, size, 0, 1)) - a;
     }
 }
 
@@ -109,7 +107,7 @@ float LogCurve::mapValue(float value) {
     float findex;
 
     /* Calculation of index of the table */
-    findex = (float)size * testFloat(value, 0, 1);
+    findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
     index = ((uint16_t)findex);
 
@@ -152,7 +150,7 @@ float LogCurve::mapValueSigned(float value) {
     float findex;
 
     /* Calculation of index of the table */
-    findex = (float)size * testFloat(value, 0, 1);
+    findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
     index = ((uint16_t)findex);
 
@@ -178,6 +176,37 @@ float LogCurve::mapValueSigned(float value) {
 // audio poti Log style
 LogCurve audioCurve(16, 0.1);
 
-float fastMapAudioToLog(float value) {
-    return audioCurve.mapValue(value);
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+float calcSquircle(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
+
+    float sign = getSign(value);
+
+    float exp = 1.0f / curvature - 1.0f;
+    float firstpow = 1.0f - std::pow(sign * value, exp);
+    return sign * (1.0f - std::pow(firstpow, 1.0f / exp));
+}
+
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+float calcSquircleSimplified(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
+
+    float exp = 1.0f / curvature - 1.0f;
+    // float expsq = exp * exp;
+    float ret = std::pow(value, exp);
+    return ret;
 }

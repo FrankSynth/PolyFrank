@@ -9,7 +9,6 @@ void GUIPanelPath::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y)
 }
 
 void GUIPanelPath::Draw(uint8_t onlyLayer) {
-    drawRectangleFill(cClear, panelAbsX, panelAbsY, panelWidth, panelHeight);
     uint16_t relX = 0;
     uint16_t relY = 0;
 
@@ -29,6 +28,7 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
         drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     relX += 1;
 
+    // Only Layer mode?
     if (onlyLayer) {
         return;
     }
@@ -37,7 +37,8 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
         if (!allLayers[currentFocus.layer]->getModules().size()) { //  empty
             return;
         }
-        std::string text = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getName(); // Modul name
+        std::string text =
+            allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getShortName(); // Modul name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);

@@ -14,6 +14,8 @@ class GUIPanelConfig : public GUIPanelBase {
 
     void registerPanelSettings();
 
+    void registerPanelElements(categoryStruct &settingsCategory);
+
   private:
     // Boxes
 
@@ -21,7 +23,7 @@ class GUIPanelConfig : public GUIPanelBase {
 
     uint16_t entrys = CONFIGPANELENTRYS;
 
-    uint16_t EntrysPerElement = 3;
+    uint16_t EntrysPerElement = 4;
 
     uint16_t panelWidth = 0;
     uint16_t panelHeight = 0;
@@ -29,6 +31,8 @@ class GUIPanelConfig : public GUIPanelBase {
     uint16_t panelAbsY = 0;
 
     Scroller scroll = Scroller(CONFIGPANELENTRYS);
+
+    uint16_t elementIndex = 0;
 
     Data_PanelElement panelElements[CONFIGPANELENTRYS];
 };

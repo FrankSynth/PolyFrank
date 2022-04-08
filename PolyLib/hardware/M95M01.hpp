@@ -1,8 +1,7 @@
 #pragma once
 
-#include "debughelper/debughelper.hpp"
-#include "main.h"
-
+#include "hardware/bus.hpp"
+#include "hardware/driver.hpp"
 
 /* M95040 SPI EEPROM defines */
 #define EEPROM_WREN 0x06  /*!< Write Enable */
@@ -17,26 +16,40 @@
 #define EEPROM_PAGESIZE 256    /*!< Pagesize according to documentation */
 #define EEPROM_BUFFER_SIZE 256 /*!< EEPROM Buffer size. Setup to your needs */
 
-#define EEPROM_CS_HIGH() HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_SET)
-#define EEPROM_CS_LOW() HAL_GPIO_WritePin(EEPROM_CS_GPIO_Port, EEPROM_CS_Pin, GPIO_PIN_RESET)
+class M95M01 : public baseDevice {
 
-/**
- * @brief EEPROM Operations statuses
- */
-typedef enum { EEPROM_STATUS_PENDING, EEPROM_STATUS_COMPLETE, EEPROM_STATUS_ERROR } EepromOperations;
+  public:
+    void configurate(spiBus *busInterface, GPIO_TypeDef *gpioPort, uint16_t gpioPin) {
+        this->busInterface = busInterface;
 
-void EEPROM_SPI_INIT(SPI_HandleTypeDef *hspi);
-EepromOperations EEPROM_SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite);
-EepromOperations EEPROM_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite);
-EepromOperations EEPROM_SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead);
-uint8_t EEPROM_SPI_WaitStandbyState(void);
+        this->gpioPin = gpioPin;
+        this->gpioPort = gpioPort;
 
-/* Low layer functions */
-uint8_t EEPROM_SendByte(uint8_t byte);
-void sEE_WriteEnable(void);
-void sEE_WriteDisable(void);
-void sEE_WriteStatusRegister(uint8_t regval);
-uint8_t sEE_ReadStatusRegister(void);
+        deviceName = "M95M01";
+        state = DEVICE_READY;
+    }
 
-void EEPROM_SPI_SendInstruction(uint8_t *instruction, uint8_t size);
-void EEPROM_SPI_ReadStatusByte(SPI_HandleTypeDef SPIe, uint8_t *statusByte);
+    void SPI_WriteBuffer(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite);
+    void SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite);
+    void SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead);
+
+    uint8_t SPI_WaitStandbyState(void);
+
+    void SPI_SendInstruction(uint8_t *instruction, uint8_t size);
+    void SPI_ReadStatusByte(SPI_HandleTypeDef SPIe, uint8_t *statusByte);
+
+    /* Low layer functions */
+    uint8_t SendByte(uint8_t byte);
+    void sEE_WriteEnable(void);
+    void sEE_WriteDisable(void);
+    void sEE_WriteStatusRegister(uint8_t regval);
+    uint8_t sEE_ReadStatusRegister(void);
+
+  private:
+    spiBus *busInterface;
+    uint8_t EEPROM_StatusByte;
+    uint8_t RxBuffer[EEPROM_BUFFER_SIZE] = {0x00};
+
+    GPIO_TypeDef *gpioPort;
+    uint16_t gpioPin;
+};

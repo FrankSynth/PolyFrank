@@ -73,7 +73,10 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
 
         /* USER CODE END USB_OTG_FS_MspInit 0 */
 
+        HAL_Delay(10);
         __HAL_RCC_GPIOA_CLK_ENABLE();
+        HAL_Delay(50);
+
         /**USB_OTG_FS GPIO Configuration
         PA9     ------> USB_OTG_FS_VBUS
         PA11     ------> USB_OTG_FS_DM
@@ -92,7 +95,9 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
         /* Peripheral clock enable */
+        HAL_Delay(10);
         __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
+        HAL_Delay(50);
 
         /* Peripheral interrupt init */
         HAL_NVIC_SetPriority(OTG_FS_IRQn, 1, 0);
@@ -105,8 +110,11 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
         /* USER CODE BEGIN USB_OTG_HS_MspInit 0 */
 
         /* USER CODE END USB_OTG_HS_MspInit 0 */
+        HAL_Delay(10);
 
         __HAL_RCC_GPIOB_CLK_ENABLE();
+        HAL_Delay(50);
+
         /**USB_OTG_HS GPIO Configuration
         PB13     ------> USB_OTG_HS_VBUS
         PB14     ------> USB_OTG_HS_DM
@@ -124,8 +132,10 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
         GPIO_InitStruct.Alternate = GPIO_AF12_OTG2_FS;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+        HAL_Delay(10);
         /* Peripheral clock enable */
         __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
+        HAL_Delay(50);
 
         /* Peripheral interrupt init */
         HAL_NVIC_SetPriority(OTG_HS_IRQn, 1, 0);

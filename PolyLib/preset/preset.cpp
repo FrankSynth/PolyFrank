@@ -1,43 +1,81 @@
 #ifdef POLYCONTROL
 
 #include "preset.hpp"
+#include "datacore/datalocation.hpp"
+#include "hardware/device.hpp"
 
-const uint8_t PRESETBLOCKUSED = 0x0F;
+extern M95M01 eeprom;
 
 std::vector<presetStruct> presets;
+std::vector<presetStruct *> presetsSorted;
+presetStruct *freePreset;
 
-uint8_t blockBuffer[PRESET_BLOCKSIZE];
+uint32_t saveID = 0;
+
+RAM1 uint8_t blockBuffer[PRESET_BLOCKSIZE];
+
+RAM3_DMA volatile uint8_t presetDMABlockBuffer[PRESET_BLOCKSIZE];
+
+bool comparePtrPresetStruct(presetStruct *a, presetStruct *b) {
+    return (*a > *b);
+}
 
 // AUfbau der Daten:   1Block -> Allgemein Settings, 2Block Liste aller Presets, freie Blöcke ..,  presets
 
 void updatePresetList() {
-    EEPROM_SPI_ReadBuffer(blockBuffer, TABLE_STARTADDRESS, TABLE_BLOCKSIZE);
+    static uint8_t init = 1;
 
-    presets.clear();
+    if (init) {
+        for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
+            presetStruct newEntry;
+            newEntry.usageState = PRESET_FREE;
+            newEntry.storageID = i;
+            newEntry.saveCounterID = 0;
+
+            presets.push_back(newEntry);
+        }
+        init = 0;
+    }
+
+    presetsSorted.clear();
+
+    // println("preset Size: ", presets.size());
+
+    eeprom.SPI_ReadBuffer(blockBuffer, TABLE_STARTADDRESS, TABLE_BLOCKSIZE);
 
     for (uint32_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
-        presetStruct newEntry;
 
-        if (((presetStruct *)blockBuffer)[i].usageState == PRESETBLOCKUSED) {
-            newEntry = ((presetStruct *)blockBuffer)[i];
-            presets.push_back(newEntry);
+        if (((presetStruct *)blockBuffer)[i].usageState == PRESET_USED) {
+            presets[i] = ((presetStruct *)blockBuffer)[i];
+            presetsSorted.push_back(&presets[i]);
         }
         else {
-            newEntry.usageState = 0;
-            presets.push_back(newEntry);
+            presets[i].usageState = PRESET_FREE;
         }
+    }
+
+    freePreset = nullptr;
+    for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
+        if (presets[i].usageState == PRESET_FREE) {
+            freePreset = &presets[i];
+        }
+    }
+    if (freePreset == nullptr)
+        PolyError_Handler("No Free Save slots Available");
+
+    if (presetsSorted.size()) {
+        std::sort(presetsSorted.begin(), presetsSorted.end(), comparePtrPresetStruct);
+        saveID = presetsSorted.front()->saveCounterID + 1;
     }
 }
 
-void removePreset(uint16_t blockID) {
+void removePreset(presetStruct *preset) {
     // write empty entry to table
-    presetStruct newEntry;
-    newEntry.usageState = 0;
-    newEntry.name[0] = '\0';
+    preset->usageState = PRESET_FREE;
 
-    uint32_t address = TABLE_STARTADDRESS + blockID * sizeof(presetStruct);
+    uint32_t address = TABLE_STARTADDRESS + preset->storageID * sizeof(presetStruct);
 
-    EEPROM_SPI_WriteBuffer((uint8_t *)&newEntry, address, sizeof(presetStruct));
+    eeprom.SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
 
     updatePresetList();
 }
@@ -46,55 +84,66 @@ std::vector<presetStruct> *getPresetList() {
     return &presets;
 }
 
-void initPreset() {
-    EEPROM_SPI_INIT(&hspi6);
-}
-void writePresetBlock(uint16_t blockID, std::string name) {
+void writePresetBlock(presetStruct *preset, std::string name) {
 
-    uint32_t address = PRESET_BLOCKSIZE + blockID * PRESET_BLOCKSIZE;
-
-    EEPROM_SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
-
-    // write new entry to table
-    presetStruct newEntry;
-    newEntry.usageState = PRESETBLOCKUSED;
-    newEntry.ID = blockID;
-
-    for (uint32_t i = 0; i < PRESET_NAMELENGTH; i++) {
-        if (i < name.size()) {
-
-            newEntry.name[i] = name.data()[i];
-        }
-        else {
-            newEntry.name[i] = '\0';
-        }
+    if (preset == nullptr) {
+        updatePresetList();
+        return;
     }
 
-    address = TABLE_STARTADDRESS + newEntry.ID * sizeof(presetStruct);
+    uint32_t address = PRESET_STARTADDRESS + preset->storageID * PRESET_BLOCKSIZE;
 
-    EEPROM_SPI_WriteBuffer((uint8_t *)&newEntry, address, sizeof(presetStruct));
+    eeprom.SPI_WriteBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
+
+    // write new entry to table
+    if (preset->usageState == PRESET_FREE) {
+        preset->usageState = PRESET_USED;
+        preset->saveCounterID = saveID;
+
+        for (uint32_t i = 0; i < PRESET_NAMELENGTH; i++) {
+            if (i < name.size()) {
+
+                preset->name[i] = name.data()[i];
+            }
+            else {
+                preset->name[i] = '\0';
+            }
+        }
+    }
+    address = TABLE_STARTADDRESS + preset->storageID * sizeof(presetStruct);
+
+    eeprom.SPI_WriteBuffer((uint8_t *)preset, address, sizeof(presetStruct));
 
     updatePresetList();
 }
 
 void writeConfigBlock() {
-    uint32_t address = CONFIG_STARTADDRESS;
-
-    EEPROM_SPI_WriteBuffer(blockBuffer, address, CONFIG_BLOCKSIZE);
+    eeprom.SPI_WriteBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
 }
 
-uint8_t *readPreset(uint16_t blockID) {
-    uint32_t address = blockID * PRESET_BLOCKSIZE + PRESET_STARTADDRESS;
+uint8_t *readPreset(presetStruct *preset) {
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
+    uint32_t address = preset->storageID * PRESET_BLOCKSIZE + PRESET_STARTADDRESS;
+
+    eeprom.SPI_ReadBuffer(blockBuffer, address, PRESET_BLOCKSIZE);
 
     return blockBuffer;
 }
 
 uint8_t *readConfig() {
-    uint32_t address = CONFIG_STARTADDRESS;
 
-    EEPROM_SPI_ReadBuffer(blockBuffer, address, CONFIG_BLOCKSIZE);
+    eeprom.SPI_ReadBuffer(blockBuffer, CONFIG_STARTADDRESS, CONFIG_BLOCKSIZE);
+
+    return blockBuffer;
+}
+
+void writeLiveDataBlock() {
+    eeprom.SPI_WriteBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
+}
+
+uint8_t *readLiveData() {
+
+    eeprom.SPI_ReadBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
 
     return blockBuffer;
 }

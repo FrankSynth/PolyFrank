@@ -6,20 +6,18 @@
 // GUIHeader Box for Panel Selection
 class Header_PanelBox {
   public:
-    Header_PanelBox(GUIPanelBase *panel, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
-        this->pSource = panel;
+    Header_PanelBox(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
         this->x = x;
         this->y = y;
         this->width = width;
         this->heigth = heigth;
     }
 
-    void Draw(uint8_t active);
+    void Draw(GUIPanelBase *panel, uint8_t active);
 
   private:
     const GUI_FONTINFO *font = &GUI_FontBahnschrift24_FontInfo;
 
-    GUIPanelBase *pSource;
     uint16_t x;
     uint16_t y;
     uint16_t width;
@@ -43,7 +41,7 @@ class Footer_PanelBox {
 
   private:
     const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift24_FontInfo;
-    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo; 
+    const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
 
     actionHandle *main;
     actionHandle *secondary;
@@ -56,8 +54,8 @@ class Footer_PanelBox {
 
 class Side_PanelBox {
   public:
-    Side_PanelBox(actionHandle *Function, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
-        this->main = Function;
+    Side_PanelBox(ButtonActionHandle *actionHandle, uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+        this->actionHandle = actionHandle;
 
         this->x = x;
         this->y = y;
@@ -71,7 +69,7 @@ class Side_PanelBox {
     const GUI_FONTINFO *fontBig = &GUI_FontBahnschriftSemiBold28_FontInfo;
     const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift24_FontInfo;
 
-    actionHandle *main;
+    ButtonActionHandle *actionHandle;
     uint16_t x;
     uint16_t y;
     uint16_t width;
@@ -88,6 +86,7 @@ class GUIHeader {
   private:
     // Boxes
     uint8_t *activePanelID = nullptr;
+    std::vector<GUIPanelBase *> *panels;
     std::vector<Header_PanelBox> boxes;
     uint16_t panelWidth;
     uint16_t panelHeight;

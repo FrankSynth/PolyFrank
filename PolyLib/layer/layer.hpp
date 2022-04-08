@@ -7,16 +7,10 @@
 #include <string>
 #include <vector>
 
-extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
-extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
-extern uint8_t sendDeleteAllPatches(uint8_t layerId);
-
-extern uint8_t sendCreatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
-                                     float offset);
-extern uint8_t sendUpdatePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId, float amount,
-                                     float offset);
-extern uint8_t sendDeletePatchOutOut(uint8_t layerId, uint8_t outputOutId, uint8_t outputInId);
+#ifdef POLYRENDER
+#include "render/renderAudioDef.h"
+#include "render/renderCVDef.h"
+#endif
 
 typedef struct {
     uint8_t sourceID;
@@ -32,15 +26,18 @@ class Layer {
         modules.push_back(&oscB);
         modules.push_back(&sub);
         modules.push_back(&noise);
+        modules.push_back(&mixer);
         modules.push_back(&steiner);
         modules.push_back(&ladder);
-        modules.push_back(&adsrA);
-        modules.push_back(&adsrB);
+        modules.push_back(&envA);
+        modules.push_back(&envF);
         modules.push_back(&lfoA);
         modules.push_back(&lfoB);
-        modules.push_back(&distort);
-        modules.push_back(&globalModule);
+        modules.push_back(&out);
         modules.push_back(&midi);
+        modules.push_back(&feel);
+        modules.push_back(&layersettings);
+
         // skip layer settings?
 
         initID();
@@ -53,44 +50,30 @@ class Layer {
 
     void resetLayer();
 
-    // Patch stuff
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> sendCreatePatchInOut;
-    // static std::function<uint8_t(uint8_t, uint8_t, uint8_t)> sendDeletePatchInOut;
-    // static std::function<uint8_t(uint8_t)> sendDeleteAllPatches;
-
-    // clear all Layer patchesInOut
+    // patch stuff
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount = 0);
+    void updatePatchInOutWithoutMapping(PatchElement &patch, float amount = 0);
     void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void removePatchInOut(PatchElementInOut &patch);
+    void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
 
-    void addPatchOutOut(Output &sourceOut, Output &targetOut, float amount = 0, float offset = 0);
-    void addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount = 0, float offset = 0);
-    void updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount = 0, float offset = 0);
-    void updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount = 0,
-                                             float offset = 0);
-    void removePatchOutOut(PatchElementOutOut &patch);
-    void removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId);
-
 #ifdef POLYCONTROL
-    void saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName);
-    void loadLayerFromPreset(uint32_t presetID);
+    void collectLayerConfiguration();
+
+    void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
+    void loadLayerFromPreset(presetStruct *preset);
 #endif
 
-    inline std::list<PatchElementInOut> &getPatchesInOut() { return patchesInOut; }
-    inline std::list<PatchElementOutOut> &getPatchesOutOut() { return patchesOutOut; }
+    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYRENDER
     inline void gateOn(uint16_t voice) {
         lfoA.gateOn(voice);
         lfoB.gateOn(voice);
-        adsrA.gateOn(voice);
-        adsrB.gateOn(voice);
-        // oscA.gateOn(voice);
-        // oscB.gateOn(voice);
+        envA.gateOn(voice);
+        envF.gateOn(voice);
         midi.gateOn(voice);
     }
 
@@ -104,31 +87,41 @@ class Layer {
         }
     }
 
+    float spreadValues[VOICESPERCHIP];
+    float noteImperfection[OSCPERVOICE][VOICESPERCHIP][NOTEIMPERFECTIONBUFFERSIZE];
+    float lfoImperfection[VOICESPERCHIP];
+    float adsrImperfection[VOICESPERCHIP];
+
+    void initLayer();
+
+    uint8_t chipID;
+
 #endif
 
     uint8_t id;
 
-    Midi midi = Midi("MIDI");
-    OSC_A oscA = OSC_A("OSC_A");
-    OSC_B oscB = OSC_B("OSC_B");
-    Sub sub = Sub("SUB");
-    Noise noise = Noise("NOISE");
-    Steiner steiner = Steiner("STEINER");
-    Ladder ladder = Ladder("LADDER");
-    Distortion distort = Distortion("DISTORTION");
-    LFO lfoA = LFO("LFO A");
-    LFO lfoB = LFO("LFO B");
-    ADSR adsrA = ADSR("ADSR A");
-    ADSR adsrB = ADSR("ADSR B");
-    GlobalModule globalModule = GlobalModule("GLOBAL");
+    Midi midi = Midi("MIDI INTERFACE", "MIDI");
+    OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
+    OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
+    Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
+    Noise noise = Noise("NOISE GENERATOR", "NOISE");
+    Mixer mixer = Mixer("MIXER", "MIXER");
+    Steiner steiner = Steiner("STEINER FILTER", "STEINER");
+    Ladder ladder = Ladder("LADDER FILTER", "LADDER");
+    LFO lfoA = LFO("LFO A", "LFO A");
+    LFO lfoB = LFO("LFO B", "LFO B");
+    ADSR envA = ADSR("ENVELOPE VCA", "ENV A");
+    ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
+    Out out = Out("OUTPUT", "OUTPUT");
+    Feel feel = Feel("FEEL", "FEEL");
+    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LA SET");
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
-    std::list<PatchElementInOut> patchesInOut;
-    std::list<PatchElementOutOut> patchesOutOut;
+    std::list<PatchElement> patchesInOut;
 
-    Setting LayerState = Setting("LayerState", 0, 1, 10, false, binary);
+    Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
 
   private:
 };

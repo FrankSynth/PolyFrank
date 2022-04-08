@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "gfx.hpp"
+#include "datacore/datalocation.hpp"
 
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
@@ -19,7 +20,7 @@ RENDERSTATE renderState = RENDER_DONE;
 // renderQueue
 // std::list<renderTask> renderQueueList;
 
-CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
+RAM1 CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 
 void GFX_Init() {
     // IRQHandler();
@@ -254,6 +255,32 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
         addToRenderQueue(task); // Add Task to RenderQue
 
         posX += activeFont->font[(uint8_t)c - 32].XSize; // Distance to next character
+    }
+}
+
+void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont) {
+    renderTask task;
+
+    task.mode = M2MTRANSPARENT_A4;  // Set DMA2D To copy M2M with Blending
+    task.height = activeFont->size; // Set Font Height
+    task.color = color;             // Set Font Height
+
+    // Curser Position
+    uint16_t posX = x;
+    uint16_t posY = y - (text.size() * (task.height - 4)) / 2;
+
+    // For each Char
+    for (char &c : text) {
+
+        task.x = posX - activeFont->font[(uint8_t)c - 32].XSize / 2;
+        task.y = posY;
+
+        task.width = activeFont->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint8_t)c - 32].pData; // Pointer to Character
+
+        addToRenderQueue(task); // Add Task to RenderQue
+
+        posY += task.height - 4; // Distance to next character
     }
 }
 void drawString(char *charArray, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,

@@ -11,6 +11,8 @@
 #define NUMBERCLOCKSTATES 23
 #define NOTERANGE 88 // Supported Midi Note Range
 
+#define MIDIARPUPDATEDELAY 2000 // delay in micros that will be waited for the arp to update after some new midinote
+
 #define MAXCLOCKTICKS 2304
 
 typedef enum { LAYERA, LAYERB, LAYERAB } playModeEnum;
@@ -23,6 +25,7 @@ typedef struct {
     uint8_t released = 0;
     uint32_t born = 0; // in micros?
     uint32_t lifespan = 0;
+    uint32_t retriggerAmounts = 0;
 } Key;
 
 // struct pro voice für den aktuellen status: gespielter ton, c

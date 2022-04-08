@@ -53,6 +53,7 @@ extern "C" {
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler();
 void PolyError_Handler(const char *errorMessage);
+void PolyError_HandlerClear();
 
 /* USER CODE BEGIN EFP */
 
@@ -87,6 +88,7 @@ void PolyError_Handler(const char *errorMessage);
 #define Layer_2_READY_2_EXTI_IRQn EXTI4_IRQn
 #define Panel_2_Change_Pin GPIO_PIN_5
 #define Panel_2_Change_GPIO_Port GPIOC
+#define Panel_2_Change_EXTI_IRQn EXTI9_5_IRQn
 #define Panel_1_Change_Pin GPIO_PIN_2
 #define Panel_1_Change_GPIO_Port GPIOB
 #define Panel_1_Change_EXTI_IRQn EXTI2_IRQn
@@ -109,6 +111,7 @@ void PolyError_Handler(const char *errorMessage);
 #define Panel_ADC_Mult_C_GPIO_Port GPIOG
 #define Sync_IN_Pin GPIO_PIN_8
 #define Sync_IN_GPIO_Port GPIOC
+#define Sync_IN_EXTI_IRQn EXTI9_5_IRQn
 #define Panel_2_CS_Pin GPIO_PIN_0
 #define Panel_2_CS_GPIO_Port GPIOI
 #define Panel_1_CS_Pin GPIO_PIN_10
@@ -126,8 +129,10 @@ void PolyError_Handler(const char *errorMessage);
 #define Layer_1_CS_2_GPIO_Port GPIOI
 #define Layer_1_READY_1_Pin GPIO_PIN_6
 #define Layer_1_READY_1_GPIO_Port GPIOI
+#define Layer_1_READY_1_EXTI_IRQn EXTI9_5_IRQn
 #define Layer_1_READY_2_Pin GPIO_PIN_7
 #define Layer_1_READY_2_GPIO_Port GPIOI
+#define Layer_1_READY_2_EXTI_IRQn EXTI9_5_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/dataHelperFunctions.hpp"
+#include "datacore/datadef.h"
 #include "stdint.h"
 #include <cmath>
 #include <valarray>
@@ -58,7 +59,7 @@ float fast_sin_f32(float x);
  * @param a value a
  * @param b value a
  * @param f fraction between a and b
- * @return ALWAYS_INLINE
+ * @return
  */
 ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
     return (a * (1.0f - f)) + (b * f);
@@ -71,13 +72,13 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
  * @param b value a
  * @param f fraction between a and b
  * @param dst dst pointer
- * @return ALWAYS_INLINE
+ * @return
  */
 ALWAYS_INLINE inline void fast_lerp_f32(const float *a, const float *b, const float *f, float *dst) {
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         dst[i] = a[i] * (1.0f - f[i]);
 
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         dst[i] += b[i] * f[i];
 }
 
@@ -104,36 +105,36 @@ inline float fastPowLin2Exp(float x, float max) {
     return std::pow(max + 1.0f, x / max) - 1.0f;
 }
 
-/**
- * @brief caches the calculated slope for similar consecutive map calls
- *
- * @param input input value to be mapped in range
- * @param input_start in range start
- * @param input_end in range end
- * @param output_start out range start
- * @param output_end out range end
- * @return float mapped input value
- */
-inline float fastMapCached(float input, float input_start, float input_end, float output_start, float output_end) {
+// /**
+//  * @brief caches the calculated slope for similar consecutive map calls
+//  *
+//  * @param input input value to be mapped in range
+//  * @param input_start in range start
+//  * @param input_end in range end
+//  * @param output_start out range start
+//  * @param output_end out range end
+//  * @return float mapped input value
+//  */
+// inline float fastMapCached(float input, float input_start, float input_end, float output_start, float output_end) {
 
-    static float input_start_store = 0;
-    static float input_end_store = 0;
-    static float output_start_store = 0;
-    static float output_end_store = 0;
-    static float slope_store = 0;
+//     static float input_start_store = 0;
+//     static float input_end_store = 0;
+//     static float output_start_store = 0;
+//     static float output_end_store = 0;
+//     static float slope_store = 0;
 
-    if (input_start != input_start_store || input_end != input_end_store || output_start != output_start_store ||
-        output_end != output_end_store) {
-        slope_store = (output_end - output_start) / (input_end - input_start);
-        input_start_store = input_start;
-        input_end_store = input_end;
-        output_start_store = output_start;
-        output_end_store = output_end;
-    }
+//     if (input_start != input_start_store || input_end != input_end_store || output_start != output_start_store ||
+//         output_end != output_end_store) {
+//         slope_store = (output_end - output_start) / (input_end - input_start);
+//         input_start_store = input_start;
+//         input_end_store = input_end;
+//         output_start_store = output_start;
+//         output_end_store = output_end;
+//     }
 
-    float output = output_start + slope_store * (input - input_start);
-    return output;
-}
+//     float output = output_start + slope_store * (input - input_start);
+//     return output;
+// }
 
 /**
  * @brief map value without caching the slope
@@ -173,6 +174,7 @@ float fastNoteLin2Log_f32(float x);
  * @return float mapped value between 0 and 1
  */
 inline float fastMapLEDBrightness(float value) {
+    // TODO bezier
     if (value < LEDCURVEPOINT1IN) {
         value = fastMap(value, LEDCURVEPOINTSTART, LEDCURVEPOINT1IN, LEDCURVEPOINTSTART, LEDCURVEPOINT1OUT);
     }
@@ -188,14 +190,6 @@ inline float fastMapLEDBrightness(float value) {
 }
 
 /**
- * @brief map Audio log
- *
- * @param value between 0 and 1
- * @return float mapped value between 0 and 1
- */
-float fastMapAudioToLog(float value);
-
-/**
  * @brief custom log table between 0 and 1 with curve param
  *
  */
@@ -209,7 +203,7 @@ class LogCurve {
      */
     LogCurve(uint16_t size, float curve) {
         this->size = size;
-        this->curve = testFloat(curve == 0.5f ? 0.4999f : curve, 0.0001f, 0.9999f);
+        this->curve = std::clamp(curve == 0.5f ? 0.4999f : curve, 0.0001f, 0.9999f);
         this->logTable.reserve(size + 1);
 
         precomputeTable();
@@ -225,4 +219,76 @@ class LogCurve {
     std::vector<float> logTable;
 };
 
-// template <uint32_t _size, uint32_t _curve> LogCurve
+// audio poti Log style
+extern LogCurve audioCurve;
+
+/**
+ * @brief map Audio log
+ *
+ * @param value between 0 and 1
+ * @return float mapped value between 0 and 1
+ */
+inline float fastMapAudioToLog(float value) {
+    return audioCurve.mapValue(value);
+}
+
+float calcSquircle(float value, float curvature);
+float calcSquircleSimplified(float value, float curvature);
+
+template <typename T> inline T getSign(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+
+/**
+ * @brief
+ *
+ * @param value [] between 0 and 1
+ * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ */
+ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curvature) {
+    float exp[VOICESPERCHIP];
+    // float expsq[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        exp[i] = 1.0f / curvature[i] - 1.0f;
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     expsq[i] = exp[i] * exp[i];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        value[i] = std::pow(value[i], exp[i]);
+}
+
+/**
+ * @brief
+ *
+ * @param value [] between 0 and 1
+ * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline void calcSquircle(float *value, const float *curvature) {
+
+    float sign[VOICESPERCHIP];
+    float exp[VOICESPERCHIP];
+    float firstpow[VOICESPERCHIP];
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        sign[i] = getSign(value[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        exp[i] = 1.0f / curvature[i] - 1.0f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        firstpow[i] = 1.0f - std::pow(sign[i] * value[i], exp[i]);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        value[i] = sign[i] * (1.0f - std::pow(firstpow[i], 1.0f / exp[i]));
+}

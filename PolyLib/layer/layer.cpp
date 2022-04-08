@@ -1,8 +1,11 @@
 #include "layer.hpp"
 
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t, float)> Layer::sendCreatePatchInOut = nullptr;
-// std::function<uint8_t(uint8_t, uint8_t, uint8_t)> Layer::sendDeletePatchInOut = nullptr;
-// std::function<uint8_t(uint8_t)> Layer::sendDeleteAllPatches = nullptr;
+#ifdef POLYCONTROL
+extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
+extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
+extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
+extern uint8_t sendDeleteAllPatches(uint8_t layerId);
+#endif
 
 void Layer::initID() {
     ID modID;
@@ -64,22 +67,23 @@ void Layer::resetLayer() {
 
 #ifdef POLYRENDER
     allGatesOff();
-    adsrA.resetAllADSRs();
-    adsrB.resetAllADSRs();
+    envA.resetAllADSRs();
+    envF.resetAllADSRs();
     lfoA.resetAllPhases();
     lfoB.resetAllPhases();
 #endif
 }
 
 void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
-    for (PatchElementInOut *p : sourceOut.getPatchesInOut()) {
+    for (PatchElement *p : sourceOut.getPatchesInOut()) {
         if (p->targetIn == &targetIn)
             return;
     }
 
-    patchesInOut.push_back(PatchElementInOut(sourceOut, targetIn, id, amount));
+    patchesInOut.push_back(PatchElement(sourceOut, targetIn, id));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
+    patchesInOut.back().setAmount(0.2);
 
 #ifdef POLYCONTROL
     sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, amount);
@@ -90,12 +94,12 @@ void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     addPatchInOut(*(outputs[outputId]), *(inputs[inputId]), amount);
 }
 
-void Layer::updatePatchInOutWithoutMapping(PatchElementInOut &patch, float amount) {
+void Layer::updatePatchInOutWithoutMapping(PatchElement &patch, float amount) {
     patch.setAmountWithoutMapping(amount);
 }
 
 void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
-    for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
+    for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             this->updatePatchInOutWithoutMapping(*p, amount);
             return;
@@ -103,7 +107,7 @@ void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId
     }
 }
 
-void Layer::removePatchInOut(PatchElementInOut &patch) {
+void Layer::removePatchInOut(PatchElement &patch) {
 #ifdef POLYCONTROL
     sendDeletePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal);
 #endif
@@ -111,71 +115,14 @@ void Layer::removePatchInOut(PatchElementInOut &patch) {
     patch.sourceOut->removePatchInOut(patch); // remove sourceOut entry
     patch.targetIn->removePatchInOut(patch);  // remove targetIn entry
 
-    patch.remove = true;                                                  // set remove flag
-    patchesInOut.remove_if([](PatchElementInOut n) { return n.remove; }); // find element and remove from list
+    patch.remove = true;                                             // set remove flag
+    patchesInOut.remove_if([](PatchElement n) { return n.remove; }); // find element and remove from list
 }
 
 void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
-    for (PatchElementInOut *p : outputs[outputId]->getPatchesInOut()) {
+    for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
             removePatchInOut(*p);
-            return;
-        }
-    }
-}
-
-// OutOut
-
-void Layer::addPatchOutOut(Output &sourceOut, Output &targetOut, float amount, float offset) {
-    for (PatchElementOutOut *p : sourceOut.getPatchesOutOut()) {
-        if (p->targetOut == &targetOut)
-            return;
-    }
-
-    patchesOutOut.push_back(PatchElementOutOut(sourceOut, targetOut, id, amount, offset));
-    sourceOut.addPatchOutOut(patchesOutOut.back());
-    targetOut.addPatchOutOut(patchesOutOut.back());
-
-#ifdef POLYCONTROL
-    sendCreatePatchOutOut(id, patchesOutOut.back().sourceOut->idGlobal, patchesOutOut.back().targetOut->idGlobal,
-                          amount, offset);
-#endif
-}
-
-void Layer::addPatchOutOutById(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
-    addPatchOutOut(*outputs[outputOutId], *outputs[outputInId], amount);
-}
-
-void Layer::updatePatchOutOutWithoutMapping(PatchElementOutOut &patch, float amount, float offset) {
-    patch.setAmountWithoutMapping(amount);
-    patch.setOffsetWithoutMapping(amount);
-}
-
-void Layer::updatePatchOutOutByIdWithoutMapping(uint8_t outputOutId, uint8_t outputInId, float amount, float offset) {
-    for (PatchElementOutOut *p : outputs[outputOutId]->getPatchesOutOut()) {
-        if (p->targetOut == outputs[outputInId]) {
-            updatePatchOutOutWithoutMapping(*p, amount, offset);
-            return;
-        }
-    }
-}
-
-void Layer::removePatchOutOut(PatchElementOutOut &patch) {
-#ifdef POLYCONTROL
-    sendDeletePatchOutOut(id, patch.sourceOut->idGlobal, patch.targetOut->idGlobal);
-#endif
-
-    patch.sourceOut->removePatchOutOut(patch); // remove sourceOut entry
-    patch.targetOut->removePatchOutOut(patch); // remove targetIn entry
-
-    patch.remove = true;                                                    // set remove flag
-    patchesOutOut.remove_if([](PatchElementOutOut n) { return n.remove; }); // find element and remove from list
-}
-
-void Layer::removePatchOutOutById(uint8_t outputOutId, uint8_t outputInId) {
-    for (PatchElementOutOut *p : outputs[outputOutId]->getPatchesOutOut()) {
-        if (p->targetOut == outputs[outputInId]) {
-            removePatchOutOut(*p);
             return;
         }
     }
@@ -191,15 +138,55 @@ void Layer::clearPatches() {
         }
     }
     patchesInOut.clear();
-    patchesOutOut.clear();
 
 #ifdef POLYCONTROL
     sendDeleteAllPatches(id);
 #endif
 }
+
+#ifdef POLYRENDER
+
+/**
+ * @brief load spreading buffer and imperfection base
+ *
+ */
+void Layer::initLayer() {
+
+    // set spread values dependend on chip ID
+    float maxVal = chipID ? -1.0f : 1.0f;
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        spreadValues[i] = maxVal / ((float)i + 1.0f);
+
+    // load imperfection buffers
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        lfoImperfection[i] = calcRandom() * LFOIMPERFECTIONWEIGHT;
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+        adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT;
+
+    for (uint16_t i = 0; i < VOICESPERCHIP; i++) {
+        for (uint16_t o = 0; o < OSCPERVOICE; o++) {
+            for (uint16_t x = 0; x < NOTEIMPERFECTIONBUFFERSIZE; x++) {
+                noteImperfection[o][i][x] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+            }
+        }
+    }
+}
+
+#endif
+
 #ifdef POLYCONTROL
 
-void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::string secondName) {
+void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName,
+                              std::string thirdName) {
+
+    collectLayerConfiguration();
+    writePresetBlock(preset, firstName + " " + secondName + " " + thirdName);
+}
+
+void Layer::collectLayerConfiguration() {
+
+    println("collectConfiguration");
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 
@@ -208,25 +195,16 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
         for (Analog *i : m->getPotis()) {
             buffer[index] = i->value;
             index++;
+            // println("value:  ", buffer[index]);
         }
         for (Digital *i : m->getSwitches()) {
             buffer[index] = i->valueMapped;
             index++;
+            // println("value:  ", buffer[index]);
         }
     }
 
-    // Layer specific settings, not part of modules
-    // for (Setting *i : layerSettings.getSettings()) {
-    //     buffer[index] = i->value;
-    //     index++;
-    // }
-
-    // start Position vom patch buffer bereich
-
     buffer[index] = patchesInOut.size();
-    index++;
-
-    buffer[index] = patchesOutOut.size();
     index++;
 
     patchSaveStruct *bufferPatch;
@@ -234,7 +212,7 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
     index = 0;
     patchSaveStruct patch;
     // save Patches
-    for (PatchElementInOut p : patchesInOut) {
+    for (PatchElement p : patchesInOut) {
 
         patch.sourceID = p.sourceOut->idGlobal;
         patch.targetID = p.targetIn->idGlobal;
@@ -245,61 +223,41 @@ void Layer::saveLayerToPreset(uint32_t presetID, std::string firstName, std::str
         index++;
     }
 
-    for (PatchElementOutOut p : patchesOutOut) {
-
-        patch.sourceID = p.sourceOut->idGlobal;
-        patch.targetID = p.targetOut->idGlobal;
-        patch.amount = p.amount;
-
-        bufferPatch[index] = patch;
-
-        index++;
-    }
-
-    // println((int8_t *)&bufferPatch[index] - (int8_t *)blockBuffer);
-
     if ((uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)blockBuffer) > (PRESET_BLOCKSIZE)) {
         PolyError_Handler("ERROR | FATAL | LAYER -> SaveLayerToPreset -> BufferOverflow!");
     }
-    // println("Index Size : ", index);
-    // println("ID  : ", presetID, "  Name: ", firstName + " " + secondName);
-    writePresetBlock(presetID, firstName + " " + secondName);
 }
-void Layer::loadLayerFromPreset(uint32_t presetID) {
-    if (presets[presetID].usageState != PRESETBLOCKUSED) {
+void Layer::loadLayerFromPreset(presetStruct *preset) {
+    if (preset->usageState != PRESET_USED) {
         return;
     }
 
-    int32_t *buffer = (int32_t *)readPreset(presetID);
+    int32_t *buffer = (int32_t *)readPreset(preset);
 
     uint32_t index = 0;
+
     for (BaseModule *m : modules) { //  all modules
 
         for (Analog *i : m->getPotis()) {
             i->setValue(buffer[index]);
+
             index++;
         }
+
         for (Digital *i : m->getSwitches()) {
+
             i->setValueWithoutMapping(buffer[index]);
             index++;
         }
     }
 
-    // Layer specific settings, not part of modules
-    // for (Setting *i : layerSettings.getSettings()) {
-    //     i->setValue(buffer[index]);
-    //     index++;
-    // }
-
     // clear existing patches
+
     clearPatches();
 
     // read number of patches
 
     int32_t numberPatchesInOut = buffer[index];
-    index++;
-
-    int32_t numberPatchesOutOut = buffer[index];
     index++;
 
     patchSaveStruct *bufferPatch;
@@ -315,12 +273,12 @@ void Layer::loadLayerFromPreset(uint32_t presetID) {
         index++;
     }
 
-    for (int i = 0; i < numberPatchesOutOut; i++) {
+    // for (int i = 0; i < numberPatchesOutOut; i++) {
 
-        patch = bufferPatch[index];
-        addPatchOutOutById(patch.sourceID, patch.targetID, patch.amount);
-        index++;
-    }
+    //     patch = bufferPatch[index];
+    //     addPatchOutOutById(patch.sourceID, patch.targetID, patch.amount);
+    //     index++;
+    // }
 }
 
 #endif

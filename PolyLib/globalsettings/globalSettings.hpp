@@ -27,6 +27,7 @@ class GlobalSettings {
         __globSettingsDisplay.category = "DISPLAY";
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
+        __globSettingsDisplay.settings.push_back(&dispTemperature);
 
         // init setting IDs
         // initID();
@@ -62,16 +63,16 @@ class GlobalSettings {
 
         readConfig();
 
-        for (Setting *i : __globSettingsSystem.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsSystem.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
-        for (Setting *i : __globSettingsMIDI.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsMIDI.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
-        for (Setting *i : __globSettingsDisplay.settings) {
-            i->setValue(buffer[index]);
+        for (Setting *s : __globSettingsDisplay.settings) {
+            s->setValue(buffer[index]);
             index++;
         }
     }
@@ -93,8 +94,7 @@ class GlobalSettings {
         // }
     }
 
-    // return all settings
-    // std::vector<Setting *> getSettings() { return __globSettings; }
+    void setShift(uint8_t shift) { this->shift = shift; }
 
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
     categoryStruct __globSettingsSystem;
@@ -111,8 +111,13 @@ class GlobalSettings {
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
+    Setting dispTemperature = Setting("TEMPERATURE", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Error error;
+
+    uint32_t temperature = 0;
+
+    uint8_t shift = 0;
 
   private:
     const std::vector<std::string> amountLayerNameList = {"OFF", "ON"};

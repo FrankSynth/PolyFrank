@@ -4,76 +4,54 @@
 
 void GUIPanelPatch::registerElements() {
     uint16_t dataIndex = 0;
-    uint16_t elementIndex = 0;
 
     dataIndex = scrollModule.offset;
 
     // register Module Elements
-    while (true) {
-        if (elementIndex >= maxEntrys) {
-            break;
-        }
-
+    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysModule) {
 
-            panelElementsModule[elementIndex].addEntry(allLayers[currentFocus.layer]->getModules()[dataIndex]);
+            panelElementsModule[elementIndex].addEntry(allModules[dataIndex]);
             dataIndex++;
         }
         else {
             break;
         }
-
-        elementIndex++;
     }
     panelElementsModule[scrollModule.relPosition].select = 1;
 
-    elementIndex = 0;
     dataIndex = scrollSource.offset;
     // register Source Elements
-    while (true) {
-        if (elementIndex >= maxEntrys) {
-            break;
-        }
 
+    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysSource) {
 
-            panelElementsSource[elementIndex].addEntry((BasePatch *)allLayers[currentFocus.layer]->outputs[dataIndex],
-                                                       1);
+            panelElementsSource[elementIndex].addEntry(allOutputs[dataIndex], 1);
             dataIndex++;
         }
         else {
             break;
         }
-
-        elementIndex++;
     }
     panelElementsSource[scrollSource.relPosition].select = 1;
 
-    elementIndex = 0;
     dataIndex = scrollTarget.offset;
     // register Target Elements
-    while (true) {
-        if (elementIndex >= maxEntrys) {
-            break;
-        }
 
+    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysTarget) {
 
-            panelElementsTarget[elementIndex].addEntry((BasePatch *)allLayers[currentFocus.layer]
-                                                           ->getModules()[scrollModule.position]
-                                                           ->getInputs()[dataIndex]);
+            panelElementsTarget[elementIndex].addEntry(allInputs[dataIndex]);
             dataIndex++;
         }
         else {
             break;
         }
-
-        elementIndex++;
     }
     panelElementsTarget[scrollTarget.relPosition].select = 1;
 
     // register PatchMarker
-    if (flipView) {
+    if (!flipView) {
 
         // für jeden Eintrag
         for (int i = 0; i < maxEntrys; i++) {
@@ -85,7 +63,7 @@ void GUIPanelPatch::registerElements() {
             }
 
             if (i < entrysModule) {
-                for (PatchElementInOut *p : panelElementsSource[scrollSource.relPosition].entry->getPatchesInOut()) {
+                for (PatchElement *p : panelElementsSource[scrollSource.relPosition].entry->getPatchesInOut()) {
 
                     if (panelElementsModule[i].entry->id == p->targetIn->moduleId) {
                         panelElementsModule[i].patched = 1;
@@ -97,7 +75,7 @@ void GUIPanelPatch::registerElements() {
 
             if (i < entrysTarget) {
 
-                for (PatchElementInOut *p : panelElementsTarget[i].entry->getPatchesInOut()) {
+                for (PatchElement *p : panelElementsTarget[i].entry->getPatchesInOut()) {
 
                     if (panelElementsSource[scrollSource.relPosition].entry->idGlobal == p->sourceOut->idGlobal) {
                         panelElementsTarget[i].patched = 1;
@@ -126,7 +104,7 @@ void GUIPanelPatch::registerElements() {
             }
         }
         if (entrysTarget != 0) {
-            for (PatchElementInOut *p : panelElementsTarget[scrollTarget.relPosition].entry->getPatchesInOut()) {
+            for (PatchElement *p : panelElementsTarget[scrollTarget.relPosition].entry->getPatchesInOut()) {
                 for (int i = 0; i < maxEntrys; i++) {
                     if (i < entrysSource) {
                         if (panelElementsSource[i].entry->idGlobal == p->sourceOut->idGlobal) {
@@ -140,19 +118,143 @@ void GUIPanelPatch::registerElements() {
     }
 }
 
-void GUIPanelPatch::updateEntrys() {
-    entrysModule = allLayers[currentFocus.layer]->getModules().size();
-    entrysTarget = allLayers[currentFocus.layer]->getModules()[scrollModule.position]->getInputs().size();
-    entrysSource = allLayers[currentFocus.layer]->outputs.size();
-    // check ScrollPosition
-    scrollModule.entrys = entrysModule;
-    scrollTarget.entrys = entrysTarget;
-    scrollSource.entrys = entrysSource;
+void GUIPanelPatch::collectModules() {
 
-    // check Scroll position
-    scrollSource.checkScroll();
-    scrollTarget.checkScroll();
+    allModules.clear();
+
+    for (BaseModule *module : allLayers[currentFocus.layer]->getModules()) { // Collect Module if inputs available
+        uint8_t check = 0;
+        for (Input *input : module->inputs) {
+            if (input->visible) {
+                if (filteredView) {
+                    if (input->patchesInOut.size())
+                        check = 1;
+                }
+                else {
+                    check = 1;
+                }
+            }
+        }
+        if (check)
+            allModules.push_back(module);
+    }
+
+    entrysModule = allModules.size();
+    scrollModule.entrys = entrysModule;
     scrollModule.checkScroll();
+}
+
+void GUIPanelPatch::collectInputs() {
+
+    allInputs.clear();
+
+    if (allModules.size()) {
+        for (Input *input : allModules[scrollModule.position]->inputs) {
+            if (input->visible) {
+                if (filteredView) {
+                    if (input->patchesInOut.size())
+                        allInputs.push_back(input);
+                }
+                else {
+                    allInputs.push_back(input);
+                }
+            }
+        }
+    }
+    entrysTarget = allInputs.size();
+    scrollTarget.entrys = entrysTarget;
+    scrollTarget.checkScroll();
+}
+void GUIPanelPatch::collectOutputs() {
+
+    allOutputs.clear();
+
+    for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
+        if (output->visible) {
+            if (filteredView) {
+                if (output->patchesInOut.size())
+                    allOutputs.push_back(output);
+            }
+            else {
+                allOutputs.push_back(output);
+            }
+        }
+    }
+    entrysSource = allOutputs.size();
+    scrollSource.entrys = entrysSource;
+    scrollSource.checkScroll();
+}
+
+void GUIPanelPatch::updateEntrys() {
+
+    collectModules();
+    collectInputs();
+    collectOutputs();
+}
+
+void GUIPanelPatch::activate() {
+
+    collectModules();
+
+    if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSMODULE) {
+
+        for (uint16_t i = 0; i < allModules.size(); i++) {
+            if (allModules[i]->id == currentFocus.modul) {
+                scrollModule.setScroll(i);
+                break;
+            }
+        }
+    }
+
+    if (currentFocus.type == FOCUSINPUT) {
+        collectInputs();
+        for (uint16_t i = 0; i < allInputs.size(); i++) {
+            if (allInputs[i]->id == currentFocus.id) {
+                scrollTarget.setScroll(i);
+                break;
+            }
+        }
+    }
+
+    if (currentFocus.type == FOCUSOUTPUT) {
+
+        if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
+            uint16_t searchID = allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs[0]->idGlobal;
+
+            collectOutputs();
+            for (uint16_t i = 0; i < allOutputs.size(); i++) {
+                if (allOutputs[i]->idGlobal == searchID) {
+                    scrollSource.setScroll(i);
+                    break;
+                }
+            }
+        }
+        else {
+            scrollSource.setScroll(0);
+        }
+    }
+}
+
+// Change Focus with PatchPanel Scolling
+void GUIPanelPatch::scrollModulePosition(int16_t scroll) {
+    scrollModule.scroll(scroll);
+    currentFocus.modul = allModules[scrollModule.position]->id;
+    updateEntrys();
+    currentFocus.id = allInputs[scrollTarget.position]->id;
+    currentFocus.type = FOCUSINPUT;
+}
+void GUIPanelPatch::scrollTargetPosition(int16_t scroll) {
+    scrollTarget.scroll(scroll);
+    currentFocus.modul = allModules[scrollModule.position]->id;
+    updateEntrys();
+    currentFocus.id = allInputs[scrollTarget.position]->id;
+    currentFocus.type = FOCUSINPUT;
+}
+void GUIPanelPatch::scrollSourcePosition(int16_t scroll) {
+    scrollSource.scroll(scroll);
+    currentFocus.modul = allOutputs[scrollSource.position]->moduleId;
+    currentFocus.id = allOutputs[scrollSource.position]->id;
+    currentFocus.type = FOCUSOUTPUT;
 }
 
 void GUIPanelPatch::Draw() {
@@ -165,7 +267,7 @@ void GUIPanelPatch::Draw() {
     registerElements();
 
     for (int i = 0; i < maxEntrys; i++) {
-        if (flipView) {
+        if (!flipView) {
             panelElementsModule[i].panelAbsX = absXPositions[1];
             panelElementsTarget[i].panelAbsX = absXPositions[2];
             panelElementsSource[i].panelAbsX = absXPositions[0];
@@ -187,47 +289,49 @@ void GUIPanelPatch::Draw() {
 }
 
 void GUIPanelPatch::registerPanelSettings() {
-    if (flipView) {
+    if (!flipView) {
 
-        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "MODULES"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
-        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "INPUT"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "OUTPUT"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(1, {std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     else {
-        actionHandler.registerActionEncoder1({std::bind(&Scroller::scroll, &(this->scrollModule), 1), "MODULES"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "MODULES"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
-        actionHandler.registerActionEncoder2({std::bind(&Scroller::scroll, &(this->scrollTarget), 1), "INPUT"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollTarget), -1), "INPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
-        actionHandler.registerActionEncoder3({std::bind(&Scroller::scroll, &(this->scrollSource), 1), "OUTPUT"},
-                                             {std::bind(&Scroller::scroll, &(this->scrollSource), -1), "OUTPUT"},
-                                             {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatch::scrollModulePosition, this, 1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::scrollModulePosition, this, -1), "MODULES"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSMODULE), "FOCUS"});
+        actionHandler.registerActionEncoder(1, {std::bind(&GUIPanelPatch::scrollTargetPosition, this, 1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollTargetPosition, this, -1), "INPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSINPUT), "FOCUS"});
+        actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelPatch::scrollSourcePosition, this, 1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::scrollSourcePosition, this, -1), "OUTPUT"},
+                                            {std::bind(&GUIPanelPatch::setFocus, this, FOCUSOUTPUT), "FOCUS"});
     }
     // register Panel Seetings Left
 
     if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
-                                         {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"},
-                                         {std::bind(nextLayer), "LAYER"});
+        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
     }
     else {
-        actionHandler.registerActionLeft({std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"}, // RESET
-                                         {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, {nullptr, ""});
+        actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"},
+                                             &(this->flipView));
+        actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"},
+                                             &(this->filteredView));
+        actionHandler.registerActionLeft(2);
     }
 
-    // register Panel Seetings Rigth
-    actionHandler.registerActionRight({std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"}, // SAVE
-                                      {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, {nullptr, ""});
+    // register Panel Seetings Right
+    actionHandler.registerActionRight(0, {std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"});
+    actionHandler.registerActionRight(1, {std::bind(&GUIPanelPatch::removeCurrentPatch, this), "REMOVE"}, 1);
+    actionHandler.registerActionRight(2, {std::bind(&GUIPanelPatch::clearPatches, this), "CLEAR"}, 1);
 
     // clear Encoder 4
-    actionHandler.registerActionEncoder4({nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
+    actionHandler.registerActionEncoder(3, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
 }
 
 void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,

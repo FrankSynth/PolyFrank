@@ -29,8 +29,9 @@ class GUIPanelPreset : public GUIPanelBase {
 
     Scroller scrollPreset = Scroller(PRESETPANELENTRYS);
 
-    Scroller scrollFirstName = Scroller(PRESETPANELENTRYS);
-    Scroller scrollSecondName = Scroller(PRESETPANELENTRYS);
+    Scroller scrollFirstName = Scroller();
+    Scroller scrollSecondName = Scroller();
+    Scroller scrollThirdName = Scroller();
 
     const std::vector<std::string> firstName = {"Space",  "Synth",  "Green",  "Blue",      "Pink",   "Return",
                                                 "Master", "Radium", "Nucleo", "Comet",     "Sir",    "Chill",
@@ -38,6 +39,8 @@ class GUIPanelPreset : public GUIPanelBase {
     const std::vector<std::string> secondName = {"Leavce", "Cowboy", "Traveler", "Tree",   "Floyd",   "Void", "Chief",
                                                  "Vortex", "Wave",   "Moody",    "Rhythm", "42",      "Keys", "Chords",
                                                  "Ship",   "Galaxy", "Quest",    "Error",  "Overflow"};
+
+    const std::vector<std::string> thirdName = {"", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "42", "#"};
 
     Preset_PanelElement PanelElementPreset[PRESETPANELENTRYS];
 };

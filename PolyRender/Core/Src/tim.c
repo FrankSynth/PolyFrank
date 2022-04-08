@@ -62,7 +62,7 @@ void MX_TIM3_Init(void) {
     TIM_OC_InitTypeDef sConfigOC = {0};
 
     htim3.Instance = TIM3;
-    htim3.Init.Prescaler = 240 - 1;
+    htim3.Init.Prescaler = 50 - 1;
     htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim3.Init.Period = 1024 - 1;
     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -85,12 +85,7 @@ void MX_TIM3_Init(void) {
     if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
         Error_Handler();
     }
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
-        Error_Handler();
-    }
+
     HAL_TIM_MspPostInit(&htim3);
 }
 /* TIM4 init function */
@@ -99,7 +94,7 @@ void MX_TIM4_Init(void) {
     TIM_OC_InitTypeDef sConfigOC = {0};
 
     htim4.Instance = TIM4;
-    htim4.Init.Prescaler = 240 - 1;
+    htim4.Init.Prescaler = 50 - 1;
     htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim4.Init.Period = 1024 - 1;
     htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -161,7 +156,7 @@ void MX_TIM8_Init(void) {
     TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
     htim8.Instance = TIM8;
-    htim8.Init.Prescaler = 240 - 1;
+    htim8.Init.Prescaler = 50 - 1;
     htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
     htim8.Init.Period = 1024 - 1;
     htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -192,9 +187,7 @@ void MX_TIM8_Init(void) {
     if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
         Error_Handler();
     }
-    if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
-        Error_Handler();
-    }
+
     sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
     sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
     sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
@@ -347,28 +340,16 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
         /* USER CODE BEGIN TIM3_MspPostInit 0 */
 
         /* USER CODE END TIM3_MspPostInit 0 */
-        __HAL_RCC_GPIOB_CLK_ENABLE();
         __HAL_RCC_GPIOC_CLK_ENABLE();
         /**TIM3 GPIO Configuration
-        PB0     ------> TIM3_CH3
-        PB1     ------> TIM3_CH4
         PC6     ------> TIM3_CH1
         PC7     ------> TIM3_CH2
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+        GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-        GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
-        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP; // FIXME temp
-        // GPIO_InitStruct.Mode = GPIO_MODE_AF_PP; // FIXME temp
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        // GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-        GPIO_InitStruct.Alternate = 0; // FIXME temp
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
         /* USER CODE BEGIN TIM3_MspPostInit 1 */
@@ -407,11 +388,11 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *timHandle) {
         __HAL_RCC_GPIOI_CLK_ENABLE();
         /**TIM8 GPIO Configuration
         PC8     ------> TIM8_CH3
-        PC9     ------> TIM8_CH4
+
         PI5     ------> TIM8_CH1
         PI6     ------> TIM8_CH2
         */
-        GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
+        GPIO_InitStruct.Pin = GPIO_PIN_8;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

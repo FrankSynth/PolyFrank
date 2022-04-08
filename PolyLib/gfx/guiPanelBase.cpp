@@ -3,22 +3,150 @@
 #include "guiPanelBase.hpp"
 
 const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
+
 const GUI_FONTINFO *fontMedium = &GUI_FontBahnschrift24_FontInfo;
 const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift32_FontInfo;
 
-void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
-    PatchElementOutOut *dataOutOut = nullptr;
-    PatchElementInOut *data = nullptr;
-    uint8_t outOutFlag = 0;
+const GUI_FONTINFO *fontConsole = &GUI_FontBahnschrift16_FontInfo;
 
-    if (entry->type == PATCHOUTOUT) {
-        dataOutOut = (PatchElementOutOut *)entry->patch;
-        outOutFlag = 1;
+void drawConsole(CircularBuffer<char, 1024> consoleBuffer, uint16_t rows, uint16_t x, uint16_t y, uint16_t w,
+                 uint16_t h) {
+
+    uint8_t characterHeigth = fontConsole->size;
+
+    uint8_t lines = h / characterHeigth;
+
+    renderTask task;
+    task.mode = M2MTRANSPARENT_A4;   // Set DMA2D To copy M2M with Blending
+    task.height = fontConsole->size; // Set Font Height
+    task.color = cFont_Deselect;     // Set Font Height
+
+    uint16_t line = 0;
+    uint16_t row = 0;
+    uint16_t rowWidth = w / rows;
+
+    // For each Char
+    uint16_t relX = 0;
+
+    char *pData = consoleBuffer.m_head;
+
+    char c;
+
+    for (uint16_t i = 0; i < consoleBuffer.size(); i++) {
+        if (pData == consoleBuffer.m_end) { // check if we reached end-> start from the beginning
+            pData = consoleBuffer.m_buffer;
+        }
+        c = *pData;
+
+        if (c == '\n') { // New Line
+            line += 1;
+        }
+        else if (c == '\r') { // Carriage return
+            relX = 0;
+        }
+        else if (c == '\f') { // Form feed
+            row += 1;
+            line = 0;
+            relX = 0;
+        }
+        else {
+
+            task.width = fontConsole->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
+            task.pSource = (uint32_t)fontConsole->font[(uint8_t)c - 32].pData; // Pointer to Character
+
+            // check line and row
+            if ((relX + task.width) >= rowWidth) {
+                relX = 0;
+                line += 1;
+            }
+            if (line >= lines) {
+                row += 1;
+                line = 0;
+
+                if (row >= rows)
+                    return;
+            }
+
+            // set character position
+            task.x = x + row * rowWidth + relX;
+            task.y = y + line * characterHeigth;
+
+            relX += task.width;
+
+            addToRenderQueue(task); // Add Task to RenderQueue
+        }
+        pData += 1;
     }
-    else {
-        data = (PatchElementInOut *)entry->patch;
+}
+
+void drawDeviceManager(std::string *string, uint16_t rows, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+
+    uint8_t characterHeigth = fontConsole->size;
+
+    uint8_t lines = h / characterHeigth;
+
+    renderTask task;
+    task.mode = M2MTRANSPARENT_A4;   // Set DMA2D To copy M2M with Blending
+    task.height = fontConsole->size; // Set Font Height
+    task.color = cFont_Deselect;     // Set Font Height
+
+    uint16_t line = 0;
+    uint16_t row = 0;
+    uint16_t rowWidth = w / rows;
+
+    // For each Char
+    uint16_t relX = 0;
+
+    for (char &c : *string) {
+
+        if (c == '\n') { // New Line
+            line += 1;
+        }
+        else if (c == '\r') { // Carriage return
+            relX = 0;
+        }
+        else if (c == '\f') { // Form feed
+            row += 1;
+            line = 0;
+            relX = 0;
+        }
+        else {
+
+            task.width = fontConsole->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
+            task.pSource = (uint32_t)fontConsole->font[(uint8_t)c - 32].pData; // Pointer to Character
+
+            // check line and row
+            if ((relX + task.width) >= rowWidth) {
+                relX = 0;
+                line += 1;
+            }
+            if (line >= lines) {
+                row += 1;
+                line = 0;
+
+                if (row >= rows)
+                    return;
+            }
+
+            // set character position
+            task.x = x + row * rowWidth + relX;
+            task.y = y + line * characterHeigth;
+
+            relX += task.width;
+
+            addToRenderQueue(task); // Add Task to RenderQueue
+        }
     }
-    uint16_t nameWidth = 140;
+}
+
+void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+    // PatchElementOutOut *dataOutOut = nullptr;
+    PatchElement *data = nullptr;
+    // uint8_t outOutFlag = 0;
+
+    data = (PatchElement *)entry->patch;
+    // }
+    uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 50;
     uint16_t spaceTopBottomBar = 8;
@@ -29,17 +157,14 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     std::string text;
     // get text
     if (entry->type == PATCHOUTPUT) {
-        text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getName();
-    }
-    else if (entry->type == PATCHOUTOUT) {
-        text = allLayers[currentFocus.layer]->getModules()[dataOutOut->sourceOut->moduleId]->getName();
+        text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getShortName();
     }
     else {
-        text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getName();
+        text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getShortName();
     }
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, nameWidth, h, 1);
+        drawRectangleChampfered(cHighlight, x, y, nameWidth, h, 1);
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
     else {
@@ -59,13 +184,13 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
 
     int16_t valueBaroffsetCenter = 0;
     float amount;
-    if (entry->type == PATCHOUTOUT) {
+    // if (entry->type == PATCHOUTOUT) {
 
-        amount = dataOutOut->getAmount();
-    }
-    else {
-        amount = data->getAmount();
-    }
+    //     amount = dataOutOut->getAmount();
+    // }
+    // else {
+    amount = data->getAmount();
+    // }
 
     if (amount < 0) {
         valueBaroffsetCenter = (valueBarWidth + (float)valueBarWidth * amount) / 2;
@@ -73,16 +198,20 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     else {
         valueBaroffsetCenter = valueBarWidth / 2;
     }
-    if (outOutFlag) {
-        text = "MULT";
-        drawString(text, cFont_Deselect, x + relX + valueBarWidth + 12, y + (-fontMedium->size + h) / 2, fontMedium,
-                   LEFT);
+
+    if (entry->patch->amount < 0) {
+        text = "-";
     }
+
     else {
-        text = "ADD";
-        drawString(text, cFont_Deselect, x + relX + valueBarWidth + 15, y + (-fontMedium->size + h) / 2, fontMedium,
-                   LEFT);
+        text = "+";
     }
+
+    text.append(std::to_string(abs(entry->patch->amount)));
+
+    text.resize(5);
+
+    drawString(text, cFont_Deselect, x + relX + valueBarWidth + 15, y + (-fontBig->size + h) / 2, fontBig, LEFT);
 
     drawRectangleChampfered(cWhite, relX + x + valueBaroffsetCenter, relY + y, (float)valueBarWidth / 2 * abs(amount),
                             valueBarHeigth, 1);
@@ -118,13 +247,13 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
 
     // clear
 
-    drawRectangleChampfered(cGrey, x, y, w, h, 1);
+    drawRectangleChampfered(cGrey, x + 2, y, w - 4, h, 1);
 
     // get text
     std::string text = data->getName();
 
     if (data->disable) {
-        drawRectangleChampfered(cWhiteLight, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cWhiteLight, x + 2, y, w - 4, dataHeight / 2, 1);
         drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
         text = "Disable";
@@ -134,12 +263,12 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     }
 
     if (select) {
-        drawRectangleChampfered(cWhite, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cHighlight, x + 2, y, w - 4, dataHeight / 2, 1);
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteMedium, x + 2, y, nameWidth - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cWhiteMedium, x + 2, y, w - 4, dataHeight / 2, 1);
         drawString(text, cFont_Deselect, x + nameWidth / 2,
                    y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight, selectedFont, CENTER);
     }
@@ -173,7 +302,7 @@ void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint
 
         // Draw Name
         if (select) {
-            drawRectangleChampfered(cWhite, x, y, w, h, 1);
+            drawRectangleChampfered(cHighlight, x, y, w, h, 1);
             drawString(*name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
         }
         else {
@@ -188,7 +317,7 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
 
     uint32_t colorFont;
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h, 1);
         colorFont = cFont_Select;
     }
     else {
@@ -202,8 +331,8 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
         uint8_t layerID = element->layerId;
         uint8_t moduleID = element->moduleId;
 
-        drawString(allLayers[layerID]->getModules()[moduleID]->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2,
-                   fontMedium, LEFT);
+        drawString(allLayers[layerID]->getModules()[moduleID]->shortName, colorFont, x + 8,
+                   y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
         drawString(element->name, colorFont, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
@@ -211,14 +340,14 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -229,7 +358,7 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
 
     uint32_t colorFont;
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h - valueBarHeigth - 2, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h - valueBarHeigth - 2, 1);
         colorFont = cFont_Select;
     }
     else {
@@ -243,8 +372,8 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
         uint8_t layerID = element->layerId;
         uint8_t moduleID = element->moduleId;
 
-        drawString(allLayers[layerID]->getModules()[moduleID]->name, colorFont, x + 8, y + (-fontMedium->size + h) / 2,
-                   fontMedium, LEFT);
+        drawString(allLayers[layerID]->getModules()[moduleID]->shortName, colorFont, x + 8,
+                   y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
         drawString(element->name, colorFont, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
@@ -252,14 +381,14 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
 
     float amount;
@@ -284,23 +413,23 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
                        uint8_t patched) {
 
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h, 1);
-        drawString(element->name, cFont_Select, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+        drawRectangleChampfered(cHighlight, x, y, w, h, 1);
+        drawString(element->shortName, cFont_Select, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
         drawRectangleChampfered(cGrey, x, y, w, h, 1);
-        drawString(element->name, cFont_Deselect, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+        drawString(element->shortName, cFont_Deselect, x + w - 8, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -322,7 +451,7 @@ void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
 
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, nameWidth, h, 1);
+        drawRectangleChampfered(cHighlight, x, y, nameWidth, h, 1);
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
     else {
@@ -353,7 +482,7 @@ void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
 void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     Analog *data = entry->analog;
-    uint16_t nameWidth = 140;
+    uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 15;
     uint16_t spaceTopBottomBar = 8;
@@ -367,12 +496,12 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, nameWidth, h, 1);
-        drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        drawRectangleChampfered(cHighlight, x + 15, y, nameWidth - 15, h, 1);
+        drawString(text, cFont_Select, x + nameWidth - 12, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
         drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
-        drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        drawString(text, cFont_Deselect, x + nameWidth - 12, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
 
     uint16_t valueBarWidth = w - nameWidth - 2 * spaceLeftRightBar;
@@ -383,10 +512,40 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     // valueBar
     // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
-    valueBarWidth =
-        (float)valueBarWidth * (data->value - data->minInputValue) / (float)(data->maxInputValue - data->minInputValue);
+    if (data->min < 0) { // Centered ValueBar -> expect symmetric range
 
-    drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+        uint16_t centerX = relX + x + valueBarWidth / 2;
+        drawRectangleChampfered(cWhite, centerX, relY + y + 1, 1, valueBarHeigth - 2, 1); // center
+
+        if (data->value >= ((int32_t)(data->inputRange / 2) + data->minInputValue)) { // positive value
+            valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue - data->inputRange / 2) /
+                            (float)(data->inputRange);
+
+            drawRectangleChampfered(cWhite, centerX, relY + y, valueBarWidth, valueBarHeigth, 1);
+        }
+        else { // negative value
+
+            valueBarWidth = (float)valueBarWidth * ((data->inputRange / 2) - (data->value - data->minInputValue)) /
+                            (float)(data->inputRange);
+
+            drawRectangleChampfered(cWhite, centerX - valueBarWidth, relY + y, valueBarWidth, valueBarHeigth, 1);
+        }
+    }
+    else {
+        valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue) /
+                        (float)(data->maxInputValue - data->minInputValue);
+
+        drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    }
+
+    if (data->input != nullptr) {               // patchable?
+        if (data->input->patchesInOut.size()) { // patched?
+            drawRectangleChampfered(cPatch, x, y, 13, h, 1);
+        }
+        else {
+            drawRectangleChampfered(cWhiteMedium, x, y, 13, h, 1);
+        }
+    }
 }
 
 void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
@@ -402,7 +561,7 @@ void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h, 1);
         drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
     else {
@@ -414,16 +573,15 @@ void drawPresetElement(presetStruct *element, uint16_t x, uint16_t y, uint16_t w
 
     std::string name;
 
-    if (element->usageState != PRESETBLOCKUSED) {
-
-        name = "FREE";
+    if (element->usageState == PRESET_FREE) {
+        return;
     }
     else {
         name = element->name;
     }
 
     if (select) {
-        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h, 1);
         drawString(name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
     else {
@@ -448,9 +606,10 @@ void Data_PanelElement::Draw() {
     }
 
     if (select) {
-        actionHandler.registerActionEncoder2(entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder3(entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
     }
     // wir nehmen an das wenn das erste element ein Setting ist, alle elemente Settings sind
     if (entrys[0].type == SETTING) {
@@ -487,15 +646,11 @@ void Data_PanelElement::Draw() {
             else if (entrys[x].type == DIGITAL) {
                 drawDigitalElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
             }
-            else if (entrys[x].type == PATCHINPUT) {
+
+            else if (entrys[x].type == PATCHOUTPUT || entrys[x].type == PATCHINPUT) {
                 drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
             }
-            else if (entrys[x].type == PATCHOUTPUT) {
-                drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
-            else if (entrys[x].type == PATCHOUTOUT) {
-                drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
+
             else if (entrys[x].type == MODULE) {
                 drawModuleElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
             }
@@ -524,10 +679,10 @@ void Patch_PanelElement::Draw() {
             else {
 
                 if (select) {
-                    actionHandler.registerActionEncoder4(
-                        {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
-                        {std::bind(&PatchElementInOut::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
-                        {std::bind(&PatchElementInOut::setAmount, patch, 0), "RESET"});
+                    actionHandler.registerActionEncoder(
+                        3, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
                 }
                 drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
                                      showModuleName);
@@ -594,15 +749,16 @@ void Live_PanelElement::Draw() {
     }
 
     if (select) {
-        actionHandler.registerActionEncoder2(entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder3(entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
     }
     entryWidth = width / (numberEntrys);
 
     for (int x = 0; x < numberEntrys; x++) {
         if (entrys[x].type != EMPTY) {
-            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, true);
+            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, false);
         }
 
         relX += entryWidth;
@@ -618,7 +774,7 @@ void Live_PanelElement::Draw() {
 const char *valueToNote(const byte &noteIn) {
 
     byte note;
-    note = (noteIn + 9) % 12;
+    note = noteIn % 12;
     switch (note) {
         case 0:
         case 1: return "C";
@@ -639,26 +795,29 @@ const char *valueToNote(const byte &noteIn) {
 const char *valueToOctave(const byte &noteIn) {
 
     byte octave;
-    octave = (noteIn + 9) / 12;
+    octave = noteIn / 12;
 
     switch (octave) {
-        case 0: return "-1";
-        case 1: return "0";
-        case 2: return "1";
-        case 3: return "2";
-        case 4: return "3";
-        case 5: return "4";
-        case 6: return "5";
-        case 7: return "6";
-        case 8: return "7";
-        case 9: return "8";
+        case 0: return "-2";
+        case 1: return "-1";
+        case 2: return "0";
+        case 3: return "1";
+        case 4: return "2";
+        case 5: return "3";
+        case 6: return "4";
+        case 7: return "5";
+        case 8: return "6";
+        case 9: return "7";
+        case 10: return "8";
+        case 11: return "9";
+        case 12: return "10";
     }
     return "";
 }
 
 const char *valueToSharp(const byte &noteIn) {
     byte note;
-    note = (noteIn + 9) % 12;
+    note = noteIn % 12;
 
     if (note == 1 || note == 3 || note == 6 || note == 8 || note == 10) {
         return "#";
