@@ -596,65 +596,46 @@ void renderAudio(int32_t *renderDest) {
         getSubSample(subSample);
 
         maxVolSteiner = noiseLevelSteiner;
-
         maxVolSteiner += subLevelSteiner;
-
         maxVolSteiner += oscALevelSteiner;
-
         maxVolSteiner += oscBLevelSteiner;
 
         maxVolLadder = noiseLevelLadder;
-
         maxVolLadder += subLevelLadder;
-
         maxVolLadder += oscALevelLadder;
-
         maxVolLadder += oscBLevelLadder;
 
-        dampSteiner = (MAXPOSSIBLEVOLUME / maxVolSteiner) * (maxVolSteiner > MAXPOSSIBLEVOLUME) +
-                      (maxVolSteiner <= MAXPOSSIBLEVOLUME);
+        vec<VOICESPERCHIP, bool> clipSteiner = maxVolSteiner > MAXPOSSIBLEVOLUME;
+        vec<VOICESPERCHIP, bool> clipLadder = maxVolLadder > MAXPOSSIBLEVOLUME;
 
-        dampLadder = (MAXPOSSIBLEVOLUME / maxVolLadder) * (maxVolLadder > MAXPOSSIBLEVOLUME) +
-                     (maxVolLadder <= MAXPOSSIBLEVOLUME);
+        dampSteiner = (MAXPOSSIBLEVOLUME / maxVolSteiner) * clipSteiner + (!clipSteiner);
+
+        dampLadder = (MAXPOSSIBLEVOLUME / maxVolLadder) * (clipLadder) + (!clipLadder);
 
         sampleSteiner = noiseSample * noiseLevelSteiner;
-
-        sampleLadder = noiseSample * noiseLevelLadder;
-
         sampleSteiner += subSample * subLevelSteiner;
-
-        sampleLadder += subSample * subLevelLadder;
-
         sampleSteiner += oscASample * oscALevelSteiner;
-
-        sampleLadder += oscASample * oscALevelLadder;
-
         sampleSteiner += oscBSample * oscBLevelSteiner;
-
-        sampleLadder += oscBSample * oscBLevelLadder;
-
-        sampleSteiner = sampleSteiner * dampSteiner;
-
-        sampleLadder = sampleLadder * dampLadder;
-
-        sampleSteiner *= MAXVOLUMEPERMODULE;
-
-        sampleLadder *= MAXVOLUMEPERMODULE;
-
-        sampleSteiner *= 8388607.0f;
-
-        sampleLadder *= 8388607.0f;
+        sampleSteiner *= dampSteiner;
+        sampleSteiner *= MAXVOLUMEPERMODULE * 8388607.0f;
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             intSampleSteiner[i] = sampleSteiner[i];
-
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            intSampleLadder[i] = sampleLadder[i];
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
         renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];
         renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleLadder[3];
+
+        sampleLadder = noiseSample * noiseLevelLadder;
+        sampleLadder += subSample * subLevelLadder;
+        sampleLadder += oscASample * oscALevelLadder;
+        sampleLadder += oscBSample * oscBLevelLadder;
+        sampleLadder *= dampLadder;
+        sampleLadder *= MAXVOLUMEPERMODULE * 8388607.0f;
+
+        for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+            intSampleLadder[i] = sampleLadder[i];
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];

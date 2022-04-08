@@ -121,7 +121,7 @@ void PolyRenderRun() {
     renderCVs();
     sendDACs();
 
-    HAL_TIM_Base_Start_IT(&htim15);
+    // HAL_TIM_Base_Start_IT(&htim15);
 
     elapsedMillis askMessage = 0;
 
@@ -263,7 +263,6 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     counter++;
 
     if (counter > 5000) {
-        println((float)cache / (float)counter);
         sendString(std::to_string((float)cache / (float)counter));
 
         counter = 0;
