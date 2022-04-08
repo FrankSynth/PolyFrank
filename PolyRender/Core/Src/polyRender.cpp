@@ -12,6 +12,8 @@ extern devManager deviceManager;
 spiBus spiBusLayer;
 
 uint8_t sendString(const char *message);
+uint8_t sendString(std::string &message);
+uint8_t sendString(std::string &&message);
 
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
@@ -247,29 +249,23 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
     // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    if (counter < 50000) {
-        cache += audiotimer;
-        counter++;
-    }
-    else {
 
-        println((float)cache / (float)counter);
-        counter = 0;
-        cache = 0;
-    }
+    cache += audiotimer;
+    counter++;
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio((int32_t *)saiBuffer);
-    if (counter < 50000) {
-        cache += audiotimer;
-        counter++;
-    }
-    else {
 
+    cache += audiotimer;
+    counter++;
+
+    if (counter > 5000) {
         println((float)cache / (float)counter);
+        sendString(std::to_string((float)cache / (float)counter));
+
         counter = 0;
         cache = 0;
     }
@@ -430,6 +426,9 @@ void resetMCPI2CAddress() {
     }
 }
 
+uint8_t sendString(std::string &&message) {
+    return layerCom.sendString(message);
+}
 uint8_t sendString(std::string &message) {
     return layerCom.sendString(message);
 }

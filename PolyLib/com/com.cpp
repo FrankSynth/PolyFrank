@@ -744,7 +744,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case SENDUPDATETOCONTROL:
                 // TODO send UI update shit
                 // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
-                sendString("Update to Control"); // temporary stuff
+                // sendString("Update to Control"); // temporary stuff
                 println("send trans");
                 if (beginSendTransmission() != BUS_OK)
                     PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
