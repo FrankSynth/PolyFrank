@@ -180,18 +180,9 @@ bool BasePatch::findPatchInOut(uint8_t output, uint8_t input) {
 }
 
 void Input::collectCurrentSample() {
-
-    currentSample[0] = 0;
-    currentSample[1] = 0;
-    currentSample[2] = 0;
-    currentSample[3] = 0;
+    sample = 0;
     for (PatchElement *patch : patchesInOut) {
-        Output *sourceOut = patch->sourceOut;
-        const float &amount = patch->amount;
-        currentSample[0] += sourceOut->currentSample[0] * amount;
-        currentSample[1] += sourceOut->currentSample[1] * amount;
-        currentSample[2] += sourceOut->currentSample[2] * amount;
-        currentSample[3] += sourceOut->currentSample[3] * amount;
+        sample += *patch->sourceOut * patch->amount;
     }
 }
 
@@ -232,31 +223,3 @@ void PatchElement::setAmountWithoutMapping(float amountRaw) {
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
 #endif
 }
-
-// void PatchElementOutOut::setAmountWithoutMapping(float amount) {
-//     this->amount = std::clamp(amount, -1, 1);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
-
-// void PatchElementOutOut::setAmount(float amount) {
-//     this->amount = std::clamp(amount, -1, 1);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
-
-// void PatchElementOutOut::setOffsetWithoutMapping(float offset) {
-//     this->offset = std::clamp(offset, -1, 1);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }
-
-// void PatchElementOutOut::setOffset(float offset) {
-//     this->offset = std::clamp(offset, -1, 1);
-// #ifdef POLYCONTROL
-//     sendUpdatePatchOutOut(layerId, sourceOut->idGlobal, targetOut->idGlobal, this->amount, this->offset);
-// #endif
-// }

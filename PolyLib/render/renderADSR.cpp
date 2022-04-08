@@ -9,25 +9,22 @@ LogCurve adsrConvertLog(128, 0.1);
 LogCurve adsrConvertAntiLog(128, 0.9);
 
 inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
+    return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
 inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
-                      adsr.aAttack.max * 2);
+    return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
 }
 inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
+    return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
 inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
-                      adsr.aSustain.max);
+    return std::clamp(adsr.iSustain[voice] + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
 }
 inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
-                      adsr.aRelease.max * 2);
+    return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
 }
 inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
+    return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
 }
 
 /**
@@ -42,12 +39,14 @@ void renderADSR(ADSR &adsr) {
     int32_t &loop = adsr.dLoop.valueMapped;
     float &shape = adsr.aShape.valueMapped;
 
+    vec<VOICESPERCHIP> sample;
+
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
-        float &nextSample = adsr.out.nextSample[voice];
+        float &nextSample = sample[voice];
         float &currentLevel = adsr.currentLevel[voice];
         float &currentTime = adsr.currentTime[voice];
-        float &gate = layerA.midi.oGate.currentSample[voice];
+        float &gate = layerA.midi.oGate[voice];
 
         float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
 
@@ -189,17 +188,15 @@ void renderADSR(ADSR &adsr) {
             // shape between 1 and 2, 1 is linear
             nextSample = fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
         }
-
-        // midi velocity
-        nextSample = fast_lerp_f32(nextSample, nextSample * layerA.midi.oVeloctiy.currentSample[voice],
-                                   adsr.aVelocity.valueMapped);
-
-        // keytrack
-        nextSample =
-            fast_lerp_f32(nextSample, nextSample * layerA.midi.oNote.currentSample[voice], adsr.aKeytrack.valueMapped);
-
-        nextSample = nextSample * adsr.aAmount.valueMapped;
     }
+
+    // midi velocity
+    sample = fast_lerp_f32(sample, sample * layerA.midi.oVeloctiy, adsr.aVelocity);
+
+    // keytrack
+    sample = fast_lerp_f32(sample, sample * layerA.midi.oNote, adsr.aKeytrack);
+
+    sample = sample * adsr.aAmount;
 }
 
 #endif

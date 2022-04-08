@@ -81,9 +81,9 @@ class Midi : public BaseModule {
     Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, 127, 0, true, linMap);
     Analog aPitchbend = Analog("PITCHBEND", -1, 1, -8191, 8191, 0, true, linMap);
 
-    uint8_t rawNote[VOICESPERCHIP];
-    uint8_t rawVelocity[VOICESPERCHIP];
-    uint8_t rawGate[VOICESPERCHIP];
+    vec<VOICESPERCHIP, uint8_t> rawNote;
+    vec<VOICESPERCHIP, uint8_t> rawVelocity;
+    vec<VOICESPERCHIP, uint8_t> rawGate;
 
     inline void gateOn(uint16_t voice) { rawGate[voice] = 1; }
     inline void gateOff(uint16_t voice) { rawGate[voice] = 0; }
@@ -158,8 +158,8 @@ class OSC_A : public BaseModule {
     RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float phaseWavetableLower[VOICESPERCHIP] = {0};
-    float phaseWavetableUpper[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> phaseWavetableLower;
+    vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class OSC_B : public BaseModule {
@@ -232,9 +232,9 @@ class OSC_B : public BaseModule {
     RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float cacheOscAPhase[VOICESPERCHIP] = {0};
-    float phaseWavetableLower[VOICESPERCHIP] = {0};
-    float phaseWavetableUpper[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> cacheOscAPhase;
+    vec<VOICESPERCHIP> phaseWavetableLower;
+    vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class Sub : public BaseModule {
@@ -273,8 +273,8 @@ class Sub : public BaseModule {
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 
-    float phase[VOICESPERCHIP] = {0};
-    float oscApreviousPhase[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> phase;
+    vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
 class Noise : public BaseModule {
@@ -464,9 +464,9 @@ class LFO : public BaseModule {
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
-    float currentTime[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
-    float currentRandom[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> currentRandom;
 
     bool alignedRandom = false;
     uint32_t randSeed = 1;
@@ -583,8 +583,8 @@ class ADSR : public BaseModule {
     enum ADSR_State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
     inline ADSR_State getState(uint16_t voice) { return currentState[voice]; }
 
-    float currentLevel[VOICESPERCHIP] = {0};
-    float currentTime[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> currentLevel;
+    vec<VOICESPERCHIP> currentTime;
 
   private:
     ADSR_State currentState[VOICESPERCHIP] = {OFF};

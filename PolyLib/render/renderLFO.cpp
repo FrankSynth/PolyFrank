@@ -42,35 +42,34 @@ inline float calcSquare(float phase, float shape) {
 }
 
 inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
-    return linlogMapping.mapValue((lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped)) * 100; // max 200 Hz
+    return linlogMapping.mapValue((lfo.iFreq[voice] + lfo.aFreq)) * 100; // max 200 Hz
     // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
-inline float accumulateShape(LFO &lfo, uint16_t voice) {
-    return std::clamp(lfo.iShape.currentSample[voice] + lfo.aShape.valueMapped, lfo.aShape.min, lfo.aShape.max);
+inline vec<VOICESPERCHIP> accumulateShape(LFO &lfo) {
+    return clamp((vec<VOICESPERCHIP> &)lfo.iShape + lfo.aShape, lfo.aShape.min, lfo.aShape.max);
 }
-inline float accumulateAmount(LFO &lfo, uint16_t voice) {
-    return std::clamp(lfo.iAmount.currentSample[voice] + lfo.aAmount.valueMapped, lfo.aAmount.min, lfo.aAmount.max);
+inline vec<VOICESPERCHIP> accumulateAmount(LFO &lfo) {
+    return clamp((vec<VOICESPERCHIP> &)lfo.iAmount + lfo.aAmount, lfo.aAmount.min, lfo.aAmount.max);
 }
 
 void renderLFO(LFO &lfo) {
-
     int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
-    float *currentRandom = lfo.currentRandom;
-    float *phase = lfo.currentTime;
+    vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
+    vec<VOICESPERCHIP> &phase = lfo.currentTime;
     bool *newPhase = lfo.newPhase;
-    float shape[VOICESPERCHIP];
-    float speed[VOICESPERCHIP];
-    float amount[VOICESPERCHIP];
-    float fract[VOICESPERCHIP];
-    float *nextSample = lfo.out.nextSample;
+    vec<VOICESPERCHIP> shape;
+    vec<VOICESPERCHIP> speed;
+    vec<VOICESPERCHIP> amount;
+    vec<VOICESPERCHIP> fract;
+
+    vec<VOICESPERCHIP> sample;
+
+    shape = accumulateShape(lfo);
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        shape[voice] = accumulateShape(lfo, voice);
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        speed[voice] =
-            accumulateSpeed(lfo, voice) * (1 + layerA.lfoImperfection[voice] * layerA.feel.aImperfection.valueMapped);
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        amount[voice] = accumulateAmount(lfo, voice);
+        speed[voice] = accumulateSpeed(lfo, voice) * (1 + layerA.lfoImperfection[voice] * layerA.feel.aImperfection);
+
+    amount = accumulateAmount(lfo);
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
@@ -79,25 +78,24 @@ void renderLFO(LFO &lfo) {
             phase[voice] -= std::floor(phase[voice]);
         }
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        fract[voice] = shape[voice] - std::floor(shape[voice]);
+    fract = shape - floor(shape);
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
         if (shape[voice] < 1) {
-            nextSample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
+            sample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
         }
         else if (shape[voice] < 2) {
-            nextSample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
+            sample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
         }
         else if (shape[voice] < 3) {
-            nextSample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
+            sample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
         else if (shape[voice] < 4) {
-            nextSample[voice] =
+            sample[voice] =
                 fast_lerp_f32(calcInvRamp(phase[voice]), calcSquare(phase[voice], shape[voice]), fract[voice]);
         }
         else if (shape[voice] < 5) {
-            nextSample[voice] = calcSquare(phase[voice], shape[voice]);
+            sample[voice] = calcSquare(phase[voice], shape[voice]);
         }
         else {
             float random;
@@ -119,9 +117,9 @@ void renderLFO(LFO &lfo) {
             else
                 random = currentRandom[voice];
             if (shape[voice] == 6.0f)
-                nextSample[voice] = random;
+                sample[voice] = random;
             else
-                nextSample[voice] = fast_lerp_f32(-1.0f, random, fract[voice]);
+                sample[voice] = fast_lerp_f32(-1.0f, random, fract[voice]);
         }
 
         if (alignLFOs)
@@ -134,13 +132,15 @@ void renderLFO(LFO &lfo) {
     // check if all voices should output the same LFO
     if (alignLFOs) {
         for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
-            lfo.out.nextSample[otherVoice] = nextSample[0];
+            sample[otherVoice] = sample[0];
         for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
             lfo.newPhase[otherVoice] = newPhase[0];
     }
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        nextSample[voice] = nextSample[voice] * amount[voice];
+        sample[voice] = sample[voice] * amount[voice];
+
+    lfo.out = sample;
 }
 
 #endif
