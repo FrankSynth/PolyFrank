@@ -514,8 +514,6 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
     }
 }
 
-volatile bool readygo[2] = {false};
-
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 

@@ -570,7 +570,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
         if (spi->state == BUS_READY) {
             if (beginReceiveTransmission() != BUS_OK)
-                PolyError_Handler("ERROR | FATAL | size=0, receive bus occuppied");
+                PolyError_Handler("ERROR | FATAL | size=0, bus occuppied");
         }
 #endif
         return 0;
@@ -586,7 +586,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #ifdef POLYRENDER
         if (spi->state == BUS_READY) {
             if (beginReceiveTransmission() != BUS_OK)
-                PolyError_Handler("ERROR | FATAL | too big, receive bus occuppied");
+                PolyError_Handler("ERROR | FATAL | too big, bus occuppied");
         }
 #endif
         return 1;
@@ -865,45 +865,51 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
 }
 
 void COMinterChip::resetCom() {
-    PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
+    // PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 100ms ");
 
 #ifdef POLYCONTROL
-    // __disable_irq();
-    // volatile uint8_t data[50] = {0};
-    // volatile uint8_t dataIn[50] = {0};
-    // *(uint16_t *)data = 50;
-    // spi->state = BUS_READY;
-    // state = COM_READY;
-    // outBuffer[0].clear();
-    // outBuffer[1].clear();
+    __disable_irq();
+    volatile uint8_t data[50] = {0};
+    volatile uint8_t dataIn[50] = {0};
+    *(uint16_t *)data = 50;
+    spi->state = BUS_READY;
+    state = COM_READY;
+    outBuffer[0].clear();
+    outBuffer[1].clear();
 
-    // setCSLine(0, 0, GPIO_PIN_RESET);
-    // spi->receive((uint8_t *)dataIn, 50, false);
-    // setCSLine(0, 0, GPIO_PIN_SET);
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    spi->transmit((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 0, GPIO_PIN_SET);
 
-    // setCSLine(0, 1, GPIO_PIN_RESET);
-    // spi->receive((uint8_t *)dataIn, 50, false);
-    // setCSLine(0, 1, GPIO_PIN_SET);
+    setCSLine(0, 1, GPIO_PIN_RESET);
+    spi->transmit((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 1, GPIO_PIN_SET);
 
-    // setCSLine(0, 0, GPIO_PIN_RESET);
-    // spi->receive((uint8_t *)dataIn, 50, false);
-    // setCSLine(0, 0, GPIO_PIN_SET);
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    spi->transmit((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 0, GPIO_PIN_SET);
 
-    // setCSLine(0, 1, GPIO_PIN_RESET);
-    // spi->receive((uint8_t *)dataIn, 50, false);
-    // setCSLine(0, 1, GPIO_PIN_SET);
+    setCSLine(0, 1, GPIO_PIN_RESET);
+    spi->transmit((uint8_t *)dataIn, 50, false);
+    setCSLine(0, 1, GPIO_PIN_SET);
 
-    // setCSLine(0, 0, GPIO_PIN_RESET);
-    // setCSLine(0, 1, GPIO_PIN_RESET);
+    setCSLine(0, 0, GPIO_PIN_RESET);
+    setCSLine(0, 1, GPIO_PIN_RESET);
 
-    // spi->transmit((uint8_t *)data, 50, false);
+    spi->transmit((uint8_t *)data, 50, false);
 
-    // setCSLine(0, 0, GPIO_PIN_SET);
-    // setCSLine(0, 1, GPIO_PIN_SET);
+    chipState[0][0] = CHIP_READY;
+    chipState[0][1] = CHIP_READY;
 
-    // pushDummySizePlaceHolder();
+    chipStateTimeout[0][0] = 0;
+    chipStateTimeout[0][1] = 0;
 
-    // __enable_irq();
+    setCSLine(0, 0, GPIO_PIN_SET);
+    setCSLine(0, 1, GPIO_PIN_SET);
+
+    pushDummySizePlaceHolder();
+
+    __enable_irq();
 #endif
 }
 
@@ -917,7 +923,7 @@ busState COMinterChip::invokeBufferFullSend() {
     if (ret != BUS_OK) {
         elapsedMillis timer = 0;
         while (ret != BUS_OK) { // wait...
-            if (timer > 100) {
+            if (timer > 13000) {
                 resetCom();
                 return BUS_OK;
             }

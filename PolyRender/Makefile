@@ -21,6 +21,7 @@ TARGET = PolyRender
 ######################################
 # debug build?
 DEBUG = 0
+DISASSEMBLY = 0
 # optimization
 OPT = -Ofast
 
@@ -146,6 +147,10 @@ CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
+endif
+
+ifeq ($(DISASSEMBLY), 1)
+CFLAGS += -g -save-temps=obj
 endif
 
 

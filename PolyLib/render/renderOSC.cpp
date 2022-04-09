@@ -85,6 +85,9 @@ inline vec<VOICESPERCHIP> accumulateOctave(OSC_B &osc_b) {
 inline vec<VOICESPERCHIP> accumulatePhaseoffset(OSC_B &osc_b) {
     return osc_b.iPhaseOffset + osc_b.aPhaseoffset;
 }
+inline vec<VOICESPERCHIP> accumulateSquircle(OSC_B &osc_b) {
+    return clamp(osc_b.iSquircle + osc_b.aSquircle, osc_b.aSquircle.min, osc_b.aSquircle.max);
+}
 
 inline vec<VOICESPERCHIP> accumulateNote(OSC_B &osc_b) {
 
@@ -126,6 +129,7 @@ void renderOSC_B(OSC_B &osc_B) {
     osc_B.bitcrusher = accumulateBitcrusher(osc_B);
     osc_B.samplecrusher = accumulateSamplecrusher(osc_B);
     osc_B.phaseoffset = accumulatePhaseoffset(osc_B);
+    osc_B.squircle = accumulateSquircle(osc_B);
 }
 
 #endif

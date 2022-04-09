@@ -317,19 +317,25 @@ ALWAYS_INLINE inline float simpleBezier1D(const float p1, const float t) {
     return 2.0f * (1.0f - t) * t * p1 + t * t;
 }
 
-// points for bezier stuff
+/**
+ * @brief custom fast vector class for math operations
+ *
+ * @tparam Size size of array
+ * @tparam A type, defaults to float
+ */
 template <uint32_t Size, typename A = float> class vec {
 
     A data[Size];
 
   public:
-    vec() {
-        for (uint32_t i = 0; i < Size; i++)
-            data[i] = (A)0;
-    }
+    vec() {}
     vec(const vec &other) {
         for (uint32_t i = 0; i < Size; i++)
             data[i] = other[i];
+    }
+    vec(A x) {
+        for (uint32_t i = 0; i < Size; i++)
+            data[i] = x;
     }
     // template <typename T> vec(const vec<Size, T> &other) {
     //     for (uint32_t i = 0; i < Size; i++)
@@ -499,6 +505,66 @@ template <uint32_t Size, typename A = float> class vec {
         return newVector;
     }
 
+    vec<Size, uint32_t> operator&(const vec<Size, uint32_t> &other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] & other[i];
+        return newVector;
+    }
+    vec<Size, uint32_t> operator&(uint32_t other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] & other;
+        return newVector;
+    }
+
+    vec<Size, uint32_t> operator|(const vec<Size, uint32_t> &other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] | other[i];
+        return newVector;
+    }
+    vec<Size, uint32_t> operator|(uint32_t other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] | other;
+        return newVector;
+    }
+
+    vec<Size, uint32_t> operator<<(const vec<Size, uint32_t> &other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] << other[i];
+        return newVector;
+    }
+    vec<Size, uint32_t> operator<<(uint32_t other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] << other;
+        return newVector;
+    }
+
+    vec<Size, uint32_t> operator>>(const vec<Size, uint32_t> &other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] >> other[i];
+        return newVector;
+    }
+    vec<Size, uint32_t> operator>>(uint32_t other) const {
+        vec<Size, uint32_t> newVector;
+
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = data[i] >> other;
+        return newVector;
+    }
+
     vec operator+(const vec &other) const {
         vec newVector(*this);
 
@@ -610,6 +676,30 @@ template <uint32_t Size, typename A = float> class vec {
         return *this;
     }
 
+    vec operator++(int) {
+        vec newVector(*this);
+        for (uint32_t i = 0; i < Size; i++)
+            data[i]++;
+        return newVector;
+    }
+    vec operator--(int) {
+        vec newVector(*this);
+        for (uint32_t i = 0; i < Size; i++)
+            data[i]--;
+        return newVector;
+    }
+
+    vec &operator++() {
+        for (uint32_t i = 0; i < Size; i++)
+            data[i]++;
+        return *this;
+    }
+    vec &operator--() {
+        for (uint32_t i = 0; i < Size; i++)
+            data[i]--;
+        return *this;
+    }
+
     friend vec operator-(float x, const vec &v) {
         vec newVector;
         for (uint32_t i = 0; i < Size; i++)
@@ -624,6 +714,20 @@ template <uint32_t Size, typename A = float> class vec {
     }
     friend vec operator*(float x, const vec &v) { return v * x; }
     friend vec operator+(float x, const vec &v) { return v + x; }
+
+    friend vec operator<<(uint32_t x, const vec &v) {
+        vec newVector;
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = x / v[i];
+        return newVector;
+    }
+
+    friend vec operator>>(uint32_t x, const vec &v) {
+        vec newVector;
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = x / v[i];
+        return newVector;
+    }
 
     friend inline vec simpleBezier1D(const float p1, const vec &t) { return vec(2.0f * (1.0f - t) * t * p1 + t * t); }
     friend inline vec simpleBezier1D(const vec &p1, const vec &t) { return vec(2.0f * (1.0f - t) * t * p1 + t * t); }
@@ -662,15 +766,12 @@ template <uint32_t Size, typename A = float> class vec {
             newVector[i] = std::clamp(a[i], lower[i], upper[i]);
         return newVector;
     }
-
     friend inline vec clamp(const vec &a, A lower, A upper) {
         vec newVector;
         for (uint32_t i = 0; i < Size; i++)
             newVector[i] = std::clamp(a[i], lower, upper);
         return newVector;
     }
-
-    friend inline vec getSign(const vec &a) { return vec((vec<Size, bool>(a >= (A)0)) - vec<Size, bool>((a < (A)0))); }
 
     friend inline vec floor(const vec &a) {
         vec newVector;
@@ -692,6 +793,8 @@ template <uint32_t Size, typename A = float> class vec {
             newVector[i] = std::round(a[i]);
         return newVector;
     }
+
+    friend inline vec getSign(const vec &a) { return vec((vec<Size, bool>(a >= (A)0)) - vec<Size, bool>((a < (A)0))); }
 };
 
 ALWAYS_INLINE inline vec<2, float> bezier2D(const vec<2, float> &p0, const vec<2, float> &p1, const vec<2, float> &p2,

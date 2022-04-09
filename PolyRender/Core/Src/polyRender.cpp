@@ -121,7 +121,7 @@ void PolyRenderRun() {
     renderCVs();
     sendDACs();
 
-    // HAL_TIM_Base_Start_IT(&htim15);
+    HAL_TIM_Base_Start_IT(&htim15);
 
     elapsedMillis askMessage = 0;
 

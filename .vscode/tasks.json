@@ -171,7 +171,7 @@
         {
             "label": "Clean PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile clean",
+            "command": "rm -f -r PolyRender/build ; md PolyRender/build ",
             "options": {
                 "cwd": "${workspaceRoot}"
             },

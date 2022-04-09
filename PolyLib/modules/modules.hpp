@@ -277,6 +277,7 @@ class Sub : public BaseModule {
     vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
+// TODO bitrusher
 class Noise : public BaseModule {
   public:
     Noise(const char *name, const char *shortName) : BaseModule(name, shortName) {

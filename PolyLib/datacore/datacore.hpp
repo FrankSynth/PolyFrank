@@ -15,7 +15,7 @@
 #endif
 
 extern float ROTARYENCODERACCELERATION;
-extern volatile uint8_t LayerRenBufferSw;
+extern bool LayerRenBufferSw;
 
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
@@ -384,9 +384,6 @@ class Input : public BasePatch {
 
     vec<VOICESPERCHIP> sample;
 
-    // operator float *() { return sample; }
-    // operator const float *() const { return sample; }
-
     float &operator[](int i) { return sample[i]; }
     const float &operator[](int i) const { return sample[i]; }
 
@@ -416,17 +413,7 @@ class Output : public BasePatch {
         this->visible = visible;
     }
 
-    // set next calculatedSample as current sample
-    // inline void updateToNextSample() {
-    //     float *tempPointer = currentSample;
-    //     currentSample = nextSample;
-    //     nextSample = tempPointer;
-    // }
-
     vec<VOICESPERCHIP> sample[2];
-
-    // operator float *() { return sample[LayerRenBufferSw]; }
-    // operator const float *() const { return sample[LayerRenBufferSw]; }
 
     operator vec<VOICESPERCHIP> *() { return sample; }
     operator const vec<VOICESPERCHIP> *() const { return sample; }
@@ -498,13 +485,6 @@ class ID {
 class RenderBuffer {
   public:
     RenderBuffer() {}
-    // TODO it copies data now I think!
-    // set next calculatedSample as current sample
-    // inline void updateToNextSample() {
-    //     temp = currentSample;
-    //     currentSample = nextSample;
-    //     nextSample = temp;
-    // }
 
     vec<VOICESPERCHIP> sample[2];
 

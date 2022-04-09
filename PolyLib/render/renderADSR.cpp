@@ -44,9 +44,9 @@ void renderADSR(ADSR &adsr) {
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
         float &nextSample = sample[voice];
-        float &currentLevel = adsr.currentLevel[voice];
+        float currentLevel = adsr.currentLevel[voice];
         float &currentTime = adsr.currentTime[voice];
-        float &gate = layerA.midi.oGate[voice];
+        float gate = layerA.midi.oGate[voice];
 
         float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
 
@@ -188,6 +188,8 @@ void renderADSR(ADSR &adsr) {
             // shape between 1 and 2, 1 is linear
             nextSample = fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
         }
+
+        adsr.currentLevel[voice] = currentLevel;
     }
 
     // midi velocity
@@ -196,7 +198,7 @@ void renderADSR(ADSR &adsr) {
     // keytrack
     sample = fast_lerp_f32(sample, sample * layerA.midi.oNote, adsr.aKeytrack);
 
-    sample = sample * adsr.aAmount;
+    adsr.out = sample * adsr.aAmount;
 }
 
 #endif

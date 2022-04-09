@@ -280,10 +280,10 @@ class COMinterChip {
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRequestUIData();
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
-    volatile bool sentRequestUICommand = false;
-    volatile bool requestSize = false;
-    volatile uint8_t receiveLayer;
-    volatile uint8_t receiveChip;
+    bool sentRequestUICommand = false;
+    bool requestSize = false;
+    uint8_t receiveLayer;
+    uint8_t receiveChip;
 
     volatile renderChipState chipState[2][2] = {{CHIP_NOTINIT}};
     elapsedMillis chipStateTimeout[2][2] = {{0}};
@@ -364,8 +364,8 @@ class COMinterChip {
     uint8_t *dmaInBufferPointer[2];
     uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
 
-    volatile uint8_t currentInBufferSelect = 0;
-    volatile uint8_t currentOutBufferSelect = 0;
+    uint8_t currentInBufferSelect = 0;
+    uint8_t currentOutBufferSelect = 0;
 
     void switchInBuffer();
     void switchOutBuffer();
