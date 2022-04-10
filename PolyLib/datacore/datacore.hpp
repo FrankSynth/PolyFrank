@@ -418,10 +418,11 @@ class Output : public BasePatch {
         currentSample = nextSample;
         nextSample = temp;
     }
-
-    // vec<VOICESPERCHIP> sample[2];
     vec<VOICESPERCHIP> currentSample;
     vec<VOICESPERCHIP> nextSample;
+
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
 
     // returns from currentSample
     float &operator[](int i) { return (currentSample)[i]; }
@@ -495,6 +496,9 @@ class RenderBuffer {
     // vec<VOICESPERCHIP> sample[2];
     vec<VOICESPERCHIP> currentSample;
     vec<VOICESPERCHIP> nextSample;
+
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
 
     // returns from currentSample
     float &operator[](int i) { return (currentSample)[i]; }

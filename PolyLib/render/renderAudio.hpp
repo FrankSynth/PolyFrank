@@ -7,6 +7,6 @@
 #include <stdint.h>
 
 void loadInitialWavetables();
-void renderAudio(int32_t *renderDest);
+void renderAudio(volatile int32_t *renderDest);
 void switchOscAWavetable(uint32_t position, const WaveTable *wavetable);
 void switchOscBWavetable(uint32_t position, const WaveTable *wavetable);

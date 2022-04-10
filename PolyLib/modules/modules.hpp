@@ -142,7 +142,7 @@ class OSC_A : public BaseModule {
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
-    Analog aSquircle = Analog("SQUIRCLE", 0.01, 0.99, 0.5, true, linMap, &iSamplecrusher);
+    Analog aSquircle = Analog("SQUIRCLE", 0, 1, 0.5, true, linMap, &iSamplecrusher);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
@@ -214,7 +214,7 @@ class OSC_B : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
-    Analog aSquircle = Analog("SQUIRCLE", 0.01, 0.99, 0.5, true, linMap, &iSamplecrusher);
+    Analog aSquircle = Analog("SQUIRCLE", 0, 0.5, 1, true, linMap, &iSamplecrusher);
 
     Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
@@ -263,7 +263,7 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aShape = Analog("SHAPE", 0.01, 1, 0.01, true, linMap, &iShape);
+    Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 

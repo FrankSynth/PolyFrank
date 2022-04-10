@@ -112,20 +112,49 @@ void loadInitialWavetables() {
 inline vec<VOICESPERCHIP> bitcrush(const vec<VOICESPERCHIP> &bitcrush, const vec<VOICESPERCHIP> &sample) {
 
     // vec<VOICESPERCHIP, uint32_t> moveAmount = 23 - floor(bitcrush);
-    vec<VOICESPERCHIP> mult = 23.0f - bitcrush;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        mult[i] = powf(2, mult[i]);
-    vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
+    // vec<VOICESPERCHIP> mult = 23.0f - bitcrush;
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     mult[i] = powf(2, mult[i]);
+    // vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
 
+    // bitCrushedSample = round(bitCrushedSample);
+    // bitCrushedSample = bitCrushedSample / mult;
+
+    // return bitCrushedSample;
+
+    vec<VOICESPERCHIP, uint32_t> moveAmount = 23 - bitcrush;
+    vec<VOICESPERCHIP> mult = (1 << moveAmount);
+    vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
     bitCrushedSample = round(bitCrushedSample);
     bitCrushedSample = bitCrushedSample / mult;
 
     return bitCrushedSample;
+
+    // vec<VOICESPERCHIP> bitCrushedSample;
+
+    // uint32_t moveAmount[VOICESPERCHIP];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     moveAmount[i] = 23 - std::floor(bitcrush[i]);
+
+    // float mult[VOICESPERCHIP];
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     mult[i] = (1 << moveAmount[i]);
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     bitCrushedSample[i] = mult[i] * sample[i];
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     bitCrushedSample[i] = std::round(bitCrushedSample[i]);
+
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     bitCrushedSample[i] = bitCrushedSample[i] / mult[i];
+
+    // return bitCrushedSample;
 }
 
 inline vec<VOICESPERCHIP> getNoiseSample() {
 
-    static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP> sample = 0;
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
 
     vec<VOICESPERCHIP, uint32_t> randomNumber;
@@ -147,8 +176,8 @@ inline vec<VOICESPERCHIP> getNoiseSample() {
 
 inline vec<VOICESPERCHIP> getSubSample() {
 
-    static vec<VOICESPERCHIP> sample;
-    static vec<VOICESPERCHIP> phaseDifferenceOscA;
+    static vec<VOICESPERCHIP> sample = 0;
+    static vec<VOICESPERCHIP> phaseDifferenceOscA = 0;
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
 
     const vec<VOICESPERCHIP> &bitcrusher = layerA.sub.bitcrusher;
@@ -162,7 +191,7 @@ inline vec<VOICESPERCHIP> getSubSample() {
 
     vec<VOICESPERCHIP> newSample;
 
-    vec<VOICESPERCHIP> shapeDiv = 4.0f / shape;
+    vec<VOICESPERCHIP> shapeDiv = 4.0f / max(0.01f, shape);
     phase -= floor(phase);
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
@@ -200,7 +229,7 @@ inline vec<VOICESPERCHIP> getSubSample() {
 
 inline vec<VOICESPERCHIP> getOscASample() {
 
-    static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP> sample = 0;
 
     vec<VOICESPERCHIP> &phaseWavetableLower = layerA.oscA.phaseWavetableLower;
     vec<VOICESPERCHIP> &phaseWavetableUpper = layerA.oscA.phaseWavetableUpper;
@@ -241,25 +270,26 @@ inline vec<VOICESPERCHIP> getOscASample() {
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
     vec<VOICESPERCHIP> wavetableLowerCycles;
-
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableLowerCycles[i] = wavetableLower[i]->cycles;
 
+    vec<VOICESPERCHIP> wavetableUpperCycles;
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableUpperCycles[i] = wavetableUpper[i]->cycles;
+
     phaseWavetableLower -= floor(phaseWavetableLower) * (phaseWavetableLower >= wavetableLowerCycles);
+    phaseWavetableUpper -= floor(phaseWavetableUpper) * (phaseWavetableUpper >= wavetableUpperCycles);
 
-    // make sure to be in the right step range
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     phaseWavetableLower[i] -=
-    //         std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
+    vec<VOICESPERCHIP> wavetableLowerSizePerCycle;
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        wavetableLowerSizePerCycle[i] = wavetableLower[i]->sizePerCycle;
 
+    vec<VOICESPERCHIP> wavetableUpperSizePerCycle;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableUpper[i] -=
-            std::floor(phaseWavetableUpper[i]) * (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles);
+        wavetableUpperSizePerCycle[i] = wavetableUpper[i]->sizePerCycle;
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = phaseWavetableLower[i] * wavetableLower[i]->sizePerCycle;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableUpper[i] = phaseWavetableUpper[i] * wavetableUpper[i]->sizePerCycle;
+    stepWavetableLower = phaseWavetableLower * wavetableLowerSizePerCycle;
+    stepWavetableUpper = phaseWavetableUpper * wavetableUpperSizePerCycle;
 
     vec<VOICESPERCHIP, uint32_t> positionA;
     vec<VOICESPERCHIP, uint32_t> positionAb;
@@ -315,7 +345,10 @@ inline vec<VOICESPERCHIP> getOscASample() {
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
     // calcSquircleSimplified(newSample, squircle);
-    // newSample = simpleBezier1D(squircle, newSample);
+
+    vec<VOICESPERCHIP> sign = getSign(newSample);
+
+    newSample = sign * simpleBezier1D(squircle, sign * (newSample));
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -330,12 +363,12 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
 vec<VOICESPERCHIP> getOscBSample() {
 
-    static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP> sample = 0;
 
     // cache step of osc A, if smaller, new phase has begun.
     const vec<VOICESPERCHIP> &oscAphaseWavetableLower = layerA.oscA.phaseWavetableLower;
 
-    static int32_t &sync = layerA.oscB.dSync.valueMapped;
+    int32_t &sync = layerA.oscB.dSync.valueMapped;
 
     vec<VOICESPERCHIP> &cacheOscAPhase = layerA.oscB.cacheOscAPhase;
     vec<VOICESPERCHIP> &phaseWavetableLower = layerA.oscB.phaseWavetableLower;
@@ -483,7 +516,10 @@ vec<VOICESPERCHIP> getOscBSample() {
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
     // calcSquircleSimplified(newSample, squircle);
-    // newSample = simpleBezier1D(squircle, newSample);
+
+    vec<VOICESPERCHIP> sign = getSign(newSample);
+
+    newSample = sign * simpleBezier1D(squircle, sign * (newSample));
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -502,7 +538,7 @@ vec<VOICESPERCHIP> getOscBSample() {
  *
  * @param renderDest output buffer
  */
-void renderAudio(int32_t *renderDest) {
+void renderAudio(volatile int32_t *renderDest) {
 
     const vec<VOICESPERCHIP> &noiseLevelLadder = layerA.mixer.noiseLevelLadder;
     const vec<VOICESPERCHIP> &noiseLevelSteiner = layerA.mixer.noiseLevelSteiner;
@@ -525,8 +561,8 @@ void renderAudio(int32_t *renderDest) {
     vec<VOICESPERCHIP> sampleSteiner;
     vec<VOICESPERCHIP> sampleLadder;
 
-    int32_t intSampleSteiner[VOICESPERCHIP];
-    int32_t intSampleLadder[VOICESPERCHIP];
+    volatile int32_t intSampleSteiner[VOICESPERCHIP];
+    volatile int32_t intSampleLadder[VOICESPERCHIP];
 
     for (uint32_t sample = 0; sample < SAIDMABUFFERSIZE; sample++) {
 

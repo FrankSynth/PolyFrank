@@ -325,9 +325,9 @@ ALWAYS_INLINE inline float simpleBezier1D(const float p1, const float t) {
  */
 template <uint32_t Size, typename A = float> class vec {
 
+  public:
     A data[Size];
 
-  public:
     vec() {}
     vec(const vec &other) {
         for (uint32_t i = 0; i < Size; i++)
@@ -343,8 +343,8 @@ template <uint32_t Size, typename A = float> class vec {
     A &operator[](int i) { return data[i]; }
     const A &operator[](int i) const { return data[i]; }
 
-    // operator A *() { return data; }
-    // operator const A *() const { return data; }
+    operator A *() { return data; }
+    operator const A *() const { return data; }
 
     template <typename T> operator vec<Size, T>() {
         vec<Size, T> newVector;
@@ -714,14 +714,14 @@ template <uint32_t Size, typename A = float> class vec {
     friend vec operator<<(uint32_t x, const vec &v) {
         vec newVector;
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = x / v[i];
+            newVector[i] = x << v[i];
         return newVector;
     }
 
     friend vec operator>>(uint32_t x, const vec &v) {
         vec newVector;
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = x / v[i];
+            newVector[i] = x >> v[i];
         return newVector;
     }
 
@@ -789,8 +789,20 @@ template <uint32_t Size, typename A = float> class vec {
             newVector[i] = std::round(a[i]);
         return newVector;
     }
+    friend inline vec fabs(const vec &a) {
+        vec newVector;
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = std::fabs(a[i]);
+        return newVector;
+    }
 
-    friend inline vec getSign(const vec &a) { return vec((vec<Size, bool>(a >= (A)0)) - vec<Size, bool>((a < (A)0))); }
+    // returns 1 or -1
+    friend inline vec getSign(const vec &a) {
+        vec newVector;
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = (A)(a[i] >= (A)0) - (A)(a[i] < (A)0);
+        return newVector;
+    }
 };
 
 ALWAYS_INLINE inline vec<2, float> bezier2D(const vec<2, float> &p0, const vec<2, float> &p1, const vec<2, float> &p2,
