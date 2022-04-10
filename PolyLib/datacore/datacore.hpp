@@ -15,7 +15,7 @@
 #endif
 
 extern float ROTARYENCODERACCELERATION;
-extern bool LayerRenBufferSw;
+// extern uint32_t LayerRenBufferSw;
 
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
@@ -411,35 +411,35 @@ class Output : public BasePatch {
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
 
         this->visible = visible;
+
+        currentSample = sample;
+        nextSample = &sample[1];
+    }
+
+    void updateToNextSample() {
+        vec<VOICESPERCHIP> *temp = currentSample;
+        currentSample = nextSample;
+        nextSample = temp;
     }
 
     vec<VOICESPERCHIP> sample[2];
-
-    operator vec<VOICESPERCHIP> *() { return sample; }
-    operator const vec<VOICESPERCHIP> *() const { return sample; }
+    vec<VOICESPERCHIP> *currentSample;
+    vec<VOICESPERCHIP> *nextSample;
 
     // returns from currentSample
-    float &operator[](int i) { return sample[LayerRenBufferSw][i]; }
-    const float &operator[](int i) const { return sample[LayerRenBufferSw][i]; }
+    float &operator[](int i) { return (*currentSample)[i]; }
+    const float &operator[](int i) const { return (*currentSample)[i]; }
 
-    operator vec<VOICESPERCHIP> &() { return sample[LayerRenBufferSw]; }
-    operator const vec<VOICESPERCHIP> &() const { return sample[LayerRenBufferSw]; }
+    operator vec<VOICESPERCHIP> &() { return (*currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (*currentSample); }
 
     // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return sample[!LayerRenBufferSw] = other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (*nextSample) = other; }
 
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const {
-        return sample[LayerRenBufferSw] + other;
-    }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const {
-        return sample[LayerRenBufferSw] - other;
-    }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const {
-        return sample[LayerRenBufferSw] * other;
-    }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const {
-        return sample[LayerRenBufferSw] / other;
-    }
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return (*currentSample) + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return (*currentSample) - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return (*currentSample) * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return (*currentSample) / other; }
 
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
@@ -486,34 +486,30 @@ class RenderBuffer {
   public:
     RenderBuffer() {}
 
+    void updateToNextSample() {
+        vec<VOICESPERCHIP> *temp = currentSample;
+        currentSample = nextSample;
+        nextSample = temp;
+    }
+
     vec<VOICESPERCHIP> sample[2];
+    vec<VOICESPERCHIP> *currentSample;
+    vec<VOICESPERCHIP> *nextSample;
 
-    operator float *() { return sample[LayerRenBufferSw]; }
-    operator const float *() const { return sample[LayerRenBufferSw]; }
+    // returns from currentSample
+    float &operator[](int i) { return (*currentSample)[i]; }
+    const float &operator[](int i) const { return (*currentSample)[i]; }
 
-    operator vec<VOICESPERCHIP> *() { return sample; }
-    operator const vec<VOICESPERCHIP> *() const { return sample; }
+    operator vec<VOICESPERCHIP> &() { return (*currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (*currentSample); }
 
-    float &operator[](int i) { return sample[LayerRenBufferSw][i]; }
-    const float &operator[](int i) const { return sample[LayerRenBufferSw][i]; }
+    // assigns to nextSample
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (*nextSample) = other; }
 
-    operator vec<VOICESPERCHIP> &() { return sample[LayerRenBufferSw]; }
-    operator const vec<VOICESPERCHIP> &() const { return sample[LayerRenBufferSw]; }
-
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return sample[!LayerRenBufferSw] = other; }
-
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const {
-        return vec<VOICESPERCHIP>(sample[LayerRenBufferSw] + other);
-    }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const {
-        return vec<VOICESPERCHIP>(sample[LayerRenBufferSw] - other);
-    }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const {
-        return vec<VOICESPERCHIP>(sample[LayerRenBufferSw] * other);
-    }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const {
-        return vec<VOICESPERCHIP>(sample[LayerRenBufferSw] / other);
-    }
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return (*currentSample) + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return (*currentSample) - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return (*currentSample) * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return (*currentSample) / other; }
 };
 
 class I2CBuffer {

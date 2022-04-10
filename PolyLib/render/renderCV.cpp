@@ -168,7 +168,16 @@ inline void collectAllCurrentInputs() {
 
 inline void updateAllOutputSamples() {
 
-    LayerRenBufferSw = !LayerRenBufferSw;
+    // LayerRenBufferSw = !LayerRenBufferSw;
+
+    for (BaseModule *m : layerA.modules) {
+        for (Output *o : m->outputs) {
+            o->updateToNextSample();
+        }
+        for (RenderBuffer *b : m->renderBuffer) {
+            b->updateToNextSample();
+        }
+    }
 }
 
 inline void writeDataToDACBuffer() {

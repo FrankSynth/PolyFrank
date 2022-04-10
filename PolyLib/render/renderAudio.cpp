@@ -95,25 +95,25 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  */
 void loadInitialWavetables() {
 
-    switchOscAWavetable(0, wavetables[layerA.oscA.dSample0.defaultValue]);
-    switchOscAWavetable(1, wavetables[layerA.oscA.dSample1.defaultValue]);
-    switchOscAWavetable(2, wavetables[layerA.oscA.dSample2.defaultValue]);
-    switchOscAWavetable(3, wavetables[layerA.oscA.dSample3.defaultValue]);
+    switchOscAWavetable(0, wavetables[0]);
+    switchOscAWavetable(1, wavetables[0]);
+    switchOscAWavetable(2, wavetables[0]);
+    switchOscAWavetable(3, wavetables[0]);
 
     // Osc B
-    switchOscBWavetable(0, wavetables[layerA.oscB.dSample0.defaultValue]);
-    switchOscBWavetable(1, wavetables[layerA.oscB.dSample1.defaultValue]);
-    switchOscBWavetable(2, wavetables[layerA.oscB.dSample2.defaultValue]);
-    switchOscBWavetable(3, wavetables[layerA.oscB.dSample3.defaultValue]);
+    switchOscBWavetable(0, wavetables[0]);
+    switchOscBWavetable(1, wavetables[0]);
+    switchOscBWavetable(2, wavetables[0]);
+    switchOscBWavetable(3, wavetables[0]);
 }
 
 // TODO new bitcrusher von Jacob??
 inline vec<VOICESPERCHIP> bitcrush(const vec<VOICESPERCHIP> &bitcrush, const vec<VOICESPERCHIP> &sample) {
 
     // vec<VOICESPERCHIP, uint32_t> moveAmount = 23 - floor(bitcrush);
-    vec<VOICESPERCHIP> mult;
+    vec<VOICESPERCHIP> mult = 23.0f - bitcrush;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        mult = powf(2, bitcrush[i]);
+        mult[i] = powf(2, mult[i]);
     vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
 
     bitCrushedSample = round(bitCrushedSample);
@@ -239,10 +239,17 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
-    // make sure to be in the right step range
+    vec<VOICESPERCHIP> wavetableLowerCycles;
+
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableLower[i] -=
-            std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
+        wavetableLowerCycles[i] = wavetableLower[i]->cycles;
+
+    phaseWavetableLower -= floor(phaseWavetableLower) * (phaseWavetableLower >= wavetableLowerCycles);
+
+    // make sure to be in the right step range
+    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    //     phaseWavetableLower[i] -=
+    //         std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] -=
@@ -532,6 +539,7 @@ void renderAudio(int32_t *renderDest) {
         maxVolSteiner += oscALevelSteiner;
         maxVolSteiner += oscBLevelSteiner;
 
+        maxVolSteiner = max(maxVolSteiner, 0.1f);
         vec<VOICESPERCHIP, bool> clipSteiner = maxVolSteiner > MAXPOSSIBLEVOLUME;
         dampSteiner = (MAXPOSSIBLEVOLUME / maxVolSteiner) * clipSteiner + (!clipSteiner);
 
@@ -549,6 +557,8 @@ void renderAudio(int32_t *renderDest) {
         maxVolLadder += subLevelLadder;
         maxVolLadder += oscALevelLadder;
         maxVolLadder += oscBLevelLadder;
+
+        maxVolLadder = max(maxVolLadder, 0.1f);
 
         vec<VOICESPERCHIP, bool> clipLadder = maxVolLadder > MAXPOSSIBLEVOLUME;
         dampLadder = (MAXPOSSIBLEVOLUME / maxVolLadder) * (clipLadder) + (!clipLadder);

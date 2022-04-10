@@ -53,6 +53,10 @@ void sendDACs();
 
 void PolyRenderInit() {
 
+    loadInitialWavetables();
+
+    HAL_Delay(100);
+
     spiBusLayer.connectToInterface(&hspi1);
     deviceManager.addBus(&spiBusLayer);
 
@@ -75,15 +79,12 @@ void PolyRenderInit() {
     for (uint16_t i = 0; i < ALLDACS; i++) {
         cvDac[i].init();
     }
-
     initPoly();
 
     // init all Layers
     allLayers.push_back(&layerA);
     layerA.initLayer();
     layerA.resetLayer();
-
-    loadInitialWavetables();
 
     // empty buffers
     uint32_t emptyData = 0;
@@ -115,7 +116,7 @@ void PolyRenderRun() {
     // start audio rendering
     renderAudio((int32_t *)saiBuffer);
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    audioDacA.startSAI();
+    // audioDacA.startSAI();
 
     // start cv rendering
     renderCVs();

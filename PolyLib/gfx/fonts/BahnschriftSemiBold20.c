@@ -1,3 +1,4 @@
+#ifdef POLYCONTROL
 /*********************************************************************
  *                SEGGER Microcontroller GmbH & Co. KG                *
  *        Solutions for real time microcontroller applications        *
@@ -2091,3 +2092,5 @@ GUI_CONST_STORAGE GUI_CHARINFO GUI_FontBahnschriftSemiBold20_CharInfo[192] = {
 };
 
 GUI_CONST_STORAGE GUI_FONTINFO GUI_FontBahnschriftSemiBold20_FontInfo = {20, GUI_FontBahnschriftSemiBold20_CharInfo};
+
+#endif

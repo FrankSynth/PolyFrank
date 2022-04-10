@@ -337,18 +337,14 @@ template <uint32_t Size, typename A = float> class vec {
         for (uint32_t i = 0; i < Size; i++)
             data[i] = x;
     }
-    // template <typename T> vec(const vec<Size, T> &other) {
-    //     for (uint32_t i = 0; i < Size; i++)
-    //         data[i] = (A)other[i];
-    // }
 
     ~vec() {}
 
     A &operator[](int i) { return data[i]; }
     const A &operator[](int i) const { return data[i]; }
 
-    operator A *() { return data; }
-    operator const A *() const { return data; }
+    // operator A *() { return data; }
+    // operator const A *() const { return data; }
 
     template <typename T> operator vec<Size, T>() {
         vec<Size, T> newVector;
@@ -497,8 +493,8 @@ template <uint32_t Size, typename A = float> class vec {
         return newVector;
     }
 
-    vec<Size, bool> operator!() const {
-        vec<Size, bool> newVector;
+    vec operator!() const {
+        vec newVector;
 
         for (uint32_t i = 0; i < Size; i++)
             newVector[i] = !data[i];
