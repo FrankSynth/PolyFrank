@@ -72,6 +72,7 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
     oscBwavetable[position].size = wavetable->size;
     oscBwavetable[position].cycles = wavetable->cycles;
     oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
+    oscBwavetable[position].name = wavetable->name;
     sourcesB[position] = wavetable;
 
     MDMA_HandleTypeDef *mdmaHandle = nullptr;
@@ -539,7 +540,7 @@ void renderAudio(int32_t *renderDest) {
         maxVolSteiner += oscALevelSteiner;
         maxVolSteiner += oscBLevelSteiner;
 
-        maxVolSteiner = max(maxVolSteiner, 0.1f);
+        maxVolSteiner = max(maxVolSteiner, 1.0f);
         vec<VOICESPERCHIP, bool> clipSteiner = maxVolSteiner > MAXPOSSIBLEVOLUME;
         dampSteiner = (MAXPOSSIBLEVOLUME / maxVolSteiner) * clipSteiner + (!clipSteiner);
 
@@ -558,7 +559,7 @@ void renderAudio(int32_t *renderDest) {
         maxVolLadder += oscALevelLadder;
         maxVolLadder += oscBLevelLadder;
 
-        maxVolLadder = max(maxVolLadder, 0.1f);
+        maxVolLadder = max(maxVolLadder, 1.0f);
 
         vec<VOICESPERCHIP, bool> clipLadder = maxVolLadder > MAXPOSSIBLEVOLUME;
         dampLadder = (MAXPOSSIBLEVOLUME / maxVolLadder) * (clipLadder) + (!clipLadder);

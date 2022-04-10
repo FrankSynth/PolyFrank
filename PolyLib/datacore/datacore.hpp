@@ -411,35 +411,32 @@ class Output : public BasePatch {
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
 
         this->visible = visible;
-
-        currentSample = sample;
-        nextSample = &sample[1];
     }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> *temp = currentSample;
+        vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
         nextSample = temp;
     }
 
-    vec<VOICESPERCHIP> sample[2];
-    vec<VOICESPERCHIP> *currentSample;
-    vec<VOICESPERCHIP> *nextSample;
+    // vec<VOICESPERCHIP> sample[2];
+    vec<VOICESPERCHIP> currentSample;
+    vec<VOICESPERCHIP> nextSample;
 
     // returns from currentSample
-    float &operator[](int i) { return (*currentSample)[i]; }
-    const float &operator[](int i) const { return (*currentSample)[i]; }
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
 
-    operator vec<VOICESPERCHIP> &() { return (*currentSample); }
-    operator const vec<VOICESPERCHIP> &() const { return (*currentSample); }
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
 
     // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (*nextSample) = other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
 
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return (*currentSample) + other; }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return (*currentSample) - other; }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return (*currentSample) * other; }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return (*currentSample) / other; }
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
 
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
@@ -484,32 +481,35 @@ class ID {
  */
 class RenderBuffer {
   public:
-    RenderBuffer() {}
+    RenderBuffer() {
+        // currentSample = sample;
+        // nextSample = &sample[1];
+    }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> *temp = currentSample;
+        vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
         nextSample = temp;
     }
 
-    vec<VOICESPERCHIP> sample[2];
-    vec<VOICESPERCHIP> *currentSample;
-    vec<VOICESPERCHIP> *nextSample;
+    // vec<VOICESPERCHIP> sample[2];
+    vec<VOICESPERCHIP> currentSample;
+    vec<VOICESPERCHIP> nextSample;
 
     // returns from currentSample
-    float &operator[](int i) { return (*currentSample)[i]; }
-    const float &operator[](int i) const { return (*currentSample)[i]; }
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
 
-    operator vec<VOICESPERCHIP> &() { return (*currentSample); }
-    operator const vec<VOICESPERCHIP> &() const { return (*currentSample); }
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
 
     // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (*nextSample) = other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
 
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return (*currentSample) + other; }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return (*currentSample) - other; }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return (*currentSample) * other; }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return (*currentSample) / other; }
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
 };
 
 class I2CBuffer {

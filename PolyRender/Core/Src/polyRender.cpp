@@ -116,7 +116,7 @@ void PolyRenderRun() {
     // start audio rendering
     renderAudio((int32_t *)saiBuffer);
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    // audioDacA.startSAI();
+    audioDacA.startSAI();
 
     // start cv rendering
     renderCVs();

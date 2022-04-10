@@ -23,7 +23,7 @@ TARGET = PolyRender
 DEBUG = 1
 DISASSEMBLY = 1
 # optimization
-OPT = -Og
+OPT = -Ofast
 
 
 #######################################
