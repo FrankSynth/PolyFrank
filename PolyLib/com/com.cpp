@@ -562,9 +562,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     if (sizeOfReadBuffer == 0) {
 
         state = COM_READY;
-#ifdef POLYCONTROL
-        chipState[receiveLayer][receiveChip] = CHIP_ERROR;
-#endif
+
 #ifdef POLYRENDER
         PolyError_Handler("ERROR | FATAL | size=0");
 
@@ -607,6 +605,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 #endif
 #ifdef POLYRENDER
+        state = COM_READY;
         if (spi->state == BUS_READY) {
             if (beginReceiveTransmission() != BUS_OK)
                 PolyError_Handler("ERROR | FATAL | last byte wrong, receive bus occuppied");
@@ -916,7 +915,7 @@ void COMinterChip::resetCom() {
 busState COMinterChip::invokeBufferFullSend() {
 #ifdef POLYRENDER
     PolyError_Handler("ERROR | COMMUNICATION | COM -> Buffer full ");
-    return BUS_ERROR;
+    return BUS_OK;
 #endif
     busState ret = beginSendTransmission();
 

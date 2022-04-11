@@ -14,18 +14,20 @@ void MAX11128::fetchNewData() {
 
     command[nChannels - 1] = standardSampleCommand;
 
-    fast_copy_f32(command, (uint32_t *)maxBufferOut, nChannels);
+    // fast_copy_f32(command, (uint32_t *)maxBufferOut, nChannels);
 
-    // receive new samples and send sample command
-    // for (uint16_t i = 0; i < nChannels; i++) {
-    // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
+    // // receive new samples and send sample command
+    // // for (uint16_t i = 0; i < nChannels; i++) {
+    // // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
 
-    if (busInterface->transmitReceive((uint8_t *)maxBufferOut, (uint8_t *)maxBufferIn, nChannels, true) == BUS_OK) {
-        while (busInterface->state != BUS_READY) {
-            // microsecondsDelay(1);
-        }
-        fast_copy_f32((uint32_t *)maxBufferIn, adcData, nChannels);
-    }
+    // if (busInterface->transmitReceive((uint8_t *)maxBufferOut, (uint8_t *)maxBufferIn, nChannels, true) == BUS_OK) {
+    //     while (busInterface->state != BUS_READY) {
+    //         // microsecondsDelay(1);
+    //     }
+    //     fast_copy_f32((uint32_t *)maxBufferIn, adcData, nChannels);
+    // }
+
+    busInterface->transmitReceive((uint8_t *)command, (uint8_t *)adcData, nChannels, false);
 
     // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     // }

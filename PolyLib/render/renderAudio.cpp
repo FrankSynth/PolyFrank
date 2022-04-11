@@ -111,45 +111,12 @@ void loadInitialWavetables() {
 // TODO new bitcrusher von Jacob??
 inline vec<VOICESPERCHIP> bitcrush(const vec<VOICESPERCHIP> &bitcrush, const vec<VOICESPERCHIP> &sample) {
 
-    // vec<VOICESPERCHIP, uint32_t> moveAmount = 23 - floor(bitcrush);
-    // vec<VOICESPERCHIP> mult = 23.0f - bitcrush;
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     mult[i] = powf(2, mult[i]);
-    // vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
-
-    // bitCrushedSample = round(bitCrushedSample);
-    // bitCrushedSample = bitCrushedSample / mult;
-
-    // return bitCrushedSample;
-
-    vec<VOICESPERCHIP, uint32_t> moveAmount = 23 - bitcrush;
-    vec<VOICESPERCHIP> mult = (1 << moveAmount);
+    vec<VOICESPERCHIP> mult = 1.0f / max(bitcrush, (1.0f / 8388607.0f));
     vec<VOICESPERCHIP> bitCrushedSample = mult * sample;
     bitCrushedSample = round(bitCrushedSample);
     bitCrushedSample = bitCrushedSample / mult;
 
     return bitCrushedSample;
-
-    // vec<VOICESPERCHIP> bitCrushedSample;
-
-    // uint32_t moveAmount[VOICESPERCHIP];
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     moveAmount[i] = 23 - std::floor(bitcrush[i]);
-
-    // float mult[VOICESPERCHIP];
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     mult[i] = (1 << moveAmount[i]);
-
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     bitCrushedSample[i] = mult[i] * sample[i];
-
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     bitCrushedSample[i] = std::round(bitCrushedSample[i]);
-
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     bitCrushedSample[i] = bitCrushedSample[i] / mult[i];
-
-    // return bitCrushedSample;
 }
 
 inline vec<VOICESPERCHIP> getNoiseSample() {
@@ -348,7 +315,7 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
     vec<VOICESPERCHIP> sign = getSign(newSample);
 
-    newSample = sign * simpleBezier1D(squircle, sign * (newSample));
+    newSample = sign * simpleCubicBezier1D(squircle, sign * (newSample));
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -519,7 +486,7 @@ vec<VOICESPERCHIP> getOscBSample() {
 
     vec<VOICESPERCHIP> sign = getSign(newSample);
 
-    newSample = sign * simpleBezier1D(squircle, sign * (newSample));
+    newSample = sign * simpleCubicBezier1D(squircle, sign * (newSample));
 
     newSample = bitcrush(bitcrusher, newSample);
 

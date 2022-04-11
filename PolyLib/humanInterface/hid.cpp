@@ -150,10 +150,12 @@ void processPanelPotis() {
         adcA.fetchNewData();                                  // fetch ADC data
         for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if (abs((panelADCStates[0][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
+            if (std::abs((panelADCStates[0][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
                 treshold) {
-                panelADCStates[0][multiplex][channel] = (int16_t)(adcA.adcData[channel] >> 1) & 0xFFF;
-
+                panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
+                if (channel == 0 && multiplex == 0) {
+                    println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
+                }
                 if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[0][multiplex][channel](panelADCStates[0][multiplex][channel]);
                 }
@@ -164,9 +166,9 @@ void processPanelPotis() {
         adcA.fetchNewData();                                  // fetch ADC data
         for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if (abs((panelADCStates[1][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
+            if (std::abs((panelADCStates[1][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
                 treshold) {
-                panelADCStates[1][multiplex][channel] = (int16_t)(adcA.adcData[channel] >> 1) & 0xFFF;
+                panelADCStates[1][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
 
                 if (potiFunctionPointer[1][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[1][multiplex][channel](panelADCStates[1][multiplex][channel]);

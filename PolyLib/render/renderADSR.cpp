@@ -8,23 +8,55 @@ extern Layer layerA;
 LogCurve adsrConvertLog(128, 0.1);
 LogCurve adsrConvertAntiLog(128, 0.9);
 
-inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
+extern uint8_t sendString(const char *message);
+extern uint8_t sendString(std::string &message);
+extern uint8_t sendString(std::string &&message);
+
+inline float accumulateDelay(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
-inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
+inline float accumulateAttack(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
 }
-inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
+inline float accumulateDecay(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
-inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iSustain[voice] + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
+inline vec<VOICESPERCHIP> accumulateSustain(ADSR &adsr) {
+    return clamp(adsr.iSustain + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
 }
-inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
+inline float accumulateRelease(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
 }
-inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
+inline float accumulateAmount(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
+}
+
+inline void setStatusOff(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.OFF;
+}
+inline void setStatusDelay(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.DELAY;
+    adsr.currentTime[voice] = 0;
+}
+inline void setStatusAttack(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.ATTACK;
+    adsr.currentTime[voice] = reverseSimpleBezier1D(adsr.level[voice], adsr.aShape);
+}
+inline void setStatusDecay(ADSR &adsr, uint32_t voice) {
+    if (adsr.level[voice] < adsr.sustain[voice]) {
+        setStatusAttack(adsr, voice);
+        return;
+    }
+
+    adsr.currentState[voice] = adsr.DECAY;
+    adsr.currentTime[voice] = 0;
+}
+inline void setStatusSustain(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.SUSTAIN;
+}
+inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.RELEASE;
+    adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
 }
 
 /**
@@ -35,170 +67,133 @@ inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
 void renderADSR(ADSR &adsr) {
 
     // TODO bezier
-    float delay, decay, attack, sustain, release;
-    int32_t &loop = adsr.dLoop.valueMapped;
-    float &shape = adsr.aShape.valueMapped;
+    float delay, decay, attack, release;
+    const int32_t &loop = adsr.dLoop.valueMapped;
+    const float &shape = adsr.aShape;
 
-    vec<VOICESPERCHIP> sample;
+    adsr.sustain = accumulateSustain(adsr);
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
-        float &nextSample = sample[voice];
-        float currentLevel = adsr.currentLevel[voice];
+        // float &nextSample = level[voice];
+        float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
-        float gate = layerA.midi.oGate[voice];
+        const float &gate = layerA.midi.oGate[voice];
+        const float &sustain = adsr.sustain[voice];
 
         float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
 
-        switch (adsr.getState(voice)) {
+        switch (adsr.currentState[voice]) {
             case adsr.OFF:
                 if (gate == 1 || loop == 1) {
-                    adsr.setStatusDelay(voice);
+                    setStatusDelay(adsr, voice);
                 }
                 break;
 
             case adsr.DELAY:
                 if (gate == 0 && loop == 0) {
-                    adsr.setStatusOff(voice);
+                    setStatusOff(adsr, voice);
                 }
-                else {
-                    delay = accumulateDelay(adsr, voice);
-                    currentTime += SECONDSPERCVRENDER * imperfection;
-                    if (currentTime >= delay)
-                        adsr.setStatusAttack(voice);
-                }
+                delay = accumulateDelay(adsr, voice);
+                currentTime += SECONDSPERCVRENDER * imperfection;
+                if (currentTime >= delay)
+                    setStatusAttack(adsr, voice);
                 break;
 
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice);
-                currentLevel += (SECONDSPERCVRENDER / attack) * imperfection;
+                currentTime += SECONDSPERCVRENDER / attack * imperfection;
 
-                if (currentLevel >= 1) {
-                    currentLevel = 1;
-                    if (gate == 1) {
-                        adsr.setStatusDecay(voice);
-                    }
+                if (currentTime >= 1.0f || level >= 1.0f) {
+                    level = 1;
+                    if (gate == 1)
+                        setStatusDecay(adsr, voice);
+                    else if (loop == 1)
+                        setStatusRelease(adsr, voice);
                 }
 
-                if (gate == 0) {
-                    // gate 0
-                    if (loop == 0) {
-                        // gate 0 loop 0
-                        adsr.setStatusRelease(voice);
-                    }
-                    else {
-                        // gate 0 loop 1
-                        if (currentLevel == 1) {
-                            adsr.setStatusRelease(voice);
-                        }
-                    }
-                }
+                if (gate == 0 && loop == 0)
+                    setStatusRelease(adsr, voice);
+
+                level = simpleBezier1D(shape, currentTime);
 
                 break;
 
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice);
-                currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
+                currentTime += (SECONDSPERCVRENDER / decay) * imperfection;
 
-                sustain = accumulateSustain(adsr, voice);
-
-                // fix Sustain level
-                if (shape < 1) {
-                    // shape between 0 and 1, 1 is linear
-                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
-                }
-                else {
-                    // shape between 1 and 2, 1 is linear
-                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
-                }
-                //
-
-                if (currentLevel <= sustain) {
-                    currentLevel = sustain;
-                    adsr.setStatusSustain(voice);
+                if (currentTime >= 1.0f || level <= sustain) {
+                    level = sustain;
+                    setStatusSustain(adsr, voice);
                 }
 
                 if (gate == 0) {
-                    adsr.setStatusRelease(voice);
+                    setStatusRelease(adsr, voice);
                 }
+
+                level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
                 break;
 
             case adsr.SUSTAIN:
 
-                sustain = accumulateSustain(adsr, voice);
-
-                // fix Sustain level
-                if (shape < 1) {
-                    // shape between 0 and 1, 1 is linear
-                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
-                }
-                else {
-                    // shape between 1 and 2, 1 is linear
-                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
-                }
-                //
-
-                if (currentLevel != sustain) {
-                    decay = accumulateDecay(adsr, voice);
-
-                    if (currentLevel < sustain) {
-                        currentLevel += (SECONDSPERCVRENDER / decay) * imperfection;
-                        if (currentLevel >= sustain) {
-                            currentLevel = sustain;
-                        }
-                    }
-                    else {
-                        currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
-                        if (currentLevel <= sustain) {
-                            currentLevel = sustain;
-                        }
-                    }
-                }
-
                 if (gate == 0) {
-                    adsr.setStatusRelease(voice);
+                    setStatusRelease(adsr, voice);
                 }
+
+                decay = accumulateDecay(adsr, voice);
+
+                if (level < sustain - 0.001f) {
+                    level += (SECONDSPERCVRENDER / decay) * imperfection;
+                    if (level >= sustain) {
+                        level = sustain;
+                    }
+                }
+                else if (level > sustain + 0.001f) {
+                    level -= (SECONDSPERCVRENDER / decay) * imperfection;
+                    if (level <= sustain) {
+                        level = sustain;
+                    }
+                    level = sustain;
+                }
+                else
+                    level = sustain;
+
                 break;
 
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice);
-                currentLevel -= (SECONDSPERCVRENDER / release) * imperfection;
 
-                if (currentLevel <= 0) {
-                    currentLevel = 0;
+                currentTime += (SECONDSPERCVRENDER / release) * imperfection;
+
+                if (currentTime >= 1.0f || level <= 0) {
+                    level = 0;
                     if (loop == 0)
-                        adsr.setStatusOff(voice);
+                        setStatusOff(adsr, voice);
                     else
-                        adsr.setStatusDelay(voice);
+                        setStatusDelay(adsr, voice);
                 }
 
                 if (gate == 1) {
-                    adsr.setStatusAttack(voice);
+                    setStatusAttack(adsr, voice);
                 }
+
+                level = bezier1D(1.0f, 1.0f - shape, 0.0f, currentTime);
 
                 break;
             default: Error_Handler(); break;
         }
-
-        if (shape < 1) {
-            // shape between 0 and 1, 1 is linear
-            nextSample = fast_lerp_f32(adsrConvertLog.mapValue(currentLevel), currentLevel, shape);
-        }
-        else {
-            // shape between 1 and 2, 1 is linear
-            nextSample = fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
-        }
-
-        adsr.currentLevel[voice] = currentLevel;
     }
 
+    adsr.level = clamp(adsr.level, 0.0f, 1.0f);
+
     // midi velocity
-    sample = fast_lerp_f32(sample, sample * layerA.midi.oVeloctiy, adsr.aVelocity);
+    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oVeloctiy, adsr.aVelocity);
 
     // keytrack
-    sample = fast_lerp_f32(sample, sample * layerA.midi.oNote, adsr.aKeytrack);
+    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oNote, adsr.aKeytrack);
 
-    adsr.out = sample * adsr.aAmount;
+    adsr.out = adsr.level * adsr.aAmount;
 }
 
 #endif
