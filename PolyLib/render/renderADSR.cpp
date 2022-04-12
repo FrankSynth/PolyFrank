@@ -63,7 +63,7 @@ inline float calcCoef(float rate, float targetRatio) {
     return (rate <= 0.0f) ? 0.0f : expf(-logf((1.0f + targetRatio) / targetRatio) / rate);
 }
 inline float calcARatio(float shape) {
-    return 0.1f + 0.001f * (expf(14.0f * shape) - 1.0f);
+    return 0.0001f + 0.001f * (expf(12.0f * shape) - 1.0f);
 }
 inline float calcDRRatio(float shape) {
     return 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
@@ -136,7 +136,8 @@ void renderADSR(ADSR &adsr) {
                 attackCoef = calcCoef(attackRate, targetRatioA);
                 attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
 
-                level = fast_lerp_f32(attackBase + level * attackCoef, level + SECONDSPERCVRENDER / attack, shape);
+                // level = fast_lerp_f32(attackBase + level * attackCoef, level + SECONDSPERCVRENDER / attack, shape);
+                level = attackBase + level * attackCoef;
 
                 if (level >= 1.0f) {
                     level = 1;

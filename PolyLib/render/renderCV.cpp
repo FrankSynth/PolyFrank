@@ -241,27 +241,6 @@ inline void setSwitches() {
     HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, (GPIO_PinState)(steinerMode < 2));
     HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
 
-    // switch (steinerMode) {
-    //     case 0:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-    //         break;
-    //     case 1:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-    //         break;
-    //     case 2:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-    //         break;
-    //     case 3:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-    //         break;
-
-    //     default: PolyError_Handler("renderCV | setSwitches | wrong steinerMode"); break;
-    // }
-
     HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, (GPIO_PinState)(ladderMode < 2));
     HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
 
@@ -314,12 +293,6 @@ inline void setLEDs() {
 void renderCVs() {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
-    // cvDacA.setLatchPin();
-
-    // LED TIMING TEST
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PINo_SET);
-
     collectAllCurrentInputs();
 
     renderMidi(layerA.midi);
@@ -342,9 +315,6 @@ void renderCVs() {
 
     setSwitches();
     setLEDs();
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-
-    // FlagHandler::cvRendered = true;
 }
 
 #endif

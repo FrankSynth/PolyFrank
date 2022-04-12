@@ -214,6 +214,43 @@ class LogCurve {
     float mapValueSigned(float value);
     void precomputeTable();
 
+    /**
+     * @brief map values between 0 and 1 to specific log curve
+     *
+     * @param value
+     * @return float
+     */
+    template <uint32_t Size> vec<Size, float> mapValue(vec<Size, float> value) {
+
+        vec<Size> ret, fract;      /* Temporary variables for input, output */
+        vec<Size, uint32_t> index; /* Index variable */
+        vec<Size> a, b;            /* Two nearest output values */
+        // int32_t n;
+        vec<Size> findex;
+
+        /* Calculation of index of the table */
+        findex = (vec<Size>)size * clamp(value, 0.0f, 1.0f);
+
+        index = ((vec<Size, uint32_t>)findex);
+
+        /* fractional value calculation */
+        fract = findex - (vec<Size>)index;
+
+        /* Read two nearest values of input value from the sin table */
+        for (uint32_t i = 0; i < Size; i++) {
+
+            a[i] = logTable[index[i]];
+            b[i] = logTable[index[i] + 1];
+        }
+
+        /* Linear interpolation process */
+        ret = fast_lerp_f32(a, b, fract);
+
+        /* Return the output value */
+
+        return ret;
+    }
+
   private:
     float curve;
     uint16_t size;

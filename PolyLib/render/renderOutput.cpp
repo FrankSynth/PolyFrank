@@ -9,11 +9,8 @@ LogCurve panningAntiLog(32, 0.94);
 // TODO check this pan spread mapping
 inline vec<VOICESPERCHIP> accumulatePan(Out &out) {
     vec<VOICESPERCHIP> pan = out.iPan + out.aPan;
-
     vec<VOICESPERCHIP> sign = getSign(layerA.spreadValues);
-
-    pan = fast_lerp_f32(pan, sign, sign * out.aPanSpread.valueMapped * layerA.spreadValues);
-
+    pan = fast_lerp_f32(pan, sign, sign * out.aPanSpread * layerA.spreadValues);
     return pan;
 }
 
@@ -43,10 +40,8 @@ void renderOut(Out &out) {
     panRight = (pan + 1.0f) * 0.5f;
     panLeft = (-1.0f * pan + 1.0f) * 0.5f;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        left[i] = panningAntiLog.mapValue(vca[i] * panLeft[i] * out.aMaster.valueMapped);
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        right[i] = panningAntiLog.mapValue(vca[i] * panRight[i] * out.aMaster.valueMapped);
+    left = vca * panningAntiLog.mapValue(panLeft * out.aMaster);
+    right = vca * panningAntiLog.mapValue(panRight * out.aMaster);
 
     out.left = clamp(left, 0.0f, 1.0f);
     out.right = clamp(right, 0.0f, 1.0f);
