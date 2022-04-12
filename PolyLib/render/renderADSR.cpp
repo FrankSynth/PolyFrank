@@ -59,8 +59,14 @@ inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
     // adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
 }
 
-float calcCoef(float rate, float targetRatio) {
+inline float calcCoef(float rate, float targetRatio) {
     return (rate <= 0.0f) ? 0.0f : expf(-logf((1.0f + targetRatio) / targetRatio) / rate);
+}
+inline float calcARatio(float shape) {
+    return 0.1f + 0.001f * (expf(14.0f * shape) - 1.0f);
+}
+inline float calcDRRatio(float shape) {
+    return 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
 }
 
 #define ADSRTHRESHOLD 0.001f
@@ -75,6 +81,15 @@ void renderADSR(ADSR &adsr) {
     float delay, decay, attack, release;
     const int32_t &loop = adsr.dLoop.valueMapped;
     const float &shape = adsr.aShape;
+    static float cacheShape = adsr.aShape;
+    static float targetRatioA = calcARatio(shape);
+    static float targetRatioDR = calcDRRatio(shape);
+
+    if (cacheShape != shape) {
+        targetRatioA = calcARatio(shape);
+        targetRatioDR = calcDRRatio(shape);
+        cacheShape = shape;
+    }
 
     adsr.sustain = accumulateSustain(adsr);
 
@@ -85,21 +100,17 @@ void renderADSR(ADSR &adsr) {
         float &currentTime = adsr.currentTime[voice];
         float &gate = layerA.midi.oGate[voice];
         float &sustain = adsr.sustain[voice];
-        float &attackBase = adsr.attackBase[voice];
-        float &attackCoef = adsr.attackCoef[voice];
-        float &attackRate = adsr.attackRate[voice];
-        float &decayBase = adsr.decayBase[voice];
-        float &decayCoef = adsr.decayCoef[voice];
-        float &decayRate = adsr.decayRate[voice];
-        float &releaseBase = adsr.releaseBase[voice];
-        float &releaseCoef = adsr.releaseCoef[voice];
-        float &releaseRate = adsr.releaseRate[voice];
-        float &targetRatioA = adsr.targetRatioA[voice];
-        float &targetRatioDR = adsr.targetRatioDR[voice];
+        float attackBase;
+        float attackCoef;
+        float attackRate;
+        float decayBase;
+        float decayCoef;
+        float decayRate;
+        float releaseBase;
+        float releaseCoef;
+        float releaseRate;
 
         float imperfection = 1.0f;
-
-        float tempshape = shape * 2;
 
         switch (adsr.currentState[voice]) {
             case adsr.OFF:
@@ -121,8 +132,6 @@ void renderADSR(ADSR &adsr) {
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice) * imperfection;
 
-                targetRatioA = 0.1f + 0.001f * (expf(14.0f * shape) - 1.0f);
-                // targetRatioA = 0.3f;
                 attackRate = attack * (1.0f / SECONDSPERCVRENDER);
                 attackCoef = calcCoef(attackRate, targetRatioA);
                 attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
@@ -147,7 +156,6 @@ void renderADSR(ADSR &adsr) {
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice) * imperfection;
 
-                targetRatioDR = 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
                 decayRate = decay * (1.0f / SECONDSPERCVRENDER);
                 decayCoef = calcCoef(decayRate, targetRatioDR);
                 decayBase = (sustain - targetRatioDR) * (1.0f - decayCoef);
@@ -192,7 +200,6 @@ void renderADSR(ADSR &adsr) {
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice) * imperfection;
 
-                targetRatioDR = 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
                 releaseRate = release * (1.0f / SECONDSPERCVRENDER);
                 releaseCoef = calcCoef(releaseRate, targetRatioDR);
                 releaseBase = -targetRatioDR * (1.0f - releaseCoef);

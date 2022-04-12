@@ -580,8 +580,6 @@ class ADSR : public BaseModule {
     vec<VOICESPERCHIP> attackCoef;
     vec<VOICESPERCHIP> decayCoef;
     vec<VOICESPERCHIP> releaseCoef;
-    vec<VOICESPERCHIP> targetRatioA;
-    vec<VOICESPERCHIP> targetRatioDR;
     vec<VOICESPERCHIP> attackBase;
     vec<VOICESPERCHIP> decayBase;
     vec<VOICESPERCHIP> releaseBase;
