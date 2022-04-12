@@ -70,9 +70,11 @@ void renderADSR(ADSR &adsr) {
     // TODO bezier
     float delay, decay, attack, release;
     const int32_t &loop = adsr.dLoop.valueMapped;
-    const float &shape = 1.0f - adsr.aShape;
+    const float &shape = adsr.aShape;
 
     float exp;
+
+    float powbase = 20000.0f *;
 
     if (shape > 1.0f)
         exp = shape;
@@ -110,8 +112,10 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice) * imperfection;
-                level = std::max(ADSRTHRESHOLD, level);
-                level += (exp * powf(level * SECONDSPERCVRENDER / attack, exp) / level);
+
+                // level = std::max(ADSRTHRESHOLD, level);
+
+                level += powf(powbase, 1.0f - (attack / 10.0f)) / 10.0f * (1.01f - level) * SECONDSPERCVRENDER;
 
                 if (level >= 1.0f) {
                     level = 1;
@@ -130,7 +134,8 @@ void renderADSR(ADSR &adsr) {
 
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice) * imperfection;
-                level -= (exp * (1.0f - sustain) * (powf(level * SECONDSPERCVRENDER / decay, exp)) / level);
+
+                level += powf(powbase, 1.0f - (decay / 10.0f)) / 10.0f * (sustain - level) * SECONDSPERCVRENDER;
 
                 if (level <= sustain) {
                     level = sustain;
@@ -170,9 +175,9 @@ void renderADSR(ADSR &adsr) {
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice) * imperfection;
 
-                level = std::min(0.9999f, level);
+                // level = std::min(0.9999f, level);
 
-                level -= (exp * sustain * powf(level * SECONDSPERCVRENDER / release, exp) / level);
+                level += powf(powbase, 1.0f - (release / 10.0f)) / 10.0f * (0.0f - level) * SECONDSPERCVRENDER;
 
                 if (level <= ADSRTHRESHOLD) {
                     level = 0;
