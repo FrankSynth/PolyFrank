@@ -537,7 +537,7 @@ class ADSR : public BaseModule {
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
-    Analog aShape = Analog("SHAPE", 0, 1, 0.5, true, linMap);
+    Analog aShape = Analog("SHAPE", -4, 4, 1, true, linMap);
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);

@@ -116,7 +116,7 @@ void PolyRenderRun() {
     // start audio rendering
     renderAudio((int32_t *)saiBuffer);
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
-    audioDacA.startSAI();
+    // audioDacA.startSAI();
 
     // start cv rendering
     renderCVs();
@@ -128,6 +128,8 @@ void PolyRenderRun() {
 
     // run loop
     while (true) {
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
+
         // for timing test purpose
         // if (askMessage > 5000) {
         //     println("alive");
@@ -247,7 +249,7 @@ uint32_t cache = 0;
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio(&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 
@@ -256,7 +258,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiotimer = 0;
     renderAudio(saiBuffer);
 
@@ -277,6 +279,7 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     if (pin == SPI_CS_fromControl_Pin) {
 
@@ -340,9 +343,12 @@ void sendDACs() {
 
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+
     if (htim == &htim15) {
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
+            // sendString("CV not done");
         }
         sendDACs();
     }

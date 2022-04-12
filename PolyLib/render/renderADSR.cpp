@@ -40,7 +40,7 @@ inline void setStatusDelay(ADSR &adsr, uint32_t voice) {
 }
 inline void setStatusAttack(ADSR &adsr, uint32_t voice) {
     adsr.currentState[voice] = adsr.ATTACK;
-    adsr.currentTime[voice] = reverseSimpleBezier1D(adsr.level[voice], adsr.aShape);
+    // adsr.currentTime[voice] = reverseSimpleBezier1D(adsr.level[voice], adsr.aShape);
 }
 inline void setStatusDecay(ADSR &adsr, uint32_t voice) {
     if (adsr.level[voice] < adsr.sustain[voice]) {
@@ -49,16 +49,17 @@ inline void setStatusDecay(ADSR &adsr, uint32_t voice) {
     }
 
     adsr.currentState[voice] = adsr.DECAY;
-    adsr.currentTime[voice] = 0;
+    // adsr.currentTime[voice] = 0;
 }
 inline void setStatusSustain(ADSR &adsr, uint32_t voice) {
     adsr.currentState[voice] = adsr.SUSTAIN;
 }
 inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
     adsr.currentState[voice] = adsr.RELEASE;
-    adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
+    // adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
 }
 
+#define ADSRTHRESHOLD 0.001f
 /**
  * @brief render next output sample of an ADSR module
  *
@@ -69,7 +70,14 @@ void renderADSR(ADSR &adsr) {
     // TODO bezier
     float delay, decay, attack, release;
     const int32_t &loop = adsr.dLoop.valueMapped;
-    const float &shape = adsr.aShape;
+    const float &shape = 1.0f - adsr.aShape;
+
+    float exp;
+
+    if (shape > 1.0f)
+        exp = shape;
+    else
+        exp = 1.0f / (1.5f - (shape / 2.0f));
 
     adsr.sustain = accumulateSustain(adsr);
 
@@ -81,7 +89,7 @@ void renderADSR(ADSR &adsr) {
         const float &gate = layerA.midi.oGate[voice];
         const float &sustain = adsr.sustain[voice];
 
-        float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
+        float imperfection = 1.0f;
 
         switch (adsr.currentState[voice]) {
             case adsr.OFF:
@@ -101,10 +109,11 @@ void renderADSR(ADSR &adsr) {
                 break;
 
             case adsr.ATTACK:
-                attack = accumulateAttack(adsr, voice);
-                currentTime += SECONDSPERCVRENDER / attack * imperfection;
+                attack = accumulateAttack(adsr, voice) * imperfection;
+                level = std::max(ADSRTHRESHOLD, level);
+                level += (exp * powf(level * SECONDSPERCVRENDER / attack, exp) / level);
 
-                if (currentTime >= 1.0f || level >= 1.0f) {
+                if (level >= 1.0f) {
                     level = 1;
                     if (gate == 1)
                         setStatusDecay(adsr, voice);
@@ -115,15 +124,15 @@ void renderADSR(ADSR &adsr) {
                 if (gate == 0 && loop == 0)
                     setStatusRelease(adsr, voice);
 
-                level = simpleBezier1D(shape, currentTime);
+                // level = simpleBezier1D(shape, currentTime);
 
                 break;
 
             case adsr.DECAY:
-                decay = accumulateDecay(adsr, voice);
-                currentTime += (SECONDSPERCVRENDER / decay) * imperfection;
+                decay = accumulateDecay(adsr, voice) * imperfection;
+                level -= (exp * (1.0f - sustain) * (powf(level * SECONDSPERCVRENDER / decay, exp)) / level);
 
-                if (currentTime >= 1.0f || level <= sustain) {
+                if (level <= sustain) {
                     level = sustain;
                     setStatusSustain(adsr, voice);
                 }
@@ -132,7 +141,7 @@ void renderADSR(ADSR &adsr) {
                     setStatusRelease(adsr, voice);
                 }
 
-                level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
+                // level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
                 break;
 
             case adsr.SUSTAIN:
@@ -141,20 +150,17 @@ void renderADSR(ADSR &adsr) {
                     setStatusRelease(adsr, voice);
                 }
 
-                decay = accumulateDecay(adsr, voice);
+                decay = accumulateDecay(adsr, voice) * imperfection;
 
-                if (level < sustain - 0.001f) {
-                    level += (SECONDSPERCVRENDER / decay) * imperfection;
-                    if (level >= sustain) {
+                if (level < sustain - ADSRTHRESHOLD) {
+                    level += (SECONDSPERCVRENDER / decay);
+                    if (level >= sustain)
                         level = sustain;
-                    }
                 }
-                else if (level > sustain + 0.001f) {
-                    level -= (SECONDSPERCVRENDER / decay) * imperfection;
-                    if (level <= sustain) {
+                else if (level > sustain + ADSRTHRESHOLD) {
+                    level -= (SECONDSPERCVRENDER / decay);
+                    if (level <= sustain)
                         level = sustain;
-                    }
-                    level = sustain;
                 }
                 else
                     level = sustain;
@@ -162,11 +168,13 @@ void renderADSR(ADSR &adsr) {
                 break;
 
             case adsr.RELEASE:
-                release = accumulateRelease(adsr, voice);
+                release = accumulateRelease(adsr, voice) * imperfection;
 
-                currentTime += (SECONDSPERCVRENDER / release) * imperfection;
+                level = std::min(0.9999f, level);
 
-                if (currentTime >= 1.0f || level <= 0) {
+                level -= (exp * sustain * powf(level * SECONDSPERCVRENDER / release, exp) / level);
+
+                if (level <= ADSRTHRESHOLD) {
                     level = 0;
                     if (loop == 0)
                         setStatusOff(adsr, voice);
@@ -177,8 +185,6 @@ void renderADSR(ADSR &adsr) {
                 if (gate == 1) {
                     setStatusAttack(adsr, voice);
                 }
-
-                level = bezier1D(1.0f, 1.0f - shape, 0.0f, currentTime);
 
                 break;
             default: Error_Handler(); break;
