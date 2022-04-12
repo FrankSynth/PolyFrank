@@ -529,15 +529,15 @@ class ADSR : public BaseModule {
     Input iAmount = Input("AMOUNT");
 
     Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.5, true, logMap, &iAttack);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 0.5, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, linMap, &iSustain);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.5, true, logMap, &iRelease);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.1, true, logMap, &iAttack);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 0.1, true, logMap, &iDecay);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.5, true, linMap, &iSustain);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.1, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
-    Analog aShape = Analog("SHAPE", -4, 4, 1, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
@@ -573,7 +573,18 @@ class ADSR : public BaseModule {
     vec<VOICESPERCHIP> currentTime;
     vec<VOICESPERCHIP> sustain;
     ADSR_State currentState[VOICESPERCHIP] = {OFF};
-    // vec<VOICESPERCHIP> cacheUpperRelease;
+
+    vec<VOICESPERCHIP> attackRate;
+    vec<VOICESPERCHIP> decayRate;
+    vec<VOICESPERCHIP> releaseRate;
+    vec<VOICESPERCHIP> attackCoef;
+    vec<VOICESPERCHIP> decayCoef;
+    vec<VOICESPERCHIP> releaseCoef;
+    vec<VOICESPERCHIP> targetRatioA;
+    vec<VOICESPERCHIP> targetRatioDR;
+    vec<VOICESPERCHIP> attackBase;
+    vec<VOICESPERCHIP> decayBase;
+    vec<VOICESPERCHIP> releaseBase;
 };
 
 class Feel : public BaseModule {

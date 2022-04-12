@@ -59,6 +59,10 @@ inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
     // adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
 }
 
+float calcCoef(float rate, float targetRatio) {
+    return (rate <= 0.0f) ? 0.0f : expf(-logf((1.0f + targetRatio) / targetRatio) / rate);
+}
+
 #define ADSRTHRESHOLD 0.001f
 /**
  * @brief render next output sample of an ADSR module
@@ -72,15 +76,6 @@ void renderADSR(ADSR &adsr) {
     const int32_t &loop = adsr.dLoop.valueMapped;
     const float &shape = adsr.aShape;
 
-    float exp;
-
-    float powbase = 20000.0f *;
-
-    if (shape > 1.0f)
-        exp = shape;
-    else
-        exp = 1.0f / (1.5f - (shape / 2.0f));
-
     adsr.sustain = accumulateSustain(adsr);
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
@@ -88,10 +83,23 @@ void renderADSR(ADSR &adsr) {
         // float &nextSample = level[voice];
         float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
-        const float &gate = layerA.midi.oGate[voice];
-        const float &sustain = adsr.sustain[voice];
+        float &gate = layerA.midi.oGate[voice];
+        float &sustain = adsr.sustain[voice];
+        float &attackBase = adsr.attackBase[voice];
+        float &attackCoef = adsr.attackCoef[voice];
+        float &attackRate = adsr.attackRate[voice];
+        float &decayBase = adsr.decayBase[voice];
+        float &decayCoef = adsr.decayCoef[voice];
+        float &decayRate = adsr.decayRate[voice];
+        float &releaseBase = adsr.releaseBase[voice];
+        float &releaseCoef = adsr.releaseCoef[voice];
+        float &releaseRate = adsr.releaseRate[voice];
+        float &targetRatioA = adsr.targetRatioA[voice];
+        float &targetRatioDR = adsr.targetRatioDR[voice];
 
         float imperfection = 1.0f;
+
+        float tempshape = shape * 2;
 
         switch (adsr.currentState[voice]) {
             case adsr.OFF:
@@ -113,9 +121,13 @@ void renderADSR(ADSR &adsr) {
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice) * imperfection;
 
-                // level = std::max(ADSRTHRESHOLD, level);
+                targetRatioA = 0.1f + 0.001f * (expf(14.0f * shape) - 1.0f);
+                // targetRatioA = 0.3f;
+                attackRate = attack * (1.0f / SECONDSPERCVRENDER);
+                attackCoef = calcCoef(attackRate, targetRatioA);
+                attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
 
-                level += powf(powbase, 1.0f - (attack / 10.0f)) / 10.0f * (1.01f - level) * SECONDSPERCVRENDER;
+                level = fast_lerp_f32(attackBase + level * attackCoef, level + SECONDSPERCVRENDER / attack, shape);
 
                 if (level >= 1.0f) {
                     level = 1;
@@ -135,7 +147,12 @@ void renderADSR(ADSR &adsr) {
             case adsr.DECAY:
                 decay = accumulateDecay(adsr, voice) * imperfection;
 
-                level += powf(powbase, 1.0f - (decay / 10.0f)) / 10.0f * (sustain - level) * SECONDSPERCVRENDER;
+                targetRatioDR = 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
+                decayRate = decay * (1.0f / SECONDSPERCVRENDER);
+                decayCoef = calcCoef(decayRate, targetRatioDR);
+                decayBase = (sustain - targetRatioDR) * (1.0f - decayCoef);
+
+                level = decayBase + level * decayCoef;
 
                 if (level <= sustain) {
                     level = sustain;
@@ -175,9 +192,12 @@ void renderADSR(ADSR &adsr) {
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice) * imperfection;
 
-                // level = std::min(0.9999f, level);
+                targetRatioDR = 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
+                releaseRate = release * (1.0f / SECONDSPERCVRENDER);
+                releaseCoef = calcCoef(releaseRate, targetRatioDR);
+                releaseBase = -targetRatioDR * (1.0f - releaseCoef);
 
-                level += powf(powbase, 1.0f - (release / 10.0f)) / 10.0f * (0.0f - level) * SECONDSPERCVRENDER;
+                level = releaseBase + level * releaseCoef;
 
                 if (level <= ADSRTHRESHOLD) {
                     level = 0;

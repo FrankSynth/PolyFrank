@@ -265,7 +265,7 @@ ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curv
     //     expsq[i] = exp[i] * exp[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        value[i] = std::pow(value[i], exp[i]);
+        value[i] = powf(value[i], exp[i]);
 }
 
 /**
