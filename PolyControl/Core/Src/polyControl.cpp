@@ -514,8 +514,6 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
     }
 }
 
-volatile bool readygo[2] = {false};
-
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
@@ -524,8 +522,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         FlagHandler::Control_Encoder_Interrupt_Timer = 0;
     }
     if (pin & GPIO_PIN_11) { // EOC
-        FlagHandler::Panel_0_EOC_Interrupt = true;
-        FlagHandler::Panel_1_EOC_Interrupt = true;
+        if (!HAL_GPIO_ReadPin(Panel_1_EOC_GPIO_Port, Panel_1_EOC_Pin)) {
+            FlagHandler::Panel_0_EOC_Interrupt = true;
+            FlagHandler::Panel_1_EOC_Interrupt = true;
+        }
     }
     if (pin & GPIO_PIN_14) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;

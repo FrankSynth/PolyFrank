@@ -346,6 +346,8 @@ ALWAYS_INLINE inline void fast_copy_f32(uint32_t *pSrc, uint32_t *pDst, uint32_t
 ALWAYS_INLINE inline void fast_copy_byte(uint8_t *pSrc, uint8_t *pDst, uint32_t blockSize) {
     uint32_t blkCnt; /* loop counter */
 
+    uint8_t in1, in2, in3, in4;
+
     /*loop Unrolling */
     blkCnt = blockSize >> 2;
 
@@ -355,7 +357,15 @@ ALWAYS_INLINE inline void fast_copy_byte(uint8_t *pSrc, uint8_t *pDst, uint32_t 
         /* C = A */
         /* Copy and then store the results in the destination buffer */
 
-        *((uint32_t *&)pDst)++ = *((uint32_t *&)pSrc)++;
+        in1 = *pSrc++;
+        in2 = *pSrc++;
+        in3 = *pSrc++;
+        in4 = *pSrc++;
+
+        *pDst++ = in1;
+        *pDst++ = in2;
+        *pDst++ = in3;
+        *pDst++ = in4;
 
         /* Decrement the loop counter */
         blkCnt--;

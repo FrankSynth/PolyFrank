@@ -53,9 +53,9 @@
         {
             "label": "Clean PolyControl",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile clean",
+            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it*",
             "options": {
-                "cwd": "${workspaceRoot}"
+                "cwd": "${workspaceRoot}/PolyControl/build"
             },
             "group": {
                 "kind": "build",
@@ -171,9 +171,9 @@
         {
             "label": "Clean PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile clean",
+            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it*",
             "options": {
-                "cwd": "${workspaceRoot}"
+                "cwd": "${workspaceRoot}/PolyRender/build"
             },
             "group": {
                 "kind": "build",

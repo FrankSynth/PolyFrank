@@ -168,6 +168,8 @@ inline void collectAllCurrentInputs() {
 
 inline void updateAllOutputSamples() {
 
+    // LayerRenBufferSw = !LayerRenBufferSw;
+
     for (BaseModule *m : layerA.modules) {
         for (Output *o : m->outputs) {
             o->updateToNextSample();
@@ -180,79 +182,55 @@ inline void updateAllOutputSamples() {
 
 inline void writeDataToDACBuffer() {
 
-    cvDac[0].data.currentSample[0] =
-        (1.0f - layerA.ladder.cutoff.currentSample[1]) * 4095.0f; // VOICE 1 | LADDER CUTOFF
-    cvDac[0].data.currentSample[1] =
-        (1.0f - layerA.ladder.cutoff.currentSample[0]) * 4095.0f;                      // VOICE 0 | LADDER CUTOFF
-    cvDac[0].data.currentSample[2] = layerA.steiner.cutoff.currentSample[0] * 4095.0f; // VOICE 0 | STEINER CUTOFF
-    cvDac[0].data.currentSample[3] = layerA.steiner.cutoff.currentSample[1] * 4095.0f; // VOICE 1 | STEINER CUTOFF
+    cvDac[0].data.currentSample[0] = (1.0f - layerA.ladder.cutoff[1]) * 4095.0f; // VOICE 1 | LADDER CUTOFF
+    cvDac[0].data.currentSample[1] = (1.0f - layerA.ladder.cutoff[0]) * 4095.0f; // VOICE 0 | LADDER CUTOFF
+    cvDac[0].data.currentSample[2] = layerA.steiner.cutoff[0] * 4095.0f;         // VOICE 0 | STEINER CUTOFF
+    cvDac[0].data.currentSample[3] = layerA.steiner.cutoff[1] * 4095.0f;         // VOICE 1 | STEINER CUTOFF
 
-    cvDac[1].data.currentSample[0] =
-        (1.0f - layerA.ladder.resonance.currentSample[1]) * 4095.0f;                         // VOICE 1 | LADDER RES
-    cvDac[1].data.currentSample[1] = (1.0f - layerA.out.right.currentSample[0]) * 4095.0f;   // VOICE 0 | OUT LEVEL R
-    cvDac[1].data.currentSample[2] = (1.0f - layerA.out.left.currentSample[0]) * 4095.0f;    // VOICE 0 | OUT LEVEL L
-    cvDac[1].data.currentSample[3] = (1.0f - layerA.out.distort.currentSample[1]) * 4095.0f; // VOICE 1 | DISTORT LEVEL
+    cvDac[1].data.currentSample[0] = (1.0f - layerA.ladder.resonance[1]) * 4095.0f; // VOICE 1 | LADDER RES
+    cvDac[1].data.currentSample[1] = (1.0f - layerA.out.right[0]) * 4095.0f;        // VOICE 0 | OUT LEVEL R
+    cvDac[1].data.currentSample[2] = (1.0f - layerA.out.left[0]) * 4095.0f;         // VOICE 0 | OUT LEVEL L
+    cvDac[1].data.currentSample[3] = (1.0f - layerA.out.distort[1]) * 4095.0f;      // VOICE 1 | DISTORT LEVEL
 
-    cvDac[2].data.currentSample[0] = (1.0f - layerA.out.right.currentSample[1]) * 4095.0f; // VOICE 1 | OUT LEVEL R
-    cvDac[2].data.currentSample[1] =
-        (1.0f - layerA.ladder.resonance.currentSample[0]) * 4095.0f;                         // VOICE 0 | LADDER RES
-    cvDac[2].data.currentSample[2] = (1.0f - layerA.out.distort.currentSample[0]) * 4095.0f; // VOICE 0 | DISTORT LEVEL
-    cvDac[2].data.currentSample[3] = (1.0f - layerA.out.left.currentSample[1]) * 4095.0f;    // VOICE 1 | OUT LEVEL L
+    cvDac[2].data.currentSample[0] = (1.0f - layerA.out.right[1]) * 4095.0f;        // VOICE 1 | OUT LEVEL R
+    cvDac[2].data.currentSample[1] = (1.0f - layerA.ladder.resonance[0]) * 4095.0f; // VOICE 0 | LADDER RES
+    cvDac[2].data.currentSample[2] = (1.0f - layerA.out.distort[0]) * 4095.0f;      // VOICE 0 | DISTORT LEVEL
+    cvDac[2].data.currentSample[3] = (1.0f - layerA.out.left[1]) * 4095.0f;         // VOICE 1 | OUT LEVEL L
 
-    cvDac[3].data.currentSample[0] =
-        (1.0f - layerA.steiner.resonance.currentSample[1]) * 4095.0f; // VOICE 1 | STEINER RES
-    cvDac[3].data.currentSample[1] =
-        (1.0f - layerA.steiner.resonance.currentSample[0]) * 4095.0f; // VOICE 0 | STEINER RES
-    cvDac[3].data.currentSample[2] =
-        (1.0f - layerA.steiner.toLadder.currentSample[0]) * 4095.0f; // VOICE 0 | STEINER TO LADDER LEVEL
-    cvDac[3].data.currentSample[3] =
-        (1.0f - layerA.steiner.toLadder.currentSample[1]) * 4095.0f; // VOICE 1 | STEINER TO LADDER LEVEL
+    cvDac[3].data.currentSample[0] = (1.0f - layerA.steiner.resonance[1]) * 4095.0f; // VOICE 1 | STEINER RES
+    cvDac[3].data.currentSample[1] = (1.0f - layerA.steiner.resonance[0]) * 4095.0f; // VOICE 0 | STEINER RES
+    cvDac[3].data.currentSample[2] = (1.0f - layerA.steiner.toLadder[0]) * 4095.0f; // VOICE 0 | STEINER TO LADDER LEVEL
+    cvDac[3].data.currentSample[3] = (1.0f - layerA.steiner.toLadder[1]) * 4095.0f; // VOICE 1 | STEINER TO LADDER LEVEL
 
-    cvDac[4].data.currentSample[0] =
-        (1.0f - layerA.ladder.level.currentSample[1]) * 4095.0f; // VOICE 1 | LADDER OUT LEVEL
-    cvDac[4].data.currentSample[1] =
-        (1.0f - layerA.ladder.level.currentSample[0]) * 4095.0f; // VOICE 0 | LADDER OUT LEVEL
-    cvDac[4].data.currentSample[2] =
-        (1.0f - layerA.steiner.level.currentSample[0]) * 4095.0f; // VOICE 0 | STEINER OUT LEVEL
-    cvDac[4].data.currentSample[3] =
-        (1.0f - layerA.steiner.level.currentSample[1]) * 4095.0f; // VOICE 1 | STEINER OUT LEVEL
+    cvDac[4].data.currentSample[0] = (1.0f - layerA.ladder.level[1]) * 4095.0f;  // VOICE 1 | LADDER OUT LEVEL
+    cvDac[4].data.currentSample[1] = (1.0f - layerA.ladder.level[0]) * 4095.0f;  // VOICE 0 | LADDER OUT LEVEL
+    cvDac[4].data.currentSample[2] = (1.0f - layerA.steiner.level[0]) * 4095.0f; // VOICE 0 | STEINER OUT LEVEL
+    cvDac[4].data.currentSample[3] = (1.0f - layerA.steiner.level[1]) * 4095.0f; // VOICE 1 | STEINER OUT LEVEL
 
-    cvDac[5].data.currentSample[0] =
-        (1.0f - layerA.ladder.cutoff.currentSample[3]) * 4095.0f; // VOICE 3 | LADDER CUTOFF
-    cvDac[5].data.currentSample[1] =
-        (1.0f - layerA.ladder.cutoff.currentSample[2]) * 4095.0f;                      // VOICE 2 | LADDER CUTOFF
-    cvDac[5].data.currentSample[2] = layerA.steiner.cutoff.currentSample[2] * 4095.0f; // VOICE 2 | STEINER CUTOFF
-    cvDac[5].data.currentSample[3] = layerA.steiner.cutoff.currentSample[3] * 4095.0f; // VOICE 3 | STEINER CUTOFF
+    cvDac[5].data.currentSample[0] = (1.0f - layerA.ladder.cutoff[3]) * 4095.0f; // VOICE 3 | LADDER CUTOFF
+    cvDac[5].data.currentSample[1] = (1.0f - layerA.ladder.cutoff[2]) * 4095.0f; // VOICE 2 | LADDER CUTOFF
+    cvDac[5].data.currentSample[2] = layerA.steiner.cutoff[2] * 4095.0f;         // VOICE 2 | STEINER CUTOFF
+    cvDac[5].data.currentSample[3] = layerA.steiner.cutoff[3] * 4095.0f;         // VOICE 3 | STEINER CUTOFF
 
-    cvDac[6].data.currentSample[0] =
-        (1.0f - layerA.ladder.resonance.currentSample[3]) * 4095.0f;                         // VOICE 3 | LADDER RES
-    cvDac[6].data.currentSample[1] = (1.0f - layerA.out.right.currentSample[2]) * 4095.0f;   // VOICE 2 | OUT LEVEL R
-    cvDac[6].data.currentSample[2] = (1.0f - layerA.out.left.currentSample[2]) * 4095.0f;    // VOICE 2 | OUT LEVEL L
-    cvDac[6].data.currentSample[3] = (1.0f - layerA.out.distort.currentSample[3]) * 4095.0f; // VOICE 3 | DISTORT LEVEL
+    cvDac[6].data.currentSample[0] = (1.0f - layerA.ladder.resonance[3]) * 4095.0f; // VOICE 3 | LADDER RES
+    cvDac[6].data.currentSample[1] = (1.0f - layerA.out.right[2]) * 4095.0f;        // VOICE 2 | OUT LEVEL R
+    cvDac[6].data.currentSample[2] = (1.0f - layerA.out.left[2]) * 4095.0f;         // VOICE 2 | OUT LEVEL L
+    cvDac[6].data.currentSample[3] = (1.0f - layerA.out.distort[3]) * 4095.0f;      // VOICE 3 | DISTORT LEVEL
 
-    cvDac[7].data.currentSample[0] = (1.0f - layerA.out.right.currentSample[3]) * 4095.0f; // VOICE 3 | OUT LEVEL R
-    cvDac[7].data.currentSample[1] =
-        (1.0f - layerA.ladder.resonance.currentSample[2]) * 4095.0f;                         // VOICE 2 | LADDER RES
-    cvDac[7].data.currentSample[2] = (1.0f - layerA.out.distort.currentSample[2]) * 4095.0f; // VOICE 2 | DISTORT LEVEL
-    cvDac[7].data.currentSample[3] = (1.0f - layerA.out.left.currentSample[3]) * 4095.0f;    // VOICE 3 | OUT LEVEL L
+    cvDac[7].data.currentSample[0] = (1.0f - layerA.out.right[3]) * 4095.0f;        // VOICE 3 | OUT LEVEL R
+    cvDac[7].data.currentSample[1] = (1.0f - layerA.ladder.resonance[2]) * 4095.0f; // VOICE 2 | LADDER RES
+    cvDac[7].data.currentSample[2] = (1.0f - layerA.out.distort[2]) * 4095.0f;      // VOICE 2 | DISTORT LEVEL
+    cvDac[7].data.currentSample[3] = (1.0f - layerA.out.left[3]) * 4095.0f;         // VOICE 3 | OUT LEVEL L
 
-    cvDac[8].data.currentSample[0] =
-        (1.0f - layerA.steiner.resonance.currentSample[3]) * 4095.0f; // VOICE 3 | STEINER RES
-    cvDac[8].data.currentSample[1] =
-        (1.0f - layerA.steiner.resonance.currentSample[2]) * 4095.0f; // VOICE 2 | STEINER RES
-    cvDac[8].data.currentSample[2] =
-        (1.0f - layerA.steiner.toLadder.currentSample[2]) * 4095.0f; // VOICE 2 | STEINER TO LADDER LEVEL
-    cvDac[8].data.currentSample[3] =
-        (1.0f - layerA.steiner.toLadder.currentSample[3]) * 4095.0f; // VOICE 3 | STEINER TO LADDER LEVEL
+    cvDac[8].data.currentSample[0] = (1.0f - layerA.steiner.resonance[3]) * 4095.0f; // VOICE 3 | STEINER RES
+    cvDac[8].data.currentSample[1] = (1.0f - layerA.steiner.resonance[2]) * 4095.0f; // VOICE 2 | STEINER RES
+    cvDac[8].data.currentSample[2] = (1.0f - layerA.steiner.toLadder[2]) * 4095.0f; // VOICE 2 | STEINER TO LADDER LEVEL
+    cvDac[8].data.currentSample[3] = (1.0f - layerA.steiner.toLadder[3]) * 4095.0f; // VOICE 3 | STEINER TO LADDER LEVEL
 
-    cvDac[9].data.currentSample[0] =
-        (1.0f - layerA.ladder.level.currentSample[3]) * 4095.0f; // VOICE 3 | LADDER OUT LEVEL
-    cvDac[9].data.currentSample[1] =
-        (1.0f - layerA.ladder.level.currentSample[2]) * 4095.0f; // VOICE 2 | LADDER OUT LEVEL
-    cvDac[9].data.currentSample[2] =
-        (1.0f - layerA.steiner.level.currentSample[2]) * 4095.0f; // VOICE 2 | STEINER OUT LEVEL
-    cvDac[9].data.currentSample[3] =
-        (1.0f - layerA.steiner.level.currentSample[3]) * 4095.0f; // VOICE 3 | STEINER OUT LEVEL
+    cvDac[9].data.currentSample[0] = (1.0f - layerA.ladder.level[3]) * 4095.0f;  // VOICE 3 | LADDER OUT LEVEL
+    cvDac[9].data.currentSample[1] = (1.0f - layerA.ladder.level[2]) * 4095.0f;  // VOICE 2 | LADDER OUT LEVEL
+    cvDac[9].data.currentSample[2] = (1.0f - layerA.steiner.level[2]) * 4095.0f; // VOICE 2 | STEINER OUT LEVEL
+    cvDac[9].data.currentSample[3] = (1.0f - layerA.steiner.level[3]) * 4095.0f; // VOICE 3 | STEINER OUT LEVEL
 }
 
 inline void setSwitches() {
@@ -262,27 +240,6 @@ inline void setSwitches() {
 
     HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, (GPIO_PinState)(steinerMode < 2));
     HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
-
-    // switch (steinerMode) {
-    //     case 0:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-    //         break;
-    //     case 1:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_SET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-    //         break;
-    //     case 2:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_SET);
-    //         break;
-    //     case 3:
-    //         HAL_GPIO_WritePin(switch_1_A_GPIO_Port, switch_1_A_Pin, GPIO_PIN_RESET);
-    //         HAL_GPIO_WritePin(switch_1_B_GPIO_Port, switch_1_B_Pin, GPIO_PIN_RESET);
-    //         break;
-
-    //     default: PolyError_Handler("renderCV | setSwitches | wrong steinerMode"); break;
-    // }
 
     HAL_GPIO_WritePin(switch_2_A_GPIO_Port, switch_2_A_Pin, (GPIO_PinState)(ladderMode < 2));
     HAL_GPIO_WritePin(switch_2_B_GPIO_Port, switch_2_B_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
@@ -317,34 +274,24 @@ inline void setLEDs() {
     // TODO LED assigment
     // TODO LED Brightness setting?
 
-    __HAL_TIM_SetCompare(
-        &htim3, TIM_CHANNEL_1,
-        ledLog.mapValue((layerA.out.left.currentSample[2] + layerA.out.right.currentSample[2]) * 0.5f) * 1023.0f); // 2
-    __HAL_TIM_SetCompare(
-        &htim3, TIM_CHANNEL_2,
-        ledLog.mapValue((layerA.out.left.currentSample[3] + layerA.out.right.currentSample[3]) * 0.5f) * 1023.0f); // 3
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1,
+                         ledLog.mapValue((layerA.out.left[2] + layerA.out.right[2]) * 0.5f) * 1023.0f); // 2
+    __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_2,
+                         ledLog.mapValue((layerA.out.left[3] + layerA.out.right[3]) * 0.5f) * 1023.0f); // 3
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1,
-                         ledLog.mapValue(layerA.lfoA.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f); // 5
+                         ledLog.mapValue(layerA.lfoA.out[0] * 0.5f + 0.5f) * 1023.0f); // 5
     __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2,
-                         ledLog.mapValue(layerA.lfoB.out.currentSample[0] * 0.5f + 0.5f) * 1023.0f); // 6
-    __HAL_TIM_SetCompare(
-        &htim4, TIM_CHANNEL_1,
-        ledLog.mapValue((layerA.out.left.currentSample[1] + layerA.out.right.currentSample[1]) * 0.5f) * 1023.0f); // 1
-    __HAL_TIM_SetCompare(
-        &htim4, TIM_CHANNEL_2,
-        ledLog.mapValue((layerA.out.left.currentSample[0] + layerA.out.right.currentSample[0]) * 0.5f) * 1023.0f); // 0
+                         ledLog.mapValue(layerA.lfoB.out[0] * 0.5f + 0.5f) * 1023.0f); // 6
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1,
+                         ledLog.mapValue((layerA.out.left[1] + layerA.out.right[1]) * 0.5f) * 1023.0f); // 1
+    __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_2,
+                         ledLog.mapValue((layerA.out.left[0] + layerA.out.right[0]) * 0.5f) * 1023.0f); // 0
     // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, ledLog.mapValue(layerA.adsrB.out.currentSample[2]) * 1023.0f);
     // __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_4, ledLog.mapValue(layerA.adsrB.out.currentSample[3]) * 1023.0f);
 }
 
 void renderCVs() {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-
-    // cvDacA.setLatchPin();
-
-    // LED TIMING TEST
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PINo_SET);
 
     collectAllCurrentInputs();
 
@@ -368,9 +315,6 @@ void renderCVs() {
 
     setSwitches();
     setLEDs();
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-
-    // FlagHandler::cvRendered = true;
 }
 
 #endif

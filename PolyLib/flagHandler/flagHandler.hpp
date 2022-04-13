@@ -47,7 +47,7 @@ extern bool cvDacStarted[10];
 extern bool cvDacFinished[10];
 extern bool cvDacLastFinished[3];
 
-extern bool renderNewCV;
+extern volatile bool renderNewCV;
 extern void (*renderNewCVFunc)();
 
 #endif

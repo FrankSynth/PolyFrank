@@ -7,67 +7,44 @@ extern Layer layerA;
 LogCurve panningAntiLog(32, 0.94);
 
 // TODO check this pan spread mapping
-inline float accumulatePan(Out &out, uint16_t voice) {
-    float pan = out.iPan.currentSample[voice] + out.aPan.valueMapped;
-    if (layerA.spreadValues[voice] < 0)
-        pan = fast_lerp_f32(pan, -1, out.aPanSpread.valueMapped * -layerA.spreadValues[voice]);
-    else
-        pan = fast_lerp_f32(pan, 1, out.aPanSpread.valueMapped * layerA.spreadValues[voice]);
-
+inline vec<VOICESPERCHIP> accumulatePan(Out &out) {
+    vec<VOICESPERCHIP> pan = out.iPan + out.aPan;
+    vec<VOICESPERCHIP> sign = getSign(layerA.spreadValues);
+    pan = fast_lerp_f32(pan, sign, sign * out.aPanSpread * layerA.spreadValues);
     return pan;
 }
 
-inline float accumulateVCA(Out &out, uint16_t voice) {
-    return std::clamp(out.iVCA.currentSample[voice] + out.aVCA.valueMapped +
-                          out.aADSR.valueMapped * layerA.envA.out.currentSample[voice],
-                      out.aVCA.min, out.aVCA.max);
+inline vec<VOICESPERCHIP> accumulateVCA(Out &out) {
+    return clamp(out.iVCA + out.aVCA + layerA.envA.out * out.aADSR, out.aVCA.min, out.aVCA.max);
 }
 
-inline float accumulateDistort(Out &out, uint16_t voice) {
-    return std::clamp(out.iDistort.currentSample[voice] + out.aDistort.valueMapped, 0.0f, 1.0f);
+inline vec<VOICESPERCHIP> accumulateDistort(Out &out) {
+    return clamp(out.iDistort + out.aDistort, 0.0f, 1.0f);
 }
 
 void renderOut(Out &out) {
 
-    float *outDistort = out.distort.nextSample;
-    float *outLeft = out.left.nextSample;
-    float *outRight = out.right.nextSample;
-    float vca[VOICESPERCHIP];
-    float pan[VOICESPERCHIP];
-    float panRight[VOICESPERCHIP];
-    float panLeft[VOICESPERCHIP];
-    float left[VOICESPERCHIP];
-    float right[VOICESPERCHIP];
+    vec<VOICESPERCHIP> vca;
+    vec<VOICESPERCHIP> pan;
+    vec<VOICESPERCHIP> panRight;
+    vec<VOICESPERCHIP> panLeft;
+    vec<VOICESPERCHIP> left;
+    vec<VOICESPERCHIP> right;
 
     // const float &spread = out.aPanSpread.valueMapped;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        outDistort[voice] = accumulateDistort(out, voice);
+    out.distort = accumulateDistort(out);
+    vca = accumulateVCA(out);
+    pan = accumulatePan(out);
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        vca[i] = accumulateVCA(out, i);
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        pan[i] = accumulatePan(out, i);
+    panRight = (pan + 1.0f) * 0.5f;
+    panLeft = (-1.0f * pan + 1.0f) * 0.5f;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        panRight[i] = (pan[i] + 1) * 0.5f;
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        panLeft[i] = (-1 * pan[i] + 1) * 0.5f;
+    left = vca * panningAntiLog.mapValue(panLeft * out.aMaster);
+    right = vca * panningAntiLog.mapValue(panRight * out.aMaster);
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        panLeft[i] = panLeft[i];
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        panRight[i] = panRight[i];
-
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        left[i] = panningAntiLog.mapValue(vca[i] * panLeft[i] * out.aMaster.valueMapped);
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        right[i] = panningAntiLog.mapValue(vca[i] * panRight[i] * out.aMaster.valueMapped);
-
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        outLeft[i] = std::clamp(left[i], 0.0f, 1.0f);
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        outRight[i] = std::clamp(right[i], 0.0f, 1.0f);
+    out.left = clamp(left, 0.0f, 1.0f);
+    out.right = clamp(right, 0.0f, 1.0f);
 }
 
 #endif

@@ -21,6 +21,7 @@ TARGET = PolyRender
 ######################################
 # debug build?
 DEBUG = 0
+DISASSEMBLY = 0
 # optimization
 OPT = -Ofast
 
@@ -140,12 +141,16 @@ C_INCLUDES =  \
 
 
 # compile gcc flags
-ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -Wno-volatile
+ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -Wno-volatile 
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections 
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
+endif
+
+ifeq ($(DISASSEMBLY), 1)
+CFLAGS += -save-temps=obj
 endif
 
 

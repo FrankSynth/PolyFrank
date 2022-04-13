@@ -8,7 +8,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
-            "preLaunchTask": "Build PolyControl",
+            // "preLaunchTask": "Build PolyControl",
             "device": "stlink",
             "svdFile": "STM32H7x3.svd",
             "configFiles": [
@@ -27,7 +27,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
-            "preLaunchTask": "Build PolyRender",
+            // "preLaunchTask": "Build PolyRender",
             "device": "stlink",
             "svdFile": "STM32H7x3.svd",
             "configFiles": [

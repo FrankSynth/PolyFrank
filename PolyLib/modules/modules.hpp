@@ -81,9 +81,9 @@ class Midi : public BaseModule {
     Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, 127, 0, true, linMap);
     Analog aPitchbend = Analog("PITCHBEND", -1, 1, -8191, 8191, 0, true, linMap);
 
-    uint8_t rawNote[VOICESPERCHIP];
-    uint8_t rawVelocity[VOICESPERCHIP];
-    uint8_t rawGate[VOICESPERCHIP];
+    vec<VOICESPERCHIP, uint8_t> rawNote;
+    vec<VOICESPERCHIP, uint8_t> rawVelocity;
+    vec<VOICESPERCHIP, uint8_t> rawGate;
 
     inline void gateOn(uint16_t voice) { rawGate[voice] = 1; }
     inline void gateOff(uint16_t voice) { rawGate[voice] = 0; }
@@ -140,9 +140,9 @@ class OSC_A : public BaseModule {
 
     Analog aMasterTune = Analog("MASTERTUNE", -7, 7, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
-    Analog aSquircle = Analog("SQUIRCLE", 0.01, 0.99, 0.5, true, linMap, &iSamplecrusher);
+    Analog aSquircle = Analog("SQUIRCLE", 0, 1, 0.5, true, linMap, &iSamplecrusher);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
@@ -158,8 +158,8 @@ class OSC_A : public BaseModule {
     RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float phaseWavetableLower[VOICESPERCHIP] = {0};
-    float phaseWavetableUpper[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> phaseWavetableLower;
+    vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class OSC_B : public BaseModule {
@@ -211,10 +211,10 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -7, 7, 0, true, linMap, &iTuning);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
-    Analog aSquircle = Analog("SQUIRCLE", 0.01, 0.99, 0.5, true, linMap, &iSamplecrusher);
+    Analog aSquircle = Analog("SQUIRCLE", 0, 0.5, 1, true, linMap, &iSamplecrusher);
 
     Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
@@ -232,9 +232,9 @@ class OSC_B : public BaseModule {
     RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    float cacheOscAPhase[VOICESPERCHIP] = {0};
-    float phaseWavetableLower[VOICESPERCHIP] = {0};
-    float phaseWavetableUpper[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> cacheOscAPhase;
+    vec<VOICESPERCHIP> phaseWavetableLower;
+    vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class Sub : public BaseModule {
@@ -263,8 +263,8 @@ class Sub : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH");
     Input iSamplecrusher = Input("SAMPLECRUSH");
 
-    Analog aShape = Analog("SHAPE", 0.01, 1, 0.01, true, linMap, &iShape);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 23, 0, true, antilogMap, &iBitcrusher);
+    Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
+    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
@@ -273,10 +273,11 @@ class Sub : public BaseModule {
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 
-    float phase[VOICESPERCHIP] = {0};
-    float oscApreviousPhase[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> phase;
+    vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
+// TODO bitrusher
 class Noise : public BaseModule {
   public:
     Noise(const char *name, const char *shortName) : BaseModule(name, shortName) {
@@ -464,9 +465,9 @@ class LFO : public BaseModule {
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
-    float currentTime[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
-    float currentRandom[VOICESPERCHIP] = {0};
+    vec<VOICESPERCHIP> currentRandom;
 
     bool alignedRandom = false;
     uint32_t randSeed = 1;
@@ -528,34 +529,19 @@ class ADSR : public BaseModule {
     Input iAmount = Input("AMOUNT");
 
     Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.5, true, logMap, &iAttack);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 0.5, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, linMap, &iSustain);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.5, true, logMap, &iRelease);
+    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.1, true, logMap, &iAttack);
+    Analog aDecay = Analog("DECAY", 0.001, 10, 0.1, true, logMap, &iDecay);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.5, true, antilogMap, &iSustain);
+    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.1, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
-    Analog aShape = Analog("SHAPE", 0, 2, 1, true, linMap);
+    Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
-
-    inline void setStatusOff(uint16_t voice) { currentState[voice] = OFF; }
-    inline void setStatusDelay(uint16_t voice) {
-        currentState[voice] = DELAY;
-        currentTime[voice] = 0;
-    }
-    inline void setStatusAttack(uint16_t voice) { currentState[voice] = ATTACK; }
-    inline void setStatusDecay(uint16_t voice) { currentState[voice] = DECAY; }
-    inline void setStatusSustain(uint16_t voice) { currentState[voice] = SUSTAIN; }
-    inline void setStatusRelease(uint16_t voice) { currentState[voice] = RELEASE; }
-
-    inline void restartADSR(uint16_t voice) {
-        currentLevel[voice] = 0;
-        setStatusDelay(voice);
-    }
 
     inline void resetPhase(uint16_t voice) { resetADSR(voice); }
 
@@ -565,8 +551,9 @@ class ADSR : public BaseModule {
         }
     }
     inline void resetADSR(uint16_t voice) {
-        currentLevel[voice] = 0;
-        setStatusOff(voice);
+        level[voice] = 0;
+        currentTime[voice] = 0;
+        currentState[voice] = OFF;
     }
 
     inline void resetAllADSRs() {
@@ -581,13 +568,21 @@ class ADSR : public BaseModule {
     }
 
     enum ADSR_State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
-    inline ADSR_State getState(uint16_t voice) { return currentState[voice]; }
 
-    float currentLevel[VOICESPERCHIP] = {0};
-    float currentTime[VOICESPERCHIP] = {0};
-
-  private:
+    vec<VOICESPERCHIP> level;
+    vec<VOICESPERCHIP> currentTime;
+    vec<VOICESPERCHIP> sustain;
     ADSR_State currentState[VOICESPERCHIP] = {OFF};
+
+    vec<VOICESPERCHIP> attackRate;
+    vec<VOICESPERCHIP> decayRate;
+    vec<VOICESPERCHIP> releaseRate;
+    vec<VOICESPERCHIP> attackCoef;
+    vec<VOICESPERCHIP> decayCoef;
+    vec<VOICESPERCHIP> releaseCoef;
+    vec<VOICESPERCHIP> attackBase;
+    vec<VOICESPERCHIP> decayBase;
+    vec<VOICESPERCHIP> releaseBase;
 };
 
 class Feel : public BaseModule {

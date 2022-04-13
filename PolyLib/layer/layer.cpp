@@ -7,6 +7,8 @@ extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t i
 extern uint8_t sendDeleteAllPatches(uint8_t layerId);
 #endif
 
+// uint32_t LayerRenBufferSw = 0;
+
 void Layer::initID() {
     ID modID;
     ID outputID;

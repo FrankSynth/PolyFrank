@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PolyVector.hpp"
 #include "datacore/dataHelperFunctions.hpp"
 #include "datacore/datadef.h"
 #include "stdint.h"
@@ -213,6 +214,43 @@ class LogCurve {
     float mapValueSigned(float value);
     void precomputeTable();
 
+    /**
+     * @brief map values between 0 and 1 to specific log curve
+     *
+     * @param value
+     * @return float
+     */
+    template <uint32_t Size> vec<Size, float> mapValue(vec<Size, float> value) {
+
+        vec<Size> ret, fract;      /* Temporary variables for input, output */
+        vec<Size, uint32_t> index; /* Index variable */
+        vec<Size> a, b;            /* Two nearest output values */
+        // int32_t n;
+        vec<Size> findex;
+
+        /* Calculation of index of the table */
+        findex = (vec<Size>)size * clamp(value, 0.0f, 1.0f);
+
+        index = ((vec<Size, uint32_t>)findex);
+
+        /* fractional value calculation */
+        fract = findex - (vec<Size>)index;
+
+        /* Read two nearest values of input value from the sin table */
+        for (uint32_t i = 0; i < Size; i++) {
+
+            a[i] = logTable[index[i]];
+            b[i] = logTable[index[i] + 1];
+        }
+
+        /* Linear interpolation process */
+        ret = fast_lerp_f32(a, b, fract);
+
+        /* Return the output value */
+
+        return ret;
+    }
+
   private:
     float curve;
     uint16_t size;
@@ -236,7 +274,7 @@ float calcSquircle(float value, float curvature);
 float calcSquircleSimplified(float value, float curvature);
 
 template <typename T> inline T getSign(T val) {
-    return (T(0) < val) - (val < T(0));
+    return (T(0) <= val) - (val < T(0));
 }
 
 /**
@@ -264,7 +302,7 @@ ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curv
     //     expsq[i] = exp[i] * exp[i];
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        value[i] = std::pow(value[i], exp[i]);
+        value[i] = powf(value[i], exp[i]);
 }
 
 /**
@@ -291,4 +329,76 @@ ALWAYS_INLINE inline void calcSquircle(float *value, const float *curvature) {
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         value[i] = sign[i] * (1.0f - std::pow(firstpow[i], 1.0f / exp[i]));
+}
+
+/**
+ * @brief define all three points, calcs just one dimension
+ *
+ * @param p0
+ * @param p1
+ * @param p2
+ * @param t
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline float bezier1D(const float p0, const float p1, const float p2, const float t) {
+    return (1.0f - t) * (1.0f - t) * p0 + 2.0f * (1.0f - t) * t * p1 + t * t * p2;
+}
+
+/**
+ * @brief p0 = 0 and p2 = 1
+ *
+ * @param p1
+ * @param t
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline float simpleBezier1D(const float p1, const float t) {
+    return 2.0f * (1.0f - t) * t * p1 + t * t;
+}
+
+/**
+ * @brief p0 = 0 and p2 = 1
+ *
+ * @param p1
+ * @param t
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline float reverseSimpleBezier1D(const float v, const float p1) {
+    float div = (2.0f * p1 - 1.0f);
+    if (div == 0.0f)
+        return v;
+    return (p1 - sqrtf(p1 - 2.0f * p1 * v + v)) / (div);
+}
+
+ALWAYS_INLINE inline float reverseBezier1D(const float v, const float p0, const float p1, const float p2) {
+    float div = (-p0 + 2.0f * p1 - p2);
+    if (div == 0.0f)
+        return fastMap(v, p0, p2, 0.0f, 1.0f);
+
+    float sign;
+    if (p0 < p2)
+        sign = -1.0f;
+    else
+        sign = 1.0f;
+
+    return (sign * sqrtf(-p0 * p2 + p0 * v + p1 * p1 - 2.0f * p1 * v + p2 * v) - p0 + p1) / (div);
+}
+
+/**
+ * @brief p0 = 0 and p3 = 1
+ *
+ * @param p1 = p2
+ * @param t
+ * @return ALWAYS_INLINE
+ */
+ALWAYS_INLINE inline float simpleCubicBezier1D(const float p1, const float t) {
+    return 3.0f * t * (1.0f - t) * (1.0f - t) * p1 + 3.0f * t * t * (1 - t) * p1 + t * t * t;
+}
+
+ALWAYS_INLINE inline vec<2, float> bezier2D(const vec<2, float> &p0, const vec<2, float> &p1, const vec<2, float> &p2,
+                                            const float t) {
+    return (vec<2, float>)((1.0f - t) * (1.0f - t) * p0 + 2.0f * (1.0f - t) * t * p1 + t * t * p2);
+}
+
+ALWAYS_INLINE inline vec<2, float> simpleBezier2D(const vec<2, float> &p1, const float t) {
+    return (vec<2, float>)((2.0f * (1.0f - t) * t) * p1 + (t * t));
 }

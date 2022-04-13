@@ -51,5 +51,5 @@ extern const WaveTable wavetable_SSMSquare;
 extern const WaveTable wavetable_SSMTriangle;
 extern const WaveTable wavetable_Triangle;
 
-extern const std::vector<const WaveTable *> wavetables;
+extern const WaveTable *wavetables[];
 extern const std::vector<std::string> nlWavetable;

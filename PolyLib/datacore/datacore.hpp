@@ -15,6 +15,7 @@
 #endif
 
 extern float ROTARYENCODERACCELERATION;
+// extern uint32_t LayerRenBufferSw;
 
 // only two (binary) or more options (continuous)
 enum typeDisplayValue { continuous, binary };
@@ -247,6 +248,9 @@ class Analog : public DataElement {
     int32_t maxInputValue;
     uint32_t inputRange;
 
+    operator float &() { return valueMapped; }
+    operator const float &() const { return valueMapped; }
+
   protected:
     typeLinLog mapping;
 };
@@ -317,6 +321,12 @@ class Digital : public DataElement {
 
     Input *input;
 
+    operator int32_t &() { return valueMapped; }
+    operator const int32_t &() const { return valueMapped; }
+
+    explicit operator float() { return (float)valueMapped; }
+    explicit operator float() const { return (float)valueMapped; }
+
   protected:
     typeLinLog mapping;
 };
@@ -372,7 +382,19 @@ class Input : public BasePatch {
         this->visible = visible;
     }
 
-    float currentSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    vec<VOICESPERCHIP> sample;
+
+    float &operator[](int i) { return sample[i]; }
+    const float &operator[](int i) const { return sample[i]; }
+
+    operator vec<VOICESPERCHIP> &() { return sample; }
+    operator const vec<VOICESPERCHIP> &() const { return sample; }
+
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return sample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return sample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return sample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return sample / other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return sample = other; }
 
     // calculate all inputs with their attached patchesInOut
     void collectCurrentSample();
@@ -388,27 +410,37 @@ class Output : public BasePatch {
         this->name = name;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
 
-        currentSample = bufferCurrentSample;
-        nextSample = bufferNextSample;
         this->visible = visible;
     }
 
-    // set next calculatedSample as current sample
-    inline void updateToNextSample() {
-        float *tempPointer = currentSample;
+    void updateToNextSample() {
+        vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = tempPointer;
+        nextSample = temp;
     }
+    vec<VOICESPERCHIP> currentSample;
+    vec<VOICESPERCHIP> nextSample;
 
-    float *currentSample;
-    float *nextSample;
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
+
+    // returns from currentSample
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
+
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
+
+    // assigns to nextSample
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
+
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
 
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
-
-  private:
-    float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
-    float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
 class PatchElement {
@@ -451,23 +483,37 @@ class ID {
 class RenderBuffer {
   public:
     RenderBuffer() {
-        currentSample = bufferCurrentSample;
-        nextSample = bufferNextSample;
+        // currentSample = sample;
+        // nextSample = &sample[1];
     }
 
-    // set next calculatedSample as current sample
-    inline void updateToNextSample() {
-        float *tempPointer = currentSample;
+    void updateToNextSample() {
+        vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = tempPointer;
+        nextSample = temp;
     }
 
-    float *currentSample;
-    float *nextSample;
+    // vec<VOICESPERCHIP> sample[2];
+    vec<VOICESPERCHIP> currentSample;
+    vec<VOICESPERCHIP> nextSample;
 
-  private:
-    float bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
-    float bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
+
+    // returns from currentSample
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
+
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
+
+    // assigns to nextSample
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
+
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
 };
 
 class I2CBuffer {

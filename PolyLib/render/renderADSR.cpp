@@ -8,28 +8,68 @@ extern Layer layerA;
 LogCurve adsrConvertLog(128, 0.1);
 LogCurve adsrConvertAntiLog(128, 0.9);
 
-inline float accumulateDelay(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iDelay.currentSample[voice] + adsr.aDelay.valueMapped, adsr.aDelay.min, adsr.aDelay.max * 2);
+extern uint8_t sendString(const char *message);
+extern uint8_t sendString(std::string &message);
+extern uint8_t sendString(std::string &&message);
+
+inline float accumulateDelay(ADSR &adsr, uint32_t voice) {
+    return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
-inline float accumulateAttack(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iAttack.currentSample[voice] + adsr.aAttack.valueMapped, adsr.aAttack.min,
-                      adsr.aAttack.max * 2);
+inline float accumulateAttack(ADSR &adsr, uint32_t voice) {
+    return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
 }
-inline float accumulateDecay(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iDecay.currentSample[voice] + adsr.aDecay.valueMapped, adsr.aDecay.min, adsr.aDecay.max * 2);
+inline float accumulateDecay(ADSR &adsr, uint32_t voice) {
+    return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
-inline float accumulateSustain(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iSustain.currentSample[voice] + adsr.aSustain.valueMapped, adsr.aSustain.min,
-                      adsr.aSustain.max);
+inline vec<VOICESPERCHIP> accumulateSustain(ADSR &adsr) {
+    return clamp(adsr.iSustain + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
 }
-inline float accumulateRelease(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iRelease.currentSample[voice] + adsr.aRelease.valueMapped, adsr.aRelease.min,
-                      adsr.aRelease.max * 2);
+inline float accumulateRelease(ADSR &adsr, uint32_t voice) {
+    return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
 }
-inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
-    return std::clamp(adsr.iAmount.currentSample[voice] + adsr.aAmount.valueMapped, adsr.aAmount.min, adsr.aAmount.max);
+inline float accumulateAmount(ADSR &adsr, uint32_t voice) {
+    return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
 }
 
+inline void setStatusOff(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.OFF;
+}
+inline void setStatusDelay(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.DELAY;
+    adsr.currentTime[voice] = 0;
+}
+inline void setStatusAttack(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.ATTACK;
+    // adsr.currentTime[voice] = reverseSimpleBezier1D(adsr.level[voice], adsr.aShape);
+}
+inline void setStatusDecay(ADSR &adsr, uint32_t voice) {
+    if (adsr.level[voice] < adsr.sustain[voice]) {
+        setStatusAttack(adsr, voice);
+        return;
+    }
+
+    adsr.currentState[voice] = adsr.DECAY;
+    // adsr.currentTime[voice] = 0;
+}
+inline void setStatusSustain(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.SUSTAIN;
+}
+inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
+    adsr.currentState[voice] = adsr.RELEASE;
+    // adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
+}
+
+inline float calcCoef(float rate, float targetRatio) {
+    return (rate <= 0.0f) ? 0.0f : expf(-logf((1.0f + targetRatio) / targetRatio) / rate);
+}
+inline float calcARatio(float shape) {
+    return 0.0001f + 0.001f * (expf(12.0f * shape) - 1.0f);
+}
+inline float calcDRRatio(float shape) {
+    return 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
+}
+
+#define ADSRTHRESHOLD 0.001f
 /**
  * @brief render next output sample of an ADSR module
  *
@@ -38,168 +78,161 @@ inline float accumulateAmount(ADSR &adsr, uint16_t voice) {
 void renderADSR(ADSR &adsr) {
 
     // TODO bezier
-    float delay, decay, attack, sustain, release;
-    int32_t &loop = adsr.dLoop.valueMapped;
-    float &shape = adsr.aShape.valueMapped;
+    float delay, decay, attack, release;
+    const int32_t &loop = adsr.dLoop.valueMapped;
+    const float &shape = adsr.aShape;
+    static float cacheShape = adsr.aShape;
+    static float targetRatioA = calcARatio(shape);
+    static float targetRatioDR = calcDRRatio(shape);
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    if (cacheShape != shape) {
+        targetRatioA = calcARatio(shape);
+        targetRatioDR = calcDRRatio(shape);
+        cacheShape = shape;
+    }
 
-        float &nextSample = adsr.out.nextSample[voice];
-        float &currentLevel = adsr.currentLevel[voice];
+    adsr.sustain = accumulateSustain(adsr);
+
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+
+        // float &nextSample = level[voice];
+        float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
-        float &gate = layerA.midi.oGate.currentSample[voice];
+        float &gate = layerA.midi.oGate[voice];
+        float &sustain = adsr.sustain[voice];
+        float attackBase;
+        float attackCoef;
+        float attackRate;
+        float decayBase;
+        float decayCoef;
+        float decayRate;
+        float releaseBase;
+        float releaseCoef;
+        float releaseRate;
 
-        float imperfection = 1 + layerA.adsrImperfection[voice] * layerA.feel.aImperfection.valueMapped;
+        float imperfection = 1.0f;
 
-        switch (adsr.getState(voice)) {
+        switch (adsr.currentState[voice]) {
             case adsr.OFF:
                 if (gate == 1 || loop == 1) {
-                    adsr.setStatusDelay(voice);
+                    setStatusDelay(adsr, voice);
                 }
                 break;
 
             case adsr.DELAY:
                 if (gate == 0 && loop == 0) {
-                    adsr.setStatusOff(voice);
+                    setStatusOff(adsr, voice);
                 }
-                else {
-                    delay = accumulateDelay(adsr, voice);
-                    currentTime += SECONDSPERCVRENDER * imperfection;
-                    if (currentTime >= delay)
-                        adsr.setStatusAttack(voice);
-                }
+                delay = accumulateDelay(adsr, voice);
+                currentTime += SECONDSPERCVRENDER * imperfection;
+                if (currentTime >= delay)
+                    setStatusAttack(adsr, voice);
                 break;
 
             case adsr.ATTACK:
-                attack = accumulateAttack(adsr, voice);
-                currentLevel += (SECONDSPERCVRENDER / attack) * imperfection;
+                attack = accumulateAttack(adsr, voice) * imperfection;
 
-                if (currentLevel >= 1) {
-                    currentLevel = 1;
-                    if (gate == 1) {
-                        adsr.setStatusDecay(voice);
-                    }
+                attackRate = attack * (1.0f / SECONDSPERCVRENDER);
+                attackCoef = calcCoef(attackRate, targetRatioA);
+                attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
+
+                // level = fast_lerp_f32(attackBase + level * attackCoef, level + SECONDSPERCVRENDER / attack, shape);
+                level = attackBase + level * attackCoef;
+
+                if (level >= 1.0f) {
+                    level = 1;
+                    if (gate == 1)
+                        setStatusDecay(adsr, voice);
+                    else if (loop == 1)
+                        setStatusRelease(adsr, voice);
                 }
 
-                if (gate == 0) {
-                    // gate 0
-                    if (loop == 0) {
-                        // gate 0 loop 0
-                        adsr.setStatusRelease(voice);
-                    }
-                    else {
-                        // gate 0 loop 1
-                        if (currentLevel == 1) {
-                            adsr.setStatusRelease(voice);
-                        }
-                    }
-                }
+                if (gate == 0 && loop == 0)
+                    setStatusRelease(adsr, voice);
+
+                // level = simpleBezier1D(shape, currentTime);
 
                 break;
 
             case adsr.DECAY:
-                decay = accumulateDecay(adsr, voice);
-                currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
+                decay = accumulateDecay(adsr, voice) * imperfection;
 
-                sustain = accumulateSustain(adsr, voice);
+                decayRate = decay * (1.0f / SECONDSPERCVRENDER);
+                decayCoef = calcCoef(decayRate, targetRatioDR);
+                decayBase = (sustain - targetRatioDR) * (1.0f - decayCoef);
 
-                // fix Sustain level
-                if (shape < 1) {
-                    // shape between 0 and 1, 1 is linear
-                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
-                }
-                else {
-                    // shape between 1 and 2, 1 is linear
-                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
-                }
-                //
+                level = decayBase + level * decayCoef;
 
-                if (currentLevel <= sustain) {
-                    currentLevel = sustain;
-                    adsr.setStatusSustain(voice);
+                if (level <= sustain) {
+                    level = sustain;
+                    setStatusSustain(adsr, voice);
                 }
 
                 if (gate == 0) {
-                    adsr.setStatusRelease(voice);
+                    setStatusRelease(adsr, voice);
                 }
+
+                // level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
                 break;
 
             case adsr.SUSTAIN:
 
-                sustain = accumulateSustain(adsr, voice);
-
-                // fix Sustain level
-                if (shape < 1) {
-                    // shape between 0 and 1, 1 is linear
-                    sustain = fast_lerp_f32(adsrConvertAntiLog.mapValue(sustain), sustain, shape);
-                }
-                else {
-                    // shape between 1 and 2, 1 is linear
-                    sustain = fast_lerp_f32(sustain, adsrConvertLog.mapValue(sustain), shape - 1.0f);
-                }
-                //
-
-                if (currentLevel != sustain) {
-                    decay = accumulateDecay(adsr, voice);
-
-                    if (currentLevel < sustain) {
-                        currentLevel += (SECONDSPERCVRENDER / decay) * imperfection;
-                        if (currentLevel >= sustain) {
-                            currentLevel = sustain;
-                        }
-                    }
-                    else {
-                        currentLevel -= (SECONDSPERCVRENDER / decay) * imperfection;
-                        if (currentLevel <= sustain) {
-                            currentLevel = sustain;
-                        }
-                    }
-                }
-
                 if (gate == 0) {
-                    adsr.setStatusRelease(voice);
+                    setStatusRelease(adsr, voice);
                 }
+
+                decay = accumulateDecay(adsr, voice) * imperfection;
+
+                if (level < sustain - ADSRTHRESHOLD) {
+                    level += (SECONDSPERCVRENDER / decay);
+                    if (level >= sustain)
+                        level = sustain;
+                }
+                else if (level > sustain + ADSRTHRESHOLD) {
+                    level -= (SECONDSPERCVRENDER / decay);
+                    if (level <= sustain)
+                        level = sustain;
+                }
+                else
+                    level = sustain;
+
                 break;
 
             case adsr.RELEASE:
-                release = accumulateRelease(adsr, voice);
-                currentLevel -= (SECONDSPERCVRENDER / release) * imperfection;
+                release = accumulateRelease(adsr, voice) * imperfection;
 
-                if (currentLevel <= 0) {
-                    currentLevel = 0;
+                releaseRate = release * (1.0f / SECONDSPERCVRENDER);
+                releaseCoef = calcCoef(releaseRate, targetRatioDR);
+                releaseBase = -targetRatioDR * (1.0f - releaseCoef);
+
+                level = releaseBase + level * releaseCoef;
+
+                if (level <= ADSRTHRESHOLD) {
+                    level = 0;
                     if (loop == 0)
-                        adsr.setStatusOff(voice);
+                        setStatusOff(adsr, voice);
                     else
-                        adsr.setStatusDelay(voice);
+                        setStatusDelay(adsr, voice);
                 }
 
                 if (gate == 1) {
-                    adsr.setStatusAttack(voice);
+                    setStatusAttack(adsr, voice);
                 }
 
                 break;
             default: Error_Handler(); break;
         }
-
-        if (shape < 1) {
-            // shape between 0 and 1, 1 is linear
-            nextSample = fast_lerp_f32(adsrConvertLog.mapValue(currentLevel), currentLevel, shape);
-        }
-        else {
-            // shape between 1 and 2, 1 is linear
-            nextSample = fast_lerp_f32(currentLevel, adsrConvertAntiLog.mapValue(currentLevel), shape - 1.0f);
-        }
-
-        // midi velocity
-        nextSample = fast_lerp_f32(nextSample, nextSample * layerA.midi.oVeloctiy.currentSample[voice],
-                                   adsr.aVelocity.valueMapped);
-
-        // keytrack
-        nextSample =
-            fast_lerp_f32(nextSample, nextSample * layerA.midi.oNote.currentSample[voice], adsr.aKeytrack.valueMapped);
-
-        nextSample = nextSample * adsr.aAmount.valueMapped;
     }
+
+    adsr.level = clamp(adsr.level, 0.0f, 1.0f);
+
+    // midi velocity
+    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oVeloctiy, adsr.aVelocity);
+
+    // keytrack
+    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oNote, adsr.aKeytrack);
+
+    adsr.out = adsr.level * adsr.aAmount;
 }
 
 #endif

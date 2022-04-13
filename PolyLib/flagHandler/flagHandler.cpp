@@ -88,7 +88,7 @@ bool cvDacStarted[10];
 bool cvDacFinished[10];
 bool cvDacLastFinished[3];
 
-bool renderNewCV;
+volatile bool renderNewCV;
 void (*renderNewCVFunc)();
 #endif
 

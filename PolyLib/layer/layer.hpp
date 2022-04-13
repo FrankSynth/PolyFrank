@@ -87,10 +87,10 @@ class Layer {
         }
     }
 
-    float spreadValues[VOICESPERCHIP];
+    vec<VOICESPERCHIP> spreadValues;
     float noteImperfection[OSCPERVOICE][VOICESPERCHIP][NOTEIMPERFECTIONBUFFERSIZE];
-    float lfoImperfection[VOICESPERCHIP];
-    float adsrImperfection[VOICESPERCHIP];
+    vec<VOICESPERCHIP> lfoImperfection;
+    vec<VOICESPERCHIP> adsrImperfection;
 
     void initLayer();
 
@@ -122,6 +122,8 @@ class Layer {
     std::list<PatchElement> patchesInOut;
 
     Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
+
+
 
   private:
 };

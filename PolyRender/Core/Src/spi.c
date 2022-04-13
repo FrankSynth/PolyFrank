@@ -120,7 +120,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_spi1_rx.Init.Mode = DMA_NORMAL;
-        hdma_spi1_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+        hdma_spi1_rx.Init.Priority = DMA_PRIORITY_MEDIUM;
         hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         hdma_spi1_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_1QUARTERFULL;
         hdma_spi1_rx.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -141,7 +141,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         hdma_spi1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_spi1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_spi1_tx.Init.Mode = DMA_NORMAL;
-        hdma_spi1_tx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+        hdma_spi1_tx.Init.Priority = DMA_PRIORITY_MEDIUM;
         hdma_spi1_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         hdma_spi1_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_1QUARTERFULL;
         hdma_spi1_tx.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -152,7 +152,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi1_tx);
         /* SPI1 interrupt Init */
-        HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(SPI1_IRQn, 4, 0);
         HAL_NVIC_EnableIRQ(SPI1_IRQn);
         /* USER CODE BEGIN SPI1_MspInit 1 */
 
@@ -174,7 +174,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
         HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
