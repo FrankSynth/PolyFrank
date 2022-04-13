@@ -266,7 +266,7 @@ inline void setSwitches() {
     // }
 }
 
-LogCurve ledLog(16, 0.1);
+LogCurve ledLog(64, 0.1);
 
 inline void setLEDs() {
     // max brightness 1023

@@ -260,7 +260,6 @@ class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
             const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
-        setValue(value);
 
         this->min = min;
         this->max = max;
@@ -275,6 +274,7 @@ class Digital : public DataElement {
         this->valueNameList = valueNameList;
 
         this->input = input;
+        setValue(value);
     }
 
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
@@ -300,6 +300,7 @@ class Digital : public DataElement {
     }
     inline void setValueWithoutMapping(uint8_t *newValue) {
         valueMapped = *(int32_t *)newValue;
+
         if (valueChangedCallback != nullptr)
             valueChangedCallback();
     }

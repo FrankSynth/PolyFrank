@@ -5,9 +5,6 @@
 
 extern Layer layerA;
 
-LogCurve adsrConvertLog(128, 0.1);
-LogCurve adsrConvertAntiLog(128, 0.9);
-
 extern uint8_t sendString(const char *message);
 extern uint8_t sendString(std::string &message);
 extern uint8_t sendString(std::string &&message);
@@ -29,34 +26,6 @@ inline float accumulateRelease(ADSR &adsr, uint32_t voice) {
 }
 inline float accumulateAmount(ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
-}
-
-inline void setStatusOff(ADSR &adsr, uint32_t voice) {
-    adsr.currentState[voice] = adsr.OFF;
-}
-inline void setStatusDelay(ADSR &adsr, uint32_t voice) {
-    adsr.currentState[voice] = adsr.DELAY;
-    adsr.currentTime[voice] = 0;
-}
-inline void setStatusAttack(ADSR &adsr, uint32_t voice) {
-    adsr.currentState[voice] = adsr.ATTACK;
-    // adsr.currentTime[voice] = reverseSimpleBezier1D(adsr.level[voice], adsr.aShape);
-}
-inline void setStatusDecay(ADSR &adsr, uint32_t voice) {
-    if (adsr.level[voice] < adsr.sustain[voice]) {
-        setStatusAttack(adsr, voice);
-        return;
-    }
-
-    adsr.currentState[voice] = adsr.DECAY;
-    // adsr.currentTime[voice] = 0;
-}
-inline void setStatusSustain(ADSR &adsr, uint32_t voice) {
-    adsr.currentState[voice] = adsr.SUSTAIN;
-}
-inline void setStatusRelease(ADSR &adsr, uint32_t voice) {
-    adsr.currentState[voice] = adsr.RELEASE;
-    // adsr.currentTime[voice] = reverseBezier1D(adsr.level[voice], 1.0f, 1.0f - adsr.aShape, 0.0f);
 }
 
 inline float calcCoef(float rate, float targetRatio) {
@@ -98,8 +67,10 @@ void renderADSR(ADSR &adsr) {
         // float &nextSample = level[voice];
         float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
-        float &gate = layerA.midi.oGate[voice];
+        const bool &gate = adsr.gate[voice];
         float &sustain = adsr.sustain[voice];
+        bool &retriggered = adsr.retriggered[voice];
+
         float attackBase;
         float attackCoef;
         float attackRate;
@@ -115,18 +86,18 @@ void renderADSR(ADSR &adsr) {
         switch (adsr.currentState[voice]) {
             case adsr.OFF:
                 if (gate == 1 || loop == 1) {
-                    setStatusDelay(adsr, voice);
+                    adsr.setStatusDelay(voice);
                 }
                 break;
 
             case adsr.DELAY:
-                if (gate == 0 && loop == 0) {
-                    setStatusOff(adsr, voice);
+                if (gate == 0 && loop == 0 && retriggered == 0) {
+                    adsr.setStatusOff(voice);
                 }
                 delay = accumulateDelay(adsr, voice);
                 currentTime += SECONDSPERCVRENDER * imperfection;
                 if (currentTime >= delay)
-                    setStatusAttack(adsr, voice);
+                    adsr.setStatusAttack(voice);
                 break;
 
             case adsr.ATTACK:
@@ -142,13 +113,13 @@ void renderADSR(ADSR &adsr) {
                 if (level >= 1.0f) {
                     level = 1;
                     if (gate == 1)
-                        setStatusDecay(adsr, voice);
-                    else if (loop == 1)
-                        setStatusRelease(adsr, voice);
+                        adsr.setStatusDecay(voice);
+                    else if (loop == 1 || retriggered == 1)
+                        adsr.setStatusRelease(voice);
                 }
 
-                if (gate == 0 && loop == 0)
-                    setStatusRelease(adsr, voice);
+                if (gate == 0 && loop == 0 && retriggered == 0)
+                    adsr.setStatusRelease(voice);
 
                 // level = simpleBezier1D(shape, currentTime);
 
@@ -165,11 +136,11 @@ void renderADSR(ADSR &adsr) {
 
                 if (level <= sustain) {
                     level = sustain;
-                    setStatusSustain(adsr, voice);
+                    adsr.setStatusSustain(voice);
                 }
 
                 if (gate == 0) {
-                    setStatusRelease(adsr, voice);
+                    adsr.setStatusRelease(voice);
                 }
 
                 // level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
@@ -178,7 +149,7 @@ void renderADSR(ADSR &adsr) {
             case adsr.SUSTAIN:
 
                 if (gate == 0) {
-                    setStatusRelease(adsr, voice);
+                    adsr.setStatusRelease(voice);
                 }
 
                 decay = accumulateDecay(adsr, voice) * imperfection;
@@ -208,15 +179,16 @@ void renderADSR(ADSR &adsr) {
                 level = releaseBase + level * releaseCoef;
 
                 if (level <= ADSRTHRESHOLD) {
+                    retriggered = 0;
                     level = 0;
                     if (loop == 0)
-                        setStatusOff(adsr, voice);
+                        adsr.setStatusOff(voice);
                     else
-                        setStatusDelay(adsr, voice);
+                        adsr.setStatusDelay(voice);
                 }
 
                 if (gate == 1) {
-                    setStatusAttack(adsr, voice);
+                    adsr.setStatusAttack(voice);
                 }
 
                 break;

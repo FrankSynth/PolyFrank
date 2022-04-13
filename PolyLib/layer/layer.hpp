@@ -38,6 +38,11 @@ class Layer {
         modules.push_back(&feel);
         modules.push_back(&layersettings);
 
+        lfos.push_back(&lfoA);
+        lfos.push_back(&lfoB);
+        adsrs.push_back(&envA);
+        adsrs.push_back(&envF);
+
         // skip layer settings?
 
         initID();
@@ -77,7 +82,12 @@ class Layer {
         midi.gateOn(voice);
     }
 
-    inline void gateOff(uint16_t voice) { midi.gateOff(voice); }
+    inline void gateOff(uint16_t voice) {
+        midi.gateOff(voice);
+
+        envA.gateOff(voice);
+        envF.gateOff(voice);
+    }
 
     inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) { midi.setNote(voice, note, velocity); }
 
@@ -119,11 +129,15 @@ class Layer {
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
+
+    // for clocking purposes
+
+    std::vector<ADSR *> adsrs;
+    std::vector<LFO *> lfos;
+
     std::list<PatchElement> patchesInOut;
 
     Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
-
-
 
   private:
 };

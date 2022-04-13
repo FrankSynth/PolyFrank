@@ -47,6 +47,7 @@ class BaseModule {
     std::vector<RenderBuffer *> renderBuffer;
 
     inline virtual void resetPhase(uint16_t voice) {}
+    inline virtual void retrigger(uint16_t voice) {}
 
   protected:
 };
@@ -440,10 +441,10 @@ class LFO : public BaseModule {
         knobs.push_back(&aShape);
         knobs.push_back(&aAmount);
 
-        // switches.push_back(&dFreq);
+        switches.push_back(&dFreq);
         switches.push_back(&dFreqSnap);
-        switches.push_back(&dGateSync);
-        switches.push_back(&dClockSync);
+        switches.push_back(&dGateTrigger);
+        switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
         switches.push_back(&dAlignLFOs);
     }
@@ -458,10 +459,10 @@ class LFO : public BaseModule {
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     // TODO Freq also as Digital knob??
-    // Digital dFreq = Digital("FREQ", 0, 22, 0, true);
-    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, false, &nlOnOff);
-    Digital dGateSync = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
-    Digital dClockSync = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
+    Digital dFreq = Digital("FREQ", 0, 22, 0, false, &nlClockSteps);
+    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff);
+    Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
+    Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
@@ -472,19 +473,21 @@ class LFO : public BaseModule {
     bool alignedRandom = false;
     uint32_t randSeed = 1;
 
-    inline void resetPhase(uint16_t voice) {
+    inline void resetPhase(uint32_t voice) {
         currentTime[voice] = 1;
         newPhase[voice] = true;
     }
 
+    inline void retrigger(uint32_t voice) { resetPhase(voice); }
+
     inline void resetAllPhases() {
-        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             resetPhase(voice);
         }
     }
 
-    inline void gateOn(uint16_t voice) {
-        if (dGateSync.valueMapped) {
+    inline void gateOn(uint32_t voice) {
+        if (dGateTrigger.valueMapped) {
             resetPhase(voice);
         }
     }
@@ -514,9 +517,13 @@ class ADSR : public BaseModule {
         knobs.push_back(&aVelocity);
         knobs.push_back(&aShape);
 
+        switches.push_back(&dClockSnapped);
         switches.push_back(&dLoop);
         switches.push_back(&dLatch);
         switches.push_back(&dReset);
+        switches.push_back(&dGateTrigger);
+        switches.push_back(&dClockTrigger);
+        switches.push_back(&dClockStep);
     }
 
     Output out = Output("OUT");
@@ -539,36 +546,83 @@ class ADSR : public BaseModule {
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
+    Digital dClockSnapped = Digital("SNAP", 0, 22, 0, false, &nlClockSteps);
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dGateTrigger = Digital("GATE", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
 
-    inline void resetPhase(uint16_t voice) { resetADSR(voice); }
+    inline void resetPhase(uint32_t voice) {
+        if (dReset)
+            resetADSR(voice);
+        else
+            setStatusDelay(voice);
+    }
+
+    inline void retrigger(uint32_t voice) {
+        if (dClockTrigger == 0)
+            return;
+        resetPhase(voice);
+        retriggered[voice] = 1;
+    }
 
     inline void resetAllPhases() {
-        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             resetPhase(voice);
         }
     }
-    inline void resetADSR(uint16_t voice) {
+    inline void resetADSR(uint32_t voice) {
         level[voice] = 0;
         currentTime[voice] = 0;
-        currentState[voice] = OFF;
+        setStatusOff(voice);
+        retriggered[voice] = 0;
     }
 
     inline void resetAllADSRs() {
-        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             resetADSR(voice);
         }
     }
 
-    inline void gateOn(uint16_t voice) {
-        if (dReset.valueMapped)
+    inline void gateOn(uint32_t voice) {
+        if (dGateTrigger == 0)
+            return;
+
+        gate[voice] = 1;
+        if (dReset) {
             resetADSR(voice);
+        }
     }
+
+    inline void gateOffAll() {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+            gateOff(voice);
+    }
+
+    inline void gateOff(uint32_t voice) { gate[voice] = 0; }
+
+    inline void gateOnAll() {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+            gateOn(voice);
+        }
+    }
+
+    inline void setStatusOff(uint32_t voice) { currentState[voice] = OFF; }
+    inline void setStatusDelay(uint32_t voice) {
+        currentState[voice] = DELAY;
+        currentTime[voice] = 0;
+    }
+    inline void setStatusAttack(uint32_t voice) { currentState[voice] = ATTACK; }
+    inline void setStatusDecay(uint32_t voice) { currentState[voice] = DECAY; }
+    inline void setStatusSustain(uint32_t voice) { currentState[voice] = SUSTAIN; }
+    inline void setStatusRelease(uint32_t voice) { currentState[voice] = RELEASE; }
 
     enum ADSR_State { OFF, DELAY, ATTACK, DECAY, SUSTAIN, RELEASE };
 
+    vec<VOICESPERCHIP, bool> gate;
+    vec<VOICESPERCHIP, bool> retriggered;
     vec<VOICESPERCHIP> level;
     vec<VOICESPERCHIP> currentTime;
     vec<VOICESPERCHIP> sustain;

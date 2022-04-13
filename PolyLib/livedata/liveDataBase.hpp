@@ -40,4 +40,5 @@ typedef struct {
 
 bool compareByNote(const Key &a, const Key &b);
 
-extern uint16_t clockTicksPerStep[23];
+extern const uint32_t clockTicksPerStep[23];
+extern const float multTime[23];

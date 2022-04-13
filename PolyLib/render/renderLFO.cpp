@@ -5,7 +5,7 @@
 
 extern Layer layerA;
 
-LogCurve linlogMapping(32, 0.01);
+LogCurve linlogMapping(64, 0.01);
 
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
@@ -41,8 +41,11 @@ inline float calcSquare(float phase, float shape) {
     }
 }
 
-inline float accumulateSpeed(LFO &lfo, uint16_t voice) {
-    return linlogMapping.mapValue((lfo.iFreq[voice] + lfo.aFreq)) * 100; // max 200 Hz
+inline vec<VOICESPERCHIP> accumulateSpeed(LFO &lfo) {
+    if (lfo.dFreqSnap == 0)
+        return (linlogMapping.mapValue(lfo.aFreq) * 100.0f) * (lfo.iFreq + 1.0f); // max 200 Hz
+
+    return (lfo.iFreq + 1.0f) * lfo.aFreq; // max 200 Hz
     // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline vec<VOICESPERCHIP> accumulateShape(LFO &lfo) {
@@ -66,8 +69,7 @@ void renderLFO(LFO &lfo) {
 
     shape = accumulateShape(lfo);
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
-        speed[voice] = accumulateSpeed(lfo, voice) * (1 + layerA.lfoImperfection[voice] * layerA.feel.aImperfection);
+    speed = accumulateSpeed(lfo) * (layerA.lfoImperfection * layerA.feel.aImperfection.valueMapped + 1.0f);
 
     amount = accumulateAmount(lfo);
 

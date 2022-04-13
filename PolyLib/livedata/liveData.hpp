@@ -49,13 +49,16 @@ class LiveData {
     void saveLiveDataSettings();
     void loadLiveDataSettings();
 
+    void calcLFOSnapFreq(LFO &lfo);
+    void calcAllLFOSnapFreq();
+
     void reset();
 
     VoiceHandler voiceHandler;
 
     Arpeggiator arps[2] = {Arpeggiator(&voiceHandler), Arpeggiator(&voiceHandler)};
 
-    uint16_t bpm = 0;
+    // uint16_t bpm = 0;
 
     categoryStruct __liveSettingsLivemode;
 

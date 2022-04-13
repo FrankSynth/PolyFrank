@@ -1,8 +1,8 @@
 #include "datacore.hpp"
 #include "debughelper/debughelper.hpp"
 
-LogCurve logMapping(32, 0.1);
-LogCurve antiLogMapping(32, 0.9);
+LogCurve logMapping(64, 0.1);
+LogCurve antiLogMapping(64, 0.9);
 
 void Setting::setValue(int32_t newValue) {
     value = std::clamp(newValue, min, max);

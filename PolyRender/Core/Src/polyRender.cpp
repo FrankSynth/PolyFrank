@@ -55,7 +55,7 @@ void PolyRenderInit() {
 
     loadInitialWavetables();
 
-    HAL_Delay(100);
+    HAL_Delay(10);
 
     spiBusLayer.connectToInterface(&hspi1);
     deviceManager.addBus(&spiBusLayer);

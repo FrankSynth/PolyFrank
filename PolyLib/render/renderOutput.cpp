@@ -4,7 +4,7 @@
 
 extern Layer layerA;
 
-LogCurve panningAntiLog(32, 0.94);
+LogCurve panningAntiLog(64, 0.94);
 
 // TODO check this pan spread mapping
 inline vec<VOICESPERCHIP> accumulatePan(Out &out) {
