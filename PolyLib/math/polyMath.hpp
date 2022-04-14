@@ -67,6 +67,17 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
 }
 
 /**
+ * @brief returns -1 for val>0 and 1 for val<=0
+ *
+ * @tparam T
+ * @param val
+ * @return T
+ */
+template <typename T> inline T getSign(T val) {
+    return (T(0) <= val) - (val < T(0));
+}
+
+/**
  * @brief fast lerp with pointer float
  *
  * @param a value a
@@ -279,13 +290,20 @@ inline float fastMapAudioToLog(float value) {
     return audioCurve.mapValue(value);
 }
 
-float calcSquircle(float value, float curvature);
-vec<VOICESPERCHIP> calcSquircle(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature);
-float calcSquircleSimplified(float value, float curvature);
-vec<VOICESPERCHIP> calcSquircleSimplified(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature);
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+inline float calcSquircle(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
 
-template <typename T> inline T getSign(T val) {
-    return (T(0) <= val) - (val < T(0));
+    float exp = 1.0f / curvature - 1.0f;
+    float firstpow = 1.0f - std::pow(value, exp);
+    return (1.0f - std::pow(firstpow, 1.0f / exp));
 }
 
 /**
@@ -295,51 +313,38 @@ template <typename T> inline T getSign(T val) {
  * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
  * @return float
  */
+inline float calcSquircleSimplified(float value, float curvature) {
+    if (curvature == 0.5f)
+        return value;
 
-// /**
-//  * @brief
-//  *
-//  * @param value [] between 0 and 1
-//  * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
-//  */
-// ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curvature) {
-//     float exp[VOICESPERCHIP];
-//     // float expsq[VOICESPERCHIP];
+    float exp = 1.0f / curvature - 1.0f;
 
-//     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-//         exp[i] = 1.0f / curvature[i] - 1.0f;
-
-//     // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-//     //     expsq[i] = exp[i] * exp[i];
-
-//     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-//         value[i] = powf(value[i], exp[i]);
-// }
+    float ret = std::pow(value, exp * exp);
+    return ret;
+}
 
 /**
  * @brief
  *
- * @param value [] between 0 and 1
- * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
- * @return ALWAYS_INLINE
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
  */
-ALWAYS_INLINE inline void calcSquircle(float *value, const float *curvature) {
-
-    float sign[VOICESPERCHIP];
-    float exp[VOICESPERCHIP];
-    float firstpow[VOICESPERCHIP];
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        sign[i] = getSign(value[i]);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        exp[i] = 1.0f / curvature[i] - 1.0f;
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        firstpow[i] = 1.0f - std::pow(sign[i] * value[i], exp[i]);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        value[i] = sign[i] * (1.0f - std::pow(firstpow[i], 1.0f / exp[i]));
+inline vec<VOICESPERCHIP> calcSquircleSimplified(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature) {
+    vec<VOICESPERCHIP> exp = (1.0f / curvature) - 1.0f;
+    return powf(value, exp * exp);
+}
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+inline vec<VOICESPERCHIP> calcSquircle(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature) {
+    vec<VOICESPERCHIP> exp = (1.0f / curvature) - 1.0f;
+    vec<VOICESPERCHIP> firstpow = 1.0f - powf(value, exp);
+    return (1.0f - powf(firstpow, 1.0f / exp));
 }
 
 /**

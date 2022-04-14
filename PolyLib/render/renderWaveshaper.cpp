@@ -22,8 +22,8 @@ vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input) {
     vec<VOICESPERCHIP> abovePoint1 = (input > layerA.waveshaper.Point1X);
     vec<VOICESPERCHIP> lowerBoundX = layerA.waveshaper.Point1X * abovePoint1;
     vec<VOICESPERCHIP> lowerBoundY = layerA.waveshaper.Point1Y * abovePoint1;
-    vec<VOICESPERCHIP> upperBoundX = max(layerA.waveshaper.Point1X, (vec<VOICESPERCHIP>)abovePoint1);
-    vec<VOICESPERCHIP> upperBoundY = max(layerA.waveshaper.Point1Y, (vec<VOICESPERCHIP>)abovePoint1);
+    vec<VOICESPERCHIP> upperBoundX = max(layerA.waveshaper.Point1X, abovePoint1);
+    vec<VOICESPERCHIP> upperBoundY = max(layerA.waveshaper.Point1Y, abovePoint1);
     vec<VOICESPERCHIP> shape =
         layerA.waveshaper.aLowerShape * !abovePoint1 + layerA.waveshaper.aUpperShape * abovePoint1;
 
@@ -40,8 +40,8 @@ float renderWaveshaperSample(float input, const Layer &layer) {
     float abovePoint1 = (input > layer.waveshaper.Point1X[0]);
     float lowerBoundX = layer.waveshaper.Point1X[0] * abovePoint1;
     float lowerBoundY = layer.waveshaper.Point1Y[0] * abovePoint1;
-    float upperBoundX = std::max(layer.waveshaper.Point1X[0], (float)abovePoint1);
-    float upperBoundY = std::max(layer.waveshaper.Point1Y[0], (float)abovePoint1);
+    float upperBoundX = std::max(layer.waveshaper.Point1X[0], abovePoint1);
+    float upperBoundY = std::max(layer.waveshaper.Point1Y[0], abovePoint1);
     float shape = layer.waveshaper.aLowerShape * !abovePoint1 + layer.waveshaper.aUpperShape * abovePoint1;
 
     float sample = fastMap(input * sign, lowerBoundX, upperBoundX, 0.0f, 1.0f);
