@@ -7,18 +7,18 @@ extern Layer layerA;
 LogCurve panningAntiLog(64, 0.94);
 
 // TODO check this pan spread mapping
-inline vec<VOICESPERCHIP> accumulatePan(Out &out) {
+inline vec<VOICESPERCHIP> accumulatePan(const Out &out) {
     vec<VOICESPERCHIP> pan = out.iPan + out.aPan;
     vec<VOICESPERCHIP> sign = getSign(layerA.spreadValues);
     pan = fast_lerp_f32(pan, sign, sign * out.aPanSpread * layerA.spreadValues);
     return pan;
 }
 
-inline vec<VOICESPERCHIP> accumulateVCA(Out &out) {
+inline vec<VOICESPERCHIP> accumulateVCA(const Out &out) {
     return clamp(out.iVCA + out.aVCA + layerA.envA.out * out.aADSR, out.aVCA.min, out.aVCA.max);
 }
 
-inline vec<VOICESPERCHIP> accumulateDistort(Out &out) {
+inline vec<VOICESPERCHIP> accumulateDistort(const Out &out) {
     return clamp(out.iDistort + out.aDistort, 0.0f, 1.0f);
 }
 

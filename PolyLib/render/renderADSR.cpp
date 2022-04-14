@@ -5,26 +5,22 @@
 
 extern Layer layerA;
 
-extern uint8_t sendString(const char *message);
-extern uint8_t sendString(std::string &message);
-extern uint8_t sendString(std::string &&message);
-
-inline float accumulateDelay(ADSR &adsr, uint32_t voice) {
+inline float accumulateDelay(const ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
 }
-inline float accumulateAttack(ADSR &adsr, uint32_t voice) {
+inline float accumulateAttack(const ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
 }
-inline float accumulateDecay(ADSR &adsr, uint32_t voice) {
+inline float accumulateDecay(const ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
 }
-inline vec<VOICESPERCHIP> accumulateSustain(ADSR &adsr) {
+inline vec<VOICESPERCHIP> accumulateSustain(const ADSR &adsr) {
     return clamp(adsr.iSustain + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
 }
-inline float accumulateRelease(ADSR &adsr, uint32_t voice) {
+inline float accumulateRelease(const ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
 }
-inline float accumulateAmount(ADSR &adsr, uint32_t voice) {
+inline float accumulateAmount(const ADSR &adsr, uint32_t voice) {
     return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
 }
 

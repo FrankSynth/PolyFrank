@@ -153,6 +153,15 @@ ALWAYS_INLINE inline float fastMap(float input, float input_start, float input_e
     float output = output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
     return output;
 }
+ALWAYS_INLINE inline vec<VOICESPERCHIP> fastMap(const vec<VOICESPERCHIP> &input, const vec<VOICESPERCHIP> &input_start,
+                                                const vec<VOICESPERCHIP> &input_end,
+                                                const vec<VOICESPERCHIP> &output_start,
+                                                const vec<VOICESPERCHIP> &output_end) {
+
+    vec<VOICESPERCHIP> output =
+        output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start);
+    return output;
+}
 
 /**
  * @brief precompute lin2log tasble based on noteLin2logMIN, noteLin2logMAX
@@ -271,7 +280,9 @@ inline float fastMapAudioToLog(float value) {
 }
 
 float calcSquircle(float value, float curvature);
+vec<VOICESPERCHIP> calcSquircle(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature);
 float calcSquircleSimplified(float value, float curvature);
+vec<VOICESPERCHIP> calcSquircleSimplified(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature);
 
 template <typename T> inline T getSign(T val) {
     return (T(0) <= val) - (val < T(0));
@@ -285,25 +296,25 @@ template <typename T> inline T getSign(T val) {
  * @return float
  */
 
-/**
- * @brief
- *
- * @param value [] between 0 and 1
- * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
- */
-ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curvature) {
-    float exp[VOICESPERCHIP];
-    // float expsq[VOICESPERCHIP];
+// /**
+//  * @brief
+//  *
+//  * @param value [] between 0 and 1
+//  * @param curvature [] between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+//  */
+// ALWAYS_INLINE inline void calcSquircleSimplified(float *value, const float *curvature) {
+//     float exp[VOICESPERCHIP];
+//     // float expsq[VOICESPERCHIP];
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        exp[i] = 1.0f / curvature[i] - 1.0f;
+//     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+//         exp[i] = 1.0f / curvature[i] - 1.0f;
 
-    // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-    //     expsq[i] = exp[i] * exp[i];
+//     // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+//     //     expsq[i] = exp[i] * exp[i];
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        value[i] = powf(value[i], exp[i]);
-}
+//     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+//         value[i] = powf(value[i], exp[i]);
+// }
 
 /**
  * @brief

@@ -4,11 +4,11 @@
 
 extern Layer layerA;
 
-inline vec<VOICESPERCHIP> accumulateGlide(Feel &feel) {
+inline vec<VOICESPERCHIP> accumulateGlide(const Feel &feel) {
     return clamp(feel.iGlide + feel.aGlide, feel.aGlide.min, feel.aGlide.max);
 }
 
-inline vec<VOICESPERCHIP> accumulateDetune(Feel &feel) {
+inline vec<VOICESPERCHIP> accumulateDetune(const Feel &feel) {
     return clamp(feel.iDetune + feel.aDetune, feel.aDetune.min, feel.aDetune.max);
 }
 

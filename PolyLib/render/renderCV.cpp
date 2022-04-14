@@ -15,6 +15,7 @@
 #include "renderOutput.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
+#include "renderWaveshaper.hpp"
 
 extern MCP4728 cvDac[10];
 
@@ -309,6 +310,7 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
+    renderWaveshaper(layerA.waveshaper);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();

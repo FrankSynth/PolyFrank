@@ -3,6 +3,7 @@
 #include "renderAudio.hpp"
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
+#include "render/renderWaveshaper.hpp"
 #include "rng.h"
 #include <cmath>
 #include <mdma.h>
@@ -311,11 +312,7 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    // calcSquircleSimplified(newSample, squircle);
-
-    vec<VOICESPERCHIP> sign = getSign(newSample);
-
-    newSample = sign * simpleCubicBezier1D(squircle, sign * (newSample));
+    // newSample = renderWaveshaperSample(newSample);
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -482,11 +479,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
 
-    // calcSquircleSimplified(newSample, squircle);
-
-    vec<VOICESPERCHIP> sign = getSign(newSample);
-
-    newSample = sign * simpleCubicBezier1D(squircle, sign * (newSample));
+    // newSample = renderWaveshaperSample(newSample);
 
     newSample = bitcrush(bitcrusher, newSample);
 

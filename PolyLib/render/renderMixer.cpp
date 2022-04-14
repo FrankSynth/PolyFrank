@@ -2,16 +2,16 @@
 
 #include "renderMixer.hpp"
 
-inline vec<VOICESPERCHIP> accumulateLevelOscA(Mixer &mixer) {
+inline vec<VOICESPERCHIP> accumulateLevelOscA(const Mixer &mixer) {
     return clamp(mixer.iOSCALevel + mixer.aOSCALevel, mixer.aOSCALevel.min, mixer.aOSCALevel.max);
 }
-inline vec<VOICESPERCHIP> accumulateLevelOscB(Mixer &mixer) {
+inline vec<VOICESPERCHIP> accumulateLevelOscB(const Mixer &mixer) {
     return clamp(mixer.iOSCBLevel + mixer.aOSCBLevel, mixer.aOSCBLevel.min, mixer.aOSCBLevel.max);
 }
-inline vec<VOICESPERCHIP> accumulateLevelSub(Mixer &mixer) {
+inline vec<VOICESPERCHIP> accumulateLevelSub(const Mixer &mixer) {
     return clamp(mixer.iSUBLevel + mixer.aSUBLevel, mixer.aSUBLevel.min, mixer.aSUBLevel.max);
 }
-inline vec<VOICESPERCHIP> accumulateLevelNoise(Mixer &mixer) {
+inline vec<VOICESPERCHIP> accumulateLevelNoise(const Mixer &mixer) {
     return clamp(mixer.iNOISELevel + mixer.aNOISELevel, mixer.aNOISELevel.min, mixer.aNOISELevel.max);
 }
 

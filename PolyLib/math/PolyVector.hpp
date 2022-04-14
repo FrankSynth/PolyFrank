@@ -487,6 +487,13 @@ template <uint32_t Size, typename A = float> class vec {
         return newVector;
     }
 
+    friend inline vec powf(const vec &a, const vec &b) {
+        vec newVector;
+        for (uint32_t i = 0; i < Size; i++)
+            newVector[i] = std::pow((A)a[i], (A)b[i]);
+        return newVector;
+    }
+
     // returns 1 or -1
     friend inline vec getSign(const vec &a) {
         vec newVector;

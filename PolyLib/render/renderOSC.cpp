@@ -6,25 +6,25 @@
 
 extern Layer layerA;
 
-inline vec<VOICESPERCHIP> accumulateBitcrusher(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateBitcrusher(const OSC_A &osc_a) {
     return clamp(osc_a.iBitcrusher + osc_a.aBitcrusher, osc_a.aBitcrusher.min, osc_a.aBitcrusher.max);
 }
-inline vec<VOICESPERCHIP> accumulateSamplecrusher(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateSamplecrusher(const OSC_A &osc_a) {
     return clamp(osc_a.iSamplecrusher + osc_a.aSamplecrusher, osc_a.aSamplecrusher.min, osc_a.aSamplecrusher.max);
 }
-inline vec<VOICESPERCHIP> accumulateMorph(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateMorph(const OSC_A &osc_a) {
     return clamp(osc_a.iMorph + osc_a.aMorph, osc_a.aMorph.min, osc_a.aMorph.max);
 }
-inline vec<VOICESPERCHIP> accumulateSquircle(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_A &osc_a) {
     return clamp(osc_a.iSquircle + osc_a.aSquircle, osc_a.aSquircle.min, osc_a.aSquircle.max);
 }
-inline vec<VOICESPERCHIP> accumulateOctave(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateOctave(const OSC_A &osc_a) {
     return clamp(round(osc_a.iOctave + (float)osc_a.dOctave), osc_a.dOctave.min, osc_a.dOctave.max);
 }
 
 vec<VOICESPERCHIP, float> noteConverted;
 
-inline vec<VOICESPERCHIP> accumulateNote(OSC_A &osc_a) {
+inline vec<VOICESPERCHIP> accumulateNote(const OSC_A &osc_a) {
     noteConverted = (vec<VOICESPERCHIP>)(layerA.midi.rawNote) / 12.0f;
 
     noteConverted += layerA.oscA.aMasterTune;
@@ -68,28 +68,28 @@ void renderOSC_A(OSC_A &osc_A) {
 
 ///////////////////////////// OSC B /////////////////////////////////
 
-inline vec<VOICESPERCHIP> accumulateBitcrusher(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateBitcrusher(const OSC_B &osc_b) {
     return clamp(osc_b.iBitcrusher + osc_b.aBitcrusher, osc_b.aBitcrusher.min, osc_b.aBitcrusher.max);
 }
-inline vec<VOICESPERCHIP> accumulateSamplecrusher(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateSamplecrusher(const OSC_B &osc_b) {
     return clamp(osc_b.iSamplecrusher * osc_b.aSamplecrusher + osc_b.aSamplecrusher.valueMapped,
                  osc_b.aSamplecrusher.min, osc_b.aSamplecrusher.max);
 }
-inline vec<VOICESPERCHIP> accumulateMorph(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateMorph(const OSC_B &osc_b) {
     return clamp(osc_b.iMorph + osc_b.aMorph, osc_b.aMorph.min, osc_b.aMorph.max);
 }
 
-inline vec<VOICESPERCHIP> accumulateOctave(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateOctave(const OSC_B &osc_b) {
     return clamp(round(osc_b.iOctave + (float)osc_b.dOctave), osc_b.dOctave.min, osc_b.dOctave.max);
 }
-inline vec<VOICESPERCHIP> accumulatePhaseoffset(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulatePhaseoffset(const OSC_B &osc_b) {
     return osc_b.iPhaseOffset + osc_b.aPhaseoffset;
 }
-inline vec<VOICESPERCHIP> accumulateSquircle(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_B &osc_b) {
     return clamp(osc_b.iSquircle + osc_b.aSquircle, osc_b.aSquircle.min, osc_b.aSquircle.max);
 }
 
-inline vec<VOICESPERCHIP> accumulateNote(OSC_B &osc_b) {
+inline vec<VOICESPERCHIP> accumulateNote(const OSC_B &osc_b) {
 
     static vec<VOICESPERCHIP> currentNote;
     static vec<VOICESPERCHIP> desiredNote;

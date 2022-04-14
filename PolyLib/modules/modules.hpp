@@ -709,6 +709,48 @@ class Out : public BaseModule {
     RenderBuffer distort;
 };
 
+class Waveshaper : public BaseModule {
+  public:
+    Waveshaper(const char *name, const char *shortName) : BaseModule(name, shortName) {
+
+        inputs.push_back(&iLowerShape);
+        inputs.push_back(&iUpperShape);
+        inputs.push_back(&iPoint1X);
+        inputs.push_back(&iPoint1Y);
+        inputs.push_back(&iDryWet);
+
+        knobs.push_back(&aLowerShape);
+        knobs.push_back(&aUpperShape);
+        knobs.push_back(&aPoint1X);
+        knobs.push_back(&aPoint1Y);
+        knobs.push_back(&aDryWet);
+
+        renderBuffer.push_back(&LowerShape);
+        renderBuffer.push_back(&UpperShape);
+        renderBuffer.push_back(&Point1X);
+        renderBuffer.push_back(&Point1Y);
+        renderBuffer.push_back(&DryWet);
+    }
+
+    Input iLowerShape = Input("Shape 1");
+    Input iUpperShape = Input("Shape 2");
+    Input iPoint1X = Input("P1 X");
+    Input iPoint1Y = Input("P1 Y");
+    Input iDryWet = Input("Dry/Wet");
+
+    Analog aLowerShape = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iLowerShape);
+    Analog aUpperShape = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iUpperShape);
+    Analog aPoint1X = Analog("P1 X", 0, 1, 0.5, true, linMap, &iPoint1X);
+    Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.5, true, linMap, &iPoint1Y);
+    Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
+
+    RenderBuffer LowerShape;
+    RenderBuffer UpperShape;
+    RenderBuffer Point1X;
+    RenderBuffer Point1Y;
+    RenderBuffer DryWet;
+};
+
 class LayerSetting : public BaseModule {
 
   public:

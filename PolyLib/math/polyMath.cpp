@@ -206,7 +206,31 @@ float calcSquircleSimplified(float value, float curvature) {
         return value;
 
     float exp = 1.0f / curvature - 1.0f;
-    // float expsq = exp * exp;
-    float ret = std::pow(value, exp);
+
+    float ret = std::pow(value, exp * exp);
     return ret;
+}
+
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+vec<VOICESPERCHIP> calcSquircleSimplified(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature) {
+    vec<VOICESPERCHIP> exp = (1.0f / curvature) - 1.0f;
+    return powf(value, exp * exp);
+}
+/**
+ * @brief
+ *
+ * @param value between 0 and 1
+ * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
+ * @return float
+ */
+vec<VOICESPERCHIP> calcSquircle(const vec<VOICESPERCHIP> &value, const vec<VOICESPERCHIP> &curvature) {
+    vec<VOICESPERCHIP> exp = (1.0f / curvature) - 1.0f;
+    vec<VOICESPERCHIP> firstpow = 1.0f - powf(value, exp);
+    return (1.0f - powf(firstpow, 1.0f / exp));
 }

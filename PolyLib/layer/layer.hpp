@@ -24,6 +24,7 @@ class Layer {
         // add Modules
         modules.push_back(&oscA);
         modules.push_back(&oscB);
+        modules.push_back(&waveshaper);
         modules.push_back(&sub);
         modules.push_back(&noise);
         modules.push_back(&mixer);
@@ -113,6 +114,7 @@ class Layer {
     Midi midi = Midi("MIDI INTERFACE", "MIDI");
     OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
     OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
+    Waveshaper waveshaper = Waveshaper("WAVESHAPER", "WVSHPR");
     Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
     Noise noise = Noise("NOISE GENERATOR", "NOISE");
     Mixer mixer = Mixer("MIXER", "MIXER");

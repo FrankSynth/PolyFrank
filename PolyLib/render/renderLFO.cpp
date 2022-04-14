@@ -41,17 +41,17 @@ inline float calcSquare(float phase, float shape) {
     }
 }
 
-inline vec<VOICESPERCHIP> accumulateSpeed(LFO &lfo) {
+inline vec<VOICESPERCHIP> accumulateSpeed(const LFO &lfo) {
     if (lfo.dFreqSnap == 0)
         return (linlogMapping.mapValue(lfo.aFreq) * 100.0f) * (lfo.iFreq + 1.0f); // max 200 Hz
 
     return (lfo.iFreq + 1.0f) * lfo.aFreq; // max 200 Hz
     // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
-inline vec<VOICESPERCHIP> accumulateShape(LFO &lfo) {
+inline vec<VOICESPERCHIP> accumulateShape(const LFO &lfo) {
     return clamp((vec<VOICESPERCHIP> &)lfo.iShape + lfo.aShape, lfo.aShape.min, lfo.aShape.max);
 }
-inline vec<VOICESPERCHIP> accumulateAmount(LFO &lfo) {
+inline vec<VOICESPERCHIP> accumulateAmount(const LFO &lfo) {
     return clamp((vec<VOICESPERCHIP> &)lfo.iAmount + lfo.aAmount, lfo.aAmount.min, lfo.aAmount.max);
 }
 
