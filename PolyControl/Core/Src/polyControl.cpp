@@ -197,7 +197,7 @@ void PolyControlRun() { // Here the party starts
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             renderLED();
-            sendRequestUIData();
+            // sendRequestUIData();
         }
     }
 }

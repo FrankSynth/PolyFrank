@@ -846,4 +846,102 @@ const char *tuningToChar(const byte &tuning) {
     }
 }
 
+// Patchmatrix
+
+void MatrixPatch_PanelElement::Draw() {
+    if (!visible) {
+        return;
+    }
+
+    // create empty patch
+    uint32_t color = 0;
+
+    if (select) {
+        color = cHighlight;
+        drawRectangleChampfered(cWhite, panelAbsX, panelAbsY, width, heigth, 2);
+        drawRectangleChampfered(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, heigth - 2, 2);
+    }
+    else {
+        color = cWhite;
+        drawRectangleChampfered(cGreyLight, panelAbsX, panelAbsY, width, heigth, 2);
+    }
+
+    if (entry != nullptr) {
+
+        float amount = entry->amount;
+
+        drawRectangleChampfered(color, panelAbsX + 1, panelAbsY + 1, (width - 2) / 2 * amount, heigth - 2, 2);
+
+        actionHandler.registerActionEncoder(
+            4, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 1), "AMOUNT"},
+            {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 0), "AMOUNT"},
+            {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
+    }
+
+    select = 0;
+    visible = 0;
+    entry == nullptr;
+}
+
+void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixIn_PanelElement::Draw() {
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+
+        if (select) {
+            drawRectangleChampfered(cHighlight, panelAbsX, panelAbsY, width, heigth, 1);
+            drawString(entry->name, cFont_Select, panelAbsX + width, panelAbsY + (heigth - fontMedium->size) / 2,
+                       fontMedium, RIGHT);
+        }
+        else {
+            drawRectangleChampfered(cGreyLight, panelAbsX, panelAbsY, width, heigth, 1);
+            drawString(entry->name, cFont_Deselect, panelAbsX + width, panelAbsY + (heigth - fontMedium->size) / 2,
+                       fontMedium, RIGHT);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry == nullptr;
+}
+
+void MatrixIn_PanelElement::addEntry(Input *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixOut_PanelElement::Draw() {
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+        std::string &name = allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
+
+        if (select) {
+            drawRectangleChampfered(cHighlight, panelAbsX, panelAbsY, width, heigth, 1);
+            drawString(name, cFont_Select, panelAbsX + width / 2, panelAbsY, fontMedium, CENTER);
+        }
+        else {
+            drawRectangleChampfered(cGreyLight, panelAbsX, panelAbsY, width, heigth, 1);
+            drawString(name, cFont_Deselect, panelAbsX + width / 2, panelAbsY, fontMedium, CENTER);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry == nullptr;
+}
+
+void MatrixOut_PanelElement::addEntry(Output *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
 #endif

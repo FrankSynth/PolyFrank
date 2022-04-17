@@ -23,7 +23,7 @@
 #define BLACK 0x00FFFFFF
 #define BLUE 0x000000FF
 
-typedef enum { LEFT, CENTER, RIGHT } FONTALIGN;
+typedef enum { LEFT, CENTER, RIGHT, TOP, BOTTOM } FONTALIGN;
 typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4 } DRAWTYPE;
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
@@ -73,7 +73,8 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
                 FONTALIGN alignment);
 void drawString(char *text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
-void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont);
+void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+                        FONTALIGN alignment = CENTER);
 
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
 uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font);

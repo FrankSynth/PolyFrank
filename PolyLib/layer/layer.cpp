@@ -101,7 +101,18 @@ void Layer::updatePatchInOutWithoutMapping(PatchElement &patch, float amount) {
 }
 
 void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
+    if (outputId > outputs.size()) {
+        println("wrong outputID");
+        return;
+    }
+
+    if (inputId > inputs.size()) {
+        println("wrong inputID");
+        return;
+    }
+
     for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
+
         if (p->targetIn == inputs[inputId]) {
             this->updatePatchInOutWithoutMapping(*p, amount);
             return;
@@ -188,7 +199,7 @@ void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::
 
 void Layer::collectLayerConfiguration() {
 
-    println("collectConfiguration");
+    // println("collectConfiguration");
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 

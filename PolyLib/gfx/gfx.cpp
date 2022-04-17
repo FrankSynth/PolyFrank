@@ -258,7 +258,8 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
     }
 }
 
-void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont) {
+void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+                        FONTALIGN alignment) {
     renderTask task;
 
     task.mode = M2MTRANSPARENT_A4;  // Set DMA2D To copy M2M with Blending
@@ -267,8 +268,14 @@ void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t 
 
     // Curser Position
     uint16_t posX = x;
-    uint16_t posY = y - (text.size() * (task.height - 4)) / 2;
+    uint16_t posY = y;
 
+    if (alignment == CENTER) {
+        posY = y - (text.size() * (task.height - 4)) / 2;
+    }
+    else if (alignment == BOTTOM) {
+        posY = y - (text.size() * (task.height - 4));
+    }
     // For each Char
     for (char &c : text) {
 

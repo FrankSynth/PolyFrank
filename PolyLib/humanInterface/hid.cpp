@@ -154,7 +154,7 @@ void processPanelPotis() {
                 treshold) {
                 panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
                 if (channel == 0 && multiplex == 0) {
-                    println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
+                    // println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
                 }
                 if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[0][multiplex][channel](panelADCStates[0][multiplex][channel]);
@@ -486,7 +486,7 @@ void PanelTouch::evaluateLayer(uint8_t pin, uint8_t port, uint8_t event) {
             case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
             case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
             case 3: evaluateInput((Input *)&(allLayers[layerID]->out.iDistort), event); break;
-            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
+            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->mixer), event); break;
             case 5: evaluateOutput((Output *)&(allLayers[layerID]->feel.oSpread), event); break;
             case 6: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
             case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;

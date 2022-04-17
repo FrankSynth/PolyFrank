@@ -164,6 +164,8 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
     comCommand[2] = note;
     comCommand[3] = velocity;
 
+    println(voiceID);
+
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
             comCommand[1] |= voice;
@@ -523,9 +525,8 @@ inline uint8_t checkVoiceAgainstChipID(uint8_t voice) {
             voice = NOVOICE;
         else
             voice = voice - VOICESPERCHIP;
-
-        return voice;
     }
+    return voice;
 }
 
 // extracts layer, module, voice from currentByte
@@ -543,8 +544,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     state = COM_DECODE;
 
     // necessary decoding vars
-    uint8_t outputID = 0;
-    uint8_t inputID = 0;
+    volatile uint8_t outputID = 0;
+    volatile uint8_t inputID = 0;
     uint8_t note = 0;
     uint8_t velocity = 0;
     uint8_t layerID = 0;
@@ -552,8 +553,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     uint8_t module = 0;
     uint8_t voice = 0;
     uint8_t messagesize = 0;
-    int32_t amountInt = 0;
-    float amountFloat = 0;
+    volatile int32_t amountInt = 0;
+    volatile float amountFloat = 0;
 
     switchInBuffer();
 
@@ -623,18 +624,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         switch (currentByte) {
 
 #ifdef POLYRENDER
-            case UPDATEINOUTPATCH:
-                readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-
-                outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                inputID = (inBufferPointer[currentInBufferSelect])[++i];
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
-                i += 3; // sizeof(float) - 1
-
-                if (layerID == layerA.id)
-                    layerA.updatePatchInOutByIdWithoutMapping(outputID, inputID, amountFloat);
-
-                break;
 
             case CREATEINOUTPATCH:
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
@@ -646,6 +635,19 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 if (layerID == layerA.id)
                     layerA.addPatchInOutById(outputID, inputID, amountFloat);
+
+                break;
+
+            case UPDATEINOUTPATCH:
+                readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
+
+                outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                i += 3; // sizeof(float) - 1
+
+                if (layerID == layerA.id)
+                    layerA.updatePatchInOutByIdWithoutMapping(outputID, inputID, amountFloat);
 
                 break;
 

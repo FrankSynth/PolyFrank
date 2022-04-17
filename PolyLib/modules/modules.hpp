@@ -62,7 +62,7 @@ class Midi : public BaseModule {
         outputs.push_back(&oMod);
         outputs.push_back(&oAftertouch);
         outputs.push_back(&oPitchbend);
-        outputs.push_back(&oVeloctiy);
+        outputs.push_back(&oVelocity);
         outputs.push_back(&oGate);
         outputs.push_back(&oNote);
 
@@ -74,7 +74,7 @@ class Midi : public BaseModule {
     Output oMod = Output("MOD");
     Output oAftertouch = Output("AFTERTOUCH");
     Output oPitchbend = Output("PITCHBEND");
-    Output oVeloctiy = Output("VELOCITY");
+    Output oVelocity = Output("VELOCITY");
     Output oGate = Output("GATE");
     Output oNote = Output("NOTE");
 
@@ -139,7 +139,7 @@ class OSC_A : public BaseModule {
     Input iSamplecrusher = Input("SAMPLECRUSH");
     Input iSquircle = Input("SQUIRCLE");
 
-    Analog aMasterTune = Analog("MASTERTUNE", -7, 7, 0, true, linMap, &iFM);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -211,7 +211,7 @@ class OSC_B : public BaseModule {
     Input iSquircle = Input("SQUIRCLE");
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -7, 7, 0, true, linMap, &iTuning);
+    Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iTuning);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
@@ -381,8 +381,8 @@ class Steiner : public BaseModule {
 
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
-    Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
+    Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, antilogMap);
     Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
@@ -418,7 +418,7 @@ class Ladder : public BaseModule {
 
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
     Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
@@ -538,7 +538,7 @@ class ADSR : public BaseModule {
     Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
     Analog aAttack = Analog("ATTACK", 0.001, 10, 0.1, true, logMap, &iAttack);
     Analog aDecay = Analog("DECAY", 0.001, 10, 0.1, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.5, true, antilogMap, &iSustain);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, antilogMap, &iSustain);
     Analog aRelease = Analog("RELEASE", 0.001, 10, 0.1, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
@@ -550,7 +550,7 @@ class ADSR : public BaseModule {
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dGateTrigger = Digital("GATE", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr);
     Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
 

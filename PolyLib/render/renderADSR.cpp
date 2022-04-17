@@ -199,12 +199,12 @@ void renderADSR(ADSR &adsr) {
     adsr.level = clamp(adsr.level, 0.0f, 1.0f);
 
     // midi velocity
-    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oVeloctiy, adsr.aVelocity);
+    adsr.out = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oVelocity, adsr.aVelocity);
 
     // keytrack
-    adsr.level = fast_lerp_f32(adsr.level, adsr.level * layerA.midi.oNote, adsr.aKeytrack);
+    adsr.out = fast_lerp_f32(adsr.out.nextSample, adsr.out.nextSample * layerA.midi.oNote, adsr.aKeytrack);
 
-    adsr.out = adsr.level * adsr.aAmount;
+    adsr.out = adsr.out.nextSample * adsr.aAmount;
 }
 
 #endif

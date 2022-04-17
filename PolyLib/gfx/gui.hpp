@@ -9,12 +9,14 @@
 #include "guiPanelFocus.hpp"
 #include "guiPanelLive.hpp"
 #include "guiPanelPatch.hpp"
+#include "guiPanelPatchMatrix.hpp"
 #include "guiPanelPath.hpp"
 #include "guiPanelPreset.hpp"
 #include "guiPanelState.hpp"
 #include "guiPanelString.hpp"
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
+
 
 /// GUI///
 class GUI {
@@ -33,7 +35,7 @@ class GUI {
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelLive guiPanelLive;
-    GUIPanelPatch guiPanelPatch;
+    GUIPanelPatchMatrix guiPanelPatch;
     GUIPanelPreset guiPanelPreset;
     GUIPanelConfig guiPanelConfig;
 
