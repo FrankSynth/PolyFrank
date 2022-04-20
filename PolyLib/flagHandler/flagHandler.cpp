@@ -88,6 +88,10 @@ bool cvDacStarted[10];
 bool cvDacFinished[10];
 bool cvDacLastFinished[3];
 
+volatile bool outputCollect = true;
+volatile bool outputReady = false;
+std::function<void()> outputCollectFunc;
+
 volatile bool renderNewCV;
 void (*renderNewCVFunc)();
 #endif
@@ -158,6 +162,16 @@ void handleFlags() {
     if (renderNewCV) {
         renderNewCV = false;
         renderNewCVFunc();
+    }
+
+    if (outputCollect) {
+        outputCollect = false;
+        outputReady = false;
+
+        if (outputCollectFunc != nullptr) {
+            outputCollectFunc();
+        }
+        outputReady = true;
     }
 
 #endif

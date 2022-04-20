@@ -48,6 +48,7 @@ PCM1690 audioDacA(&hsai_BlockA1, &hspi2, (int32_t *)saiBuffer);
 
 void testMCPI2CAddress();
 void resetMCPI2CAddress();
+void outputCollect();
 
 void sendDACs();
 
@@ -102,6 +103,7 @@ void PolyRenderInit() {
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
     FlagHandler::renderNewCVFunc = renderCVs;
+    FlagHandler::outputCollectFunc = outputCollect;
 }
 
 void PolyRenderRun() {
@@ -124,17 +126,12 @@ void PolyRenderRun() {
 
     HAL_TIM_Base_Start_IT(&htim15);
 
-    elapsedMillis askMessage = 0;
+    // elapsedMillis askMessage = 0;
 
     // run loop
     while (true) {
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
 
-        // for timing test purpose
-        // if (askMessage > 5000) {
-        //     println("alive");
-        //     askMessage = 0;
-        // }
         FlagHandler::handleFlags();
     }
 }
@@ -286,6 +283,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         if (layerCom.spi->state == BUS_SEND) {
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
             layerCom.spi->callTxComplete();
+            FlagHandler::outputCollect = true; // collect next Sample packet;
         }
 
         if (layerCom.spi->state == BUS_RECEIVE) {
@@ -447,6 +445,63 @@ uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
 uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
+
+uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
+    return layerCom.sendRenderbuffer(modulID, settingID, amount);
+}
+
+uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
+    return layerCom.sendRenderbufferVoice(modulID, settingID, voice, amount);
+}
+
+// uint8_t sendOutputAllVoices(uint8_t modulID, uint8_t settingID, vec<4UL> amount) {
+//     return layerCom.sendOutputAllVoices(modulID, settingID, amount);
+// }
+
 uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
     return layerCom.sendInput(modulID, settingID, amount);
 }
+
+void outputCollect() {
+
+    if (layerA.chipID == 0) {
+        for (Output *o : layerA.outputs) {
+            sendOutput(o->moduleId, o->id, (float)o->currentSample[0]); // send only first Voice
+        }
+        for (BaseModule *m : layerA.modules) {
+            int16_t i = 0;
+            for (RenderBuffer *r : m->renderBuffer) {
+
+                if (m->id == layerA.out.id) {
+                    for (int v = 0; v < VOICESPERCHIP; v++) {
+                        sendRenderbufferVoice(m->id, i, v, (float)r->currentSample[v]); // send only first Voice}
+                    }
+                }
+                else {
+                    sendRenderbuffer(m->id, i, (float)r->currentSample[0]); // send only first Voice
+                }
+
+                i++;
+            }
+        }
+    }
+    if (layerA.chipID == 1) {
+        int16_t i = 0;
+
+        for (RenderBuffer *r : layerA.out.renderBuffer) {
+            for (int v = 0; v < VOICESPERCHIP; v++) {
+                sendRenderbufferVoice(layerA.out.id, i, v + VOICESPERCHIP,
+                                      (float)r->currentSample[v]); // send only first Voice}
+            }
+            i++;
+        }
+    }
+}
+// for (BaseModule *m : layerA.modules) {
+//     int16_t i = 0;
+//     for (RenderBuffer *r : m->renderBuffer) {
+
+//         sendRenderbuffer(m->id, i, (float)r->currentSample[0]); // send only first Voice
+//         i++;
+//     }
+// }

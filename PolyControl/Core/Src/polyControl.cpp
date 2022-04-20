@@ -186,6 +186,9 @@ void PolyControlInit() {
 }
 
 void PolyControlRun() { // Here the party starts
+
+    elapsedMillis timer;
+
     while (1) {
 
         mididevice.read();
@@ -197,8 +200,11 @@ void PolyControlRun() { // Here the party starts
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             renderLED();
-            // sendRequestUIData();
+            sendRequestUIData();
         }
+
+        // if (timer > 1000) {
+        //     timer = 0;}    }
     }
 }
 

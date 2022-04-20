@@ -31,8 +31,8 @@ void GFX_Init() {
 
     // set BG Color;
     hltdc.Init.Backcolor.Red = 0;
-    hltdc.Init.Backcolor.Green = 12;
-    hltdc.Init.Backcolor.Blue = 20;
+    hltdc.Init.Backcolor.Green = 3;
+    hltdc.Init.Backcolor.Blue = 5;
 
     //__HAL_LTDC_RELOAD_CONFIG(&hltdc);
     HAL_LTDC_Init(&hltdc); // update config
@@ -102,14 +102,27 @@ void TransferComplete(DMA2D_HandleTypeDef *hdma2d) {
 
 ////// Draw Functions//////
 
-void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int height) {
     renderTask task;
 
-    task.x = x;
-    task.y = y;
+    if (width < 0) {
+        task.x = x + width;
+        task.width = abs(width);
+    }
+    else {
+        task.x = x;
+        task.width = width;
+    }
 
-    task.height = height;
-    task.width = width;
+    if (height < 0) {
+        task.y = y + height;
+        task.height = abs(height);
+    }
+    else {
+        task.y = y;
+        task.height = height;
+    }
+
     task.color = color;
 
     // Choose render task type

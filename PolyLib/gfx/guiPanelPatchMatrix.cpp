@@ -6,8 +6,6 @@ void GUIPanelPatchMatrix::registerElements() {
 
     uint16_t dataIndex = 0;
 
-    // dataIndex = scrollModule.position;
-
     Output *out;
     Input *in;
 
@@ -36,9 +34,15 @@ void GUIPanelPatchMatrix::registerElements() {
         }
     }
 
+    for (uint16_t y = 0; y < MATRIXROWS; y++) {
+        if ((y + scrollModule.offset) < allModules.size()) {
+            panelElementsModule[y].addEntry(allModules[y + scrollModule.offset]);
+        }
+    }
     panelElementsOut[scrollOut.relPosition].select = 1;
     panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].select = 1;
     panelElementsIn[scrollIn.relPosition].select = 1;
+    panelElementsModule[scrollModule.relPosition].select = 1;
 }
 
 void GUIPanelPatchMatrix::collectModules() {
@@ -92,14 +96,32 @@ void GUIPanelPatchMatrix::collectOutputs() {
 
     allOutputs.clear();
 
-    for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-        if (output->visible) {
-            if (filteredView) {
-                if (output->patchesInOut.size())
+    if (midiView) {
+
+        for (Output *output : allLayers[currentFocus.layer]->midi.outputs) { // Collect Module if inputs available
+            if (output->visible) {
+                if (filteredView) {
+                    if (output->patchesInOut.size())
+                        allOutputs.push_back(output);
+                }
+                else {
                     allOutputs.push_back(output);
+                }
             }
-            else {
-                allOutputs.push_back(output);
+        }
+    }
+    else {
+        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
+            if (output->moduleId != allLayers[currentFocus.layer]->midi.id){
+                if (output->visible) {
+                    if (filteredView) {
+                        if (output->patchesInOut.size())
+                            allOutputs.push_back(output);
+                    }
+                    else {
+                        allOutputs.push_back(output);
+                    }
+                }
             }
         }
     }
@@ -192,6 +214,8 @@ void GUIPanelPatchMatrix::Draw() {
     }
     for (int y = 0; y < MATRIXROWS; y++) {
         panelElementsIn[y].Draw();
+        panelElementsModule[y].Draw();
+
         for (int x = 0; x < MATRIXCOLUMN; x++) {
             panelElementsPatch[x][y].Draw();
         }
@@ -222,7 +246,8 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         actionHandler.registerActionLeft(2);
     }
 
-    actionHandler.registerActionLeft(0);
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::toggleMidiView, this), "MIDI"},
+                                         &(this->midiView));
     actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::toggleFilterdView, this), "FILTER"},
                                          &(this->filteredView));
 
@@ -242,22 +267,26 @@ void GUIPanelPatchMatrix::init(uint16_t width, uint16_t height, uint16_t x, uint
     this->id = id;
     this->pathVisible = pathVisible;
 
+    uint16_t moduleWidth = 100;
     uint16_t inElementWidth = 100;
     uint16_t outElementHeight = 30;
 
-    uint16_t patchElementWidth = (width - inElementWidth) / MATRIXCOLUMN;
+    uint16_t patchElementWidth = (width - inElementWidth - moduleWidth) / MATRIXCOLUMN;
     uint16_t rowHeigth = (height - outElementHeight) / MATRIXROWS;
 
     for (int i = 0; i < MATRIXCOLUMN; i++) {
-        panelElementsOut[i].init(inElementWidth + panelAbsX + patchElementWidth * i, panelAbsY, patchElementWidth - 1,
-                                 outElementHeight - 1);
+        panelElementsOut[i].init(inElementWidth + moduleWidth + panelAbsX + patchElementWidth * i, panelAbsY,
+                                 patchElementWidth - 1, outElementHeight - 1);
     }
     for (int j = 0; j < MATRIXROWS; j++) {
-        panelElementsIn[j].init(panelAbsX, outElementHeight + panelAbsY + rowHeigth * j, inElementWidth - 1,
-                                rowHeigth - 1);
+        panelElementsIn[j].init(panelAbsX + moduleWidth, outElementHeight + panelAbsY + rowHeigth * j,
+                                inElementWidth - 1, rowHeigth - 1);
+
+        panelElementsModule[j].init(panelAbsX, outElementHeight + panelAbsY + rowHeigth * j, moduleWidth - 1,
+                                    rowHeigth - 1);
 
         for (int k = 0; k < MATRIXCOLUMN; k++) {
-            panelElementsPatch[k][j].init(inElementWidth + panelAbsX + patchElementWidth * k,
+            panelElementsPatch[k][j].init(inElementWidth + moduleWidth + panelAbsX + patchElementWidth * k,
                                           outElementHeight + panelAbsY + rowHeigth * j, patchElementWidth - 1,
                                           rowHeigth - 1);
         }

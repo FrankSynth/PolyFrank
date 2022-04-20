@@ -58,7 +58,7 @@ void DMA2D_DefaultConfig(int colorMode);
 void IRQHandler(void);
 
 // draw functions
-void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int height);
 
 // callbacks
 void TransferError(DMA2D_HandleTypeDef *hdma2d);

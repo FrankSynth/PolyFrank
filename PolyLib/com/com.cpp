@@ -367,6 +367,7 @@ uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amo
     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
     return 0;
 }
+
 uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
     comCommand[0] = UPDATEOUTPUTFLOAT;
@@ -383,6 +384,28 @@ uint8_t COMinterChip::sendInput(uint8_t modulID, uint8_t settingID, float amount
     *(float *)(&comCommand[2]) = amount;
 
     pushOutBuffer(comCommand, INPUTCMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
+    uint8_t comCommand[RENDERBUFFERCMDSIZE];
+    comCommand[0] = UPDATERENDERBUFFER;
+    comCommand[1] = (modulID << 4) | settingID;
+    *(float *)(&comCommand[2]) = amount;
+
+    pushOutBuffer(comCommand, RENDERBUFFERCMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
+    uint8_t comCommand[RENDERBUFFERCMDSIZEVOICE];
+    comCommand[0] = UPDATERENDERBUFFERVOICE;
+    comCommand[1] = (modulID << 4) | settingID;
+    comCommand[2] = voice;
+
+    *(float *)(&comCommand[3]) = amount;
+
+    pushOutBuffer(comCommand, RENDERBUFFERCMDSIZEVOICE);
     return 0;
 }
 
@@ -616,11 +639,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #endif
         return 1;
     }
+    // for (uint16_t i = 0; i < sizeOfReadBuffer; i++) {
+    //     println(inBufferPointer[currentInBufferSelect][i]);
+    // }
 
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
         uint8_t currentByte = (inBufferPointer[currentInBufferSelect])[i];
-
         switch (currentByte) {
 
 #ifdef POLYRENDER
@@ -734,10 +759,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
 
             case SENDUPDATETOCONTROL:
-                // TODO send UI update shit
-                // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
-                // sendString("Update to Control"); // temporary stuff
-                println("send trans");
+                // println("send trans");
                 if (beginSendTransmission() != BUS_OK)
                     PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
                 // sendUpdateToRender = true;
@@ -767,15 +789,97 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
                 }
 
-                print("layer ", receiveLayer);
-                println(", chip ", receiveChip, ":");
-                println(messagebuffer);
+                // print("layer ", receiveLayer);
+                // println(", chip ", receiveChip, ":");
+                // println(messagebuffer);
 
                 break;
 
-            case UPDATEINPUT: println("UPDATEINPUT"); break;
+            case UPDATEINPUT:
+                module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                setting = module & 0xF;
+                module = module >> 4;
+
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                // println("Layer: ", layerID, "  Module: ", module, "  Renderbuffer: ", setting,
+                //         "  Value: ", amountFloat);
+
+                if (layerID == layerA.id)
+                    layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+
+                if (layerID == layerB.id)
+                    layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+
+                i += 3;
+
+                break;
+
+            case UPDATERENDERBUFFER:
+                module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                setting = module & 0xF;
+                module = module >> 4;
+
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                // println("Layer: ", layerID, "  Module: ", module, "  Renderbuffer: ", setting,
+                //         "  Value: ", amountFloat);
+
+                if (layerID == layerA.id)
+                    layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+
+                if (layerID == layerB.id)
+                    layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+
+                i += 3;
+
+                break;
+
+            case UPDATERENDERBUFFERVOICE:
+                module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                setting = module & 0xF;
+                module = module >> 4;
+                voice = (inBufferPointer[currentInBufferSelect])[++i];
+
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                // println("Layer: ", layerID, "  Module: ", module, "  Voice: ", voice, "  Renderbuffer: ", setting,
+                //         "  Value: ", amountFloat);
+
+                if (layerID == layerA.id)
+                    layerA.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
+
+                if (layerID == layerB.id)
+                    layerB.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
+
+                i += 3;
+
+                break;
             case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
-            case UPDATEOUTPUTFLOAT: println("UPDATEOUTPUTFLOAT"); break;
+            case UPDATEOUTPUTFLOAT:
+
+                module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                setting = module & 0xF;
+                module = module >> 4;
+
+                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                // println("Layer: ", layerID, "  Module: ", module, "  Output: ", setting, "  Value: ", amountFloat);
+
+                if (layerID == layerA.id)
+                    layerA.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
+
+                if (layerID == layerB.id)
+                    layerB.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
+
+                i += 3;
+
+                break;
+
             case LASTBYTE:
                 state = COM_READY;
                 return 0;
@@ -786,10 +890,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case NOCOMMAND: PolyError_Handler("ERROR | FATAL | command was empty"); break;
 
             default:
+
+                println(currentByte);
                 // something went wrong here
                 PolyError_Handler("ERROR | FATAL | Decode error");
                 state = COM_READY;
-
                 return 1;
         }
     }

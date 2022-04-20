@@ -11,6 +11,9 @@
 #define DELETEALLPATCHESCMDSIZE 2
 #define SETTINGCMDSIZE 7
 #define INPUTCMDSIZE 6
+#define RENDERBUFFERCMDSIZE 6
+#define RENDERBUFFERCMDSIZEVOICE 7
+
 #define OUTPUTCMDSIZE 6
 #define GATECMDSIZE 2
 #define NEWNOTECMDSIZE 4
@@ -43,21 +46,24 @@
 // second byte all commands
 enum comCommands {
     NOCOMMAND = 0,
-    UPDATEINOUTPATCH,      // update patchesInOut
-    CREATEINOUTPATCH,      // create patchesInOut
-    DELETEINOUTPATCH,      // delete patchesInOut
-    DELETEALLPATCHES,      // delete patchesInOut
-    NEWNOTE,               // received new Note
-    OPENGATE,              // received NoteOn
-    CLOSEGATE,             // received NoteOff
-    RESETALL,              // received Reset All
-    RETRIGGER,             // retrigger
-    UPDATESETTINGINT,      // next bytes are setting
-    UPDATESETTINGFLOAT,    // next bytes are settings
-    UPDATEINPUT,           // next bytes are settings
-    UPDATEOUTPUTFLOAT,     // next bytes are settings
-    UPDATEOUTPUTINT,       // next bytes are settings
-    SENDUPDATETOCONTROL,   // pull req from control
-    SENDMESSAGE,           // send a string
-    LASTBYTE = 0b01111111, // LAST BYTE of transmission
+    UPDATEINOUTPATCH,        // update patchesInOut
+    CREATEINOUTPATCH,        // create patchesInOut
+    DELETEINOUTPATCH,        // delete patchesInOut
+    DELETEALLPATCHES,        // delete patchesInOut
+    NEWNOTE,                 // received new Note
+    OPENGATE,                // received NoteOn
+    CLOSEGATE,               // received NoteOff
+    RESETALL,                // received Reset All
+    RETRIGGER,               // retrigger
+    UPDATESETTINGINT,        // next bytes are setting
+    UPDATESETTINGFLOAT,      // next bytes are settings
+    UPDATEINPUT,             // next bytes are settings
+    UPDATEOUTPUTFLOAT,       // next bytes are settings
+    UPDATEOUTPUTINT,         // next bytes are settings
+    SENDUPDATETOCONTROL,     // pull req from control
+    SENDMESSAGE,             // send a string
+    UPDATERENDERBUFFER,      // next bytes are settings
+    UPDATERENDERBUFFERVOICE, // next bytes are settings
+    LASTBYTE = 0b01111111,   // LAST BYTE of transmission
 };
+

@@ -102,7 +102,7 @@ void GUI::Draw() {
         if (activePanel != nullptr) {
             activePanel->Draw();
 
-            if (activePanel == &guiPanelFocus || activePanel == &guiPanelPatch) { // focus Panel draw complete Path
+            if (activePanel == &guiPanelFocus) { // focus Panel draw complete Path
 
                 guiPath.Draw();
             }

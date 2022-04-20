@@ -296,6 +296,8 @@ class COMinterChip {
     uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount);
+    uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount);
+    uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount);
 
     busState beginReceiveTransmission();
 
