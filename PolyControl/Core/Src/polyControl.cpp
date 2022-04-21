@@ -186,6 +186,9 @@ void PolyControlInit() {
 }
 
 void PolyControlRun() { // Here the party starts
+
+    elapsedMillis timer;
+
     while (1) {
 
         mididevice.read();
@@ -199,6 +202,9 @@ void PolyControlRun() { // Here the party starts
             renderLED();
             sendRequestUIData();
         }
+
+        // if (timer > 1000) {
+        //     timer = 0;}    }
     }
 }
 

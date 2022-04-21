@@ -62,7 +62,7 @@ class Midi : public BaseModule {
         outputs.push_back(&oMod);
         outputs.push_back(&oAftertouch);
         outputs.push_back(&oPitchbend);
-        outputs.push_back(&oVeloctiy);
+        outputs.push_back(&oVelocity);
         outputs.push_back(&oGate);
         outputs.push_back(&oNote);
 
@@ -71,12 +71,12 @@ class Midi : public BaseModule {
         knobs.push_back(&aPitchbend);
     }
 
-    Output oMod = Output("MOD");
-    Output oAftertouch = Output("AFTERTOUCH");
-    Output oPitchbend = Output("PITCHBEND");
-    Output oVeloctiy = Output("VELOCITY");
-    Output oGate = Output("GATE");
-    Output oNote = Output("NOTE");
+    Output oMod = Output("MOD", "MOD");
+    Output oAftertouch = Output("AFTERTOUCH", "AT");
+    Output oPitchbend = Output("PITCHBEND", "PB");
+    Output oVelocity = Output("VELOCITY", "VEL");
+    Output oGate = Output("GATE", "GATE");
+    Output oNote = Output("NOTE", "NOTE");
 
     Analog aMod = Analog("MOD", 0, 1, 0, 127, 0, true, linMap);
     Analog aAftertouch = Analog("AFTERTOUCH", 0, 1, 0, 127, 0, true, linMap);
@@ -132,14 +132,14 @@ class OSC_A : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", logMap);
-    Input iMorph = Input("MORPH");
-    Input iBitcrusher = Input("BITCRUSH");
-    Input iOctave = Input("OCTAVE");
-    Input iSamplecrusher = Input("SAMPLECRUSH");
-    Input iSquircle = Input("SQUIRCLE");
+    Input iFM = Input("FM", "FM", &note);
+    Input iMorph = Input("MORPH", "MORPH", &morph);
+    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    Input iOctave = Input("OCTAVE", "OCTAVE");
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
 
-    Analog aMasterTune = Analog("MASTERTUNE", -7, 7, 0, true, linMap, &iFM);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
@@ -201,17 +201,17 @@ class OSC_B : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", logMap);
-    Input iMorph = Input("MORPH");
-    Input iTuning = Input("TUNING");
-    Input iBitcrusher = Input("BITCRUSH");
-    Input iOctave = Input("OCTAVE");
-    Input iSamplecrusher = Input("SAMPLECRUSH");
-    Input iPhaseOffset = Input("PHASE OFFSET");
-    Input iSquircle = Input("SQUIRCLE");
+    Input iFM = Input("FM", "FM", &note);
+    Input iMorph = Input("MORPH", "MORPH", &morph);
+    Input iTuning = Input("TUNING", "TUNING");
+    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    Input iOctave = Input("OCTAVE", "OCT");
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    Input iPhaseOffset = Input("PHASE", "PHASE", &phaseoffset);
+    Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -7, 7, 0, true, linMap, &iTuning);
+    Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iTuning);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
@@ -260,9 +260,9 @@ class Sub : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iShape = Input("SHAPE");
-    Input iBitcrusher = Input("BITCRUSH");
-    Input iSamplecrusher = Input("SAMPLECRUSH");
+    Input iShape = Input("SHAPE", "SHAPE", &shape);
+    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
     Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
@@ -293,7 +293,7 @@ class Noise : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iSamplecrusher = Input("SAMPLECRUSH");
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH");
 
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
@@ -329,10 +329,10 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&noiseLevelLadder);
     }
 
-    Input iOSCALevel = Input("OSC A");
-    Input iOSCBLevel = Input("OSC B");
-    Input iSUBLevel = Input("SUB");
-    Input iNOISELevel = Input("NOISE");
+    Input iOSCALevel = Input("OSC A", "OSC A", &oscALevel);
+    Input iOSCBLevel = Input("OSC B", "OSC B", &oscBLevel);
+    Input iSUBLevel = Input("SUB", "SUB", &subLevel);
+    Input iNOISELevel = Input("NOISE", "NOISE", &noiseLevel);
 
     Analog aOSCALevel = Analog("OSC A", 0, 1, 0.8, true, logMap, &iOSCALevel);
     Analog aOSCBLevel = Analog("OSC B", 0, 1, 0, true, logMap, &iOSCBLevel);
@@ -352,6 +352,11 @@ class Mixer : public BaseModule {
     RenderBuffer subLevelLadder;
     RenderBuffer noiseLevelSteiner;
     RenderBuffer noiseLevelLadder;
+
+    RenderBuffer oscALevel;
+    RenderBuffer oscBLevel;
+    RenderBuffer subLevel;
+    RenderBuffer noiseLevel;
 };
 
 class Steiner : public BaseModule {
@@ -375,14 +380,14 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&cutoff);
         renderBuffer.push_back(&toLadder);
     }
-    Input iCutoff = Input("CUTOFF");
-    Input iResonance = Input("RESONANCE");
-    Input iLevel = Input("LEVEL");
+    Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
+    Input iResonance = Input("RESONANCE", "RES", &resonance);
+    Input iLevel = Input("LEVEL", "LEVEL", &level);
 
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
-    Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
+    Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, antilogMap);
     Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
@@ -412,13 +417,13 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&cutoff);
     }
 
-    Input iCutoff = Input("CUTOFF");
-    Input iResonance = Input("RESONANCE");
-    Input iLevel = Input("LEVEL");
+    Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
+    Input iResonance = Input("RESONANCE", "RES", &resonance);
+    Input iLevel = Input("LEVEL", "LEVEL", &level);
 
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
-    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
+    Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
     Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
@@ -450,9 +455,9 @@ class LFO : public BaseModule {
     }
     Output out = Output("OUT");
 
-    Input iFreq = Input("FM", logMap);
-    Input iShape = Input("SHAPE");
-    Input iAmount = Input("AMOUNT");
+    Input iFreq = Input("FM", "FM", &frequency);
+    Input iShape = Input("SHAPE", "SHAPE", &shape);
+    Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
     Analog aFreq = Analog("FREQ", 0, 1, 0.6, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
@@ -465,6 +470,10 @@ class LFO : public BaseModule {
     Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
+
+    RenderBuffer frequency;
+    RenderBuffer shape;
+    RenderBuffer amount;
 
     vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
@@ -528,18 +537,18 @@ class ADSR : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iDelay = Input("DELAY");
-    Input iAttack = Input("ATTACK");
-    Input iDecay = Input("DECAY");
-    Input iSustain = Input("SUSTAIN");
-    Input iRelease = Input("RELEASE");
-    Input iAmount = Input("AMOUNT");
+    Input iDelay = Input("DELAY", "DELAY");
+    Input iAttack = Input("ATTACK", "ATTACK");
+    Input iDecay = Input("DECAY", "DECAY");
+    Input iSustain = Input("SUSTAIN", "SUSTAIN");
+    Input iRelease = Input("RELEASE", "RELEASE");
+    Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
-    Analog aDelay = Analog("DELAY", 0, 10, 0, true, logMap, &iDelay);
-    Analog aAttack = Analog("ATTACK", 0.001, 10, 0.1, true, logMap, &iAttack);
-    Analog aDecay = Analog("DECAY", 0.001, 10, 0.1, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.5, true, antilogMap, &iSustain);
-    Analog aRelease = Analog("RELEASE", 0.001, 10, 0.1, true, logMap, &iRelease);
+    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap, &iDelay);
+    Analog aAttack = Analog("ATTACK", 0.001, 200, 5, true, logMap, &iAttack);
+    Analog aDecay = Analog("DECAY", 0.005, 200, 5, true, logMap, &iDecay);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, antilogMap, &iSustain);
+    Analog aRelease = Analog("RELEASE", 0.001, 200, 5, true, logMap, &iRelease);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
@@ -550,9 +559,11 @@ class ADSR : public BaseModule {
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dGateTrigger = Digital("GATE", 0, 1, 0, true, &nlOnOff, nullptr);
+    Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr);
     Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
+
+    RenderBuffer amount;
 
     inline void resetPhase(uint32_t voice) {
         if (dReset)
@@ -657,13 +668,13 @@ class Feel : public BaseModule {
         renderBuffer.push_back(&detune);
     }
 
-    Input iGlide = Input("GLIDE");
-    Input iDetune = Input("DETUNE");
+    Input iGlide = Input("GLIDE", "GLIDE");
+    Input iDetune = Input("DETUNE", "DETUNE");
 
     Output oSpread = Output("SPREAD");
 
-    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, logMap);
-    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, logMap);
+    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true);
+    Analog aDetune = Analog("DETUNE", 0, 1, 0, true);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
     Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.5, true, linMap);
 
@@ -692,15 +703,15 @@ class Out : public BaseModule {
         renderBuffer.push_back(&right);
     }
 
-    Input iDistort = Input("DRIVE");
-    Input iVCA = Input("VCA", logMap);
-    Input iPan = Input("PAN");
+    Input iDistort = Input("DRIVE", "DRIVE");
+    Input iVCA = Input("VCA", "VCA");
+    Input iPan = Input("PAN", "PAN");
 
     Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aADSR = Analog("ADSR", -1, 1, 1, true, linMap);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
-    Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true, logMap);
+    Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true);
     Analog aMaster = Analog("MASTER", 0, 1, 0.8, true, linMap);
 
     RenderBuffer left;

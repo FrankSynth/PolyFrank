@@ -105,7 +105,7 @@ class Layer {
 
     void initLayer();
 
-    uint8_t chipID;
+    volatile uint8_t chipID = 0;
 
 #endif
 

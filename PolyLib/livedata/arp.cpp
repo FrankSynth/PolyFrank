@@ -158,7 +158,7 @@ void Arpeggiator::restart() {
 }
 
 void Arpeggiator::orderKeys() {
-    println(micros(), " - ordered");
+    // println(micros(), " - ordered");
     orderedKeys.clear();
 
     for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {

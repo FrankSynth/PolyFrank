@@ -15,6 +15,7 @@ extern uint32_t cClear;
 extern uint32_t cBlack;
 extern uint32_t cGrey;
 
+extern uint32_t cGreyLight2;
 extern uint32_t cGreyLight;
 extern uint32_t cGreyDark;
 
@@ -23,6 +24,9 @@ extern uint32_t cWhiteLight;
 extern uint32_t cWhiteMedium;
 extern uint32_t cHighlight;
 extern uint32_t cWhiteBright;
+
+extern uint32_t cBlue;
+extern uint32_t cRed;
 
 extern uint32_t cPatch;
 extern uint32_t cWarning;

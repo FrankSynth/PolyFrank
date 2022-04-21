@@ -133,6 +133,46 @@ class Setting : public DataElement {
     const std::string &getValueAsString();
 };
 
+/**
+ * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
+ *
+ */
+class RenderBuffer {
+  public:
+    RenderBuffer() {
+        // currentSample = sample;
+        // nextSample = &sample[1];
+    }
+
+    void updateToNextSample() {
+        vec<VOICESPERCHIP> temp = currentSample;
+        currentSample = nextSample;
+        nextSample = temp;
+    }
+
+    // vec<VOICESPERCHIP> sample[2];
+    vec<VOICESPERCHIP> currentSample;
+    vec<VOICESPERCHIP> nextSample;
+
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
+
+    // returns from currentSample
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
+
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
+
+    // assigns to nextSample
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
+
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
+};
+
 class Input;
 
 // derived class Poti
@@ -368,6 +408,7 @@ class BasePatch {
     uint8_t visible;
     uint8_t idGlobal;
     std::string name;
+    std::string shortName;
 
     typeLinLog mapping = linMap;
 
@@ -376,15 +417,27 @@ class BasePatch {
 
 class Input : public BasePatch {
   public:
-    Input(const char *name, typeLinLog mapping = linMap, uint8_t visible = 1) {
+    Input(const char *name, const char *shortName = nullptr, RenderBuffer *renderBuffer = nullptr,
+          typeLinLog mapping = linMap, uint8_t visible = 1) {
         this->name = name;
+
+        if (shortName == nullptr) {
+
+            this->shortName = name;
+        }
+        else {
+            this->shortName = shortName;
+        }
         this->mapping = mapping;
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
         this->visible = visible;
+
+        this->renderBuffer = renderBuffer;
     }
 
     vec<VOICESPERCHIP> sample;
 
+    RenderBuffer *renderBuffer;
     float &operator[](int i) { return sample[i]; }
     const float &operator[](int i) const { return sample[i]; }
 
@@ -407,8 +460,17 @@ class Input : public BasePatch {
 
 class Output : public BasePatch {
   public:
-    Output(const char *name, uint8_t visible = 1) {
+    Output(const char *name, const char *shortName = nullptr, uint8_t visible = 1) {
         this->name = name;
+
+        if (shortName == nullptr) {
+
+            this->shortName = name;
+        }
+        else {
+            this->shortName = shortName;
+        }
+
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
 
         this->visible = visible;
@@ -475,46 +537,6 @@ class ID {
 
   private:
     uint8_t idCounter = 0;
-};
-
-/**
- * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
- *
- */
-class RenderBuffer {
-  public:
-    RenderBuffer() {
-        // currentSample = sample;
-        // nextSample = &sample[1];
-    }
-
-    void updateToNextSample() {
-        vec<VOICESPERCHIP> temp = currentSample;
-        currentSample = nextSample;
-        nextSample = temp;
-    }
-
-    // vec<VOICESPERCHIP> sample[2];
-    vec<VOICESPERCHIP> currentSample;
-    vec<VOICESPERCHIP> nextSample;
-
-    operator float *() { return currentSample; }
-    operator const float *() const { return currentSample; }
-
-    // returns from currentSample
-    float &operator[](int i) { return (currentSample)[i]; }
-    const float &operator[](int i) const { return (currentSample)[i]; }
-
-    operator vec<VOICESPERCHIP> &() { return (currentSample); }
-    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
-
-    // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
-
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
 };
 
 class I2CBuffer {
