@@ -1,5 +1,6 @@
 
 #include "renderWaveshaper.hpp"
+#include "math/polyMath.hpp"
 
 #ifdef POLYRENDER
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "layer/layer.hpp"
-#include "math/polyMath.hpp"
 
 #ifdef POLYRENDER
 
