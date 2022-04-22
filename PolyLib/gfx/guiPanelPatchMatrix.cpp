@@ -10,17 +10,17 @@ void GUIPanelPatchMatrix::registerElements() {
     Input *in;
 
     for (uint16_t x = 0; x < MATRIXCOLUMN; x++) {
-        if ((x + scrollOut.offset) < allOutputs.size()) {
+        if ((x + scrollOut.offset) < (int16_t)allOutputs.size()) {
             panelElementsOut[x].addEntry(allOutputs[x + scrollOut.offset]);
         }
     }
 
     for (uint16_t y = 0; y < MATRIXROWS; y++) {
-        if ((y + scrollIn.offset) < allInputs.size()) {
+        if ((y + scrollIn.offset) < (int16_t)allInputs.size()) {
             in = allInputs[y + scrollIn.offset];
             panelElementsIn[y].addEntry(in);
             for (uint16_t x = 0; x < MATRIXCOLUMN; x++) {
-                if ((x + scrollOut.offset) < allOutputs.size()) {
+                if ((x + scrollOut.offset) < (int16_t)allOutputs.size()) {
                     out = allOutputs[x + scrollOut.offset];
                     panelElementsPatch[x][y].addEntry(nullptr);
                     for (uint16_t i = 0; i < in->getPatchesInOut().size(); i++) {
@@ -35,7 +35,7 @@ void GUIPanelPatchMatrix::registerElements() {
     }
 
     for (uint16_t y = 0; y < MATRIXROWS; y++) {
-        if ((y + scrollModule.offset) < allModules.size()) {
+        if ((y + scrollModule.offset) < (int16_t)allModules.size()) {
             panelElementsModule[y].addEntry(allModules[y + scrollModule.offset]);
         }
     }
@@ -112,7 +112,7 @@ void GUIPanelPatchMatrix::collectOutputs() {
     }
     else {
         for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-            if (output->moduleId != allLayers[currentFocus.layer]->midi.id){
+            if (output->moduleId != allLayers[currentFocus.layer]->midi.id) {
                 if (output->visible) {
                     if (filteredView) {
                         if (output->patchesInOut.size())

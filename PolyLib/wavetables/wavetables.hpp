@@ -14,7 +14,9 @@
 
 class WaveTable;
 
+#ifdef POLYRENDER
 extern std::vector<const WaveTable *> wavetables;
+#endif
 extern std::vector<std::string> nlWavetable;
 
 class WaveTable {
@@ -27,22 +29,15 @@ class WaveTable {
     const float *data;
     const char *name;
 
-    operator std::string() const { return name; }
-
-    WaveTable() {
-        wavetables.push_back(this);
-        nlWavetable.push_back(*this);
-    }
     WaveTable(uint32_t size, const float *data, const char *name) {
         this->size = size;
         this->data = data;
         this->name = name;
-
-        wavetables.push_back(this);
-        nlWavetable.push_back(*this);
     }
     ~WaveTable() {}
 };
+
+void initWavetables();
 
 extern const WaveTable wavetable_FeltPianoLow;
 extern const WaveTable wavetable_GuitarHigh;

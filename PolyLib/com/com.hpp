@@ -366,8 +366,8 @@ class COMinterChip {
     uint8_t *dmaInBufferPointer[2];
     uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
 
-    uint8_t currentInBufferSelect = 0;
-    uint8_t currentOutBufferSelect = 0;
+    uint32_t currentInBufferSelect = 0;
+    uint32_t currentOutBufferSelect = 0;
 
     void switchInBuffer();
     void switchOutBuffer();

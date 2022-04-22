@@ -77,8 +77,8 @@ midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
 
 // Layer
 ID layerId;
-Layer layerA(layerId.getNewId());
-Layer layerB(layerId.getNewId());
+RAM1 Layer layerA(layerId.getNewId());
+RAM1 Layer layerB(layerId.getNewId());
 
 uint8_t sendRequestUIData();
 
@@ -90,6 +90,8 @@ void temperature();
 void deviceConfig();
 
 void PolyControlInit() {
+
+    initWavetables();
 
     // Layer
     allLayers.push_back(&layerA);
@@ -169,6 +171,9 @@ void PolyControlInit() {
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
+
+    HAL_Delay(100);
+
     // Midi configuration
     midiConfig();
 

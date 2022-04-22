@@ -555,7 +555,7 @@ class ADSR : public BaseModule {
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
-    Digital dClockSnapped = Digital("SNAP", 0, 22, 0, false, &nlClockSteps);
+    // Digital dClockSnapped = Digital("SNAP", 0, 22, 0, false, &nlClockSteps);
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);

@@ -20,7 +20,8 @@ void renderWaveshaper(Waveshaper &waveshaper) {
 
 vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input) {
     vec<VOICESPERCHIP> sign = getSign(input);
-    vec<VOICESPERCHIP> abovePoint1 = (input > layerA.waveshaper.Point1X);
+    vec<VOICESPERCHIP> inputAbs = input * sign;
+    vec<VOICESPERCHIP> abovePoint1 = (inputAbs > layerA.waveshaper.Point1X);
     vec<VOICESPERCHIP> lowerBoundX = layerA.waveshaper.Point1X * abovePoint1;
     vec<VOICESPERCHIP> lowerBoundY = layerA.waveshaper.Point1Y * abovePoint1;
     vec<VOICESPERCHIP> upperBoundX = max(layerA.waveshaper.Point1X, abovePoint1);
@@ -28,7 +29,7 @@ vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input) {
     vec<VOICESPERCHIP> shape =
         layerA.waveshaper.aLowerShape * !abovePoint1 + layerA.waveshaper.aUpperShape * abovePoint1;
 
-    vec<VOICESPERCHIP> sample = fastMap(input * sign, lowerBoundX, upperBoundX, 0.0f, 1.0f);
+    vec<VOICESPERCHIP> sample = fastMap(inputAbs, lowerBoundX, upperBoundX, 0.0f, 1.0f);
     sample = calcSquircleSimplified(sample, shape);
     sample = fastMap(sample, 0.0f, 1.0f, lowerBoundY, upperBoundY) * sign;
 
@@ -38,14 +39,15 @@ vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input) {
 
 float renderWaveshaperSample(float input, const Layer &layer) {
     float sign = getSign(input);
-    float abovePoint1 = (input > layer.waveshaper.Point1X[0]);
+    float inputAbs = input * sign;
+    float abovePoint1 = (inputAbs > layer.waveshaper.Point1X[0]);
     float lowerBoundX = layer.waveshaper.Point1X[0] * abovePoint1;
     float lowerBoundY = layer.waveshaper.Point1Y[0] * abovePoint1;
     float upperBoundX = std::max(layer.waveshaper.Point1X[0], abovePoint1);
     float upperBoundY = std::max(layer.waveshaper.Point1Y[0], abovePoint1);
     float shape = layer.waveshaper.aLowerShape * !abovePoint1 + layer.waveshaper.aUpperShape * abovePoint1;
 
-    float sample = fastMap(input * sign, lowerBoundX, upperBoundX, 0.0f, 1.0f);
+    float sample = fastMap(inputAbs * sign, lowerBoundX, upperBoundX, 0.0f, 1.0f);
     sample = calcSquircleSimplified(sample, shape);
     sample = fastMap(sample, 0.0f, 1.0f, lowerBoundY, upperBoundY) * sign;
 

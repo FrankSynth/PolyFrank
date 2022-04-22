@@ -106,6 +106,10 @@ void PolyRenderInit() {
     FlagHandler::outputCollectFunc = outputCollect;
 }
 
+elapsedMicros audiorendertimer = 0;
+uint32_t audiorendercounter = 0;
+uint32_t audiorendercache = 0;
+
 void PolyRenderRun() {
 
     println("////////// Hi, it's Render. PolyFrank Render. //////////");
@@ -240,33 +244,28 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
         cvDac[3].resetLatchPin();
 }
 
-elapsedMicros audiotimer = 0;
-uint32_t counter = 0;
-uint32_t cache = 0;
-
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-    audiotimer = 0;
+    audiorendertimer = 0;
     renderAudio(&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 
-    cache += audiotimer;
-    counter++;
+    audiorendercache += audiorendertimer;
+    audiorendercounter++;
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-    audiotimer = 0;
+    audiorendertimer = 0;
     renderAudio(saiBuffer);
 
-    cache += audiotimer;
-    counter++;
+    audiorendercache += audiorendertimer;
+    audiorendercounter++;
 
-    if (counter > 5000) {
-        sendString(std::to_string((float)cache / (float)counter));
-
-        counter = 0;
-        cache = 0;
+    if (audiorendercounter > 5000) {
+        sendString(std::to_string((float)audiorendercache / (float)audiorendercounter));
+        audiorendercounter = 0;
+        audiorendercache = 0;
     }
 }
 

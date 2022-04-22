@@ -164,7 +164,7 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
     comCommand[2] = note;
     comCommand[3] = velocity;
 
-    println(voiceID);
+    // println(voiceID);
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
@@ -449,10 +449,21 @@ busState COMinterChip::beginSendTransmission() {
 
     if (!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
           HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) {
-        println("blocked send");
+        // println("blocked send");
         return BUS_BUSY;
     }
 
+//  if (((!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
+//          HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) &&
+//       layerA.layerState.value) ||
+//
+//      ((!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
+//          HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_2_Pin))) &&
+//       layerB.layerState.value)) {
+//      println("blocked send");
+//      return BUS_BUSY;
+//  }
+//
 #endif
 
     switchOutBuffer();
@@ -769,6 +780,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
             case SENDUPDATETOCONTROL: {
                 // println("send trans");
+                if (FlagHandler::outputReady == false) {
+                    sendString("out not collected");
+                }
+
                 if (beginSendTransmission() != BUS_OK)
                     PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
                 FlagHandler::outputCollect = true; // collect next Sample packet;
@@ -798,6 +813,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 for (uint8_t m = 0; m < messagesize; m++) {
                     messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
                 }
+
+                print("layer ", receiveLayer);
+                println(", chip ", receiveChip, ":");
+                println(messagebuffer);
 
                 break;
             }
@@ -924,8 +943,9 @@ uint8_t COMinterChip::appendLastByte() {
     uint8_t comCommand[LASTBYTECMDSIZE];
     comCommand[0] = LASTBYTE;
     // buffer has been switched already
+    __disable_irq();
     outBuffer[!currentOutBufferSelect].push_back(comCommand[0]);
-
+    __enable_irq();
     return 0;
 }
 
@@ -943,8 +963,9 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
             return ret;
         }
     }
-
+    __disable_irq();
     outBuffer[currentOutBufferSelect].push_back(data);
+    __enable_irq();
     return 0;
 }
 
@@ -956,10 +977,12 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
             return ret;
         }
     }
-
+    __disable_irq();
     for (uint32_t i = 0; i < length; i++) {
         outBuffer[currentOutBufferSelect].push_back(data[i]);
     }
+    __enable_irq();
+
     return 0;
 }
 
@@ -1022,7 +1045,7 @@ busState COMinterChip::invokeBufferFullSend() {
     if (ret != BUS_OK) {
         elapsedMillis timer = 0;
         while (ret != BUS_OK) { // wait...
-            if (timer > 13000) {
+            if (timer > 1000) {
                 resetCom();
                 return BUS_OK;
             }

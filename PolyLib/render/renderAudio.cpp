@@ -97,6 +97,8 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
  */
 void loadInitialWavetables() {
 
+    initWavetables();
+
     switchOscAWavetable(0, wavetables[0]);
     switchOscAWavetable(1, wavetables[0]);
     switchOscAWavetable(2, wavetables[0]);
@@ -254,7 +256,7 @@ inline vec<VOICESPERCHIP> getOscASample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    // newSample = renderWaveshaperSample(newSample);
+    newSample = renderWaveshaperSample(newSample);
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -344,7 +346,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    // newSample = renderWaveshaperSample(newSample);
+    newSample = renderWaveshaperSample(newSample);
 
     newSample = bitcrush(bitcrusher, newSample);
 
