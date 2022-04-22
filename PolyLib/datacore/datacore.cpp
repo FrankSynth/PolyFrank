@@ -7,6 +7,8 @@ LogCurve antiLogMapping(64, 0.9);
 void Setting::setValue(int32_t newValue) {
     value = std::clamp(newValue, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
@@ -14,8 +16,6 @@ void Setting::setValue(int32_t newValue) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 const std::string &Setting::getValueAsString() {
@@ -48,14 +48,15 @@ void Analog::setValue(int32_t newValue) {
         valueMapped = antiLogMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 int32_t Analog::reverseMapping(float newValue) {
@@ -110,53 +111,54 @@ void Digital::setValue(int32_t newValue) {
     this->value = newValue;
     valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::nextValue() {
     valueMapped = changeInt(valueMapped, 1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::nextValueLoop() {
     valueMapped = changeIntLoop(valueMapped, 1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::previousValue() {
     valueMapped = changeInt(valueMapped, -1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void BasePatch::removePatchInOut(PatchElement &patch) {

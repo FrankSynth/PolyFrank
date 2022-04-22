@@ -79,11 +79,48 @@ void layer1lfoB() {
     lfoFreqSnap(1, allLayers[1]->lfoB);
 }
 
+void layer0WaveShaperX1() {
+    allLayers[0]->waveshaper.aPoint1X.valueMapped =
+        std::min((float)allLayers[0]->waveshaper.aPoint1X, allLayers[0]->waveshaper.aPoint2X - 0.001f);
+}
+void layer0WaveShaperX2() {
+    allLayers[0]->waveshaper.aPoint2X.valueMapped =
+        std::min((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - 0.001f);
+    allLayers[0]->waveshaper.aPoint2X.valueMapped =
+        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint1X + 0.001f);
+}
+void layer0WaveShaperX3() {
+    allLayers[0]->waveshaper.aPoint3X.valueMapped =
+        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - 0.001f);
+}
+
+void layer1WaveShaperX1() {
+    allLayers[1]->waveshaper.aPoint1X.valueMapped =
+        std::min((float)allLayers[1]->waveshaper.aPoint1X, allLayers[1]->waveshaper.aPoint2X - 0.001f);
+}
+void layer1WaveShaperX2() {
+    allLayers[1]->waveshaper.aPoint2X.valueMapped =
+        std::min((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - 0.001f);
+    allLayers[1]->waveshaper.aPoint2X.valueMapped =
+        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint1X + 0.001f);
+}
+void layer1WaveShaperX3() {
+    allLayers[1]->waveshaper.aPoint3X.valueMapped =
+        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - 0.001f);
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(layer0lfoA);
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(layer0lfoB);
     allLayers[1]->lfoA.dFreqSnap.setValueChangedCallback(layer1lfoA);
     allLayers[1]->lfoB.dFreqSnap.setValueChangedCallback(layer1lfoB);
+
+    allLayers[0]->waveshaper.aPoint1X.setValueChangedCallback(layer0WaveShaperX1);
+    allLayers[0]->waveshaper.aPoint2X.setValueChangedCallback(layer0WaveShaperX2);
+    allLayers[0]->waveshaper.aPoint3X.setValueChangedCallback(layer0WaveShaperX3);
+    allLayers[1]->waveshaper.aPoint1X.setValueChangedCallback(layer1WaveShaperX1);
+    allLayers[1]->waveshaper.aPoint2X.setValueChangedCallback(layer1WaveShaperX2);
+    allLayers[1]->waveshaper.aPoint3X.setValueChangedCallback(layer1WaveShaperX3);
 }
 
 #endif

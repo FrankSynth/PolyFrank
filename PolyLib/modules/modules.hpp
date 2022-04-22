@@ -369,7 +369,7 @@ class Steiner : public BaseModule {
 
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
-        knobs.push_back(&aADSR);
+        // knobs.push_back(&aADSR);
         knobs.push_back(&aLevel);
         knobs.push_back(&aParSer);
 
@@ -388,7 +388,7 @@ class Steiner : public BaseModule {
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, antilogMap);
-    Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
+    // Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes);
 
@@ -407,7 +407,7 @@ class Ladder : public BaseModule {
 
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
-        knobs.push_back(&aADSR);
+        // knobs.push_back(&aADSR);
         knobs.push_back(&aLevel);
 
         switches.push_back(&dSlope);
@@ -424,7 +424,7 @@ class Ladder : public BaseModule {
     Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, antilogMap, &iLevel);
-    Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
+    // Analog aADSR = Analog("ADSR", -1, 1, 0, true, linMap);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 0, true, &nlLadderSlopes);
 
@@ -526,7 +526,6 @@ class ADSR : public BaseModule {
         knobs.push_back(&aVelocity);
         knobs.push_back(&aShape);
 
-        switches.push_back(&dClockSnapped);
         switches.push_back(&dLoop);
         switches.push_back(&dLatch);
         switches.push_back(&dReset);
@@ -549,13 +548,12 @@ class ADSR : public BaseModule {
     Analog aDecay = Analog("DECAY", 0.005, 200, 5, true, logMap, &iDecay);
     Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, antilogMap, &iSustain);
     Analog aRelease = Analog("RELEASE", 0.001, 200, 5, true, logMap, &iRelease);
-    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
+    Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap);
 
-    // Digital dClockSnapped = Digital("SNAP", 0, 22, 0, false, &nlClockSteps);
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
@@ -724,41 +722,77 @@ class Waveshaper : public BaseModule {
   public:
     Waveshaper(const char *name, const char *shortName) : BaseModule(name, shortName) {
 
-        inputs.push_back(&iLowerShape);
-        inputs.push_back(&iUpperShape);
+        inputs.push_back(&iShape1);
+        inputs.push_back(&iShape2);
+        inputs.push_back(&iShape3);
+        inputs.push_back(&iShape4);
         inputs.push_back(&iPoint1X);
         inputs.push_back(&iPoint1Y);
+        inputs.push_back(&iPoint2X);
+        inputs.push_back(&iPoint2Y);
+        inputs.push_back(&iPoint3X);
+        inputs.push_back(&iPoint3Y);
         inputs.push_back(&iDryWet);
 
-        knobs.push_back(&aLowerShape);
-        knobs.push_back(&aUpperShape);
+        knobs.push_back(&aShape1);
+        knobs.push_back(&aShape2);
+        knobs.push_back(&aShape3);
+        knobs.push_back(&aShape4);
         knobs.push_back(&aPoint1X);
         knobs.push_back(&aPoint1Y);
+        knobs.push_back(&aPoint2X);
+        knobs.push_back(&aPoint2Y);
+        knobs.push_back(&aPoint3X);
+        knobs.push_back(&aPoint3Y);
         knobs.push_back(&aDryWet);
 
-        renderBuffer.push_back(&LowerShape);
-        renderBuffer.push_back(&UpperShape);
+        renderBuffer.push_back(&shape1);
+        renderBuffer.push_back(&shape2);
+        renderBuffer.push_back(&shape3);
+        renderBuffer.push_back(&shape4);
         renderBuffer.push_back(&Point1X);
         renderBuffer.push_back(&Point1Y);
+        renderBuffer.push_back(&Point2X);
+        renderBuffer.push_back(&Point2Y);
+        renderBuffer.push_back(&Point3X);
+        renderBuffer.push_back(&Point3Y);
         renderBuffer.push_back(&DryWet);
     }
 
-    Input iLowerShape = Input("Shape 1");
-    Input iUpperShape = Input("Shape 2");
+    Input iShape1 = Input("Shape 1");
+    Input iShape2 = Input("Shape 2");
+    Input iShape3 = Input("Shape 3");
+    Input iShape4 = Input("Shape 4");
     Input iPoint1X = Input("P1 X");
     Input iPoint1Y = Input("P1 Y");
+    Input iPoint2X = Input("P2 X");
+    Input iPoint2Y = Input("P2 Y");
+    Input iPoint3X = Input("P3 X");
+    Input iPoint3Y = Input("P3 Y");
     Input iDryWet = Input("Dry/Wet");
 
-    Analog aLowerShape = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iLowerShape);
-    Analog aUpperShape = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iUpperShape);
-    Analog aPoint1X = Analog("P1 X", 0, 1, 0.5, true, linMap, &iPoint1X);
+    Analog aShape1 = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape1);
+    Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
+    Analog aShape3 = Analog("Shape 3", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape3);
+    Analog aShape4 = Analog("Shape 4", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape4);
+    Analog aPoint1X = Analog("P1 X", 0, 0.998F, 0.5, true, linMap, &iPoint1X);
     Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.5, true, linMap, &iPoint1Y);
+    Analog aPoint2X = Analog("P2 X", 0.001F, 0.999F, 0.5, true, linMap, &iPoint2X);
+    Analog aPoint2Y = Analog("P2 Y", 0, 1, 0.5, true, linMap, &iPoint2Y);
+    Analog aPoint3X = Analog("P3 X", 0.002F, 1, 0.5, true, linMap, &iPoint3X);
+    Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.5, true, linMap, &iPoint3Y);
     Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
 
-    RenderBuffer LowerShape;
-    RenderBuffer UpperShape;
+    RenderBuffer shape1;
+    RenderBuffer shape2;
+    RenderBuffer shape3;
+    RenderBuffer shape4;
     RenderBuffer Point1X;
     RenderBuffer Point1Y;
+    RenderBuffer Point2X;
+    RenderBuffer Point2Y;
+    RenderBuffer Point3X;
+    RenderBuffer Point3Y;
     RenderBuffer DryWet;
 };
 

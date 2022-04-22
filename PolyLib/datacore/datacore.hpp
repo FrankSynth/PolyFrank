@@ -239,11 +239,7 @@ class Analog : public DataElement {
 
     int32_t reverseMapping(float newValue);
 
-    inline void changeValue(int32_t change) {
-        setValue(value + change);
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-    }
+    inline void changeValue(int32_t change) { setValue(value + change); }
 
     // FIXME calc mit ROTARYENCODERACCELERATION float oder int?
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
@@ -257,20 +253,18 @@ class Analog : public DataElement {
         if (direction == 1) {
             setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
         }
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
     }
 
     inline void setValueWithoutMapping(float newValue) {
         valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
 #ifdef POLYCONTROL
         valueName = std::to_string(valueMapped);
         if (sendOutViaCom) {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
     }
 
     const std::string &getValueAsString();
@@ -333,21 +327,21 @@ class Digital : public DataElement {
 
     inline void setValueWithoutMapping(int32_t newValue) {
         valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
 #ifdef POLYCONTROL
         valueName = std::to_string(valueMapped);
         if (sendOutViaCom) {
             sendSetting(layerId, moduleId, id, valueMapped);
         }
 #endif
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
     }
-    inline void setValueWithoutMapping(uint8_t *newValue) {
-        valueMapped = *(int32_t *)newValue;
+    // inline void setValueWithoutMapping(uint8_t *newValue) {
+    //     valueMapped = *(int32_t *)newValue;
 
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-    }
+    //     if (valueChangedCallback != nullptr)
+    //         valueChangedCallback();
+    // }
 
     const std::string &getValueAsString();
     const std::vector<std::string> *valueNameList; // custom Name List for different Values

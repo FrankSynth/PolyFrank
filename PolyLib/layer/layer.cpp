@@ -92,7 +92,7 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     patchesInOut.push_back(PatchElement(sourceOut, targetIn, id));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
-    patchesInOut.back().setAmount(0.2);
+    patchesInOut.back().setAmount(amount);
 
 #ifdef POLYCONTROL
     sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, amount);
@@ -161,6 +161,11 @@ void Layer::clearPatches() {
 
 #ifdef POLYCONTROL
     sendDeleteAllPatches(id);
+
+    // TODO temp patches
+    addPatchInOut(envA.out, out.iVCA, 1.0f);
+    addPatchInOut(envF.out, steiner.iCutoff, 1.0f);
+    addPatchInOut(envF.out, ladder.iCutoff, 1.0f);
 #endif
 }
 
