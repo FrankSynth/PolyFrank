@@ -19,6 +19,7 @@ void Layer::initID() {
         m->layerId = this->id;
         ID digitalID;
         ID analogID;
+        ID renderBufferID;
 
         ID inputLocalID;
         ID outputLocalID;
@@ -35,7 +36,7 @@ void Layer::initID() {
         }
 
         // collect Inputs
-        for (Input *i : m->getInputs()) { // for all Output
+        for (Input *i : m->getInputs()) { // for all Inputs
             inputs.push_back(i);
             i->id = inputLocalID.getNewId();
             i->idGlobal = inputID.getNewId();
@@ -49,6 +50,12 @@ void Layer::initID() {
             o->idGlobal = outputID.getNewId();
             o->moduleId = m->id;
             o->layerId = this->id;
+        }
+
+        for (RenderBuffer *r : m->getRenderBuffer()) { // for all Renderbuffer
+            r->id = renderBufferID.getNewId();
+            r->moduleId = m->id;
+            r->layerId = this->id;
         }
     }
 }

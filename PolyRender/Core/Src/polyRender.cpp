@@ -283,7 +283,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         if (layerCom.spi->state == BUS_SEND) {
             HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
             layerCom.spi->callTxComplete();
-            FlagHandler::outputCollect = true; // collect next Sample packet;
         }
 
         if (layerCom.spi->state == BUS_RECEIVE) {
@@ -469,31 +468,24 @@ void outputCollect() {
             sendOutput(o->moduleId, o->id, (float)o->currentSample[0]); // send only first Voice
         }
         for (BaseModule *m : layerA.modules) {
-            int16_t i = 0;
             for (RenderBuffer *r : m->renderBuffer) {
 
                 if (m->id == layerA.out.id) {
-                    for (int v = 0; v < VOICESPERCHIP; v++) {
-                        sendRenderbufferVoice(m->id, i, v, (float)r->currentSample[v]); // send only first Voice}
+                    for (uint32_t v = 0; v < VOICESPERCHIP; v++) {
+                        sendRenderbufferVoice(m->id, r->id, v, r->currentSample[v]); // send all voices
                     }
                 }
                 else {
-                    sendRenderbuffer(m->id, i, (float)r->currentSample[0]); // send only first Voice
+                    sendRenderbuffer(m->id, r->id, r->currentSample[0]); // send only first Voice
                 }
-
-                i++;
             }
         }
     }
-    if (layerA.chipID == 1) {
-        int16_t i = 0;
-
+    else if (layerA.chipID == 1) {
         for (RenderBuffer *r : layerA.out.renderBuffer) {
-            for (int v = 0; v < VOICESPERCHIP; v++) {
-                sendRenderbufferVoice(layerA.out.id, i, v + VOICESPERCHIP,
-                                      (float)r->currentSample[v]); // send only first Voice}
+            for (uint32_t v = 0; v < VOICESPERCHIP; v++) {
+                sendRenderbufferVoice(layerA.out.id, r->id, v + VOICESPERCHIP, r->currentSample[v]); // send all voices
             }
-            i++;
         }
     }
 }

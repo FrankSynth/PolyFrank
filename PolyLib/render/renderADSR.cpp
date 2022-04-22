@@ -42,7 +42,6 @@ inline float calcDRRatio(float shape) {
  */
 void renderADSR(ADSR &adsr) {
 
-    // TODO bezier
     float delay, decay, attack, release;
     const int32_t &loop = adsr.dLoop.valueMapped;
     const float &shape = adsr.aShape;
@@ -60,7 +59,6 @@ void renderADSR(ADSR &adsr) {
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
-        // float &nextSample = level[voice];
         float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
         const bool &gate = adsr.gate[voice];
@@ -103,7 +101,6 @@ void renderADSR(ADSR &adsr) {
                 attackCoef = calcCoef(attackRate, targetRatioA);
                 attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
 
-                // level = fast_lerp_f32(attackBase + level * attackCoef, level + SECONDSPERCVRENDER / attack, shape);
                 level = attackBase + level * attackCoef;
 
                 if (level >= 1.0f) {
@@ -116,8 +113,6 @@ void renderADSR(ADSR &adsr) {
 
                 if (gate == 0 && loop == 0 && retriggered == 0)
                     adsr.setStatusRelease(voice);
-
-                // level = simpleBezier1D(shape, currentTime);
 
                 break;
 
@@ -139,7 +134,6 @@ void renderADSR(ADSR &adsr) {
                     adsr.setStatusRelease(voice);
                 }
 
-                // level = bezier1D(1.0f, fast_lerp_f32(1.0f, sustain, shape), sustain, currentTime);
                 break;
 
             case adsr.SUSTAIN:

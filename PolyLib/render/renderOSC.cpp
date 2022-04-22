@@ -15,9 +15,9 @@ inline vec<VOICESPERCHIP> accumulateSamplecrusher(const OSC_A &osc_a) {
 inline vec<VOICESPERCHIP> accumulateMorph(const OSC_A &osc_a) {
     return clamp(osc_a.iMorph + osc_a.aMorph, osc_a.aMorph.min, osc_a.aMorph.max);
 }
-inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_A &osc_a) {
-    return clamp(osc_a.iSquircle + osc_a.aSquircle, osc_a.aSquircle.min, osc_a.aSquircle.max);
-}
+// inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_A &osc_a) {
+//     return clamp(osc_a.iSquircle + osc_a.aSquircle, osc_a.aSquircle.min, osc_a.aSquircle.max);
+// }
 inline vec<VOICESPERCHIP> accumulateOctave(const OSC_A &osc_a) {
     return clamp(round(osc_a.iOctave + (float)osc_a.dOctave), osc_a.dOctave.min, osc_a.dOctave.max);
 }
@@ -63,7 +63,7 @@ void renderOSC_A(OSC_A &osc_A) {
     osc_A.morph = accumulateMorph(osc_A);
     osc_A.bitcrusher = accumulateBitcrusher(osc_A);
     osc_A.samplecrusher = accumulateSamplecrusher(osc_A);
-    osc_A.squircle = accumulateSquircle(osc_A);
+    // osc_A.squircle = accumulateSquircle(osc_A);
 }
 
 ///////////////////////////// OSC B /////////////////////////////////
@@ -85,9 +85,9 @@ inline vec<VOICESPERCHIP> accumulateOctave(const OSC_B &osc_b) {
 inline vec<VOICESPERCHIP> accumulatePhaseoffset(const OSC_B &osc_b) {
     return osc_b.iPhaseOffset + osc_b.aPhaseoffset;
 }
-inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_B &osc_b) {
-    return clamp(osc_b.iSquircle + osc_b.aSquircle, osc_b.aSquircle.min, osc_b.aSquircle.max);
-}
+// inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_B &osc_b) {
+//     return clamp(osc_b.iSquircle + osc_b.aSquircle, osc_b.aSquircle.min, osc_b.aSquircle.max);
+// }
 
 inline vec<VOICESPERCHIP> accumulateNote(const OSC_B &osc_b) {
 
@@ -129,7 +129,7 @@ void renderOSC_B(OSC_B &osc_B) {
     osc_B.bitcrusher = accumulateBitcrusher(osc_B);
     osc_B.samplecrusher = accumulateSamplecrusher(osc_B);
     osc_B.phaseoffset = accumulatePhaseoffset(osc_B);
-    osc_B.squircle = accumulateSquircle(osc_B);
+    // osc_B.squircle = accumulateSquircle(osc_B);
 }
 
 #endif

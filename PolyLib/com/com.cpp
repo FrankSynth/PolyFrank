@@ -511,11 +511,11 @@ busState COMinterChip::startSendDMA() {
     }
 #endif
 
-    // fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
-    //               (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 4) >> 2);
+    fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
+                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 4) >> 2);
 
-    fast_copy_byte(outBuffer[!currentOutBufferSelect].data(), dmaOutBufferPointer[!currentOutBufferSelect],
-                   dmaOutCurrentBufferSize);
+    // fast_copy_byte(outBuffer[!currentOutBufferSelect].data(), dmaOutBufferPointer[!currentOutBufferSelect],
+    //                dmaOutCurrentBufferSize);
 
 #ifdef POLYCONTROL
     // enable NSS to Render Chip A
@@ -566,19 +566,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     state = COM_DECODE;
 
-    // necessary decoding vars
-    volatile uint8_t outputID = 0;
-    volatile uint8_t inputID = 0;
-    uint8_t note = 0;
-    uint8_t velocity = 0;
-    uint8_t layerID = 0;
-    uint8_t setting = 0;
-    uint8_t module = 0;
-    uint8_t voice = 0;
-    uint8_t messagesize = 0;
-    volatile int32_t amountInt = 0;
-    volatile float amountFloat = 0;
-
     switchInBuffer();
 
     // assemble size
@@ -617,9 +604,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // copy dma buffer to local space with word speed
-    // fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
-    //               (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 4) >> 2);
-    fast_copy_byte(dmaInBufferPointer[currentInBufferSelect], inBufferPointer[currentInBufferSelect], sizeOfReadBuffer);
+    fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
+                  (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 4) >> 2);
+    // fast_copy_byte(dmaInBufferPointer[currentInBufferSelect], inBufferPointer[currentInBufferSelect],
+    // sizeOfReadBuffer);
 
     // quick check of valid data, buffer should always end with LASTBYTE
     if ((inBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {
@@ -639,9 +627,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #endif
         return 1;
     }
-    // for (uint16_t i = 0; i < sizeOfReadBuffer; i++) {
-    //     println(inBufferPointer[currentInBufferSelect][i]);
-    // }
 
     // start with offset, as two bytes were size
     for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
@@ -650,11 +635,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 #ifdef POLYRENDER
 
-            case CREATEINOUTPATCH:
+            case CREATEINOUTPATCH: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                inputID = (inBufferPointer[currentInBufferSelect])[++i];
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
                 i += 3; // sizeof(float) - 1
 
@@ -662,41 +649,50 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     layerA.addPatchInOutById(outputID, inputID, amountFloat);
 
                 break;
+            }
 
-            case UPDATEINOUTPATCH:
+            case UPDATEINOUTPATCH: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
 
-                outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                inputID = (inBufferPointer[currentInBufferSelect])[++i];
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id)
                     layerA.updatePatchInOutByIdWithoutMapping(outputID, inputID, amountFloat);
 
                 break;
+            }
 
-            case DELETEINOUTPATCH:
+            case DELETEINOUTPATCH: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                inputID = (inBufferPointer[currentInBufferSelect])[++i];
+
+                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (layerID == layerA.id)
                     layerA.removePatchInOutById(outputID, inputID);
 
                 break;
+            }
 
-            case DELETEALLPATCHES:
+            case DELETEALLPATCHES: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
                 // delete all patchesInOut at once
                 if (layerID == layerA.id)
                     layerA.clearPatches();
                 break;
+            }
 
-            case NEWNOTE:
+            case NEWNOTE: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                note = (inBufferPointer[currentInBufferSelect])[++i];
-                velocity = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t note = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t velocity = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (voice != NOVOICE && layerID == layerA.id) {
                     // println("new note played");
@@ -706,36 +702,46 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 }
 
                 break;
+            }
 
-            case OPENGATE:
+            case OPENGATE: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOn(voice);
                 break;
+            }
 
-            case CLOSEGATE:
+            case CLOSEGATE: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOff(voice);
                 break;
+            }
 
-            case RESETALL:
+            case RESETALL: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
                 // clear everything
                 if (layerID == layerA.id)
                     layerA.resetLayer();
                 break;
+            }
 
-            case RETRIGGER:
+            case RETRIGGER: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.getModules()[module]->retrigger(voice);
                 break;
+            }
 
-            case UPDATESETTINGINT:
+            case UPDATESETTINGINT: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                setting = (inBufferPointer[currentInBufferSelect])[++i];
-                amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
+                int32_t amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(int32_t) - 1
 
                 if (layerID == layerA.id) {
@@ -743,12 +749,14 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 }
 
                 break;
+            }
 
-            case UPDATESETTINGFLOAT:
+            case UPDATESETTINGFLOAT: {
+                uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                setting = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
 
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id) {
@@ -757,16 +765,18 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 }
 
                 break;
+            }
 
-            case SENDUPDATETOCONTROL:
+            case SENDUPDATETOCONTROL: {
                 // println("send trans");
                 if (beginSendTransmission() != BUS_OK)
                     PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
-                // sendUpdateToRender = true;
-                break;
+                FlagHandler::outputCollect = true; // collect next Sample packet;
 
-            case LASTBYTE:
-                // *((uint16_t *)(dmaInBufferPointer[currentInBufferSelect])) = 0;
+                break;
+            }
+
+            case LASTBYTE: {
 
                 state = COM_READY;
 
@@ -774,111 +784,103 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     if (beginReceiveTransmission() != BUS_OK)
                         PolyError_Handler("ERROR | FATAL | last received, receive bus occuppied");
                 return 0;
+            }
 
 #endif
 #ifdef POLYCONTROL
-                // TODO add decoding here
 
-            case SENDMESSAGE:
+            case SENDMESSAGE: {
 
                 messagebuffer.clear();
 
-                messagesize = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t messagesize = (inBufferPointer[currentInBufferSelect])[++i];
 
                 for (uint8_t m = 0; m < messagesize; m++) {
                     messagebuffer += (char)(inBufferPointer[currentInBufferSelect])[++i];
                 }
 
-                // print("layer ", receiveLayer);
-                // println(", chip ", receiveChip, ":");
-                // println(messagebuffer);
-
                 break;
+            }
 
-            case UPDATEINPUT:
-                module = (inBufferPointer[currentInBufferSelect])[++i];
+            case UPDATEINPUT: {
+                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                setting = module & 0xF;
+                uint8_t setting = module & 0xF;
                 module = module >> 4;
 
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                // println("Layer: ", layerID, "  Module: ", module, "  Renderbuffer: ", setting,
-                //         "  Value: ", amountFloat);
-
-                if (layerID == layerA.id)
+                if (receiveLayer == layerA.id)
                     layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
-                if (layerID == layerB.id)
+                if (receiveLayer == layerB.id)
                     layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
                 break;
+            }
 
-            case UPDATERENDERBUFFER:
-                module = (inBufferPointer[currentInBufferSelect])[++i];
+            case UPDATERENDERBUFFER: {
+                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                setting = module & 0xF;
+                uint8_t setting = module & 0xF;
                 module = module >> 4;
 
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                // println("Layer: ", layerID, "  Module: ", module, "  Renderbuffer: ", setting,
-                //         "  Value: ", amountFloat);
-
-                if (layerID == layerA.id)
+                if (receiveLayer == layerA.id)
                     layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
-                if (layerID == layerB.id)
+                if (receiveLayer == layerB.id)
                     layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
                 break;
+            }
 
-            case UPDATERENDERBUFFERVOICE:
-                module = (inBufferPointer[currentInBufferSelect])[++i];
+            case UPDATERENDERBUFFERVOICE: {
+                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                setting = module & 0xF;
+                uint8_t setting = module & 0xF;
                 module = module >> 4;
-                voice = (inBufferPointer[currentInBufferSelect])[++i];
+                uint8_t voice = (inBufferPointer[currentInBufferSelect])[++i];
 
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                // println("Layer: ", layerID, "  Module: ", module, "  Voice: ", voice, "  Renderbuffer: ", setting,
-                //         "  Value: ", amountFloat);
-
-                if (layerID == layerA.id)
+                if (receiveLayer == layerA.id)
                     layerA.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
 
-                if (layerID == layerB.id)
+                if (receiveLayer == layerB.id)
                     layerB.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
 
                 i += 3;
 
                 break;
+            }
+
             case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
-            case UPDATEOUTPUTFLOAT:
 
-                module = (inBufferPointer[currentInBufferSelect])[++i];
+            case UPDATEOUTPUTFLOAT: {
 
-                setting = module & 0xF;
+                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                uint8_t setting = module & 0xF;
                 module = module >> 4;
 
-                amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                // println("Layer: ", layerID, "  Module: ", module, "  Output: ", setting, "  Value: ", amountFloat);
-
-                if (layerID == layerA.id)
+                if (receiveLayer == layerA.id)
                     layerA.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
 
-                if (layerID == layerB.id)
+                if (receiveLayer == layerB.id)
                     layerB.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
                 break;
+            }
 
             case LASTBYTE:
                 state = COM_READY;

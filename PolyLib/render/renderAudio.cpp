@@ -16,16 +16,16 @@ const WaveTable *sourcesA[4] = {nullptr, nullptr, nullptr, nullptr};
 const WaveTable *sourcesB[4] = {nullptr, nullptr, nullptr, nullptr};
 
 RAM1 ALIGN_32BYTES(float oscAwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
-WaveTable oscAwavetable[MAXWAVETABLESPERVOICE] = {{0, 0, 0, oscAwavetableRAM[0], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableRAM[1], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableRAM[2], "defaultName"},
-                                                  {0, 0, 0, oscAwavetableRAM[3], "defaultName"}};
+WaveTable oscAwavetable[MAXWAVETABLESPERVOICE] = {{0, oscAwavetableRAM[0], "defaultName"},
+                                                  {0, oscAwavetableRAM[1], "defaultName"},
+                                                  {0, oscAwavetableRAM[2], "defaultName"},
+                                                  {0, oscAwavetableRAM[3], "defaultName"}};
 
 RAM1 ALIGN_32BYTES(float oscBwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH]);
-WaveTable oscBwavetable[MAXWAVETABLESPERVOICE] = {{0, 0, 0, oscBwavetableRAM[0], "defaultName"},
-                                                  {0, 0, 0, oscBwavetableRAM[1], "defaultName"},
-                                                  {0, 0, 0, oscBwavetableRAM[2], "defaultName"},
-                                                  {0, 0, 0, oscBwavetableRAM[3], "defaultName"}};
+WaveTable oscBwavetable[MAXWAVETABLESPERVOICE] = {{0, oscBwavetableRAM[0], "defaultName"},
+                                                  {0, oscBwavetableRAM[1], "defaultName"},
+                                                  {0, oscBwavetableRAM[2], "defaultName"},
+                                                  {0, oscBwavetableRAM[3], "defaultName"}};
 
 /**
  * @brief switch OscA Wavetable at position x
@@ -39,8 +39,8 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
         return;
 
     oscAwavetable[position].size = wavetable->size;
-    oscAwavetable[position].cycles = wavetable->cycles;
-    oscAwavetable[position].sizePerCycle = wavetable->sizePerCycle;
+    // oscAwavetable[position].cycles = wavetable->cycles;
+    // oscAwavetable[position].sizePerCycle = wavetable->sizePerCycle;
     oscAwavetable[position].name = wavetable->name;
     sourcesA[position] = wavetable;
 
@@ -71,8 +71,8 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
         return;
 
     oscBwavetable[position].size = wavetable->size;
-    oscBwavetable[position].cycles = wavetable->cycles;
-    oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
+    // oscBwavetable[position].cycles = wavetable->cycles;
+    // oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
     oscBwavetable[position].name = wavetable->name;
     sourcesB[position] = wavetable;
 
@@ -152,10 +152,8 @@ inline vec<VOICESPERCHIP> getSubSample() {
     const vec<VOICESPERCHIP> &samplecrusher = layerA.sub.samplecrusher;
     const vec<VOICESPERCHIP> &shape = layerA.sub.shape;
 
-    const uint32_t &octave = layerA.sub.dOctaveSwitch;
-
-    vec<VOICESPERCHIP> phase = layerA.sub.phase;
-    vec<VOICESPERCHIP> oscApreviousPhase = layerA.sub.oscApreviousPhase;
+    static vec<VOICESPERCHIP> phase = 0;
+    static vec<VOICESPERCHIP> oscApreviousPhase = 0;
 
     vec<VOICESPERCHIP> newSample;
 
@@ -178,19 +176,13 @@ inline vec<VOICESPERCHIP> getSubSample() {
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
 
-    float phaseLength = 0.5f * !octave + 0.25f * octave;
+    float phaseLength = 0.5f * !layerA.sub.dOctaveSwitch + 0.25f * layerA.sub.dOctaveSwitch;
 
-    vec<VOICESPERCHIP> oscAphase = layerA.oscA.phaseWavetableLower;
-    oscAphase -= floor(oscAphase);
-
-    oscApreviousPhase -= (oscAphase < oscApreviousPhase);
-    phaseDifferenceOscA = oscAphase - oscApreviousPhase;
-    oscApreviousPhase = oscAphase;
+    oscApreviousPhase -= (layerA.oscA.phase < oscApreviousPhase);
+    phaseDifferenceOscA = layerA.oscA.phase - oscApreviousPhase;
+    oscApreviousPhase = layerA.oscA.phase;
 
     phase += phaseDifferenceOscA * phaseLength;
-
-    layerA.sub.phase = phase;
-    layerA.sub.oscApreviousPhase = oscApreviousPhase;
 
     return sample;
 }
@@ -199,118 +191,68 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
     static vec<VOICESPERCHIP> sample = 0;
 
-    vec<VOICESPERCHIP> &phaseWavetableLower = layerA.oscA.phaseWavetableLower;
-    vec<VOICESPERCHIP> &phaseWavetableUpper = layerA.oscA.phaseWavetableUpper;
+    vec<VOICESPERCHIP> &phase = layerA.oscA.phase;
+    // vec<VOICESPERCHIP> &phaseWavetableUpper = layerA.oscA.phaseWavetableUpper;
     const vec<VOICESPERCHIP> &morph = layerA.oscA.morph;
     const vec<VOICESPERCHIP> &noteStep = layerA.oscA.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscA.bitcrusher;
     const vec<VOICESPERCHIP> &samplecrusher = layerA.oscA.samplecrusher;
-    const vec<VOICESPERCHIP> &squircle = layerA.oscA.squircle;
 
-    vec<VOICESPERCHIP> stepWavetableLower;
-    vec<VOICESPERCHIP> stepWavetableUpper;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower = morph;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper = ceil(morph);
 
-    WaveTable *wavetableLower[VOICESPERCHIP] = {nullptr};
-    WaveTable *wavetableUpper[VOICESPERCHIP] = {nullptr};
-
-    static vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower = 0;
-    static vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper = 0;
-    static vec<VOICESPERCHIP, uint32_t> oldwaveTableSelectionLower = 0;
-
-    waveTableSelectionLower = morph;
-    waveTableSelectionUpper = ceil(morph);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (waveTableSelectionLower[i] == oldwaveTableSelectionLower[i]) {
-        }
-        else if (waveTableSelectionLower[i] < oldwaveTableSelectionLower[i]) {
-            phaseWavetableUpper[i] = phaseWavetableLower[i];
-            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
-        }
-        else {
-            phaseWavetableLower[i] = phaseWavetableUpper[i];
-            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
-        }
-
+    WaveTable *wavetableLower[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableLower[i] = &oscAwavetable[waveTableSelectionLower[i]];
+
+    WaveTable *wavetableUpper[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
-    vec<VOICESPERCHIP> wavetableLowerCycles;
+    vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableLowerCycles[i] = wavetableLower[i]->cycles;
+        stepWavetableLower[i] = phase[i] * wavetableLower[i]->size;
 
-    vec<VOICESPERCHIP> wavetableUpperCycles;
+    vec<VOICESPERCHIP> stepWavetableUpper;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableUpperCycles[i] = wavetableUpper[i]->cycles;
+        stepWavetableUpper[i] = phase[i] * wavetableUpper[i]->size;
 
-    phaseWavetableLower -= floor(phaseWavetableLower) * (phaseWavetableLower >= wavetableLowerCycles);
-    phaseWavetableUpper -= floor(phaseWavetableUpper) * (phaseWavetableUpper >= wavetableUpperCycles);
+    phase += noteStep * PHASEPROGRESSPERRENDER;
+    phase -= floor(phase);
 
-    vec<VOICESPERCHIP> wavetableLowerSizePerCycle;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableLowerSizePerCycle[i] = wavetableLower[i]->sizePerCycle;
-
-    vec<VOICESPERCHIP> wavetableUpperSizePerCycle;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        wavetableUpperSizePerCycle[i] = wavetableUpper[i]->sizePerCycle;
-
-    stepWavetableLower = phaseWavetableLower * wavetableLowerSizePerCycle;
-    stepWavetableUpper = phaseWavetableUpper * wavetableUpperSizePerCycle;
-
-    vec<VOICESPERCHIP, uint32_t> positionA;
-    vec<VOICESPERCHIP, uint32_t> positionAb;
-    vec<VOICESPERCHIP> interSampleAPos;
-    vec<VOICESPERCHIP> sampleA;
-    vec<VOICESPERCHIP> sampleAb;
-
-    positionA = stepWavetableLower;
-    positionAb = positionA + 1U;
+    vec<VOICESPERCHIP, uint32_t> positionA = stepWavetableLower;
+    vec<VOICESPERCHIP, uint32_t> positionAb = positionA + 1U;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionAb[i] * (positionAb[i] != wavetableLower[i]->size);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleAPos[i] = stepWavetableLower[i] - positionA[i];
-
+    vec<VOICESPERCHIP> sampleA;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleA[i] = oscAwavetableRAM[waveTableSelectionLower[i]][positionA[i]];
+
+    vec<VOICESPERCHIP> sampleAb;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleAb[i] = oscAwavetableRAM[waveTableSelectionLower[i]][positionAb[i]];
 
+    vec<VOICESPERCHIP> interSampleAPos = stepWavetableLower - positionA;
     sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
 
-    vec<VOICESPERCHIP, uint32_t> positionB;
-    vec<VOICESPERCHIP, uint32_t> positionBb;
-    vec<VOICESPERCHIP> interSampleBPos;
-    vec<VOICESPERCHIP> sampleB;
-    vec<VOICESPERCHIP> sampleBb;
-
-    positionB = stepWavetableUpper;
-    positionBb = positionB + 1U;
+    vec<VOICESPERCHIP, uint32_t> positionB = stepWavetableUpper;
+    vec<VOICESPERCHIP, uint32_t> positionBb = positionB + 1U;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionBb[i] * (positionBb[i] != wavetableUpper[i]->size);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        interSampleBPos[i] = stepWavetableUpper[i] - positionB[i];
-
+    vec<VOICESPERCHIP> sampleB;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleB[i] = oscAwavetableRAM[waveTableSelectionUpper[i]][positionB[i]];
+    vec<VOICESPERCHIP> sampleBb;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleBb[i] = oscAwavetableRAM[waveTableSelectionUpper[i]][positionBb[i]];
 
+    vec<VOICESPERCHIP> interSampleBPos = stepWavetableUpper - positionB;
     sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
 
-    static vec<VOICESPERCHIP> newSample;
-
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
-
-    newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+    vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
     // newSample = renderWaveshaperSample(newSample);
 
@@ -330,163 +272,85 @@ vec<VOICESPERCHIP> getOscBSample() {
     static vec<VOICESPERCHIP> sample = 0;
 
     // cache step of osc A, if smaller, new phase has begun.
-    const vec<VOICESPERCHIP> &oscAphaseWavetableLower = layerA.oscA.phaseWavetableLower;
+    const vec<VOICESPERCHIP> &oscAphase = layerA.oscA.phase;
 
-    int32_t &sync = layerA.oscB.dSync.valueMapped;
-
-    vec<VOICESPERCHIP> &cacheOscAPhase = layerA.oscB.cacheOscAPhase;
-    vec<VOICESPERCHIP> &phaseWavetableLower = layerA.oscB.phaseWavetableLower;
-    vec<VOICESPERCHIP> &phaseWavetableUpper = layerA.oscB.phaseWavetableUpper;
+    static vec<VOICESPERCHIP> cacheOscAPhase = 0;
+    static vec<VOICESPERCHIP> phase = 0;
     const vec<VOICESPERCHIP> &morph = layerA.oscB.morph;
     const vec<VOICESPERCHIP> &noteStep = layerA.oscB.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscB.bitcrusher;
     const vec<VOICESPERCHIP> &samplecrusher = layerA.oscB.samplecrusher;
     const vec<VOICESPERCHIP> &phaseoffset = layerA.oscB.phaseoffset;
-    const vec<VOICESPERCHIP> &squircle = layerA.oscA.squircle;
 
-    vec<VOICESPERCHIP> stepWavetableLower;
-    vec<VOICESPERCHIP> stepWavetableUpper;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower = morph;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper = ceil(morph);
 
-    WaveTable *wavetableLower[VOICESPERCHIP] = {nullptr};
-    WaveTable *wavetableUpper[VOICESPERCHIP] = {nullptr};
-
-    static vec<VOICESPERCHIP> checkWavetableLength;
-
-    static vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
-    static vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
-    static vec<VOICESPERCHIP, uint32_t> oldwaveTableSelectionLower;
-
-    waveTableSelectionLower = morph;
-    waveTableSelectionUpper = ceil(morph);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (waveTableSelectionLower[i] == oldwaveTableSelectionLower[i]) {
-        }
-        else if (waveTableSelectionLower[i] < oldwaveTableSelectionLower[i]) {
-            phaseWavetableUpper[i] = phaseWavetableLower[i];
-            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
-        }
-        else {
-            phaseWavetableLower[i] = phaseWavetableUpper[i];
-            oldwaveTableSelectionLower[i] = waveTableSelectionLower[i];
-        }
-
+    WaveTable *wavetableLower[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableLower[i] = &oscBwavetable[waveTableSelectionLower[i]];
+    WaveTable *wavetableUpper[VOICESPERCHIP];
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscBwavetable[waveTableSelectionUpper[i]];
 
-    checkWavetableLength = oscAphaseWavetableLower - floor(oscAphaseWavetableLower);
-
-    vec<VOICESPERCHIP, bool> syncWavetablesNow;
-
-    syncWavetablesNow = (cacheOscAPhase > checkWavetableLength) && sync;
-
-    phaseWavetableLower = phaseWavetableLower * !syncWavetablesNow;
-    phaseWavetableUpper = phaseWavetableUpper * !syncWavetablesNow;
-
-    cacheOscAPhase = checkWavetableLength;
+    vec<VOICESPERCHIP, bool> syncWavetablesNow = (cacheOscAPhase > oscAphase) && layerA.oscB.dSync;
+    phase = phase * !syncWavetablesNow;
+    cacheOscAPhase = oscAphase;
 
     // make sure to be in the right step range
+
+    vec<VOICESPERCHIP> phaseOffsetted = phase + phaseoffset;
+    phase += noteStep * PHASEPROGRESSPERRENDER;
+    phase -= floor(phase);
+    phaseOffsetted -= floor(phaseOffsetted);
+    phaseOffsetted += (phaseOffsetted < 0.0f);
+
+    vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableLower[i] -=
-            std::floor(phaseWavetableLower[i]) * (phaseWavetableLower[i] >= wavetableLower[i]->cycles);
-
+        stepWavetableLower[i] = phaseOffsetted[i] * wavetableLower[i]->size;
+    vec<VOICESPERCHIP> stepWavetableUpper;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableUpper[i] -=
-            std::floor(phaseWavetableUpper[i]) * (phaseWavetableUpper[i] >= wavetableUpper[i]->cycles);
+        stepWavetableUpper[i] = phaseOffsetted[i] * wavetableUpper[i]->size;
 
-    vec<VOICESPERCHIP> phaseOffsettedLower;
-    vec<VOICESPERCHIP> phaseOffsettedUpper;
-
-    phaseOffsettedLower = phaseWavetableLower + phaseoffset;
-    phaseOffsettedUpper = phaseWavetableUpper + phaseoffset;
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseOffsettedLower[i] -=
-            std::floor(phaseOffsettedLower[i]) * (phaseOffsettedLower[i] >= wavetableLower[i]->cycles);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseOffsettedLower[i] =
-            phaseOffsettedLower[i] * !(phaseOffsettedLower[i] < 0) +
-            (wavetableLower[i]->cycles - phaseOffsettedLower[i] - std::floor(phaseOffsettedLower[i])) *
-                (phaseOffsettedLower[i] < 0);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseOffsettedUpper[i] -=
-            std::floor(phaseOffsettedUpper[i]) * (phaseOffsettedUpper[i] >= wavetableUpper[i]->cycles);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseOffsettedUpper[i] =
-            phaseOffsettedUpper[i] * !(phaseOffsettedUpper[i] < 0) +
-            (wavetableUpper[i]->cycles - phaseOffsettedUpper[i] - std::floor(phaseOffsettedUpper[i])) *
-                (phaseOffsettedUpper[i] < 0);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = phaseOffsettedLower[i] * wavetableLower[i]->sizePerCycle;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableUpper[i] = phaseOffsettedUpper[i] * wavetableUpper[i]->sizePerCycle;
-
-    vec<VOICESPERCHIP, uint32_t> positionA;
-    vec<VOICESPERCHIP, uint32_t> positionAb;
-    vec<VOICESPERCHIP> interSampleAPos;
-    vec<VOICESPERCHIP> sampleA;
-    vec<VOICESPERCHIP> sampleAb;
-
-    positionA = stepWavetableLower;
-    positionAb = positionA + 1U;
+    vec<VOICESPERCHIP, uint32_t> positionA = stepWavetableLower;
+    vec<VOICESPERCHIP, uint32_t> positionAb = positionA + 1U;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionAb[i] = positionAb[i] * (positionAb[i] != wavetableLower[i]->size);
 
+    vec<VOICESPERCHIP> sampleA;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleA[i] = oscBwavetableRAM[waveTableSelectionLower[i]][positionA[i]];
+    vec<VOICESPERCHIP> sampleAb;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleAb[i] = oscBwavetableRAM[waveTableSelectionLower[i]][positionAb[i]];
 
-    interSampleAPos = stepWavetableLower - positionA;
-
+    vec<VOICESPERCHIP> interSampleAPos = stepWavetableLower - positionA;
     sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
 
-    vec<VOICESPERCHIP, uint32_t> positionB;
-    vec<VOICESPERCHIP, uint32_t> positionBb;
-    vec<VOICESPERCHIP> interSampleBPos;
-    vec<VOICESPERCHIP> sampleB;
-    vec<VOICESPERCHIP> sampleBb;
-
-    positionB = stepWavetableUpper;
-    positionBb = positionB + 1U;
+    vec<VOICESPERCHIP, uint32_t> positionB = stepWavetableUpper;
+    vec<VOICESPERCHIP, uint32_t> positionBb = positionB + 1U;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         positionBb[i] = positionBb[i] * (positionBb[i] != wavetableUpper[i]->size);
 
+    vec<VOICESPERCHIP> sampleB;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleB[i] = oscBwavetableRAM[waveTableSelectionUpper[i]][positionB[i]];
+    vec<VOICESPERCHIP> sampleBb;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         sampleBb[i] = oscBwavetableRAM[waveTableSelectionUpper[i]][positionBb[i]];
 
-    interSampleBPos = stepWavetableUpper - positionB;
-
+    vec<VOICESPERCHIP> interSampleBPos = stepWavetableUpper - positionB;
     sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
 
-    static vec<VOICESPERCHIP> newSample;
-
-    vec<VOICESPERCHIP> tempMorph;
-    tempMorph = morph - waveTableSelectionLower;
-
-    newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
-
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableLower[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        phaseWavetableUpper[i] += noteStep[i] * PHASEPROGRESSPERRENDER;
+    vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
+    vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
     // newSample = renderWaveshaperSample(newSample);
 
     newSample = bitcrush(bitcrusher, newSample);
 
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
-    vec<VOICESPERCHIP, bool> sampleCrushNow;
+    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
 
-    sampleCrushNow = (++sampleCrushCount) > samplecrusher;
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
 
@@ -521,8 +385,8 @@ void renderAudio(volatile int32_t *renderDest) {
     vec<VOICESPERCHIP> sampleSteiner;
     vec<VOICESPERCHIP> sampleLadder;
 
-    volatile int32_t intSampleSteiner[VOICESPERCHIP];
-    volatile int32_t intSampleLadder[VOICESPERCHIP];
+    int32_t intSampleSteiner[VOICESPERCHIP];
+    int32_t intSampleLadder[VOICESPERCHIP];
 
     for (uint32_t sample = 0; sample < SAIDMABUFFERSIZE; sample++) {
 
@@ -550,6 +414,11 @@ void renderAudio(volatile int32_t *renderDest) {
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             intSampleSteiner[i] = sampleSteiner[i];
 
+        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
+
         maxVolLadder = noiseLevelLadder;
         maxVolLadder += subLevelLadder;
         maxVolLadder += oscALevelLadder;
@@ -570,10 +439,6 @@ void renderAudio(volatile int32_t *renderDest) {
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             intSampleLadder[i] = sampleLadder[i];
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
-        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
-        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
-        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
         renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
         renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];

@@ -109,13 +109,13 @@ class OSC_A : public BaseModule {
         inputs.push_back(&iOctave);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
-        inputs.push_back(&iSquircle);
+        // inputs.push_back(&iSquircle);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
-        knobs.push_back(&aSquircle);
+        // knobs.push_back(&aSquircle);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
@@ -127,7 +127,7 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
-        renderBuffer.push_back(&squircle);
+        // renderBuffer.push_back(&squircle);
     }
 
     Output out = Output("OUT");
@@ -137,18 +137,18 @@ class OSC_A : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iOctave = Input("OCTAVE", "OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
-    Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
+    // Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
-    Analog aSquircle = Analog("SQUIRCLE", 0, 1, 0.5, true, linMap, &iSamplecrusher);
+    // Analog aSquircle = Analog("SQUIRCLE", 0, 1, 0.5, true, linMap, &iSamplecrusher);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT, 2, true, &nlWavetable);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable);
 
     Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr);
 
@@ -156,11 +156,11 @@ class OSC_A : public BaseModule {
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    RenderBuffer squircle;
+    // RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    vec<VOICESPERCHIP> phaseWavetableLower;
-    vec<VOICESPERCHIP> phaseWavetableUpper;
+    vec<VOICESPERCHIP> phase;
+    // vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class OSC_B : public BaseModule {
@@ -175,14 +175,14 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
         inputs.push_back(&iPhaseOffset);
-        inputs.push_back(&iSquircle);
+        // inputs.push_back(&iSquircle);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
         knobs.push_back(&aPhaseoffset);
-        knobs.push_back(&aSquircle);
+        // knobs.push_back(&aSquircle);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
@@ -196,7 +196,7 @@ class OSC_B : public BaseModule {
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
         renderBuffer.push_back(&phaseoffset);
-        renderBuffer.push_back(&squircle);
+        // renderBuffer.push_back(&squircle);
     }
 
     Output out = Output("OUT");
@@ -208,34 +208,34 @@ class OSC_B : public BaseModule {
     Input iOctave = Input("OCTAVE", "OCT");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
     Input iPhaseOffset = Input("PHASE", "PHASE", &phaseoffset);
-    Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
+    // Input iSquircle = Input("SQUIRCLE", "SQRCL", &squircle);
 
     Analog aMorph = Analog("MORPH", 0, WAVETABLESPERVOICE - 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iTuning);
     Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
-    Analog aSquircle = Analog("SQUIRCLE", 0, 0.5, 1, true, linMap, &iSamplecrusher);
+    // Analog aSquircle = Analog("SQUIRCLE", 0, 0.5, 1, true, linMap, &iSamplecrusher);
 
     Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT, 0, true, &nlWavetable);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT, 1, true, &nlWavetable);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT, 2, true, &nlWavetable);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT, 3, true, &nlWavetable);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable);
 
     RenderBuffer note;
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
     RenderBuffer phaseoffset;
-    RenderBuffer squircle;
+    // RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    vec<VOICESPERCHIP> cacheOscAPhase;
-    vec<VOICESPERCHIP> phaseWavetableLower;
-    vec<VOICESPERCHIP> phaseWavetableUpper;
+    // vec<VOICESPERCHIP> cacheOscAPhase;
+    // vec<VOICESPERCHIP> phaseWavetableLower;
+    // vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class Sub : public BaseModule {
@@ -274,8 +274,8 @@ class Sub : public BaseModule {
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
 
-    vec<VOICESPERCHIP> phase;
-    vec<VOICESPERCHIP> oscApreviousPhase;
+    // vec<VOICESPERCHIP> phase;
+    // vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
 // TODO bitrusher

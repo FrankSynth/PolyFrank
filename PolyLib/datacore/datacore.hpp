@@ -150,6 +150,10 @@ class RenderBuffer {
         nextSample = temp;
     }
 
+    uint8_t id;
+    uint8_t layerId;
+    uint8_t moduleId;
+
     // vec<VOICESPERCHIP> sample[2];
     vec<VOICESPERCHIP> currentSample;
     vec<VOICESPERCHIP> nextSample;

@@ -134,6 +134,7 @@ class Scroller {
         offset = 0;
     };
 
+    // TODO these give comparison warnings, can they ever be negative? Should be uint maybe
     int16_t position = 0;
     int16_t offset = 0;
     uint16_t entrys = 0;
