@@ -12,6 +12,12 @@ inline void pushWavetable(const WaveTable &wavetable) {
 }
 
 void initWavetables() {
+
+    nlWavetable.reserve(WAVETABLESAMOUNT);
+#ifdef POLYRENDER
+    wavetables.reserve(WAVETABLESAMOUNT);
+#endif
+
     pushWavetable(wavetable_FeltPianoLow);
     pushWavetable(wavetable_GuitarHigh);
     pushWavetable(wavetable_GuitarLow);

@@ -49,6 +49,20 @@ void renderADSR(ADSR &adsr) {
     static float targetRatioA = calcARatio(shape);
     static float targetRatioDR = calcDRRatio(shape);
 
+    static float cacheTargetRatioA = 0;
+    static float cacheTargetRatioD = 0;
+    static float cacheTargetRatioR = 0;
+
+    static vec<VOICESPERCHIP> cacheAttack = 0;
+    static vec<VOICESPERCHIP> cacheDecay = 0;
+    static vec<VOICESPERCHIP> cacheRelease = 0;
+
+    static vec<VOICESPERCHIP> attackCoef = 0;
+    static vec<VOICESPERCHIP> attackBase = 0;
+    static vec<VOICESPERCHIP> decayCoef = 0;
+    static vec<VOICESPERCHIP> releaseCoef = 0;
+    static vec<VOICESPERCHIP> releaseBase = 0;
+
     if (cacheShape != shape) {
         targetRatioA = calcARatio(shape);
         targetRatioDR = calcDRRatio(shape);
@@ -64,16 +78,6 @@ void renderADSR(ADSR &adsr) {
         const bool &gate = adsr.gate[voice];
         float &sustain = adsr.sustain[voice];
         bool &retriggered = adsr.retriggered[voice];
-
-        float attackBase;
-        float attackCoef;
-        float attackRate;
-        float decayBase;
-        float decayCoef;
-        float decayRate;
-        float releaseBase;
-        float releaseCoef;
-        float releaseRate;
 
         float imperfection = 1.0f;
 
@@ -97,11 +101,16 @@ void renderADSR(ADSR &adsr) {
             case adsr.ATTACK:
                 attack = accumulateAttack(adsr, voice) * imperfection;
 
-                attackRate = attack * (1.0f / SECONDSPERCVRENDER);
-                attackCoef = calcCoef(attackRate, targetRatioA);
-                attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
+                if (attack != cacheAttack[voice] || targetRatioA != cacheTargetRatioA) {
+                    float attackRate = attack * (1.0f / SECONDSPERCVRENDER);
+                    attackCoef[voice] = calcCoef(attackRate, targetRatioA);
+                    attackBase[voice] = (1.0 + targetRatioA) * (1.0 - attackCoef[voice]);
 
-                level = attackBase + level * attackCoef;
+                    cacheAttack[voice] = attack;
+                    cacheTargetRatioA = targetRatioA;
+                }
+
+                level = attackBase[voice] + level * attackCoef[voice];
 
                 if (level >= 1.0f) {
                     level = 1;
@@ -116,14 +125,21 @@ void renderADSR(ADSR &adsr) {
 
                 break;
 
-            case adsr.DECAY:
+            case adsr.DECAY: {
+
                 decay = accumulateDecay(adsr, voice) * imperfection;
 
-                decayRate = decay * (1.0f / SECONDSPERCVRENDER);
-                decayCoef = calcCoef(decayRate, targetRatioDR);
-                decayBase = (sustain - targetRatioDR) * (1.0f - decayCoef);
+                if (decay != cacheDecay[voice] || targetRatioDR != cacheTargetRatioD) {
+                    float decayRate = decay * (1.0f / SECONDSPERCVRENDER);
+                    decayCoef[voice] = calcCoef(decayRate, targetRatioDR);
 
-                level = decayBase + level * decayCoef;
+                    cacheDecay[voice] = decay;
+                    cacheTargetRatioD = targetRatioDR;
+                }
+
+                float decayBase = (sustain - targetRatioDR) * (1.0f - decayCoef[voice]);
+
+                level = decayBase + level * decayCoef[voice];
 
                 if (level <= sustain) {
                     level = sustain;
@@ -133,8 +149,8 @@ void renderADSR(ADSR &adsr) {
                 if (gate == 0) {
                     adsr.setStatusRelease(voice);
                 }
-
                 break;
+            }
 
             case adsr.SUSTAIN:
 
@@ -162,11 +178,16 @@ void renderADSR(ADSR &adsr) {
             case adsr.RELEASE:
                 release = accumulateRelease(adsr, voice) * imperfection;
 
-                releaseRate = release * (1.0f / SECONDSPERCVRENDER);
-                releaseCoef = calcCoef(releaseRate, targetRatioDR);
-                releaseBase = -targetRatioDR * (1.0f - releaseCoef);
+                if (release != cacheRelease[voice] || targetRatioDR != cacheTargetRatioR) {
+                    float releaseRate = release * (1.0f / SECONDSPERCVRENDER);
+                    releaseCoef[voice] = calcCoef(releaseRate, targetRatioDR);
+                    releaseBase[voice] = -targetRatioDR * (1.0f - releaseCoef[voice]);
 
-                level = releaseBase + level * releaseCoef;
+                    cacheRelease[voice] = release;
+                    cacheTargetRatioR = targetRatioDR;
+                }
+
+                level = releaseBase[voice] + level * releaseCoef[voice];
 
                 if (level <= ADSRTHRESHOLD) {
                     retriggered = 0;

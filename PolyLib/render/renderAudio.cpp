@@ -359,6 +359,31 @@ vec<VOICESPERCHIP> getOscBSample() {
     return sample;
 }
 
+// https://www.desmos.com/calculator/38pwnjn7ci?lang=de
+// x1 = threshold
+// x2 - maxloudness
+// q = threshold (x1)
+// p = 1
+// a = 0
+inline float softLimit(const float &inputSample) {
+    const float threshold = 0.8f;
+
+    const float maxVal = 4.0f;
+
+    const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
+    const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+
+    if (inputSample <= threshold)
+        return inputSample;
+
+    float sign = getSign(inputSample);
+    float absInput = inputSample * sign;
+
+    float sample = d * powf(threshold - absInput, n) + 1.0f;
+
+    return sample * sign;
+}
+
 /**
  * @brief render all Audio Samples
  *
@@ -366,93 +391,57 @@ vec<VOICESPERCHIP> getOscBSample() {
  */
 void renderAudio(volatile int32_t *renderDest) {
 
-    const vec<VOICESPERCHIP> &noiseLevelLadder = layerA.mixer.noiseLevelLadder;
-    const vec<VOICESPERCHIP> &noiseLevelSteiner = layerA.mixer.noiseLevelSteiner;
-
-    const vec<VOICESPERCHIP> &subLevelLadder = layerA.mixer.subLevelLadder;
-    const vec<VOICESPERCHIP> &subLevelSteiner = layerA.mixer.subLevelSteiner;
-
-    const vec<VOICESPERCHIP> &oscALevelLadder = layerA.mixer.oscALevelLadder;
-    const vec<VOICESPERCHIP> &oscALevelSteiner = layerA.mixer.oscALevelSteiner;
-
-    const vec<VOICESPERCHIP> &oscBLevelLadder = layerA.mixer.oscBLevelLadder;
-    const vec<VOICESPERCHIP> &oscBLevelSteiner = layerA.mixer.oscBLevelSteiner;
-
-    vec<VOICESPERCHIP> dampSteiner;
-    vec<VOICESPERCHIP> dampLadder;
-
-    vec<VOICESPERCHIP> maxVolSteiner;
-    vec<VOICESPERCHIP> maxVolLadder;
-
-    vec<VOICESPERCHIP> sampleSteiner;
-    vec<VOICESPERCHIP> sampleLadder;
-
-    int32_t intSampleSteiner[VOICESPERCHIP];
-    int32_t intSampleLadder[VOICESPERCHIP];
+    vec<VOICESPERCHIP> oscASample;
+    vec<VOICESPERCHIP> oscBSample;
+    vec<VOICESPERCHIP> noiseSample;
+    vec<VOICESPERCHIP> subSample;
 
     for (uint32_t sample = 0; sample < SAIDMABUFFERSIZE; sample++) {
 
-        vec<VOICESPERCHIP> oscASample = getOscASample();
-        vec<VOICESPERCHIP> oscBSample = getOscBSample();
-        vec<VOICESPERCHIP> noiseSample = getNoiseSample();
-        vec<VOICESPERCHIP> subSample = getSubSample();
+        oscASample = getOscASample();
+        oscBSample = getOscBSample();
+        noiseSample = getNoiseSample();
+        subSample = getSubSample();
 
-        maxVolSteiner = noiseLevelSteiner;
-        maxVolSteiner += subLevelSteiner;
-        maxVolSteiner += oscALevelSteiner;
-        maxVolSteiner += oscBLevelSteiner;
-
-        maxVolSteiner = max(maxVolSteiner, 1.0f);
-        vec<VOICESPERCHIP, bool> clipSteiner = maxVolSteiner > MAXPOSSIBLEVOLUME;
-        dampSteiner = (MAXPOSSIBLEVOLUME / maxVolSteiner) * clipSteiner + (!clipSteiner);
-
-        sampleSteiner = noiseSample * noiseLevelSteiner;
-        sampleSteiner += subSample * subLevelSteiner;
-        sampleSteiner += oscASample * oscALevelSteiner;
-        sampleSteiner += oscBSample * oscBLevelSteiner;
-        sampleSteiner *= dampSteiner;
-        sampleSteiner *= MAXVOLUMEPERMODULE * 8388607.0f;
+        vec<VOICESPERCHIP> sampleSteiner = noiseSample * layerA.mixer.noiseLevelSteiner;
+        sampleSteiner += subSample * layerA.mixer.subLevelSteiner;
+        sampleSteiner += oscASample * layerA.mixer.oscALevelSteiner;
+        sampleSteiner += oscBSample * layerA.mixer.oscBLevelSteiner;
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            intSampleSteiner[i] = sampleSteiner[i];
+            sampleSteiner[i] = softLimit(sampleSteiner[i]);
+
+        sampleSteiner *= 8388607.0f;
+
+        vec<VOICESPERCHIP, int32_t> intSampleSteiner = sampleSteiner;
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
         renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
         renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
 
-        maxVolLadder = noiseLevelLadder;
-        maxVolLadder += subLevelLadder;
-        maxVolLadder += oscALevelLadder;
-        maxVolLadder += oscBLevelLadder;
-
-        maxVolLadder = max(maxVolLadder, 1.0f);
-
-        vec<VOICESPERCHIP, bool> clipLadder = maxVolLadder > MAXPOSSIBLEVOLUME;
-        dampLadder = (MAXPOSSIBLEVOLUME / maxVolLadder) * (clipLadder) + (!clipLadder);
-
-        sampleLadder = noiseSample * noiseLevelLadder;
-        sampleLadder += subSample * subLevelLadder;
-        sampleLadder += oscASample * oscALevelLadder;
-        sampleLadder += oscBSample * oscBLevelLadder;
-        sampleLadder *= dampLadder;
-        sampleLadder *= MAXVOLUMEPERMODULE * 8388607.0f;
+        vec<VOICESPERCHIP> sampleLadder = noiseSample * layerA.mixer.noiseLevelLadder;
+        sampleLadder += subSample * layerA.mixer.subLevelLadder;
+        sampleLadder += oscASample * layerA.mixer.oscALevelLadder;
+        sampleLadder += oscBSample * layerA.mixer.oscBLevelLadder;
 
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-            intSampleLadder[i] = sampleLadder[i];
+            sampleLadder[i] = softLimit(sampleLadder[i]);
+
+        sampleLadder *= 8388607.0f;
+
+        vec<VOICESPERCHIP, int32_t> intSampleLadder = sampleLadder;
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
         renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];
         renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleLadder[3];
-
-        if (sample == 0) {
-            layerA.noise.out = noiseSample;
-            layerA.sub.out = subSample;
-            layerA.oscA.out = oscASample;
-            layerA.oscB.out = oscBSample;
-        }
     }
+
+    layerA.noise.out = noiseSample;
+    layerA.sub.out = subSample;
+    layerA.oscA.out = oscASample;
+    layerA.oscB.out = oscBSample;
 }
 
 #endif
