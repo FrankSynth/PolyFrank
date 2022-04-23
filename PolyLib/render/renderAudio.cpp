@@ -361,10 +361,16 @@ vec<VOICESPERCHIP> getOscBSample() {
 
 // https://www.desmos.com/calculator/38pwnjn7ci?lang=de
 // x1 = threshold
-// x2 - maxloudness
+// x2 = maxloudness
 // q = threshold (x1)
 // p = 1
 // a = 0
+
+// possible combinations threshold = 0.7, maxloudness = 4
+// possible combinations threshold = 0.8, maxloudness = 4
+// possible combinations threshold = 0.9, maxloudness = 4 (high n!)
+// possible combinations threshold = 0.6, maxloudness = 3
+// possible combinations threshold = 0.5, maxloudness = 4 (high n!)
 inline float softLimit(const float &inputSample) {
     const float threshold = 0.8f;
 
