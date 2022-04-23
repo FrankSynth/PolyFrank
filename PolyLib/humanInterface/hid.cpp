@@ -596,7 +596,7 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
                     allLayers[layerID]->removePatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
                 }
                 else {
-                    allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0.2);
+                    allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0);
                 }
             }
         }
@@ -628,7 +628,7 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
                     allLayers[layerID]->removePatchInOutById(pOutput->idGlobal, activeInput->idGlobal);
                 }
                 else {
-                    allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
+                    allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 0);
                 }
             }
         }

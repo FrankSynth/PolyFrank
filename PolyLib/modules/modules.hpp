@@ -775,12 +775,12 @@ class Waveshaper : public BaseModule {
     Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
     Analog aShape3 = Analog("Shape 3", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape3);
     Analog aShape4 = Analog("Shape 4", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape4);
-    Analog aPoint1X = Analog("P1 X", 0, 0.998F, 0.5, true, linMap, &iPoint1X);
-    Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.5, true, linMap, &iPoint1Y);
-    Analog aPoint2X = Analog("P2 X", 0.001F, 0.999F, 0.5, true, linMap, &iPoint2X);
+    Analog aPoint1X = Analog("P1 X", 0, 1, 0.25, true, linMap, &iPoint1X);
+    Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.25, true, linMap, &iPoint1Y);
+    Analog aPoint2X = Analog("P2 X", 0, 1, 0.5, true, linMap, &iPoint2X);
     Analog aPoint2Y = Analog("P2 Y", 0, 1, 0.5, true, linMap, &iPoint2Y);
-    Analog aPoint3X = Analog("P3 X", 0.002F, 1, 0.5, true, linMap, &iPoint3X);
-    Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.5, true, linMap, &iPoint3Y);
+    Analog aPoint3X = Analog("P3 X", 0, 1, 0.75, true, linMap, &iPoint3X);
+    Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.75, true, linMap, &iPoint3Y);
     Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
 
     RenderBuffer shape1;

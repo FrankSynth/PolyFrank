@@ -124,8 +124,8 @@ inline vec<VOICESPERCHIP> bitcrush(const vec<VOICESPERCHIP> &bitcrush, const vec
 
 inline vec<VOICESPERCHIP> getNoiseSample() {
 
-    static vec<VOICESPERCHIP> sample = 0;
-    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
+    static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
 
     vec<VOICESPERCHIP, uint32_t> randomNumber;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -146,16 +146,16 @@ inline vec<VOICESPERCHIP> getNoiseSample() {
 
 inline vec<VOICESPERCHIP> getSubSample() {
 
-    static vec<VOICESPERCHIP> sample = 0;
-    static vec<VOICESPERCHIP> phaseDifferenceOscA = 0;
-    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
+    static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP> phaseDifferenceOscA;
+    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
 
     const vec<VOICESPERCHIP> &bitcrusher = layerA.sub.bitcrusher;
     const vec<VOICESPERCHIP> &samplecrusher = layerA.sub.samplecrusher;
     const vec<VOICESPERCHIP> &shape = layerA.sub.shape;
 
-    static vec<VOICESPERCHIP> phase = 0;
-    static vec<VOICESPERCHIP> oscApreviousPhase = 0;
+    static vec<VOICESPERCHIP> phase;
+    static vec<VOICESPERCHIP> oscApreviousPhase;
 
     vec<VOICESPERCHIP> newSample;
 
@@ -191,7 +191,7 @@ inline vec<VOICESPERCHIP> getSubSample() {
 
 inline vec<VOICESPERCHIP> getOscASample() {
 
-    static vec<VOICESPERCHIP> sample = 0;
+    static vec<VOICESPERCHIP> sample;
 
     vec<VOICESPERCHIP> &phase = layerA.oscA.phase;
     // vec<VOICESPERCHIP> &phaseWavetableUpper = layerA.oscA.phaseWavetableUpper;
@@ -260,7 +260,7 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
     newSample = bitcrush(bitcrusher, newSample);
 
-    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
+    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
     vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
 
     sampleCrushCount *= !sampleCrushNow;
@@ -271,13 +271,13 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
 vec<VOICESPERCHIP> getOscBSample() {
 
-    static vec<VOICESPERCHIP> sample = 0;
+    static vec<VOICESPERCHIP> sample;
 
     // cache step of osc A, if smaller, new phase has begun.
     const vec<VOICESPERCHIP> &oscAphase = layerA.oscA.phase;
 
-    static vec<VOICESPERCHIP> cacheOscAPhase = 0;
-    static vec<VOICESPERCHIP> phase = 0;
+    static vec<VOICESPERCHIP> cacheOscAPhase;
+    static vec<VOICESPERCHIP> phase;
     const vec<VOICESPERCHIP> &morph = layerA.oscB.morph;
     const vec<VOICESPERCHIP> &noteStep = layerA.oscB.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscB.bitcrusher;
@@ -373,15 +373,15 @@ inline float softLimit(const float &inputSample) {
     const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
     const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
 
-    if (inputSample <= threshold)
-        return inputSample;
-
     float sign = getSign(inputSample);
     float absInput = inputSample * sign;
 
+    if (absInput <= threshold)
+        return inputSample;
+
     float sample = d * powf(threshold - absInput, n) + 1.0f;
 
-    return sample * sign;
+    return std::clamp(sample * sign, -1.0f, 1.0f);
 }
 
 /**

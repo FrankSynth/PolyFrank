@@ -650,9 +650,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
 
-                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
                 i += 3; // sizeof(float) - 1
 
@@ -666,9 +666,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
 
-                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id)
@@ -681,8 +681,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
 
-                uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
-                uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t outputID = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t inputID = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (layerID == layerA.id)
                     layerA.removePatchInOutById(outputID, inputID);
@@ -702,8 +702,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case NEWNOTE: {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                uint8_t note = (inBufferPointer[currentInBufferSelect])[++i];
-                uint8_t velocity = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t note = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t velocity = (inBufferPointer[currentInBufferSelect])[++i];
 
                 if (voice != NOVOICE && layerID == layerA.id) {
                     // println("new note played");
@@ -751,8 +751,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case UPDATESETTINGINT: {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
-                int32_t amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile int32_t amountInt = *(int32_t *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(int32_t) - 1
 
                 if (layerID == layerA.id) {
@@ -765,7 +765,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case UPDATESETTINGFLOAT: {
                 uint8_t layerID, module, voice;
                 readLayerModuleVoice(layerID, module, voice, (inBufferPointer[currentInBufferSelect])[++i]);
-                uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t setting = (inBufferPointer[currentInBufferSelect])[++i];
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(float) - 1
@@ -822,7 +822,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case UPDATEINPUT: {
-                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
                 uint8_t setting = module & 0xF;
                 module = module >> 4;
@@ -841,9 +841,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case UPDATERENDERBUFFER: {
-                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                uint8_t setting = module & 0xF;
+                volatile uint8_t setting = module & 0xF;
                 module = module >> 4;
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
@@ -860,11 +860,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case UPDATERENDERBUFFERVOICE: {
-                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                uint8_t setting = module & 0xF;
+                volatile uint8_t setting = module & 0xF;
                 module = module >> 4;
-                uint8_t voice = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t voice = (inBufferPointer[currentInBufferSelect])[++i];
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
@@ -883,9 +883,9 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
             case UPDATEOUTPUTFLOAT: {
 
-                uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                uint8_t setting = module & 0xF;
+                volatile uint8_t setting = module & 0xF;
                 module = module >> 4;
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];

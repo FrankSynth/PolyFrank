@@ -87,7 +87,7 @@ class MCP4728 {
 
         uint32_t zeros = 0;
         fastMemset(&zeros, (uint32_t *)data.currentSample, 2);
-        fastMemset(&zeros, (uint32_t *)data.nextSample, 2);
+        // fastMemset(&zeros, (uint32_t *)data.nextSample, 2);
 
         uint8_t initData;
 
@@ -113,9 +113,11 @@ class MCP4728 {
     // transmit data in fastMode
     inline void fastUpdate() {
 
+        uint32_t *ptr = (uint32_t *)data.currentSample;
+
         // each half word needs to be swapped, because of reasons
-        bufferAsInt[0] = __REV16(((uint32_t *)data.currentSample)[0]);
-        bufferAsInt[1] = __REV16(((uint32_t *)data.currentSample)[1]);
+        bufferAsInt[0] = __REV16(ptr[0]);
+        bufferAsInt[1] = __REV16(ptr[1]);
 
         HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(i2cHandle, i2cDeviceAddressing, (uint8_t *)dmabuffer, 8);
         if (ret == HAL_ERROR) {
@@ -126,8 +128,10 @@ class MCP4728 {
 
     inline void sendCurrentBuffer() {
 
-        dataBuffer[0] = __REV16(((uint32_t *)data.currentSample)[0]);
-        dataBuffer[1] = __REV16(((uint32_t *)data.currentSample)[1]);
+        uint32_t *ptr = (uint32_t *)data.currentSample;
+
+        dataBuffer[0] = __REV16(ptr[0]);
+        dataBuffer[1] = __REV16(ptr[1]);
 
         if (HAL_I2C_Master_Transmit(i2cHandle, i2cDeviceAddressing, (uint8_t *)dataBuffer, 8, 50) != HAL_OK) {
             Error_Handler();
@@ -135,7 +139,7 @@ class MCP4728 {
         }
     }
 
-    inline void switchIC2renderBuffer() { data.updateToNextSample(); }
+    // inline void switchIC2renderBuffer() { data.updateToNextSample(); }
 
     inline void setLatchPin() {
         //

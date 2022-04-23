@@ -872,6 +872,8 @@ void MatrixPatch_PanelElement::Draw() {
         uint8_t color[4];
         float amount = entry->amount;
 
+        amount = testFloat(amount, -1, 1);
+
         if (amount > 0) {
             *(uint32_t *)color = cBlue;
         }
@@ -978,8 +980,10 @@ void MatrixOut_PanelElement::Draw() {
             drawString(*name, cFont_Deselect, panelAbsX + width / 2, panelAbsY, fontMedium, CENTER);
         }
 
-        drawRectangleFill(cWhite, panelAbsX + width / 2, panelAbsY + height - 5, width / 2 * entry->currentSample[0],
-                          5);
+        float amount = entry->currentSample[0];
+        amount = testFloat(amount, -1, 1);
+
+        drawRectangleFill(cWhite, panelAbsX + width / 2, panelAbsY + height - 5, (width / 2) * amount, 5);
     }
     select = 0;
     visible = 0;

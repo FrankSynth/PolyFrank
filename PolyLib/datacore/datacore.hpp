@@ -184,8 +184,6 @@ class Analog : public DataElement {
   public:
     Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
            typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
-        this->value = MIN_VALUE_12BIT;
-        this->valueMapped = min;
 
         this->min = min;
         this->max = max;
@@ -203,13 +201,15 @@ class Analog : public DataElement {
         this->input = input;
 
         this->inputRange = this->maxInputValue - this->minInputValue;
+
+        this->value = reverseMapping(defaultValue);
+        this->valueMapped = defaultValue;
     }
+
     Analog(const char *name, float min = 0, float max = 1,
            int32_t minInputValue = MIN_VALUE_12BIT, // contructor for MIDI
            int32_t maxInputValue = MAX_VALUE_12BIT, float defaultValue = 0, bool sendOutViaCom = true,
            typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
-        this->value = minInputValue;
-        this->valueMapped = min;
 
         this->min = min;
         this->max = max;
@@ -227,6 +227,9 @@ class Analog : public DataElement {
         this->input = input;
 
         this->inputRange = this->maxInputValue - this->minInputValue;
+
+        this->value = reverseMapping(defaultValue);
+        this->valueMapped = defaultValue;
     }
 
     void setValue(int32_t newValue);
@@ -299,10 +302,13 @@ class Digital : public DataElement {
     Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
             const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
 
+        this->value = MIN_VALUE_12BIT;
+
         this->min = min;
         this->max = max;
         this->minMaxDifference = max - min;
         this->defaultValue = defaultValue;
+        this->valueMapped = defaultValue;
 
         this->name = name;
         this->sendOutViaCom = sendOutViaCom;
@@ -312,7 +318,6 @@ class Digital : public DataElement {
         this->valueNameList = valueNameList;
 
         this->input = input;
-        setValue(value);
     }
 
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
@@ -540,23 +545,23 @@ class ID {
 class I2CBuffer {
   public:
     I2CBuffer() {
-        currentSample = bufferCurrentSample;
-        nextSample = bufferNextSample;
+        // currentSample = bufferCurrentSample;
+        // nextSample = bufferNextSample;
     }
 
     // set next calculatedSample as current sample
-    inline void updateToNextSample() {
-        uint16_t *tempPointer = currentSample;
-        currentSample = nextSample;
-        nextSample = tempPointer;
-    }
+    // inline void updateToNextSample() {
+    //     uint16_t *tempPointer = currentSample;
+    //     currentSample = nextSample;
+    //     nextSample = tempPointer;
+    // }
 
-    uint16_t *currentSample;
-    uint16_t *nextSample;
+    uint16_t currentSample[VOICESPERCHIP];
+    // uint16_t *nextSample;
 
-  private:
-    uint16_t bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
-    uint16_t bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    //   private:
+    //     uint16_t bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
+    //     uint16_t bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
 };
 
 //////////////////////////////// INLINE FUNCTIONS /////////////////////////////////

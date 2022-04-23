@@ -314,9 +314,9 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void sendDACs() {
-    for (uint16_t i = 0; i < ALLDACS; i++) {
-        cvDac[0].switchIC2renderBuffer();
-    }
+    // for (uint16_t i = 0; i < ALLDACS; i++) {
+    //     cvDac[i].switchIC2renderBuffer();
+    // }
     FlagHandler::renderNewCV = true;
     FlagHandler::cvDacLastFinished[0] = false;
     FlagHandler::cvDacLastFinished[1] = false;

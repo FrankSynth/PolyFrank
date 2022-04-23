@@ -201,16 +201,17 @@ void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 
 void PatchElement::setAmount(float amountRaw) {
     this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
+    amount = this->amountRaw;
 
-    if (targetIn->mapping == linMap) {
-        amount = this->amountRaw;
-    }
-    else if (targetIn->mapping == logMap) {
-        amount = logMapping.mapValueSigned(amountRaw);
-    }
-    else if (targetIn->mapping == antilogMap) {
-        amount = antiLogMapping.mapValueSigned(amountRaw);
-    }
+    // if (targetIn->mapping == linMap) {
+    //     amount = this->amountRaw;
+    // }
+    // else if (targetIn->mapping == logMap) {
+    //     amount = logMapping.mapValueSigned(amountRaw);
+    // }
+    // else if (targetIn->mapping == antilogMap) {
+    //     amount = antiLogMapping.mapValueSigned(amountRaw);
+    // }
 
 #ifdef POLYCONTROL
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
