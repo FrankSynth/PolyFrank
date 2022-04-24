@@ -32,6 +32,7 @@ void VoiceHandler::playNote(Key &key) {
     }
 
     for (voiceStateStruct *v : foundVoices) {
+        playIDCounter++; // increase playID
 
         v->status = PLAY;
         v->note = key.note;
@@ -41,8 +42,6 @@ void VoiceHandler::playNote(Key &key) {
         layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
         // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
-
-        playIDCounter++; // increase playID
     }
 }
 
@@ -175,7 +174,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
     for (uint8_t i = 0; i < NUMBERVOICES; i++) {
         if (voiceLayer[i].status == FREE) {
             if (oldestVoiceID != 0xFF) { // compare
-                if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                if (voiceLayer[i].playID < voiceLayer[oldestVoiceID].playID) {
                     oldestVoiceID = voiceLayer[i].voiceID;
                 }
             }
@@ -194,7 +193,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             // found oldest NOTE
             if (voiceLayer[i].status != SELECT) {
                 if (oldestVoiceID != 0xFF) { // compare
-                    if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                    if (voiceLayer[i].playID < voiceLayer[oldestVoiceID].playID) {
                         oldestVoiceID = voiceLayer[i].voiceID;
                     }
                 }
@@ -222,7 +221,7 @@ void VoiceHandler::searchNextVoiceAB() {
         if (allLayers[i]->layerState.value == 1) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
-                    if (voices[i][x].playID <= nextVoice->playID) {
+                    if (voices[i][x].playID < nextVoice->playID) {
                         nextVoice = &voices[i][x];
                     }
                 }
@@ -238,7 +237,7 @@ void VoiceHandler::searchNextVoiceAB() {
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                     if (voices[i][x].status == SELECT) { // not already selected
-                        if (voices[i][x].playID <= nextVoice->playID) {
+                        if (voices[i][x].playID < nextVoice->playID) {
                             nextVoice = &voices[i][x];
                         }
                     }

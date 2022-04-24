@@ -415,9 +415,9 @@ class MatrixIn_PanelElement {
     }
     void Draw();
 
-    void addEntry(Input *entry);
+    void addEntry(Analog *entry);
     uint16_t select = 0;
-    Input *entry;
+    Analog *entry;
 
   private:
     uint16_t panelAbsX;

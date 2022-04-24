@@ -849,6 +849,7 @@ const char *tuningToChar(const byte &tuning) {
 // Patchmatrix
 
 void MatrixPatch_PanelElement::Draw() {
+
     if (!visible) {
         return;
     }
@@ -858,15 +859,14 @@ void MatrixPatch_PanelElement::Draw() {
 
     if (entry != nullptr) {
 
+        uint8_t barWidth = 6;
+        uint8_t barHeight = 4;
+
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            actionHandler.registerActionEncoder(
-                4, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 1), "AMOUNT"},
-                {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 0), "AMOUNT"},
-                {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
         }
         else {
-            drawRectangleFill(cWhite, panelAbsX, panelAbsY, width, height);
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
         }
 
         uint8_t color[4];
@@ -874,36 +874,28 @@ void MatrixPatch_PanelElement::Draw() {
 
         amount = testFloat(amount, -1, 1);
 
-        if (amount > 0) {
-            *(uint32_t *)color = cBlue;
-        }
-        else {
-            amount = (-1) * amount;
-            *(uint32_t *)color = cRed;
-        }
-        color[3] *= amount;
+        *(uint32_t *)color = cWhite;
 
-        drawRectangleFill(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
-        drawRectangleFill(*(uint32_t *)color, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+        color[3] *= abs(amount);
+
+        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth - 2, height - 4);
+
+        amount = amount * entry->sourceOut->currentSample[0];
+        amount = testFloat(amount, -1, 1);
+
+        uint16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+
+        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
     }
     else {
 
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
             drawRectangleFill(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
-
-            actionHandler.registerActionEncoder(4);
         }
         else {
             drawRectangleFill(cWhiteLight, panelAbsX, panelAbsY, width, height);
         }
-
-        // if (entry->renderBuffer != nullptr) {
-        //     float amount = entry->renderBuffer->currentSample[0];
-        //     amount = testFloat(amount, -1, 1),
-
-        //     drawRectangleFill(cWhite, panelAbsX + width - 10, panelAbsY + height, 10, amount * (-(int)height));
-        // }
     }
 
     select = 0;
@@ -918,6 +910,10 @@ void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
 }
 
 void MatrixIn_PanelElement::Draw() {
+
+    uint8_t barWidth = 6;
+    uint8_t barHeight = 4;
+
     if (!visible) {
         return;
     }
@@ -926,23 +922,27 @@ void MatrixIn_PanelElement::Draw() {
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
 
-            drawString(entry->shortName, cFont_Select, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
+            drawString(entry->input->shortName, cFont_Select, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(entry->shortName, cFont_Deselect, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
+            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + width / 2, panelAbsY + 3, fontMedium,
+                       CENTER);
         }
-        if (entry->renderBuffer != nullptr) {
+        if (entry->input->renderBuffer != nullptr) {
             uint8_t color[4];
-            float amount = entry->renderBuffer->currentSample[0];
+            float amount = entry->input->renderBuffer->currentSample[0];
+
+            amount -= entry->min;
+            amount /= entry->max;
+
+            // entry->
 
             amount = testFloat(amount, 0, 1);
 
-            *(uint32_t *)color = cBlue;
+            int16_t offsetY = ((int16_t)(height - barHeight)) * (1 - amount);
 
-            color[3] *= amount;
-
-            drawRectangleFill(*(uint32_t *)color, panelAbsX, panelAbsY + height - 20, width, 20);
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
         }
     }
     select = 0;
@@ -950,13 +950,18 @@ void MatrixIn_PanelElement::Draw() {
     entry == nullptr;
 }
 
-void MatrixIn_PanelElement::addEntry(Input *entry) {
+void MatrixIn_PanelElement::addEntry(Analog *entry) {
 
     this->entry = entry;
     visible = 1;
 }
 
 void MatrixOut_PanelElement::Draw() {
+    uint8_t barWidth = 6;
+    uint8_t barHeight = 4;
+
+    uint8_t color[4];
+
     if (!visible) {
         return;
     }
@@ -973,21 +978,34 @@ void MatrixOut_PanelElement::Draw() {
 
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawString(*name, cFont_Select, panelAbsX + width / 2, panelAbsY, fontMedium, CENTER);
+            drawString(*name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(*name, cFont_Deselect, panelAbsX + width / 2, panelAbsY, fontMedium, CENTER);
+            drawString(*name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
         }
 
         float amount = entry->currentSample[0];
         amount = testFloat(amount, -1, 1);
 
-        drawRectangleFill(cWhite, panelAbsX + width / 2, panelAbsY + height - 5, (width / 2) * amount, 5);
+        // if (amount < 0) {
+        //     *(uint32_t *)color = cLow;
+        // }
+        // else {
+        //     *(uint32_t *)color = cHigh;
+        // }
+
+        // color[3] *= abs(amount);
+
+        int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+
+        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
     }
     select = 0;
     visible = 0;
-    entry == nullptr;
+    entry = nullptr;
 }
 
 void MatrixOut_PanelElement::addEntry(Output *entry) {

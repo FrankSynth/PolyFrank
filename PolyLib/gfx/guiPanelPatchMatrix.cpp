@@ -4,10 +4,8 @@
 
 void GUIPanelPatchMatrix::registerElements() {
 
-    uint16_t dataIndex = 0;
-
     Output *out;
-    Input *in;
+    Analog *in;
 
     for (uint16_t x = 0; x < MATRIXCOLUMN; x++) {
         if ((x + scrollOut.offset) < (int16_t)allOutputs.size()) {
@@ -23,9 +21,9 @@ void GUIPanelPatchMatrix::registerElements() {
                 if ((x + scrollOut.offset) < (int16_t)allOutputs.size()) {
                     out = allOutputs[x + scrollOut.offset];
                     panelElementsPatch[x][y].addEntry(nullptr);
-                    for (uint16_t i = 0; i < in->getPatchesInOut().size(); i++) {
-                        if (in->getPatchesInOut()[i]->sourceOut->idGlobal == out->idGlobal) {
-                            panelElementsPatch[x][y].addEntry(in->getPatchesInOut()[i]);
+                    for (uint16_t i = 0; i < in->input->getPatchesInOut().size(); i++) {
+                        if (in->input->getPatchesInOut()[i]->sourceOut->idGlobal == out->idGlobal) {
+                            panelElementsPatch[x][y].addEntry(in->input->getPatchesInOut()[i]);
                             break;
                         }
                     }
@@ -39,6 +37,35 @@ void GUIPanelPatchMatrix::registerElements() {
             panelElementsModule[y].addEntry(allModules[y + scrollModule.offset]);
         }
     }
+
+    if (panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry != nullptr) {
+
+        actionHandler.registerActionEncoder(
+            4,
+            {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
+                       panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 1),
+             "AMOUNT"},
+            {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
+                       panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 0),
+             "AMOUNT"},
+            {std::bind(&Layer::removePatchInOutById, allLayers[currentFocus.layer],
+                       panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->sourceOut->idGlobal,
+                       panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->targetIn->idGlobal),
+             "RESET"});
+    }
+    else {
+        actionHandler.registerActionEncoder(4,
+                                            {std::bind(&Layer::addPatchInOutById, allLayers[currentFocus.layer],
+                                                       panelElementsOut[scrollOut.relPosition].entry->idGlobal,
+                                                       panelElementsIn[scrollIn.relPosition].entry->input->idGlobal, 0),
+                                             "AMOUNT"},
+                                            {std::bind(&Layer::addPatchInOutById, allLayers[currentFocus.layer],
+                                                       panelElementsOut[scrollOut.relPosition].entry->idGlobal,
+                                                       panelElementsIn[scrollIn.relPosition].entry->input->idGlobal, 0),
+                                             "AMOUNT"},
+                                            {nullptr, "RESET"});
+    }
+
     panelElementsOut[scrollOut.relPosition].select = 1;
     panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].select = 1;
     panelElementsIn[scrollIn.relPosition].select = 1;
@@ -76,14 +103,16 @@ void GUIPanelPatchMatrix::collectInputs() {
     allInputs.clear();
 
     if (allModules.size()) {
-        for (Input *input : allModules[scrollModule.position]->inputs) {
-            if (input->visible) {
-                if (filteredView) {
-                    if (input->patchesInOut.size())
-                        allInputs.push_back(input);
-                }
-                else {
-                    allInputs.push_back(input);
+        for (Analog *analog : allModules[scrollModule.position]->knobs) {
+            if (analog->input != nullptr) {
+                if (analog->input->visible) {
+                    if (filteredView) {
+                        if (analog->input->patchesInOut.size())
+                            allInputs.push_back(analog);
+                    }
+                    else {
+                        allInputs.push_back(analog);
+                    }
                 }
             }
         }
@@ -96,23 +125,42 @@ void GUIPanelPatchMatrix::collectOutputs() {
 
     allOutputs.clear();
 
-    if (midiView) {
-
-        for (Output *output : allLayers[currentFocus.layer]->midi.outputs) { // Collect Module if inputs available
-            if (output->visible) {
-                if (filteredView) {
-                    if (output->patchesInOut.size())
+    if (viewMode == MIDIVIEW) {
+        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
+            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+            if (moduleType == MODULE_MIDI) {
+                if (output->visible) {
+                    if (filteredView) {
+                        if (output->patchesInOut.size())
+                            allOutputs.push_back(output);
+                    }
+                    else {
                         allOutputs.push_back(output);
-                }
-                else {
-                    allOutputs.push_back(output);
+                    }
                 }
             }
         }
     }
-    else {
+    else if (viewMode == ENVVIEW) {
         for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-            if (output->moduleId != allLayers[currentFocus.layer]->midi.id) {
+            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+            if ((moduleType == MODULE_ADSR) | (moduleType == MODULE_LFO) | (moduleType == MODULE_FEEL)) {
+                if (output->visible) {
+                    if (filteredView) {
+                        if (output->patchesInOut.size())
+                            allOutputs.push_back(output);
+                    }
+                    else {
+                        allOutputs.push_back(output);
+                    }
+                }
+            }
+        }
+    }
+    else if (viewMode == AUDIOVIEW) {
+        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
+            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+            if ((moduleType == MODULE_OSC) | (moduleType == MODULE_SUB) | (moduleType == MODULE_NOISE)) {
                 if (output->visible) {
                     if (filteredView) {
                         if (output->patchesInOut.size())
@@ -240,20 +288,28 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
     actionHandler.registerActionEncoder(3);
 
     if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
+        actionHandler.registerActionLeftData(2, {std::bind(nextLayer), "LAYER"});
     }
     else {
         actionHandler.registerActionLeft(2);
     }
 
-    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::toggleMidiView, this), "MIDI"},
-                                         &(this->midiView));
-    actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::toggleFilterdView, this), "FILTER"},
-                                         &(this->filteredView));
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::setEnvView, this), "ENV"}, &this->isEnv);
+    actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::setMidiView, this), "MIDI"},
+                                         &this->isMidi);
+    actionHandler.registerActionLeftData(2, {std::bind(&GUIPanelPatchMatrix::setAudioView, this), "AUDIO"},
+                                         &this->isAudio);
 
-    // register Panel Settings Right
-    actionHandler.registerActionRight(0, {std::bind(&GUIPanelPatchMatrix::addCurrentPatch, this), "ADD"});
-    actionHandler.registerActionRight(1, {std::bind(&GUIPanelPatchMatrix::removeCurrentPatch, this), "REMOVE"});
+    actionHandler.registerActionRightData(0, {std::bind(&GUIPanelPatchMatrix::toggleFilterdView, this), "FILTER"},
+                                          &(this->filteredView));
+
+    if (panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry != nullptr) {
+        actionHandler.registerActionRight(
+            1, {std::bind(&Layer::removePatchInOutById, allLayers[currentFocus.layer],
+                          panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->sourceOut->idGlobal,
+                          panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->targetIn->idGlobal),
+                "RESET"});
+    }
     actionHandler.registerActionRight(2, {std::bind(&GUIPanelPatchMatrix::clearPatches, this), "CLEAR"}, 1);
 }
 
@@ -269,7 +325,7 @@ void GUIPanelPatchMatrix::init(uint16_t width, uint16_t height, uint16_t x, uint
 
     uint16_t moduleWidth = 100;
     uint16_t inElementWidth = 100;
-    uint16_t outElementHeight = 30;
+    uint16_t outElementHeight = 50;
 
     uint16_t patchElementWidth = (width - inElementWidth - moduleWidth) / MATRIXCOLUMN;
     uint16_t rowHeigth = (height - outElementHeight) / MATRIXROWS;
@@ -295,13 +351,13 @@ void GUIPanelPatchMatrix::init(uint16_t width, uint16_t height, uint16_t x, uint
 
 void GUIPanelPatchMatrix::addCurrentPatch() {
     allLayers[currentFocus.layer]->addPatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
-                                                     panelElementsIn[scrollIn.relPosition].entry->idGlobal);
+                                                     panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
 }
 
 void GUIPanelPatchMatrix::removeCurrentPatch() {
     //
     allLayers[currentFocus.layer]->removePatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
-                                                        panelElementsIn[scrollIn.relPosition].entry->idGlobal);
+                                                        panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
 }
 
 void GUIPanelPatchMatrix::clearPatches() {

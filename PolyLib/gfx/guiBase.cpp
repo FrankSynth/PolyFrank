@@ -20,8 +20,8 @@ uint32_t cGreyDark = 0x60202020;
 
 uint32_t cGrey = 0x10808080;
 
-uint32_t cBlue = 0xFF4778ff;
-uint32_t cRed = 0xFFe32945;
+uint32_t cHigh = 0xFFEAE2B7;
+uint32_t cLow = 0xFF003049;
 
 uint32_t cWhite = 0xFFFFFFFF;
 uint32_t cWhiteMedium = 0x40FFFFFF;

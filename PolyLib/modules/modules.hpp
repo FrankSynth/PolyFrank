@@ -14,6 +14,21 @@ extern const std::vector<std::string> nlADSRShapes;
 extern const std::vector<std::string> nlClockSteps;
 extern const std::vector<std::string> nlSubOctaves;
 
+typedef enum {
+    MODULE_NOTDEFINED,
+    MODULE_OSC,
+    MODULE_LFO,
+    MODULE_ADSR,
+    MODULE_MIX,
+    MODULE_SUB,
+    MODULE_OUT,
+    MODULE_MIDI,
+    MODULE_FEEL,
+    MODULE_NOISE,
+    MODULE_VCF
+
+} ModuleType;
+
 // Basemodule
 class BaseModule {
   public:
@@ -46,6 +61,8 @@ class BaseModule {
     std::vector<Setting *> settings;
     std::vector<RenderBuffer *> renderBuffer;
 
+    ModuleType moduleType = MODULE_NOTDEFINED;
+
     inline virtual void resetPhase(uint16_t voice) {}
     inline virtual void retrigger(uint16_t voice) {}
 
@@ -69,6 +86,8 @@ class Midi : public BaseModule {
         knobs.push_back(&aMod);
         knobs.push_back(&aAftertouch);
         knobs.push_back(&aPitchbend);
+
+        moduleType = MODULE_MIDI;
     }
 
     Output oMod = Output("MOD", "MOD");
@@ -128,6 +147,8 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
         // renderBuffer.push_back(&squircle);
+
+        moduleType = MODULE_OSC;
     }
 
     Output out = Output("OUT");
@@ -197,6 +218,8 @@ class OSC_B : public BaseModule {
         renderBuffer.push_back(&samplecrusher);
         renderBuffer.push_back(&phaseoffset);
         // renderBuffer.push_back(&squircle);
+
+        moduleType = MODULE_OSC;
     }
 
     Output out = Output("OUT");
@@ -256,6 +279,7 @@ class Sub : public BaseModule {
         renderBuffer.push_back(&shape);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
+        moduleType = MODULE_SUB;
     }
 
     Output out = Output("OUT");
@@ -289,6 +313,8 @@ class Noise : public BaseModule {
         knobs.push_back(&aSamplecrusher);
 
         renderBuffer.push_back(&samplecrusher);
+
+        moduleType = MODULE_NOISE;
     }
 
     Output out = Output("OUT");
@@ -327,6 +353,8 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&subLevelLadder);
         renderBuffer.push_back(&noiseLevelSteiner);
         renderBuffer.push_back(&noiseLevelLadder);
+
+        moduleType = MODULE_MIX;
     }
 
     Input iOSCALevel = Input("OSC A", "OSC A", &oscALevel);
@@ -379,6 +407,8 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&level);
         renderBuffer.push_back(&cutoff);
         renderBuffer.push_back(&toLadder);
+
+        moduleType = MODULE_VCF;
     }
     Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
     Input iResonance = Input("RESONANCE", "RES", &resonance);
@@ -415,6 +445,8 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&resonance);
         renderBuffer.push_back(&level);
         renderBuffer.push_back(&cutoff);
+
+        moduleType = MODULE_VCF;
     }
 
     Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
@@ -452,6 +484,8 @@ class LFO : public BaseModule {
         switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
         switches.push_back(&dAlignLFOs);
+
+        moduleType = MODULE_LFO;
     }
     Output out = Output("OUT");
 
@@ -532,6 +566,8 @@ class ADSR : public BaseModule {
         switches.push_back(&dGateTrigger);
         switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
+
+        moduleType = MODULE_ADSR;
     }
 
     Output out = Output("OUT");
@@ -664,6 +700,8 @@ class Feel : public BaseModule {
 
         renderBuffer.push_back(&glide);
         renderBuffer.push_back(&detune);
+
+        moduleType = MODULE_FEEL;
     }
 
     Input iGlide = Input("GLIDE", "GLIDE");
@@ -699,6 +737,8 @@ class Out : public BaseModule {
         renderBuffer.push_back(&distort);
         renderBuffer.push_back(&left);
         renderBuffer.push_back(&right);
+
+        moduleType = MODULE_OUT;
     }
 
     Input iDistort = Input("DRIVE", "DRIVE");

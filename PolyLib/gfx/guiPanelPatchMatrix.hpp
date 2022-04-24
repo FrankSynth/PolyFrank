@@ -1,9 +1,11 @@
 #pragma once
 
 #define MATRIXROWS 6
-#define MATRIXCOLUMN 7
+#define MATRIXCOLUMN 6
 
 #include "guiPanelBase.hpp"
+
+typedef enum { MIDIVIEW, AUDIOVIEW, ENVVIEW } ViewMode;
 
 class GUIPanelPatchMatrix : public GUIPanelBase {
   public:
@@ -49,19 +51,37 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
     }
 
     void toggleFilterdView() { filteredView = !filteredView; }
-    void toggleMidiView() { midiView = !midiView; }
+    void setMidiView() {
+        viewMode = MIDIVIEW;
+        isEnv = 0;
+        isMidi = 1;
+        isAudio = 0;
+    }
+    void setEnvView() {
+        viewMode = ENVVIEW;
+        isEnv = 1;
+        isMidi = 0;
+        isAudio = 0;
+    }
+    void setAudioView() {
+        viewMode = AUDIOVIEW;
+        isEnv = 0;
+        isMidi = 0;
+        isAudio = 1;
+    }
 
   private:
     // Boxes
 
     FOCUSMODE mode;
 
+    ViewMode viewMode = ENVVIEW;
     uint16_t entrysModule = 0;
     uint16_t entrysIn = 0;
     uint16_t entrysOut = 0;
 
     std::vector<BaseModule *> allModules;
-    std::vector<Input *> allInputs;
+    std::vector<Analog *> allInputs;
     std::vector<Output *> allOutputs;
 
     uint16_t panelWidth = 0;
@@ -75,6 +95,10 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
 
     int32_t filteredView = 0;
     int32_t midiView = 0;
+
+    int32_t isEnv = 1;
+    int32_t isAudio = 0;
+    int32_t isMidi = 0;
 
     MatrixModule_PanelElement panelElementsModule[MATRIXROWS];
     MatrixIn_PanelElement panelElementsIn[MATRIXROWS];

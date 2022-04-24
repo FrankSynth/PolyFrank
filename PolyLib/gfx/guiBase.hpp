@@ -25,8 +25,8 @@ extern uint32_t cWhiteMedium;
 extern uint32_t cHighlight;
 extern uint32_t cWhiteBright;
 
-extern uint32_t cBlue;
-extern uint32_t cRed;
+extern uint32_t cHigh;
+extern uint32_t cLow;
 
 extern uint32_t cPatch;
 extern uint32_t cWarning;
