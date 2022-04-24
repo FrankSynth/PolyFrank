@@ -6,6 +6,7 @@ extern Layer layerA;
 
 #ifdef POLYCONTROL
 extern Layer layerB;
+extern std::vector<Layer *> allLayers;
 extern void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state);
 #endif
 
@@ -406,6 +407,24 @@ uint8_t COMinterChip::sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, 
     *(float *)(&comCommand[3]) = amount;
 
     pushOutBuffer(comCommand, RENDERBUFFERCMDSIZEVOICE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendAudioBuffer(uint8_t *audioData) {
+
+    if (outBuffer[currentOutBufferSelect].size() + UPDATEAUDIOBUFFERSIZE >= INTERCHIPBUFFERSIZE - LASTBYTECMDSIZE) {
+        uint8_t ret = invokeBufferFullSend();
+        if (ret) {
+            return ret;
+        }
+    }
+    __disable_irq();
+    outBuffer[currentOutBufferSelect].push_back((uint8_t)UPDATEAUDIOBUFFER);
+    for (uint32_t i = 0; i < (UPDATEAUDIOBUFFERSIZE - 1); i++) {
+        outBuffer[currentOutBufferSelect].push_back(audioData[i]);
+    }
+    __enable_irq();
+
     return 0;
 }
 
@@ -829,11 +848,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                if (receiveLayer == layerA.id)
-                    layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
-
-                if (receiveLayer == layerB.id)
-                    layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
@@ -848,11 +863,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                if (receiveLayer == layerA.id)
-                    layerA.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
-
-                if (receiveLayer == layerB.id)
-                    layerB.modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
@@ -868,11 +879,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                if (receiveLayer == layerA.id)
-                    layerA.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
-
-                if (receiveLayer == layerB.id)
-                    layerB.modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
+                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
 
                 i += 3;
 
@@ -890,15 +897,17 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                if (receiveLayer == layerA.id)
-                    layerA.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
-
-                if (receiveLayer == layerB.id)
-                    layerB.modules[module]->outputs[setting]->currentSample[0] = amountFloat;
+                allLayers[receiveLayer]->modules[module]->outputs[setting]->currentSample[0] = amountFloat;
 
                 i += 3;
 
                 break;
+            }
+            case UPDATEAUDIOBUFFER: {
+
+                fast_copy_f32((uint32_t *)&(inBufferPointer[currentInBufferSelect])[++i],
+                              (uint32_t *)allLayers[receiveLayer]->renderedAudioWaves, (300 / 4));
+                i += 300;
             }
 
             case LASTBYTE:

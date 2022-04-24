@@ -63,7 +63,7 @@
     "C_Cpp.errorSquiggles": "Enabled",
     "cortex-debug.variableUseNaturalFormat": true,
     "disasexpl.associations": {
-        "**/*.c": "C:/Users/jakob/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s",
-        "**/*.cpp": "C:/Users/jakob/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s"
+        "**/*.c": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s",
+        "**/*.cpp": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s"
     }
 }

@@ -111,7 +111,6 @@ void loadInitialWavetables() {
     switchOscBWavetable(3, wavetables[0]);
 }
 
-// TODO new bitcrusher von Jacob??
 inline vec<VOICESPERCHIP> bitcrush(const vec<VOICESPERCHIP> &bitcrush, const vec<VOICESPERCHIP> &sample) {
 
     vec<VOICESPERCHIP> mult = 1.0f / max(bitcrush, (1.0f / 8388607.0f));

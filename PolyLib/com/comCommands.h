@@ -13,7 +13,7 @@
 #define INPUTCMDSIZE 6
 #define RENDERBUFFERCMDSIZE 6
 #define RENDERBUFFERCMDSIZEVOICE 7
-
+#define UPDATEAUDIOBUFFERSIZE 301
 #define OUTPUTCMDSIZE 6
 #define GATECMDSIZE 2
 #define NEWNOTECMDSIZE 4
@@ -64,6 +64,6 @@ enum comCommands {
     SENDMESSAGE,             // send a string
     UPDATERENDERBUFFER,      // next bytes are settings
     UPDATERENDERBUFFERVOICE, // next bytes are settings
+    UPDATEAUDIOBUFFER,       // next bytes are settings
     LASTBYTE = 0b01111111,   // LAST BYTE of transmission
 };
-

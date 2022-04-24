@@ -21,7 +21,7 @@
 #define OUTPUTBUFFERSIZE 512
 #endif
 
-#define INTERCHIPBUFFERSIZE 512
+#define INTERCHIPBUFFERSIZE 800
 
 #ifdef POLYCONTROL
 //  global settings
@@ -298,6 +298,7 @@ class COMinterChip {
     uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount);
     uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount);
+    uint8_t sendAudioBuffer(uint8_t *audiodata);
 
     busState beginReceiveTransmission();
 

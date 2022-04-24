@@ -47,6 +47,12 @@ class Layer {
         // skip layer settings?
 
         initID();
+
+#ifdef POLYCONTROL
+        renderedAudioWavesOscA = renderedAudioWaves;
+        renderedAudioWavesOscB = &renderedAudioWaves[100];
+        renderedAudioWavesSub = &renderedAudioWaves[200];
+#endif
     }
 
     inline std::vector<BaseModule *> &getModules() { return modules; } // return modules
@@ -64,15 +70,19 @@ class Layer {
     void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
     void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
+    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYCONTROL
     void collectLayerConfiguration();
 
     void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
     void loadLayerFromPreset(presetStruct *preset);
-#endif
 
-    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
+    int8_t renderedAudioWaves[300];
+    int8_t *renderedAudioWavesOscA; // size 100
+    int8_t *renderedAudioWavesOscB; // size 100
+    int8_t *renderedAudioWavesSub;  // size 100
+#endif
 
 #ifdef POLYRENDER
     inline void gateOn(uint16_t voice) {

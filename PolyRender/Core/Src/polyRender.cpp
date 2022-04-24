@@ -22,6 +22,8 @@ RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFF
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
 
+int8_t audioSendBuffer[UPDATEAUDIOBUFFERSIZE - 1];
+
 COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
 
 MCP4728 cvDac[] = {
@@ -428,27 +430,27 @@ void resetMCPI2CAddress() {
     }
 }
 
-uint8_t sendString(std::string &message) {
+inline uint8_t sendString(std::string &message) {
     return layerCom.sendString(message);
 }
-uint8_t sendString(std::string &&message) {
+inline uint8_t sendString(std::string &&message) {
     return layerCom.sendString(message);
 }
-uint8_t sendString(const char *message) {
+inline uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
-uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
-uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
+inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
 
-uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
+inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
     return layerCom.sendRenderbuffer(modulID, settingID, amount);
 }
 
-uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
+inline uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
     return layerCom.sendRenderbufferVoice(modulID, settingID, voice, amount);
 }
 
@@ -456,7 +458,7 @@ uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice,
 //     return layerCom.sendOutputAllVoices(modulID, settingID, amount);
 // }
 
-uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
+inline uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
     return layerCom.sendInput(modulID, settingID, amount);
 }
 
@@ -486,13 +488,7 @@ void outputCollect() {
                 sendRenderbufferVoice(layerA.out.id, r->id, v + VOICESPERCHIP, r->currentSample[v]); // send all voices
             }
         }
+        renderAudioUI(audioSendBuffer);
+        layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
     }
 }
-// for (BaseModule *m : layerA.modules) {
-//     int16_t i = 0;
-//     for (RenderBuffer *r : m->renderBuffer) {
-
-//         sendRenderbuffer(m->id, i, (float)r->currentSample[0]); // send only first Voice
-//         i++;
-//     }
-// }
