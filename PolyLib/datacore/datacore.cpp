@@ -23,8 +23,10 @@ const std::string &Setting::getValueAsString() {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == (max - min + 1))
-            return (*valueNameList)[value - min];
+        if ((int32_t)valueNameList->size() == (max - min + 1)) {
+            valueName = (*valueNameList)[value - min];
+            return valueName;
+        }
         else {
             // wrong amount of custom names defined error
             PolyError_Handler("ERROR | Configuration | Setting -> NameList wrong lenght");

@@ -116,16 +116,16 @@ class Arpeggiator {
 
     Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
 
-    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
+    const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 
-    const std::vector<std::string> arpRepNameList = {"OFF", "1", "2", "3"};
-    const std::vector<std::string> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
+    const std::vector<const char *> arpRepNameList = {"OFF", "1", "2", "3"};
+    const std::vector<const char *> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
 
-    const std::vector<std::string> arpStepNameList = {
+    const std::vector<const char *> arpStepNameList = {
         "1/64T", "1/32T", "1/32", "1/16T", "1/16", "1/8T", "1/16.", "1/8", "1/4T", "1/8.", "1/4", "1/2T",
         "1/4.",  "1/2",   "1/1T", "1/2.",  "1/1",  "2/1T", "1/1.",  "2/1", "4/1T", "2/1.", "4/1"};
 
-    const std::vector<std::string> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
-                                                      "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
-                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
+    const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
+                                                       "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
+                                                       "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
 };

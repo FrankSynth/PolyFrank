@@ -75,7 +75,7 @@ class Error {
 class Setting : public DataElement {
   public:
     Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
-            typeDisplayValue type = continuous, const std::vector<std::string> *valueNameList = nullptr) {
+            typeDisplayValue type = continuous, const std::vector<const char *> *valueNameList = nullptr) {
 
         this->value = value;
         this->defaultValue = value;
@@ -107,7 +107,7 @@ class Setting : public DataElement {
 
     static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
 
-    const std::vector<std::string> *valueNameList; // custom Name List for different Values
+    const std::vector<const char *> *valueNameList; // custom Name List for different Values
 
     int32_t getValue();
     void setValue(int32_t newValue);

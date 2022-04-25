@@ -9,9 +9,9 @@
 extern Clock clock;
 extern ClockSource internalClock;
 
-extern const std::vector<std::string> offOnNameList;
-extern const std::vector<std::string> clockSourceList;
-extern const std::vector<std::string> externalClockMultList;
+extern const std::vector<const char *> offOnNameList;
+extern const std::vector<const char *> clockSourceList;
+extern const std::vector<const char *> externalClockMultList;
 
 class LiveData {
   public:

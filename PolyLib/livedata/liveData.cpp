@@ -9,9 +9,9 @@
 LiveData liveData;
 extern COMinterChip layerCom;
 
-const std::vector<std::string> offOnNameList = {"OFF", "ON"};
-const std::vector<std::string> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
-const std::vector<std::string> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
+const std::vector<const char *> offOnNameList = {"OFF", "ON"};
+const std::vector<const char *> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
+const std::vector<const char *> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
 
 uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
 
