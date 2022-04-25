@@ -359,56 +359,61 @@ uint8_t COMinterChip::sendString(const char *message) {
     return 0;
 }
 
-uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
-    uint8_t comCommand[OUTPUTCMDSIZE];
-    comCommand[0] = UPDATEOUTPUTINT;
-    comCommand[1] = (modulID << 4) | settingID;
-    *(int32_t *)(&comCommand[2]) = amount;
+// uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+//     uint8_t comCommand[OUTPUTCMDSIZE];
+//     comCommand[0] = UPDATEOUTPUTINT;
+//     comCommand[1] = (modulID << 4) | settingID;
+//     *(int32_t *)(&comCommand[2]) = amount;
 
-    pushOutBuffer(comCommand, OUTPUTCMDSIZE);
-    return 0;
-}
+//     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
+//     return 0;
+// }
 
-uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
+uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
     comCommand[0] = UPDATEOUTPUTFLOAT;
     comCommand[1] = (modulID << 4) | settingID;
-    *(float *)(&comCommand[2]) = amount;
+    *(float *)(&comCommand[2]) = amount[0];
+    *(float *)(&comCommand[6]) = amount[1];
+    *(float *)(&comCommand[10]) = amount[2];
+    *(float *)(&comCommand[14]) = amount[3];
 
     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
     return 0;
 }
-uint8_t COMinterChip::sendInput(uint8_t modulID, uint8_t settingID, float amount) {
-    uint8_t comCommand[INPUTCMDSIZE];
-    comCommand[0] = UPDATEINPUT;
-    comCommand[1] = (modulID << 4) | settingID;
-    *(float *)(&comCommand[2]) = amount;
+// uint8_t COMinterChip::sendInput(uint8_t modulID, uint8_t settingID, float amount) {
+//     uint8_t comCommand[INPUTCMDSIZE];
+//     comCommand[0] = UPDATEINPUT;
+//     comCommand[1] = (modulID << 4) | settingID;
+//     *(float *)(&comCommand[2]) = amount;
 
-    pushOutBuffer(comCommand, INPUTCMDSIZE);
-    return 0;
-}
+//     pushOutBuffer(comCommand, INPUTCMDSIZE);
+//     return 0;
+// }
 
-uint8_t COMinterChip::sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
+uint8_t COMinterChip::sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     uint8_t comCommand[RENDERBUFFERCMDSIZE];
     comCommand[0] = UPDATERENDERBUFFER;
     comCommand[1] = (modulID << 4) | settingID;
-    *(float *)(&comCommand[2]) = amount;
-
+    *(float *)(&comCommand[2]) = amount[0];
+    *(float *)(&comCommand[6]) = amount[1];
+    *(float *)(&comCommand[10]) = amount[2];
+    *(float *)(&comCommand[14]) = amount[3];
     pushOutBuffer(comCommand, RENDERBUFFERCMDSIZE);
     return 0;
 }
 
-uint8_t COMinterChip::sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
-    uint8_t comCommand[RENDERBUFFERCMDSIZEVOICE];
-    comCommand[0] = UPDATERENDERBUFFERVOICE;
-    comCommand[1] = (modulID << 4) | settingID;
-    comCommand[2] = voice;
+// uint8_t COMinterChip::sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
+//     uint8_t comCommand[RENDERBUFFERCMDSIZEVOICE];
+//     comCommand[0] = UPDATERENDERBUFFERVOICE;
+//     comCommand[1] = (modulID << 4) | settingID;
+//     comCommand[2] = voice;
 
-    *(float *)(&comCommand[3]) = amount;
+//     *(float *)(&comCommand[3]) = amount;
 
-    pushOutBuffer(comCommand, RENDERBUFFERCMDSIZEVOICE);
-    return 0;
-}
+//     pushOutBuffer(comCommand, RENDERBUFFERCMDSIZEVOICE);
+//     return 0;
+// }
 
 uint8_t COMinterChip::sendAudioBuffer(uint8_t *audioData) {
 
@@ -633,6 +638,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         return 1;
     }
 
+    println("BufferSize : ", sizeOfReadBuffer);
+
     // copy dma buffer to local space with word speed
     fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
                   (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
@@ -840,20 +847,20 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 break;
             }
 
-            case UPDATEINPUT: {
-                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+                // case UPDATEINPUT: {
+                //     volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
 
-                uint8_t setting = module & 0xF;
-                module = module >> 4;
+                //     uint8_t setting = module & 0xF;
+                //     module = module >> 4;
 
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                //     float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
 
-                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
+                //     allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
 
-                i += 3;
+                //     i += 3;
 
-                break;
-            }
+                //     break;
+                // }
 
             case UPDATERENDERBUFFER: {
                 volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
@@ -861,32 +868,35 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 volatile uint8_t setting = module & 0xF;
                 module = module >> 4;
 
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
-
-                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
-
-                i += 3;
-
-                break;
-            }
-
-            case UPDATERENDERBUFFERVOICE: {
-                volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
-
-                volatile uint8_t setting = module & 0xF;
-                module = module >> 4;
-                volatile uint8_t voice = (inBufferPointer[currentInBufferSelect])[++i];
-
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
-
-                allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[voice] = amountFloat;
-
-                i += 3;
+                for (int v = 0; v < 4; v++) {
+                    float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                    allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[v +
+                                                                                                   4 * (receiveChip)] =
+                        amountFloat;
+                    i += 3;
+                }
 
                 break;
             }
 
-            case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
+                // case UPDATERENDERBUFFERVOICE: {
+                //     volatile uint8_t module = (inBufferPointer[currentInBufferSelect])[++i];
+
+                //     volatile uint8_t setting = module & 0xF;
+                //     module = module >> 4;
+                //     volatile uint8_t voice = (inBufferPointer[currentInBufferSelect])[++i] + 4 * (receiveChip);
+
+                //     float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+
+                //     allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[voice] =
+                //     amountFloat;
+
+                //     i += 3;
+
+                //     break;
+                // }
+
+                // case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
 
             case UPDATEOUTPUTFLOAT: {
 
@@ -895,19 +905,21 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 volatile uint8_t setting = module & 0xF;
                 module = module >> 4;
 
-                float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
-
-                allLayers[receiveLayer]->modules[module]->outputs[setting]->currentSample[0] = amountFloat;
-
-                i += 3;
+                for (int v = 0; v < 4; v++) {
+                    float amountFloat = *(float *)&(inBufferPointer[currentInBufferSelect])[++i];
+                    allLayers[receiveLayer]->modules[module]->outputs[setting]->currentSample[v + 4 * (receiveChip)] =
+                        amountFloat;
+                    i += 3;
+                }
 
                 break;
             }
             case UPDATEAUDIOBUFFER: {
 
-                fast_copy_f32((uint32_t *)&(inBufferPointer[currentInBufferSelect])[++i],
-                              (uint32_t *)allLayers[receiveLayer]->renderedAudioWaves, (300 / 4));
-                i += 300;
+                fast_copy_f32((uint32_t *)&((inBufferPointer[currentInBufferSelect])[++i]),
+                              (uint32_t *)(allLayers[receiveLayer]->renderedAudioWaves), (300 / 4));
+                i += 299;
+                break;
             }
 
             case LASTBYTE:
