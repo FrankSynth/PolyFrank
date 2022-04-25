@@ -542,7 +542,7 @@ busState COMinterChip::startSendDMA() {
 #endif
 
     fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
-                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 4) >> 2);
+                  (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 3) >> 2);
 
     // fast_copy_byte(outBuffer[!currentOutBufferSelect].data(), dmaOutBufferPointer[!currentOutBufferSelect],
     //                dmaOutCurrentBufferSize);
@@ -635,7 +635,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     // copy dma buffer to local space with word speed
     fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
-                  (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 4) >> 2);
+                  (uint32_t *)(inBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
     // fast_copy_byte(dmaInBufferPointer[currentInBufferSelect], inBufferPointer[currentInBufferSelect],
     // sizeOfReadBuffer);
 
