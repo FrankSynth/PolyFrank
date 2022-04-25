@@ -439,56 +439,41 @@ inline uint8_t sendString(std::string &&message) {
 inline uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
-inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
-    return layerCom.sendOutput(modulID, settingID, amount);
-}
-inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
+// inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+//     return layerCom.sendOutput(modulID, settingID, amount);
+// }
+inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
 
-inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, float amount) {
+inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendRenderbuffer(modulID, settingID, amount);
 }
 
-inline uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount) {
-    return layerCom.sendRenderbufferVoice(modulID, settingID, voice, amount);
-}
+// inline uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, vec<VOICESPERCHIP> &amount) {
+//     return layerCom.sendRenderbufferVoice(modulID, settingID, voice, amount);
+// }
 
 // uint8_t sendOutputAllVoices(uint8_t modulID, uint8_t settingID, vec<4UL> amount) {
 //     return layerCom.sendOutputAllVoices(modulID, settingID, amount);
 // }
 
-inline uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
-    return layerCom.sendInput(modulID, settingID, amount);
-}
+// inline uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
+//     return layerCom.sendInput(modulID, settingID, amount);
+// }
 
 void outputCollect() {
 
-    if (layerA.chipID == 0) {
-        for (Output *o : layerA.outputs) {
-            sendOutput(o->moduleId, o->id, (float)o->currentSample[0]); // send only first Voice
-        }
-        for (BaseModule *m : layerA.modules) {
-            for (RenderBuffer *r : m->renderBuffer) {
-
-                if (m->id == layerA.out.id) {
-                    for (uint32_t v = 0; v < VOICESPERCHIP; v++) {
-                        sendRenderbufferVoice(m->id, r->id, v, r->currentSample[v]); // send all voices
-                    }
-                }
-                else {
-                    sendRenderbuffer(m->id, r->id, r->currentSample[0]); // send only first Voice
-                }
-            }
+    for (Output *o : layerA.outputs) {
+        sendOutput(o->moduleId, o->id, o->currentSample); // send only first Voice
+    }
+    for (BaseModule *m : layerA.modules) {
+        for (RenderBuffer *r : m->renderBuffer) {
+            sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
         }
     }
-    else if (layerA.chipID == 1) {
-        for (RenderBuffer *r : layerA.out.renderBuffer) {
-            for (uint32_t v = 0; v < VOICESPERCHIP; v++) {
-                sendRenderbufferVoice(layerA.out.id, r->id, v + VOICESPERCHIP, r->currentSample[v]); // send all voices
-            }
-        }
-        renderAudioUI(audioSendBuffer);
-        layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
-    }
+    // if (layerA.chipID == 1) {
+    //     renderAudioUI(audioSendBuffer);
+    //     layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
+    // }
 }
