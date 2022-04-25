@@ -967,23 +967,23 @@ void MatrixOut_PanelElement::Draw() {
     }
     if (entry != nullptr) {
 
-        std::string *name;
+        const char *name;
 
         if (entry->moduleId == allLayers[entry->layerId]->midi.id) {
-            name = &entry->shortName;
+            name = entry->shortName;
         }
         else {
-            name = &allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
+            name = allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
         }
 
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawString(*name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+            drawString(name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
                        LEFT);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(*name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+            drawString(name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
                        LEFT);
         }
 
@@ -1019,7 +1019,7 @@ void MatrixModule_PanelElement::Draw() {
         return;
     }
     if (entry != nullptr) {
-        std::string &name = entry->shortName;
+        const char *name = entry->shortName;
 
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
@@ -1034,7 +1034,7 @@ void MatrixModule_PanelElement::Draw() {
     }
     select = 0;
     visible = 0;
-    entry == nullptr;
+    entry == nullptr; // FIXME halp, haaallllp
 }
 
 void MatrixModule_PanelElement::addEntry(BaseModule *entry) {

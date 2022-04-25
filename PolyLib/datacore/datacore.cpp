@@ -17,7 +17,7 @@ void Setting::setValue(int32_t newValue) {
         // }
 #endif
 }
-
+#ifdef POLYCONTROL
 const std::string &Setting::getValueAsString() {
     if (valueNameList == nullptr) {
         return valueName;
@@ -34,7 +34,7 @@ const std::string &Setting::getValueAsString() {
         }
     }
 }
-
+#endif
 void Analog::setValue(int32_t newValue) {
     value = std::clamp(newValue, minInputValue, maxInputValue);
 
@@ -93,7 +93,7 @@ int32_t Analog::reverseMapping(float newValue) {
         return reverseMapped;
     }
 }
-
+#ifdef POLYCONTROL
 const std::string &Digital::getValueAsString() {
     if (valueNameList == nullptr) {
         return valueName;
@@ -109,7 +109,7 @@ const std::string &Digital::getValueAsString() {
         }
     }
 }
-
+#endif
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
     valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));

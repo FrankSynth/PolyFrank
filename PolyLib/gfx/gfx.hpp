@@ -71,7 +71,7 @@ void callNextTask();
 
 void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
-void drawString(char *text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const char *text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
 void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                         FONTALIGN alignment = CENTER);

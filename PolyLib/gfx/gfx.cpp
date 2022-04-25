@@ -303,7 +303,7 @@ void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t 
         posY += task.height - 4; // Distance to next character
     }
 }
-void drawString(char *charArray, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const char *charArray, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment) {
     renderTask task;
 

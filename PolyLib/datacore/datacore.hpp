@@ -7,12 +7,9 @@
 #include <cmath>
 #include <functional>
 #include <list>
+#include <string>
 #include <valarray>
 #include <vector>
-
-#ifdef POLYCONTROL
-#include <string>
-#endif
 
 extern float ROTARYENCODERACCELERATION;
 // extern uint32_t LayerRenBufferSw;
@@ -32,7 +29,7 @@ class DataElement {
     DataElement() {}
     ~DataElement() {}
 
-    const std::string &getName();
+    const char *getName();
 
     typeDisplayValue getType();
 
@@ -48,14 +45,28 @@ class DataElement {
 
     uint8_t sendOutViaCom;
 
-    std::string name;
+    const char *name;
+#ifdef POLYCONTROL
     std::string valueName; // value as string
+#endif
 };
 
 // Error element
 class Error {
   public:
-    void setErrorMessage(std::string errorMessage) {
+    void setErrorMessage(std::string &errorMessage) {
+
+        this->errorMessage = errorMessage;
+
+        errorActive = 1;
+    }
+    void setErrorMessage(std::string &&errorMessage) {
+
+        this->errorMessage = errorMessage;
+
+        errorActive = 1;
+    }
+    void setErrorMessage(const char *errorMessage) {
 
         this->errorMessage = errorMessage;
 
@@ -129,8 +140,9 @@ class Setting : public DataElement {
     void pushAndHold();
 
     void reset();
-
+#ifdef POLYCONTROL
     const std::string &getValueAsString();
+#endif
 };
 
 /**
@@ -270,9 +282,10 @@ class Analog : public DataElement {
 #endif
     }
 
+#ifdef POLYCONTROL
     const std::string &getValueAsString();
-
     std::string valueName;
+#endif
     int32_t defaultValue = 0;
 
     int32_t value;
@@ -355,8 +368,9 @@ class Digital : public DataElement {
 
     int32_t value;
     int32_t valueMapped;
+#ifdef POLYCONTROL
     std::string valueName;
-
+#endif
     int32_t min;
     int32_t max;
     int32_t minMaxDifference;
@@ -402,7 +416,7 @@ class BasePatch {
     // void removePatchOutOut(PatchElementOutOut &patch);
     bool findPatchInOut(uint8_t output, uint8_t input);
 
-    inline const std::string &getName() { return name; };
+    inline const char *getName() { return name; };
     inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
 
     uint8_t id;
@@ -410,8 +424,8 @@ class BasePatch {
     uint8_t layerId;
     uint8_t visible;
     uint8_t idGlobal;
-    std::string name;
-    std::string shortName;
+    const char *name;
+    const char *shortName;
 
     typeLinLog mapping = linMap;
 
@@ -586,10 +600,11 @@ inline void Setting::reset() {
     if (valueChangedCallback != nullptr)
         valueChangedCallback();
 }
-
+#ifdef POLYCONTROL
 inline const std::string &Analog::getValueAsString() {
     return valueName;
 }
+#endif
 inline void Setting::increase(int32_t amount) {
     if (useAcceleration) {
         value = changeInt(value,
@@ -642,7 +657,7 @@ inline void Setting::pushAndHold() {
     reset();
 }
 
-inline const std::string &DataElement::getName() {
+inline const char *DataElement::getName() {
     return name;
 }
 

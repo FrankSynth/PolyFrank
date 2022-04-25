@@ -2,7 +2,6 @@
 
 #include "datacore/datacore.hpp"
 #include "wavetables/wavetables.hpp"
-#include <string>
 #include <vector>
 
 // NameLists for switches
@@ -37,8 +36,8 @@ class BaseModule {
         this->shortName = shortName;
     }
 
-    inline const std::string &getName() { return name; }
-    inline const std::string &getShortName() { return shortName; }
+    inline const char *getName() { return name; }
+    inline const char *getShortName() { return shortName; }
 
     inline std::vector<Output *> &getOutputs() { return outputs; }
     inline std::vector<Input *> &getInputs() { return inputs; }
@@ -51,8 +50,8 @@ class BaseModule {
     uint8_t layerId;
     uint8_t displayVis = 1;
 
-    std::string name;
-    std::string shortName;
+    const char *name;
+    const char *shortName;
 
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
