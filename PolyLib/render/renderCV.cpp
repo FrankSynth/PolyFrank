@@ -13,9 +13,11 @@
 #include "renderNoise.hpp"
 #include "renderOSC.hpp"
 #include "renderOutput.hpp"
+#include "renderPhaseshaper.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
 #include "renderWaveshaper.hpp"
+
 
 extern MCP4728 cvDac[10];
 
@@ -311,6 +313,7 @@ void renderCVs() {
     renderOut(layerA.out);
     renderFeel(layerA.feel);
     renderWaveshaper(layerA.waveshaper);
+    renderPhaseshaper(layerA.phaseshaper);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();

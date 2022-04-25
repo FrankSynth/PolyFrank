@@ -98,7 +98,8 @@ const std::string &Digital::getValueAsString() {
     }
     else {
         if ((int32_t)valueNameList->size() >= max - min + 1) {
-            return (*valueNameList)[valueMapped - min];
+            valueName = (*valueNameList)[valueMapped - min];
+            return valueName;
         }
         else {
             // wrong amount of custom names defined error

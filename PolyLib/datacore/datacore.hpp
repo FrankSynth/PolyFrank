@@ -300,7 +300,7 @@ class Analog : public DataElement {
 class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
-            const std::vector<std::string> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
+            const std::vector<const char *> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
 
         this->value = MIN_VALUE_12BIT;
 
@@ -349,7 +349,7 @@ class Digital : public DataElement {
     // }
 
     const std::string &getValueAsString();
-    const std::vector<std::string> *valueNameList; // custom Name List for different Values
+    const std::vector<const char *> *valueNameList; // custom Name List for different Values
 
     int32_t defaultValue = 0;
 

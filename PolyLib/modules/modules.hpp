@@ -6,13 +6,13 @@
 #include <vector>
 
 // NameLists for switches
-extern const std::vector<std::string> nlOnOff;
-extern const std::vector<std::string> nlVCFDest;
-extern const std::vector<std::string> nlSteinerModes;
-extern const std::vector<std::string> nlLadderSlopes;
-extern const std::vector<std::string> nlADSRShapes;
-extern const std::vector<std::string> nlClockSteps;
-extern const std::vector<std::string> nlSubOctaves;
+extern const std::vector<const char *> nlOnOff;
+extern const std::vector<const char *> nlVCFDest;
+extern const std::vector<const char *> nlSteinerModes;
+extern const std::vector<const char *> nlLadderSlopes;
+extern const std::vector<const char *> nlADSRShapes;
+extern const std::vector<const char *> nlClockSteps;
+extern const std::vector<const char *> nlSubOctaves;
 
 typedef enum {
     MODULE_NOTDEFINED,
@@ -833,6 +833,60 @@ class Waveshaper : public BaseModule {
     RenderBuffer Point2Y;
     RenderBuffer Point3X;
     RenderBuffer Point3Y;
+    RenderBuffer DryWet;
+};
+
+class Phaseshaper : public BaseModule {
+  public:
+    Phaseshaper(const char *name, const char *shortName) : BaseModule(name, shortName) {
+
+        inputs.push_back(&iPoint1Y);
+        inputs.push_back(&iPoint2X);
+        inputs.push_back(&iPoint2Y);
+        inputs.push_back(&iPoint3X);
+        inputs.push_back(&iPoint3Y);
+        inputs.push_back(&iPoint4Y);
+        inputs.push_back(&iDryWet);
+
+        knobs.push_back(&aPoint1Y);
+        knobs.push_back(&aPoint2X);
+        knobs.push_back(&aPoint2Y);
+        knobs.push_back(&aPoint3X);
+        knobs.push_back(&aPoint3Y);
+        knobs.push_back(&aPoint4Y);
+        knobs.push_back(&aDryWet);
+
+        renderBuffer.push_back(&Point1Y);
+        renderBuffer.push_back(&Point2X);
+        renderBuffer.push_back(&Point2Y);
+        renderBuffer.push_back(&Point3X);
+        renderBuffer.push_back(&Point3Y);
+        renderBuffer.push_back(&Point4Y);
+        renderBuffer.push_back(&DryWet);
+    }
+
+    Input iPoint1Y = Input("P1 Y");
+    Input iPoint2X = Input("P2 X");
+    Input iPoint2Y = Input("P2 Y");
+    Input iPoint3X = Input("P3 X");
+    Input iPoint3Y = Input("P3 Y");
+    Input iPoint4Y = Input("P4 Y");
+    Input iDryWet = Input("Dry/Wet");
+
+    Analog aPoint1Y = Analog("P1 Y", 0, 1, 0, true, linMap, &iPoint1Y);
+    Analog aPoint2X = Analog("P2 X", 0, 1, 1.0f / 3.0f, true, linMap, &iPoint2X);
+    Analog aPoint2Y = Analog("P2 Y", 0, 1, 1.0f / 3.0f, true, linMap, &iPoint2Y);
+    Analog aPoint3X = Analog("P3 X", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3X);
+    Analog aPoint3Y = Analog("P3 Y", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3Y);
+    Analog aPoint4Y = Analog("P4 Y", 0, 1, 1, true, linMap, &iPoint4Y);
+    Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
+
+    RenderBuffer Point1Y;
+    RenderBuffer Point2X;
+    RenderBuffer Point2Y;
+    RenderBuffer Point3X;
+    RenderBuffer Point3Y;
+    RenderBuffer Point4Y;
     RenderBuffer DryWet;
 };
 

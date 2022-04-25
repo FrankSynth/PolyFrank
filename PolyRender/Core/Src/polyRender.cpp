@@ -132,8 +132,6 @@ void PolyRenderRun() {
 
     HAL_TIM_Base_Start_IT(&htim15);
 
-    // elapsedMillis askMessage = 0;
-
     // run loop
     while (true) {
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
@@ -300,25 +298,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     }
 }
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-    // InterChip Com
-    // if (hspi == layerCom.spi->hspi) {
-    //     layerCom.spi->callTxComplete();
-    // }
-}
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-    // InterChip Com
-    // if (hspi == layerCom.spi->hspi) {
-    //     layerCom.spi->callTxComplete();
-    // }
     PolyError_Handler("ERROR | FATAL | SPI Error");
 }
 
 void sendDACs() {
-    // for (uint16_t i = 0; i < ALLDACS; i++) {
-    //     cvDac[i].switchIC2renderBuffer();
-    // }
     FlagHandler::renderNewCV = true;
     FlagHandler::cvDacLastFinished[0] = false;
     FlagHandler::cvDacLastFinished[1] = false;
@@ -346,7 +332,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim15) {
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
-            // sendString("CV not done");
+            sendString("CV not done");
         }
         sendDACs();
     }
@@ -439,9 +425,6 @@ inline uint8_t sendString(std::string &&message) {
 inline uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
-// inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
-//     return layerCom.sendOutput(modulID, settingID, amount);
-// }
 inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
@@ -449,18 +432,6 @@ inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP>
 inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendRenderbuffer(modulID, settingID, amount);
 }
-
-// inline uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, vec<VOICESPERCHIP> &amount) {
-//     return layerCom.sendRenderbufferVoice(modulID, settingID, voice, amount);
-// }
-
-// uint8_t sendOutputAllVoices(uint8_t modulID, uint8_t settingID, vec<4UL> amount) {
-//     return layerCom.sendOutputAllVoices(modulID, settingID, amount);
-// }
-
-// inline uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
-//     return layerCom.sendInput(modulID, settingID, amount);
-// }
 
 void outputCollect() {
 
@@ -472,8 +443,9 @@ void outputCollect() {
             sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
         }
     }
-    // if (layerA.chipID == 1) {
-    //     renderAudioUI(audioSendBuffer);
-    //     layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
-    // }
+
+    if (layerA.chipID == 1) {
+        renderAudioUI(audioSendBuffer);
+        layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
+    }
 }

@@ -4,7 +4,7 @@
         {
             "label": "Build PolyControl",
             "type": "shell",
-            "command": "make -j18 -f PolyControl/Makefile",
+            "command": "make -j18 -f PolyControl/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -19,7 +19,7 @@
         {
             "label": "Build PolyControl single core",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile",
+            "command": "make -f PolyControl/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -34,7 +34,7 @@
         {
             "label": "Build clean PolyControl",
             "type": "shell",
-            "command": "make -j18 -f PolyControl/Makefile",
+            "command": "make -j18 -f PolyControl/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -53,7 +53,7 @@
         {
             "label": "Clean PolyControl",
             "type": "shell",
-            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it*",
+            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it* ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}/PolyControl/build"
             },
@@ -83,7 +83,7 @@
         {
             "label": "Build and Flash PolyControl",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile flash flash",
+            "command": "make -f PolyControl/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -102,7 +102,7 @@
         {
             "label": "Build clean and Flash PolyControl",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile flash flash",
+            "command": "make -f PolyControl/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -122,7 +122,7 @@
         {
             "label": "Build PolyRender",
             "type": "shell",
-            "command": "make -j18 -f PolyRender/Makefile",
+            "command": "make -j18 -f PolyRender/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -137,7 +137,7 @@
         {
             "label": "Build PolyRender single core",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile",
+            "command": "make -f PolyRender/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -152,7 +152,7 @@
         {
             "label": "Build clean PolyRender",
             "type": "shell",
-            "command": "make -j18 -f PolyRender/Makefile",
+            "command": "make -j18 -f PolyRender/Makefile ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -201,7 +201,7 @@
         {
             "label": "Build and Flash PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile flash flash",
+            "command": "make -f PolyRender/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -220,7 +220,7 @@
         {
             "label": "Build clean and Flash PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile flash flash",
+            "command": "make -f PolyRender/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}"
             },

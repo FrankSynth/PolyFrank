@@ -292,7 +292,7 @@ class COMinterChip {
   private:
 #elif POLYRENDER
   public:
-    uint8_t sendString(std::string &message);
+    uint8_t sendString(const std::string &message);
     uint8_t sendString(const char *message);
     // uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount);
@@ -310,11 +310,11 @@ class COMinterChip {
 
   public:
     COMinterChip(spiBus *spi, uint8_t *dmaInBuffer, uint8_t *dmaOutBuffer) {
-        inBufferPointer[0] = inBuffer;
-        inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE + 4;
+        // inBufferPointer[0] = inBuffer;
+        // inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE + 4;
 
-        outBuffer[0].reserve(INTERCHIPBUFFERSIZE + 4);
-        outBuffer[1].reserve(INTERCHIPBUFFERSIZE + 4);
+        // outBuffer[0].reserve(INTERCHIPBUFFERSIZE + 4);
+        // outBuffer[1].reserve(INTERCHIPBUFFERSIZE + 4);
 
         messagebuffer.reserve(100);
 
@@ -361,12 +361,12 @@ class COMinterChip {
     busState invokeBufferFullSend();
 
     uint8_t *dmaOutBufferPointer[2];
-    uint16_t dmaOutCurrentBufferSize;
-    std::vector<uint8_t> outBuffer[2];
+    uint16_t dmaOutCurrentBufferSize[2];
+    // std::vector<uint8_t> outBuffer[2];
 
-    uint8_t *inBufferPointer[2];
+    // uint8_t *inBufferPointer[2];
     uint8_t *dmaInBufferPointer[2];
-    uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
+    // uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
 
     uint32_t currentInBufferSelect = 0;
     uint32_t currentOutBufferSelect = 0;

@@ -3,6 +3,7 @@
 #include "renderAudio.hpp"
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
+#include "render/renderPhaseshaper.hpp"
 #include "render/renderWaveshaper.hpp"
 #include "rng.h"
 #include <cmath>
@@ -210,13 +211,15 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
+    vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase);
+
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = phase[i] * wavetableLower[i]->size;
+        stepWavetableLower[i] = shapedPhase[i] * wavetableLower[i]->size;
 
     vec<VOICESPERCHIP> stepWavetableUpper;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableUpper[i] = phase[i] * wavetableUpper[i]->size;
+        stepWavetableUpper[i] = shapedPhase[i] * wavetableUpper[i]->size;
 
     phase += noteStep * PHASEPROGRESSPERRENDER;
     phase -= floor(phase);
@@ -304,6 +307,8 @@ vec<VOICESPERCHIP> getOscBSample() {
     phase -= floor(phase);
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
+
+    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted);
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)

@@ -126,6 +126,36 @@ void layer1WaveShaperX3() {
         allLayers[1]->waveshaper.aPoint3X.reverseMapping(allLayers[1]->waveshaper.aPoint3X.valueMapped);
 }
 
+void layer0PhaseShaperX2() {
+    allLayers[0]->phaseshaper.aPoint2X.valueMapped =
+        std::min((float)allLayers[0]->phaseshaper.aPoint2X, (float)allLayers[0]->phaseshaper.aPoint3X);
+
+    allLayers[0]->phaseshaper.aPoint2X.value =
+        allLayers[0]->phaseshaper.aPoint2X.reverseMapping(allLayers[0]->phaseshaper.aPoint2X.valueMapped);
+}
+void layer0PhaseShaperX3() {
+    allLayers[0]->phaseshaper.aPoint3X.valueMapped =
+        std::max((float)allLayers[0]->phaseshaper.aPoint2X, (float)allLayers[0]->phaseshaper.aPoint3X);
+
+    allLayers[0]->phaseshaper.aPoint3X.value =
+        allLayers[0]->phaseshaper.aPoint3X.reverseMapping(allLayers[0]->phaseshaper.aPoint3X.valueMapped);
+}
+
+void layer1PhaseShaperX2() {
+    allLayers[1]->phaseshaper.aPoint2X.valueMapped =
+        std::min((float)allLayers[1]->phaseshaper.aPoint2X, (float)allLayers[1]->phaseshaper.aPoint3X);
+
+    allLayers[1]->phaseshaper.aPoint2X.value =
+        allLayers[1]->phaseshaper.aPoint2X.reverseMapping(allLayers[1]->phaseshaper.aPoint2X.valueMapped);
+}
+void layer1PhaseShaperX3() {
+    allLayers[1]->phaseshaper.aPoint3X.valueMapped =
+        std::max((float)allLayers[1]->phaseshaper.aPoint2X, (float)allLayers[1]->phaseshaper.aPoint3X);
+
+    allLayers[1]->phaseshaper.aPoint3X.value =
+        allLayers[1]->phaseshaper.aPoint3X.reverseMapping(allLayers[1]->phaseshaper.aPoint3X.valueMapped);
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(layer0lfoA);
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(layer0lfoB);
@@ -138,6 +168,11 @@ void setModuleCallbacks() {
     allLayers[1]->waveshaper.aPoint1X.setValueChangedCallback(layer1WaveShaperX1);
     allLayers[1]->waveshaper.aPoint2X.setValueChangedCallback(layer1WaveShaperX2);
     allLayers[1]->waveshaper.aPoint3X.setValueChangedCallback(layer1WaveShaperX3);
+
+    allLayers[0]->phaseshaper.aPoint2X.setValueChangedCallback(layer0PhaseShaperX2);
+    allLayers[0]->phaseshaper.aPoint3X.setValueChangedCallback(layer0PhaseShaperX3);
+    allLayers[1]->phaseshaper.aPoint2X.setValueChangedCallback(layer1PhaseShaperX2);
+    allLayers[1]->phaseshaper.aPoint3X.setValueChangedCallback(layer1PhaseShaperX3);
 }
 
 #endif

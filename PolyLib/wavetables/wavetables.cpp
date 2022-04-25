@@ -2,7 +2,7 @@
 #ifdef POLYRENDER
 std::vector<const WaveTable *> wavetables;
 #endif
-std::vector<std::string> nlWavetable;
+std::vector<const char *> nlWavetable;
 
 inline void pushWavetable(const WaveTable &wavetable) {
 #ifdef POLYRENDER
