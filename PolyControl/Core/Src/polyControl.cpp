@@ -77,10 +77,11 @@ midi::MidiInterface<midiUSB::COMusb> mididevice(MIDIComRead);
 
 // Layer
 ID layerId;
-Layer layerA(layerId.getNewId());
-Layer layerB(layerId.getNewId());
+RAM1 Layer layerA(layerId.getNewId());
+RAM1 Layer layerB(layerId.getNewId());
 
 uint8_t sendRequestUIData();
+void receiveFromRenderChip(uint8_t layer, uint8_t chip);
 
 // InterChip Com
 COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
@@ -90,6 +91,15 @@ void temperature();
 void deviceConfig();
 
 void PolyControlInit() {
+
+    // Enable Layer Board
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
+    // Enable Panel Board
+    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
+    // Enable Control Panel Board
+    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
+
+    initWavetables();
 
     // Layer
     allLayers.push_back(&layerA);
@@ -101,13 +111,6 @@ void PolyControlInit() {
     fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
 
     initPoly();
-
-    // Enable Layer Board
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
-    // Enable Panel Board
-    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
-    // Enable Control Panel Board
-    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
     HAL_Delay(500);
@@ -169,6 +172,9 @@ void PolyControlInit() {
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
+
+    HAL_Delay(100);
+
     // Midi configuration
     midiConfig();
 
@@ -186,6 +192,9 @@ void PolyControlInit() {
 }
 
 void PolyControlRun() { // Here the party starts
+
+    elapsedMillis timer;
+
     while (1) {
 
         mididevice.read();
@@ -199,18 +208,37 @@ void PolyControlRun() { // Here the party starts
             renderLED();
             sendRequestUIData();
         }
+
+        if (layerCom.allChipsReady && !layerCom.singleChipRequested) {
+            uint32_t layer = 1000;
+            uint32_t chip = 1000;
+            for (int i = 0; i < 2; i++)
+                for (int v = 0; v < 2; v++)
+                    if (allLayers[i]->layerState.value) {
+                        if (layerCom.chipState[i][v] == CHIP_DATAREADY) {
+                            layer = i;
+                            chip = v;
+                            break;
+                        }
+                    }
+            if (layer != 1000 && chip != 1000)
+                receiveFromRenderChip(layer, chip);
+        }
+
+        // if (timer > 1000) {
+        //     timer = 0;}    }
     }
 }
 
-void PolyControlNonUIRunWithoutSend() {
-    mididevice.read();
-    liveData.serviceRoutine();
-}
-void PolyControlNonUIRunWithSend() {
-    mididevice.read();
-    liveData.serviceRoutine();
-    layerCom.beginSendTransmission();
-}
+// void PolyControlNonUIRunWithoutSend() {
+// mididevice.read();
+// liveData.serviceRoutine();
+// }
+// void PolyControlNonUIRunWithSend() {
+//     mididevice.read();
+//     liveData.serviceRoutine();
+//     layerCom.beginSendTransmission();
+// }
 
 // Hardware configuration
 void deviceConfig() {
@@ -401,15 +429,15 @@ void midiConfig() {
  */
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
-        PolyControlNonUIRunWithoutSend();
     }
+    layerCom.singleChipRequested = true;
 }
+
 /**
  * @brief retreive data from all chips
  *
  */
 void receiveFromAllRenderChip() {
-
     if (layerA.layerState.value)
         if (!(layerCom.chipState[0][0] == CHIP_DATAREADY && layerCom.chipState[0][1] == CHIP_DATAREADY))
             return;
@@ -417,14 +445,7 @@ void receiveFromAllRenderChip() {
         if (!(layerCom.chipState[1][0] == CHIP_DATAREADY && layerCom.chipState[1][1] == CHIP_DATAREADY))
             return;
 
-    if (layerA.layerState.value) {
-        receiveFromRenderChip(0, 0);
-        receiveFromRenderChip(0, 1);
-    }
-    if (layerB.layerState.value) {
-        receiveFromRenderChip(1, 0);
-        receiveFromRenderChip(1, 1);
-    }
+    layerCom.allChipsReady = true;
 }
 
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
@@ -451,7 +472,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         layerCom.spi->callTxComplete();
         // close ChipSelectLine
 
-        // TODO check CS  selection
         if (layerA.layerState.value) {
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
@@ -484,10 +504,12 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.decodeCurrentInBuffer();
 
             layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
+            layerCom.singleChipRequested = false;
 
             if (!(layerCom.chipState[0][0] == CHIP_DATAREADY || layerCom.chipState[0][1] == CHIP_DATAREADY ||
                   layerCom.chipState[1][0] == CHIP_DATAREADY || layerCom.chipState[1][1] == CHIP_DATAREADY)) {
                 layerCom.sentRequestUICommand = false;
+                layerCom.allChipsReady = false;
             }
         }
     }

@@ -55,7 +55,7 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = 0x20020000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200;      /* required amount of heap  */
+_Min_Heap_Size = 0x800;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Specify the memory areas */
@@ -63,8 +63,8 @@ MEMORY
 {
 DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
 RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 512K
-RAM_D2_DMA (xrw)      : ORIGIN = 0x30000000, LENGTH = 8K
-RAM_D2 (xrw)      : ORIGIN = 0x30002000, LENGTH = 280K
+RAM_D2_DMA (xrw)      : ORIGIN = 0x30000000, LENGTH = 16K
+RAM_D2 (xrw)      : ORIGIN = 0x30004000, LENGTH = 272K
 RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K
 ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K

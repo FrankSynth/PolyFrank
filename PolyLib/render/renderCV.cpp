@@ -13,8 +13,10 @@
 #include "renderNoise.hpp"
 #include "renderOSC.hpp"
 #include "renderOutput.hpp"
+#include "renderPhaseshaper.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
+#include "renderWaveshaper.hpp"
 
 extern MCP4728 cvDac[10];
 
@@ -128,9 +130,9 @@ void initCVRendering() {
     cvDac[9].data.currentSample[3] = 4095; // VOICE 3 | STEINER OUT LEVEL
 
     HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
-    cvDac[0].sendCurrentBuffer();
-    cvDac[4].sendCurrentBuffer();
     cvDac[7].sendCurrentBuffer();
+    cvDac[4].sendCurrentBuffer();
+    cvDac[0].sendCurrentBuffer();
     HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_RESET);
 
     HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
@@ -266,7 +268,7 @@ inline void setSwitches() {
     // }
 }
 
-LogCurve ledLog(16, 0.1);
+LogCurve ledLog(64, 0.1);
 
 inline void setLEDs() {
     // max brightness 1023
@@ -309,6 +311,8 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
+    renderWaveshaper(layerA.waveshaper);
+    renderPhaseshaper(layerA.phaseshaper);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();

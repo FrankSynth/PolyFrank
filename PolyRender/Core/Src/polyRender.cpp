@@ -22,6 +22,8 @@ RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFF
 // CV DACS
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
 
+int8_t audioSendBuffer[UPDATEAUDIOBUFFERSIZE - 1];
+
 COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
 
 MCP4728 cvDac[] = {
@@ -48,31 +50,29 @@ PCM1690 audioDacA(&hsai_BlockA1, &hspi2, (int32_t *)saiBuffer);
 
 void testMCPI2CAddress();
 void resetMCPI2CAddress();
+void outputCollect();
 
 void sendDACs();
 
 void PolyRenderInit() {
 
+    initCVRendering();
+
     loadInitialWavetables();
 
-    HAL_Delay(100);
+    HAL_Delay(10);
 
     spiBusLayer.connectToInterface(&hspi1);
     deviceManager.addBus(&spiBusLayer);
 
-    // TODO chip ID maybe also could be sent instead of read.
-    // set chip id
     layerA.chipID = !HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin);
 
-    // TODO layer id should maybe rather be sent
-    // set layer ID
     layerA.id = !HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin);
 
     // init pseudo rand so all chips follow different patterns.
     std::srand(layerA.chipID + layerA.id + 1);
 
     // CV DACs init
-    initCVRendering();
 
     testMCPI2CAddress(); // check all MCP4728 addressing
 
@@ -101,8 +101,16 @@ void PolyRenderInit() {
     audioDacA.init();
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
-    FlagHandler::renderNewCVFunc = renderCVs;
+    // FlagHandler::renderNewCVFunc = renderCVs;
+    FlagHandler::outputCollectFunc = outputCollect;
 }
+
+elapsedMicros audiorendertimer = 0;
+uint32_t audiorendercounter = 0;
+uint32_t audiorendercache = 0;
+elapsedMicros cvrendertimer = 0;
+uint32_t cvrendercounter = 0;
+uint32_t cvrendercache = 0;
 
 void PolyRenderRun() {
 
@@ -123,17 +131,10 @@ void PolyRenderRun() {
     sendDACs();
     HAL_TIM_Base_Start_IT(&htim15);
 
-    elapsedMillis askMessage = 0;
-
     // run loop
     while (true) {
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
 
-        // for timing test purpose
-        // if (askMessage > 5000) {
-        //     println("alive");
-        //     askMessage = 0;
-        // }
         FlagHandler::handleFlags();
     }
 }
@@ -242,33 +243,28 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
         cvDac[3].resetLatchPin();
 }
 
-elapsedMicros audiotimer = 0;
-uint32_t counter = 0;
-uint32_t cache = 0;
-
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-    audiotimer = 0;
-    renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
+    audiorendertimer = 0;
+    renderAudio(&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 
-    cache += audiotimer;
-    counter++;
+    audiorendercache += audiorendertimer;
+    audiorendercounter++;
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-    audiotimer = 0;
+    audiorendertimer = 0;
     renderAudio(saiBuffer);
 
-    cache += audiotimer;
-    counter++;
+    audiorendercache += audiorendertimer;
+    audiorendercounter++;
 
-    if (counter > 5000) {
-        sendString(std::to_string((float)cache / (float)counter));
-
-        counter = 0;
-        cache = 0;
+    if (audiorendercounter > 10000) {
+        sendString(std::to_string((float)audiorendercache / (float)audiorendercounter));
+        audiorendercounter = 0;
+        audiorendercache = 0;
     }
 }
 
@@ -299,28 +295,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                 PolyError_Handler("ERROR | FATAL | receive bus occuppied");
         }
     }
+
+    if (pin == GPIO_PIN_0) {
+        EXTI->PR1 |= 0x01;
+
+        renderCVs();
+        FlagHandler::renderNewCV = false;
+    }
 }
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
-    // InterChip Com
-    // if (hspi == layerCom.spi->hspi) {
-    //     layerCom.spi->callTxComplete();
-    // }
-}
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-    // InterChip Com
-    // if (hspi == layerCom.spi->hspi) {
-    //     layerCom.spi->callTxComplete();
-    // }
     PolyError_Handler("ERROR | FATAL | SPI Error");
 }
 
 void sendDACs() {
-    for (uint16_t i = 0; i < ALLDACS; i++) {
-        cvDac[0].switchIC2renderBuffer();
-    }
-    FlagHandler::renderNewCV = true;
     FlagHandler::cvDacLastFinished[0] = false;
     FlagHandler::cvDacLastFinished[1] = false;
     FlagHandler::cvDacLastFinished[2] = false;
@@ -342,15 +332,42 @@ void sendDACs() {
 
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     if (htim == &htim15) {
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
-            // sendString("CV not done");
+            sendString("CV send not done");
         }
+
+        if (FlagHandler::renderNewCV == true) {
+            sendString("CV rendering not done");
+        }
+        FlagHandler::renderNewCV = true;
+
+        EXTI->SWIER1 |= 0x01;
+
         sendDACs();
     }
+    // if (htim == &htim16) {
+    //     // sendString("LOLd");
+
+    //     cvStarted = true;
+    //     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    //     cvrendertimer = 0;
+    //     FlagHandler::renderNewCV = true;
+    //     renderCVs();
+    //     FlagHandler::renderNewCV = false;
+
+    //     cvrendercache += cvrendertimer;
+    //     cvrendercounter++;
+
+    //     if (cvrendercounter > 10000) {
+    //         sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
+    //         cvrendercounter = 0;
+    //         cvrendercache = 0;
+    //     }
+    // }
 }
 
 void testMCPI2CAddress() {
@@ -431,21 +448,36 @@ void resetMCPI2CAddress() {
     }
 }
 
-uint8_t sendString(std::string &&message) {
+inline uint8_t sendString(std::string &message) {
     return layerCom.sendString(message);
 }
-uint8_t sendString(std::string &message) {
+inline uint8_t sendString(std::string &&message) {
     return layerCom.sendString(message);
 }
-uint8_t sendString(const char *message) {
+inline uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
-uint8_t sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
+inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
-uint8_t sendOutput(uint8_t modulID, uint8_t settingID, float amount) {
-    return layerCom.sendOutput(modulID, settingID, amount);
+
+inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
+    return layerCom.sendRenderbuffer(modulID, settingID, amount);
 }
-uint8_t sendInput(uint8_t modulID, uint8_t settingID, float amount) {
-    return layerCom.sendInput(modulID, settingID, amount);
+
+void outputCollect() {
+
+    for (Output *o : layerA.outputs) {
+        sendOutput(o->moduleId, o->id, o->currentSample); // send only first Voice
+    }
+    for (BaseModule *m : layerA.modules) {
+        for (RenderBuffer *r : m->renderBuffer) {
+            sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
+        }
+    }
+
+    if (layerA.chipID == 1) {
+        renderAudioUI(audioSendBuffer);
+        layerCom.sendAudioBuffer(audioSendBuffer);
+    }
 }

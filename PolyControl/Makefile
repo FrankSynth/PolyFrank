@@ -17,10 +17,11 @@ TARGET = PolyControl
 
 
 ######################################
-# building variables
+# building variabless
 ######################################
 # debug build?
-DEBUG = 0
+DEBUG = 1
+DISASSEMBLY = 0
 # optimization
 OPT = -O2
 
@@ -163,7 +164,11 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffuncti
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g -gdwarf-2
+CFLAGS += -g3 -gdwarf-2
+endif
+
+ifeq ($(DISASSEMBLY), 1)
+CFLAGS += -save-temps=obj
 endif
 
 

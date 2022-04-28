@@ -598,10 +598,10 @@ void Data_PanelElement::Draw() {
     uint16_t relX = 0;
     uint16_t relY = 0;
 
-    entryHeight = heigth;
+    entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, heigth);
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
@@ -741,10 +741,10 @@ void Live_PanelElement::Draw() {
     uint16_t relX = 0;
     uint16_t relY = 0;
 
-    entryHeight = heigth;
+    entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, heigth);
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
@@ -844,6 +844,197 @@ const char *tuningToChar(const byte &tuning) {
         case 13: return "F";
         default: return "-";
     }
+}
+
+// Patchmatrix
+
+void MatrixPatch_PanelElement::Draw() {
+
+    if (!visible) {
+        return;
+    }
+
+    // create empty patch
+    // uint32_t color = 0;
+
+    if (entry != nullptr) {
+
+        uint8_t barWidth = 6;
+        uint8_t barHeight = 4;
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+        }
+
+        uint8_t color[4];
+        float amount = entry->amount;
+
+        amount = testFloat(amount, -1, 1);
+
+        *(uint32_t *)color = cWhite;
+
+        color[3] *= abs(amount);
+
+        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth - 2, height - 4);
+
+        amount = amount * entry->sourceOut->currentSample[0];
+        amount = testFloat(amount, -1, 1);
+
+        uint16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+
+        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+    }
+    else {
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+            drawRectangleFill(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+        }
+        else {
+            drawRectangleFill(cWhiteLight, panelAbsX, panelAbsY, width, height);
+        }
+    }
+
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixIn_PanelElement::Draw() {
+
+    uint8_t barWidth = 6;
+    uint8_t barHeight = 4;
+
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+
+            drawString(entry->input->shortName, cFont_Select, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + width / 2, panelAbsY + 3, fontMedium,
+                       CENTER);
+        }
+        if (entry->input->renderBuffer != nullptr) {
+            // uint8_t color[4];
+            float amount = entry->input->renderBuffer->currentSample[0];
+
+            amount -= entry->min;
+            amount /= entry->max;
+
+            // entry->
+
+            amount = testFloat(amount, 0, 1);
+
+            int16_t offsetY = ((int16_t)(height - barHeight)) * (1 - amount);
+
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixIn_PanelElement::addEntry(Analog *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixOut_PanelElement::Draw() {
+    uint8_t barWidth = 3; // oder so
+    uint8_t barHeight = 4;
+
+    // uint8_t color[4];
+
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+
+        const char *name;
+
+        if (entry->moduleId == allLayers[entry->layerId]->midi.id) {
+            name = entry->shortName;
+        }
+        else {
+            name = allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
+        }
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+
+        float amount;
+
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+
+            amount = testFloat(entry->currentSample[i], -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                              barWidth, barHeight);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixOut_PanelElement::addEntry(Output *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixModule_PanelElement::Draw() {
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+        const char *name = entry->shortName;
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Select, panelAbsX + width / 2, panelAbsY + (height - fontMedium->size) / 2,
+                       fontMedium, CENTER);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Deselect, panelAbsX + width / 2, panelAbsY + (height - fontMedium->size) / 2,
+                       fontMedium, CENTER);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
+
+    this->entry = entry;
+    visible = 1;
 }
 
 #endif

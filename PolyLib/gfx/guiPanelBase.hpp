@@ -70,11 +70,11 @@ const char *tuningToChar(const byte &tuning);
 // GUIHeader Box for Panel Selection
 class Data_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
-        this->heigth = heigth;
+        this->height = height;
         this->select = select;
     }
     void Draw();
@@ -236,17 +236,17 @@ class Data_PanelElement {
     entryStruct entrys[4];
 
     uint16_t width;
-    uint16_t heigth;
+    uint16_t height;
 };
 
 // GUIHeader Box for Panel Selection
 class Live_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
-        this->heigth = heigth;
+        this->height = height;
         this->select = select;
     }
     void Draw();
@@ -283,17 +283,17 @@ class Live_PanelElement {
     entryStruct entrys[4];
 
     uint16_t width;
-    uint16_t heigth;
+    uint16_t height;
 };
 
 // GUIHeader Box for Panel Selection
 class Patch_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
-        this->entryHeight = heigth;
+        this->entryHeight = height;
     }
     void Draw();
     void addPatchEntry(PatchElement *patch) { this->patch = patch; }
@@ -323,11 +323,11 @@ class Patch_PanelElement {
 
 class Module_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
-        this->entryHeight = heigth;
+        this->entryHeight = height;
         this->select = select;
     }
     void Draw();
@@ -353,11 +353,11 @@ class Module_PanelElement {
 // PresetPanelElemnt for Presets
 class Preset_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth) {
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
-        this->entryHeight = heigth;
+        this->entryHeight = height;
     }
     void Draw();
     void addEntry(presetStruct *entry) {
@@ -379,4 +379,106 @@ class Preset_PanelElement {
     uint16_t entryHeight;
 };
 
-// GUIHeader Box for Panel Selection
+class MatrixPatch_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+    }
+    void Draw();
+
+    void addEntry(PatchElement *entry);
+    uint16_t select = 0;
+    PatchElement *entry;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    uint16_t width;
+    uint16_t height;
+    uint16_t visible = 0;
+};
+
+class MatrixIn_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+    }
+    void Draw();
+
+    void addEntry(Analog *entry);
+    uint16_t select = 0;
+    Analog *entry;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    uint16_t width;
+    uint16_t height;
+    uint16_t visible = 0;
+};
+
+class MatrixOut_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+    }
+    void Draw();
+
+    void addEntry(Output *entry);
+    uint16_t select = 0;
+    Output *entry;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    uint16_t width;
+    uint16_t height;
+    uint16_t visible = 0;
+};
+
+class MatrixModule_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+    }
+    void Draw();
+
+    void addEntry(BaseModule *entry);
+    uint16_t select = 0;
+    BaseModule *entry;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    uint16_t width;
+    uint16_t height;
+    uint16_t visible = 0;
+};

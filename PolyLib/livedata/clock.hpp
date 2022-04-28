@@ -26,7 +26,7 @@ class Clock {
         accumMicrosPerTick += tickTimer;
         tickTimer = 0;
 
-        if (averagingStartTimer > 1000) {
+        if (averagingStartTimer > 1000 || averageCounter >= 48) {
 
             // avoid updating bpm when last update is too long ago
             if (averagingStartTimer > 2000 || doNotCalcBpm) {
@@ -36,7 +36,7 @@ class Clock {
                 doNotCalcBpm = 0;
                 return;
             }
-            bpm = 60000000. / ((((float)accumMicrosPerTick * 24) / (float)(averageCounter)));
+            bpm = ((double)60000000.0 / ((((double)accumMicrosPerTick * (double)24.0) / (double)(averageCounter))));
             accumMicrosPerTick = 0;
             averageCounter = 0;
             averagingStartTimer = 0;

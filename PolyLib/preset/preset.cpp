@@ -26,7 +26,10 @@ void updatePresetList() {
     static uint8_t init = 1;
 
     if (init) {
-        for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
+
+        presets.reserve(PRESET_NUMBERBLOCKS);
+
+        for (uint32_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
             presetStruct newEntry;
             newEntry.usageState = PRESET_FREE;
             newEntry.storageID = i;

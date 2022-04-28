@@ -24,6 +24,8 @@ class Layer {
         // add Modules
         modules.push_back(&oscA);
         modules.push_back(&oscB);
+        modules.push_back(&waveshaper);
+        modules.push_back(&phaseshaper);
         modules.push_back(&sub);
         modules.push_back(&noise);
         modules.push_back(&mixer);
@@ -38,9 +40,20 @@ class Layer {
         modules.push_back(&feel);
         modules.push_back(&layersettings);
 
+        lfos.push_back(&lfoA);
+        lfos.push_back(&lfoB);
+        adsrs.push_back(&envA);
+        adsrs.push_back(&envF);
+
         // skip layer settings?
 
         initID();
+
+#ifdef POLYCONTROL
+        renderedAudioWavesOscA = renderedAudioWaves;
+        renderedAudioWavesOscB = &renderedAudioWaves[100];
+        renderedAudioWavesSub = &renderedAudioWaves[200];
+#endif
     }
 
     inline std::vector<BaseModule *> &getModules() { return modules; } // return modules
@@ -58,15 +71,19 @@ class Layer {
     void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
     void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
+    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYCONTROL
     void collectLayerConfiguration();
 
     void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
     void loadLayerFromPreset(presetStruct *preset);
-#endif
 
-    inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
+    int8_t renderedAudioWaves[300];
+    int8_t *renderedAudioWavesOscA; // size 100
+    int8_t *renderedAudioWavesOscB; // size 100
+    int8_t *renderedAudioWavesSub;  // size 100
+#endif
 
 #ifdef POLYRENDER
     inline void gateOn(uint16_t voice) {
@@ -77,7 +94,12 @@ class Layer {
         midi.gateOn(voice);
     }
 
-    inline void gateOff(uint16_t voice) { midi.gateOff(voice); }
+    inline void gateOff(uint16_t voice) {
+        midi.gateOff(voice);
+
+        envA.gateOff(voice);
+        envF.gateOff(voice);
+    }
 
     inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) { midi.setNote(voice, note, velocity); }
 
@@ -94,7 +116,7 @@ class Layer {
 
     void initLayer();
 
-    uint8_t chipID;
+    volatile uint8_t chipID = 0;
 
 #endif
 
@@ -103,6 +125,8 @@ class Layer {
     Midi midi = Midi("MIDI INTERFACE", "MIDI");
     OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
     OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
+    Waveshaper waveshaper = Waveshaper("WAVESHAPER", "WVSHPR");
+    Phaseshaper phaseshaper = Phaseshaper("PHASESHAPER", "PHSHPR");
     Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
     Noise noise = Noise("NOISE GENERATOR", "NOISE");
     Mixer mixer = Mixer("MIXER", "MIXER");
@@ -114,16 +138,20 @@ class Layer {
     ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
     Out out = Out("OUTPUT", "OUTPUT");
     Feel feel = Feel("FEEL", "FEEL");
-    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LA SET");
+    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
+
+    // for clocking purposes
+
+    std::vector<ADSR *> adsrs;
+    std::vector<LFO *> lfos;
+
     std::list<PatchElement> patchesInOut;
 
     Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
-
-
 
   private:
 };

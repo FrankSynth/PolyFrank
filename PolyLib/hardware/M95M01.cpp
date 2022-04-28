@@ -3,7 +3,7 @@
 #include "M95M01.hpp"
 
 extern volatile uint8_t presetDMABlockBuffer[];
-extern void PolyControlNonUIRunWithoutSend();
+// extern void PolyControlNonUIRunWithoutSend();
 
 void M95M01::SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByteToWrite) {
     while (busInterface->hspi->State != HAL_SPI_STATE_READY) {
@@ -33,8 +33,8 @@ void M95M01::SPI_WritePage(uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumByt
     while (busInterface->transmit((uint8_t *)presetDMABlockBuffer, NumByteToWrite, true) != BUS_OK) {
     }
 
-    while (busInterface->state != BUS_READY)
-        PolyControlNonUIRunWithoutSend();
+    while (busInterface->state != BUS_READY) {
+    }
 
     // Deselect the EEPROM: Chip Select high
     HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
@@ -166,8 +166,8 @@ void M95M01::SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByt
 
         while (busInterface->receive((uint8_t *)presetDMABlockBuffer, nbBytes, true) != BUS_OK) {
         }
-        while (busInterface->state != BUS_READY)
-            PolyControlNonUIRunWithoutSend();
+        while (busInterface->state != BUS_READY) {
+        }
 
         // fast_copy_f32((uint32_t *)presetDMABlockBuffer, (uint32_t *)pToBuffer, (nbBytes + 4) >> 2);
         fast_copy_byte((uint8_t *)presetDMABlockBuffer, pToBuffer, nbBytes);

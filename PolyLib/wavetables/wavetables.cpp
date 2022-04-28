@@ -1,13 +1,39 @@
 #include "wavetables.hpp"
+#ifdef POLYRENDER
+std::vector<const WaveTable *> wavetables;
+#endif
+std::vector<const char *> nlWavetable;
 
-const WaveTable *wavetables[] = {
-    &wavetable_FeltPianoLow, &wavetable_GuitarHigh,  &wavetable_GuitarLow, &wavetable_Saw,      &wavetable_Sine,
-    &wavetable_Square,       &wavetable_SSMMix01,    &wavetable_SSMMix02,  &wavetable_SSMMix03, &wavetable_SSMMix04,
-    &wavetable_SSMMix05,     &wavetable_SSMMix06,    &wavetable_SSMMix07,  &wavetable_SSMMix08, &wavetable_SSMSaw,
-    &wavetable_SSMSquare,    &wavetable_SSMTriangle, &wavetable_Triangle};
+inline void pushWavetable(const WaveTable &wavetable) {
+#ifdef POLYRENDER
+    wavetables.push_back(&wavetable);
+#endif
+    nlWavetable.push_back(wavetable.name);
+}
 
-const std::vector<std::string> nlWavetable = {
-    wavetable_FeltPianoLow, wavetable_GuitarHigh,  wavetable_GuitarLow, wavetable_Saw,      wavetable_Sine,
-    wavetable_Square,       wavetable_SSMMix01,    wavetable_SSMMix02,  wavetable_SSMMix03, wavetable_SSMMix04,
-    wavetable_SSMMix05,     wavetable_SSMMix06,    wavetable_SSMMix07,  wavetable_SSMMix08, wavetable_SSMSaw,
-    wavetable_SSMSquare,    wavetable_SSMTriangle, wavetable_Triangle};
+void initWavetables() {
+
+    nlWavetable.reserve(WAVETABLESAMOUNT);
+#ifdef POLYRENDER
+    wavetables.reserve(WAVETABLESAMOUNT);
+#endif
+
+    pushWavetable(wavetable_FeltPianoLow);
+    pushWavetable(wavetable_GuitarHigh);
+    pushWavetable(wavetable_GuitarLow);
+    pushWavetable(wavetable_Saw);
+    pushWavetable(wavetable_Sine);
+    pushWavetable(wavetable_Square);
+    pushWavetable(wavetable_SSMMix01);
+    pushWavetable(wavetable_SSMMix02);
+    pushWavetable(wavetable_SSMMix03);
+    pushWavetable(wavetable_SSMMix04);
+    pushWavetable(wavetable_SSMMix05);
+    pushWavetable(wavetable_SSMMix06);
+    pushWavetable(wavetable_SSMMix07);
+    pushWavetable(wavetable_SSMMix08);
+    pushWavetable(wavetable_SSMSaw);
+    pushWavetable(wavetable_SSMSquare);
+    pushWavetable(wavetable_SSMTriangle);
+    pushWavetable(wavetable_Triangle);
+}

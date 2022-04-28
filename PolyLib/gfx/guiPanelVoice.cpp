@@ -5,30 +5,30 @@
 void drawVoiceStatus(voiceStateStruct *voiceState, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     std::string text;
 
-    if (voiceState->status == PLAY) {
+    float amount = allLayers[voiceState->layerID]->out.vca.currentSample[voiceState->voiceID];
+
+    uint8_t color[4];
+    *(uint32_t *)color = cWhite;
+
+    color[3] *= amount;
+
+    // if (voiceState->status == PLAY) {
+    if (voiceState->status != FREE) {
         drawRectangleChampfered(cWhite, x, y, w, h, 1);
     }
+    drawRectangleChampfered(*(uint32_t *)color, x + 1, y + 1, w - 2, h - 2, 1);
 
-    else if (voiceState->status == SUSTAIN) {
-        drawRectangleChampfered(cWhiteBright, x, y, w, h, 1);
-    }
-    else if (voiceState->status == FREE) {
-        drawRectangleChampfered(cWhiteMedium, x, y, w, h, 1);
-
-        drawRectangleChampfered(cClear, x + 1, y + 1, w - 2, h - 2, 1);
-        return; // no text lets go back
-    }
     text = valueToNote(voiceState->note);
 
-    drawString(text, cBlack, x + w / 2, y + h / 2 - fontBig->size / 2, fontBig, CENTER);
+    drawString(text, cClear, x + w / 2, y + h / 2 - fontBig->size / 2, fontBig, CENTER);
 
     text = valueToOctave(voiceState->note);
 
-    drawString(text, cBlack, x + w / 2 + 18, y + h / 2 - 2, fontMedium, CENTER);
+    drawString(text, cClear, x + w / 2 + 18, y + h / 2 - 2, fontMedium, CENTER);
 
     text = valueToSharp(voiceState->note);
 
-    drawString(text, cBlack, x + w / 2 + 18, y + 2, fontMedium, CENTER);
+    drawString(text, cClear, x + w / 2 + 18, y + 2, fontMedium, CENTER);
 }
 
 void GUIPanelVoice::Draw() {

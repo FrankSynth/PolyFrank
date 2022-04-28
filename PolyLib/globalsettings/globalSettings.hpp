@@ -120,13 +120,13 @@ class GlobalSettings {
     uint8_t shift = 0;
 
   private:
-    const std::vector<std::string> amountLayerNameList = {"OFF", "ON"};
-    const std::vector<std::string> midiTypeNameList = {"USB", "DIN"};
-    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
-    const std::vector<std::string> colorThemeNameList = {"DEFAULT", "NICE"};
+    const std::vector<const char *> amountLayerNameList = {"OFF", "ON"};
+    const std::vector<const char *> midiTypeNameList = {"USB", "DIN"};
+    const std::vector<const char *> offOnNameList = {"OFF", "ON"};
+    const std::vector<const char *> colorThemeNameList = {"DEFAULT", "NICE"};
 
-    const std::vector<std::string> polyMergeNameList = {"A | B", "A + B"};
-    const std::vector<std::string> polySplitNameList = {"1|8", "2|4", "4|2", "8|1", "AUTO"};
+    const std::vector<const char *> polyMergeNameList = {"A | B", "A + B"};
+    const std::vector<const char *> polySplitNameList = {"1|8", "2|4", "4|2", "8|1", "AUTO"};
 };
 
 extern GlobalSettings globalSettings;

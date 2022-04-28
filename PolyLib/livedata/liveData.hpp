@@ -9,9 +9,9 @@
 extern Clock clock;
 extern ClockSource internalClock;
 
-extern const std::vector<std::string> offOnNameList;
-extern const std::vector<std::string> clockSourceList;
-extern const std::vector<std::string> externalClockMultList;
+extern const std::vector<const char *> offOnNameList;
+extern const std::vector<const char *> clockSourceList;
+extern const std::vector<const char *> externalClockMultList;
 
 class LiveData {
   public:
@@ -49,13 +49,16 @@ class LiveData {
     void saveLiveDataSettings();
     void loadLiveDataSettings();
 
+    void calcLFOSnapFreq(LFO &lfo);
+    void calcAllLFOSnapFreq();
+
     void reset();
 
     VoiceHandler voiceHandler;
 
     Arpeggiator arps[2] = {Arpeggiator(&voiceHandler), Arpeggiator(&voiceHandler)};
 
-    uint16_t bpm = 0;
+    // uint16_t bpm = 0;
 
     categoryStruct __liveSettingsLivemode;
 

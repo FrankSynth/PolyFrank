@@ -6,16 +6,18 @@
 #include <vector>
 
 // 48k wavetable length
-#define MINWAVETABLELENGTH 1746
+// #define MINWAVETABLELENGTH 1746
 #define MAXWAVETABLELENGTH 13968
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4
-#define WAVETABLESAMOUNT 17
+#define WAVETABLESAMOUNT 18
 
-/**
- * @brief wave table size, cycles, sizePerCycle, name and data pointer
- *
- */
+class WaveTable;
+
+#ifdef POLYRENDER
+extern std::vector<const WaveTable *> wavetables;
+#endif
+extern std::vector<const char *> nlWavetable;
 
 class WaveTable {
     /**
@@ -24,13 +26,20 @@ class WaveTable {
      */
   public:
     uint32_t size;
-    uint32_t cycles;
-    float sizePerCycle;
+    uint32_t stepRange;
     const float *data;
     const char *name;
 
-    operator std::string() const { return name; }
+    WaveTable(uint32_t size, const float *data, const char *name) {
+        this->size = size;
+        this->data = data;
+        this->name = name;
+        this->stepRange = size - 1;
+    }
+    ~WaveTable() {}
 };
+
+void initWavetables();
 
 extern const WaveTable wavetable_FeltPianoLow;
 extern const WaveTable wavetable_GuitarHigh;
@@ -50,6 +59,3 @@ extern const WaveTable wavetable_SSMSaw;
 extern const WaveTable wavetable_SSMSquare;
 extern const WaveTable wavetable_SSMTriangle;
 extern const WaveTable wavetable_Triangle;
-
-extern const WaveTable *wavetables[];
-extern const std::vector<std::string> nlWavetable;

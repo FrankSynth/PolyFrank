@@ -19,6 +19,7 @@ void Layer::initID() {
         m->layerId = this->id;
         ID digitalID;
         ID analogID;
+        ID renderBufferID;
 
         ID inputLocalID;
         ID outputLocalID;
@@ -35,7 +36,7 @@ void Layer::initID() {
         }
 
         // collect Inputs
-        for (Input *i : m->getInputs()) { // for all Output
+        for (Input *i : m->getInputs()) { // for all Inputs
             inputs.push_back(i);
             i->id = inputLocalID.getNewId();
             i->idGlobal = inputID.getNewId();
@@ -49,6 +50,12 @@ void Layer::initID() {
             o->idGlobal = outputID.getNewId();
             o->moduleId = m->id;
             o->layerId = this->id;
+        }
+
+        for (RenderBuffer *r : m->getRenderBuffer()) { // for all Renderbuffer
+            r->id = renderBufferID.getNewId();
+            r->moduleId = m->id;
+            r->layerId = this->id;
         }
     }
 }
@@ -85,11 +92,11 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
     patchesInOut.push_back(PatchElement(sourceOut, targetIn, id));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
-    patchesInOut.back().setAmount(0.2);
 
 #ifdef POLYCONTROL
-    sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, amount);
+    sendCreatePatchInOut(id, patchesInOut.back().sourceOut->idGlobal, patchesInOut.back().targetIn->idGlobal, 0);
 #endif
+    patchesInOut.back().setAmount(amount);
 }
 
 void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
@@ -101,7 +108,18 @@ void Layer::updatePatchInOutWithoutMapping(PatchElement &patch, float amount) {
 }
 
 void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
+    if (outputId >= outputs.size()) {
+        println("wrong outputID");
+        return;
+    }
+
+    if (inputId >= inputs.size()) {
+        println("wrong inputID");
+        return;
+    }
+
     for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
+
         if (p->targetIn == inputs[inputId]) {
             this->updatePatchInOutWithoutMapping(*p, amount);
             return;
@@ -143,6 +161,11 @@ void Layer::clearPatches() {
 
 #ifdef POLYCONTROL
     sendDeleteAllPatches(id);
+
+    // TODO temp patches
+    addPatchInOut(envA.out, out.iVCA, 1.0f);
+    addPatchInOut(envF.out, steiner.iCutoff, 1.0f);
+    addPatchInOut(envF.out, ladder.iCutoff, 1.0f);
 #endif
 }
 
@@ -188,7 +211,7 @@ void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::
 
 void Layer::collectLayerConfiguration() {
 
-    println("collectConfiguration");
+    // println("collectConfiguration");
     int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 

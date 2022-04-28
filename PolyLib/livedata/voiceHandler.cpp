@@ -6,7 +6,7 @@
 extern COMinterChip layerCom;
 extern std::vector<Layer *> allLayers;
 
-void VoiceHandler::playNote(Key &key) {
+void VoiceHandler::playNote(const Key &key) {
 
     uint8_t numberVoices = 0;
 
@@ -26,12 +26,12 @@ void VoiceHandler::playNote(Key &key) {
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
     }
-
     else {
         getNextVoices(numberVoices, key.layerID);
     }
 
     for (voiceStateStruct *v : foundVoices) {
+        playIDCounter++; // increase playID
 
         v->status = PLAY;
         v->note = key.note;
@@ -40,13 +40,18 @@ void VoiceHandler::playNote(Key &key) {
 
         layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
-        // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
+        if (allLayers[v->layerID]->lfoA.dAlignLFOs == 1 && allLayers[v->layerID]->lfoA.dGateTrigger == 1) {
+            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoA.id, VOICEALL);
+        }
+        if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
+            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
+        }
 
-        playIDCounter++; // increase playID
+        // println("PLAY VOICE | note :", v->note, "  playIDCount :", v->playID, "  Voice ID :", v->voiceID);
     }
 }
 
-void VoiceHandler::freeNote(Key &key) {
+void VoiceHandler::freeNote(const Key &key) {
 
     if (livemodeMergeLayer.value == 1) { // layer merged
         for (size_t i = 0; i < 2; i++) { // loop over 2 Layer
@@ -175,26 +180,23 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
     for (uint8_t i = 0; i < NUMBERVOICES; i++) {
         if (voiceLayer[i].status == FREE) {
             if (oldestVoiceID != 0xFF) { // compare
-                if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                if (voiceLayer[i].playID < voiceLayer[oldestVoiceID].playID) {
                     oldestVoiceID = voiceLayer[i].voiceID;
                 }
             }
             else { // first found
                 oldestVoiceID = voiceLayer[i].voiceID;
-                // break; // FIXME break possible, no?  Was meinst du damit? also ich will aus den for loop breaken
             }
         }
     }
 
-    // FIXME what about SUSTAIN note status? What is SELECT? //select makiert schon ausgewählte voices, falls man
-    // mehrere auf einmal spielt
     // no free voice found, take the oldest played one
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE
             if (voiceLayer[i].status != SELECT) {
                 if (oldestVoiceID != 0xFF) { // compare
-                    if (voiceLayer[i].playID <= voiceLayer[oldestVoiceID].playID) {
+                    if (voiceLayer[i].playID < voiceLayer[oldestVoiceID].playID) {
                         oldestVoiceID = voiceLayer[i].voiceID;
                     }
                 }
@@ -222,7 +224,7 @@ void VoiceHandler::searchNextVoiceAB() {
         if (allLayers[i]->layerState.value == 1) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
-                    if (voices[i][x].playID <= nextVoice->playID) {
+                    if (voices[i][x].playID < nextVoice->playID) {
                         nextVoice = &voices[i][x];
                     }
                 }
@@ -238,7 +240,7 @@ void VoiceHandler::searchNextVoiceAB() {
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                     if (voices[i][x].status == SELECT) { // not already selected
-                        if (voices[i][x].playID <= nextVoice->playID) {
+                        if (voices[i][x].playID < nextVoice->playID) {
                             nextVoice = &voices[i][x];
                         }
                     }

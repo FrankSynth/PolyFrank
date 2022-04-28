@@ -4,13 +4,13 @@
 
 extern Layer layerA;
 
-inline vec<VOICESPERCHIP> accumulateShape(Sub &sub) {
+inline vec<VOICESPERCHIP> accumulateShape(const Sub &sub) {
     return clamp(sub.iShape + sub.aShape, sub.aShape.min, sub.aShape.max);
 }
-inline vec<VOICESPERCHIP> accumulateBitcrusher(Sub &sub) {
+inline vec<VOICESPERCHIP> accumulateBitcrusher(const Sub &sub) {
     return clamp(sub.iBitcrusher + sub.aBitcrusher, sub.aBitcrusher.min, sub.aBitcrusher.max);
 }
-inline vec<VOICESPERCHIP> accumulateSamplecrusher(Sub &sub) {
+inline vec<VOICESPERCHIP> accumulateSamplecrusher(const Sub &sub) {
     return clamp(sub.iSamplecrusher + sub.aSamplecrusher, sub.aSamplecrusher.min, sub.aSamplecrusher.max);
 }
 

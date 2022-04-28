@@ -41,7 +41,7 @@ class Arpeggiator {
     void keyPressed(Key &key);
     void keyReleased(Key &key);
 
-    void pressKey(Key key);
+    void pressKey(Key &key);
     void lifetime(Key &key);
 
     void setSustain(uint8_t sustain);
@@ -70,16 +70,16 @@ class Arpeggiator {
     void decreaseArpOct();
     void increaseArpOct();
 
-    int16_t direction = 1;        // arp direction for updown etc, 1 = up
-    int16_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
-    int16_t retrigger = 0;        // clears Arp Array on next iteration
-    int16_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
-    int16_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
-    int16_t restarted = 0;        // arp was reset
-    int16_t reorder = 0;          // arp was reset
-    int16_t currentOctave = 0;    // current arp octave being played
+    int32_t direction = 1;        // arp direction for updown etc, 1 = up
+    int32_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
+    int32_t retrigger = 0;        // clears Arp Array on next iteration
+    int32_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
+    int32_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
+    int32_t restarted = 0;        // arp was reset
+    int32_t reorder = 0;          // arp was reset
+    int32_t currentOctave = 0;    // current arp octave being played
 
-    int16_t stepArp = 0; // current arp step
+    int32_t stepArp = 0; // current arp step
                          // uint16_t stepSeq = 0; // current seq step
 
     Key lastKey; // always holds the last played key, if no keys are pressed
@@ -116,16 +116,16 @@ class Arpeggiator {
 
     Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
 
-    const std::vector<std::string> offOnNameList = {"OFF", "ON"};
+    const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 
-    const std::vector<std::string> arpRepNameList = {"OFF", "1", "2", "3"};
-    const std::vector<std::string> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
+    const std::vector<const char *> arpRepNameList = {"OFF", "1", "2", "3"};
+    const std::vector<const char *> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
 
-    const std::vector<std::string> arpStepNameList = {
+    const std::vector<const char *> arpStepNameList = {
         "1/64T", "1/32T", "1/32", "1/16T", "1/16", "1/8T", "1/16.", "1/8", "1/4T", "1/8.", "1/4", "1/2T",
         "1/4.",  "1/2",   "1/1T", "1/2.",  "1/1",  "2/1T", "1/1.",  "2/1", "4/1T", "2/1.", "4/1"};
 
-    const std::vector<std::string> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
-                                                      "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
-                                                      "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
+    const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
+                                                       "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
+                                                       "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
 };

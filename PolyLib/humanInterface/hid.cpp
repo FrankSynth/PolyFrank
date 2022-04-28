@@ -154,7 +154,7 @@ void processPanelPotis() {
                 treshold) {
                 panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
                 if (channel == 0 && multiplex == 0) {
-                    println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
+                    // println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
                 }
                 if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[0][multiplex][channel](panelADCStates[0][multiplex][channel]);
@@ -248,25 +248,32 @@ void renderLED() {
                 setAllLEDs(i, x, LEDBRIGHTNESS_OFF);
             }
 
-            if (currentFocus.type == FOCUSOUTPUT) {
-                Output *output =
-                    allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+            if (currentFocus.modul < allLayers[i]->modules.size()) {
 
-                setLED(currentFocus.layer, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
+                if (currentFocus.type == FOCUSOUTPUT) {
 
-                for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-                    Input *target = output->getPatchesInOut()[i]->targetIn;
-                    setLED(currentFocus.layer, target->LEDPortID, target->LEDPinID, pulseBrightness);
+                    if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
+                        Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+
+                        setLED(i, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
+
+                        for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
+                            Input *target = output->getPatchesInOut()[i]->targetIn;
+                            setLED(i, target->LEDPortID, target->LEDPinID, pulseBrightness);
+                        }
+                    }
                 }
-            }
-            else if (currentFocus.type == FOCUSINPUT) {
+                else if (currentFocus.type == FOCUSINPUT) {
+                    if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
 
-                Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                setLED(currentFocus.layer, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
+                        Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+                        setLED(i, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
 
-                for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-                    Output *source = input->getPatchesInOut()[i]->sourceOut;
-                    setLED(currentFocus.layer, source->LEDPortID, source->LEDPinID, pulseBrightness);
+                        for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
+                            Output *source = input->getPatchesInOut()[i]->sourceOut;
+                            setLED(i, source->LEDPortID, source->LEDPinID, pulseBrightness);
+                        }
+                    }
                 }
             }
             // mapping Switch settings to LEDs
@@ -317,6 +324,7 @@ void patchLEDMappingInit() {
 }
 
 void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness) {
+
     if (port == 0xFF)
         return;
     if (layer == 0)
@@ -486,7 +494,7 @@ void PanelTouch::evaluateLayer(uint8_t pin, uint8_t port, uint8_t event) {
             case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
             case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
             case 3: evaluateInput((Input *)&(allLayers[layerID]->out.iDistort), event); break;
-            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
+            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->mixer), event); break;
             case 5: evaluateOutput((Output *)&(allLayers[layerID]->feel.oSpread), event); break;
             case 6: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
             case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
@@ -596,7 +604,7 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
                     allLayers[layerID]->removePatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
                 }
                 else {
-                    allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0.2);
+                    allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0);
                 }
             }
         }
@@ -628,7 +636,7 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
                     allLayers[layerID]->removePatchInOutById(pOutput->idGlobal, activeInput->idGlobal);
                 }
                 else {
-                    allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 1);
+                    allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 0);
                 }
             }
         }

@@ -1,6 +1,6 @@
 #pragma once
 
-#define SAIDMABUFFERSIZE 8 // 32bit buffer - was 8
+#define SAIDMABUFFERSIZE 12 // 32bit buffer - was 8
 #define AUDIOCHANNELS 8
 #define ALLDACS 10
 #define OSCPERVOICE 2

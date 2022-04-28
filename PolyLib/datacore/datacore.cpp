@@ -1,12 +1,14 @@
 #include "datacore.hpp"
 #include "debughelper/debughelper.hpp"
 
-LogCurve logMapping(32, 0.1);
-LogCurve antiLogMapping(32, 0.9);
+LogCurve logMapping(64, 0.1);
+LogCurve antiLogMapping(64, 0.9);
 
 void Setting::setValue(int32_t newValue) {
     value = std::clamp(newValue, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     if (valueNameList == nullptr)
         valueName = std::to_string(value);
@@ -14,17 +16,17 @@ void Setting::setValue(int32_t newValue) {
         //     sendSetting(layerId, moduleId, id, value);
         // }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
-
+#ifdef POLYCONTROL
 const std::string &Setting::getValueAsString() {
     if (valueNameList == nullptr) {
         return valueName;
     }
     else {
-        if ((int32_t)valueNameList->size() == (max - min + 1))
-            return (*valueNameList)[value - min];
+        if ((int32_t)valueNameList->size() == (max - min + 1)) {
+            valueName = (*valueNameList)[value - min];
+            return valueName;
+        }
         else {
             // wrong amount of custom names defined error
             PolyError_Handler("ERROR | Configuration | Setting -> NameList wrong lenght");
@@ -32,7 +34,7 @@ const std::string &Setting::getValueAsString() {
         }
     }
 }
-
+#endif
 void Analog::setValue(int32_t newValue) {
     value = std::clamp(newValue, minInputValue, maxInputValue);
 
@@ -48,14 +50,15 @@ void Analog::setValue(int32_t newValue) {
         valueMapped = antiLogMapping.mapValueSigned(valueMapped) * (max - min) + min;
     }
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 int32_t Analog::reverseMapping(float newValue) {
@@ -90,14 +93,15 @@ int32_t Analog::reverseMapping(float newValue) {
         return reverseMapped;
     }
 }
-
+#ifdef POLYCONTROL
 const std::string &Digital::getValueAsString() {
     if (valueNameList == nullptr) {
         return valueName;
     }
     else {
         if ((int32_t)valueNameList->size() >= max - min + 1) {
-            return (*valueNameList)[valueMapped - min];
+            valueName = (*valueNameList)[valueMapped - min];
+            return valueName;
         }
         else {
             // wrong amount of custom names defined error
@@ -105,10 +109,13 @@ const std::string &Digital::getValueAsString() {
         }
     }
 }
-
+#endif
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
     valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
+
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
@@ -116,47 +123,45 @@ void Digital::setValue(int32_t newValue) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::nextValue() {
     valueMapped = changeInt(valueMapped, 1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::nextValueLoop() {
     valueMapped = changeIntLoop(valueMapped, 1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void Digital::previousValue() {
     valueMapped = changeInt(valueMapped, -1, min, max);
 
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
 #ifdef POLYCONTROL
     valueName = std::to_string(valueMapped);
     if (sendOutViaCom) {
         sendSetting(layerId, moduleId, id, valueMapped);
     }
 #endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
 }
 
 void BasePatch::removePatchInOut(PatchElement &patch) {
@@ -199,16 +204,17 @@ void PatchElement::changeAmountEncoderAccelerationMapped(bool direction) {
 
 void PatchElement::setAmount(float amountRaw) {
     this->amountRaw = std::clamp(amountRaw, -1.0f, 1.0f);
+    amount = this->amountRaw;
 
-    if (targetIn->mapping == linMap) {
-        amount = this->amountRaw;
-    }
-    else if (targetIn->mapping == logMap) {
-        amount = logMapping.mapValueSigned(amountRaw);
-    }
-    else if (targetIn->mapping == antilogMap) {
-        amount = antiLogMapping.mapValueSigned(amountRaw);
-    }
+    // if (targetIn->mapping == linMap) {
+    //     amount = this->amountRaw;
+    // }
+    // else if (targetIn->mapping == logMap) {
+    //     amount = logMapping.mapValueSigned(amountRaw);
+    // }
+    // else if (targetIn->mapping == antilogMap) {
+    //     amount = antiLogMapping.mapValueSigned(amountRaw);
+    // }
 
 #ifdef POLYCONTROL
     sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);

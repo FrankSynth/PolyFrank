@@ -1,5 +1,6 @@
 #ifdef POLYCONTROL
 #include "liveData.hpp"
+#include "com/comCommands.h"
 #include "midiInterface/midi_Defs.h"
 
 #define MIDIRESOLUTION7 127
@@ -8,9 +9,9 @@
 LiveData liveData;
 extern COMinterChip layerCom;
 
-const std::vector<std::string> offOnNameList = {"OFF", "ON"};
-const std::vector<std::string> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
-const std::vector<std::string> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
+const std::vector<const char *> offOnNameList = {"OFF", "ON"};
+const std::vector<const char *> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
+const std::vector<const char *> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
 
 uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
 
@@ -50,7 +51,7 @@ void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
 void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
     Key key;
-    key.note = std::max(note, (uint8_t)21);
+    key.note = note;
     key.velocity = velocity;
 
     // check Midi channel
@@ -135,8 +136,7 @@ void LiveData::receivedStop() {
 }
 
 void LiveData::receivedReset() {
-    // reset();
-    // TODO reset and default everything
+    // TODO send all notes off, etc
 }
 
 void LiveData::receivedMidiSongPosition(unsigned int spp) {
@@ -181,42 +181,61 @@ void LiveData::serviceRoutine() {
 }
 
 void LiveData::clockHandling() {
-    if (clock.ticked) {
+    if (clock.ticked == 0)
+        return;
 
-        for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->layerState.value == 1) { // check layer state
+    for (uint8_t i = 0; i < 2; i++) {
+        if (allLayers[i]->layerState.value == 1) { // check layer state
 
-                // ARP Steps
-                if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||
-                    (!(clock.counter % clockTicksPerStep[arps[i].arpStepsB.value]) && arps[i].arpPolyrythm.value)) {
-                    arps[i].nextStep();
+            // ARP Steps
+            if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||
+                (!(clock.counter % clockTicksPerStep[arps[i].arpStepsB.value]) && arps[i].arpPolyrythm.value)) {
+                arps[i].nextStep();
+            }
+
+            // LFO Sync
+
+            for (LFO *lfo : allLayers[i]->lfos) {
+
+                if (lfo->dClockTrigger == 0)
+                    continue;
+
+                uint32_t clockTicks = clockTicksPerStep[lfo->dClockStep];
+
+                if (clock.counter % clockTicks == 0) {
+                    layerCom.sendRetrigger(i, lfo->id, VOICEALL); // all voices = 8
                 }
+            }
 
-                // LFO Sync
+            for (ADSR *adsr : allLayers[i]->adsrs) {
+                if (adsr->dClockTrigger == 0)
+                    continue;
 
-                uint32_t clockTicksPerStepLFOA = clockTicksPerStep[allLayers[i]->lfoA.dClockStep.valueMapped];
-
-                if (allLayers[i]->lfoA.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOA)) {
-                    layerCom.sendRetrigger(i, allLayers[i]->lfoA.id, 8); // all voices = 8
-
-                    if (clock.counter % allLayers[i]->lfoA.dFreqSnap.valueMapped) {
-                        float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOA / 60.;
-                        allLayers[i]->lfoA.aFreq.setValueWithoutMapping(freq);
-                    }
-                }
-
-                uint32_t clockTicksPerStepLFOB = clockTicksPerStep[allLayers[i]->lfoB.dClockStep.valueMapped];
-                if (allLayers[i]->lfoB.dClockSync.valueMapped && !(clock.counter % clockTicksPerStepLFOB)) {
-                    layerCom.sendRetrigger(i, allLayers[i]->lfoB.id, 8); // all voices = 8
-
-                    if (clock.counter % allLayers[i]->lfoB.dFreqSnap.valueMapped) {
-                        float freq = (clock.bpm * 24 / 60) / (float)clockTicksPerStepLFOB;
-                        allLayers[i]->lfoB.aFreq.setValueWithoutMapping(freq);
-                    }
+                uint32_t clockTicks = clockTicksPerStep[adsr->dClockStep];
+                if (clock.counter % clockTicks == 0) {
+                    layerCom.sendRetrigger(i, adsr->id, VOICEALL);
                 }
             }
         }
-        clock.ticked = 0;
+    }
+
+    calcAllLFOSnapFreq();
+
+    clock.ticked = 0;
+}
+
+void LiveData::calcLFOSnapFreq(LFO &lfo) {
+    if (lfo.dFreqSnap == 0)
+        return;
+
+    float freq = clock.bpm * multTime[lfo.dFreq] / 60.0f;
+    lfo.aFreq.setValueWithoutMapping(freq);
+}
+
+void LiveData::calcAllLFOSnapFreq() {
+    for (uint8_t i = 0; i < 2; i++) {
+        for (LFO *lfo : allLayers[i]->lfos)
+            calcLFOSnapFreq(*lfo);
     }
 }
 

@@ -101,7 +101,7 @@ void LogCurve::precomputeTable() {
 float LogCurve::mapValue(float value) {
 
     float ret, fract; /* Temporary variables for input, output */
-    uint16_t index;   /* Index variable */
+    uint32_t index;   /* Index variable */
     float a, b;       /* Two nearest output values */
     // int32_t n;
     float findex;
@@ -109,7 +109,7 @@ float LogCurve::mapValue(float value) {
     /* Calculation of index of the table */
     findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
-    index = ((uint16_t)findex);
+    index = ((uint32_t)findex);
 
     /* fractional value calculation */
     fract = findex - (float)index;
@@ -133,7 +133,7 @@ float LogCurve::mapValue(float value) {
  * @return float
  */
 float LogCurve::mapValueSigned(float value) {
-    uint8_t sign;
+    int32_t sign;
 
     if (value < 0) {
         sign = 1;
@@ -144,7 +144,7 @@ float LogCurve::mapValueSigned(float value) {
     }
 
     float ret, fract; /* Temporary variables for input, output */
-    uint16_t index;   /* Index variable */
+    uint32_t index;   /* Index variable */
     float a, b;       /* Two nearest output values */
     // int32_t n;
     float findex;
@@ -152,7 +152,7 @@ float LogCurve::mapValueSigned(float value) {
     /* Calculation of index of the table */
     findex = (float)size * std::clamp(value, 0.0f, 1.0f);
 
-    index = ((uint16_t)findex);
+    index = ((uint32_t)findex);
 
     /* fractional value calculation */
     fract = findex - (float)index;
@@ -174,39 +174,4 @@ float LogCurve::mapValueSigned(float value) {
 }
 
 // audio poti Log style
-LogCurve audioCurve(16, 0.1);
-
-/**
- * @brief
- *
- * @param value between 0 and 1
- * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
- * @return float
- */
-float calcSquircle(float value, float curvature) {
-    if (curvature == 0.5f)
-        return value;
-
-    float sign = getSign(value);
-
-    float exp = 1.0f / curvature - 1.0f;
-    float firstpow = 1.0f - std::pow(sign * value, exp);
-    return sign * (1.0f - std::pow(firstpow, 1.0f / exp));
-}
-
-/**
- * @brief
- *
- * @param value between 0 and 1
- * @param curvature between 0.00001 and 0.99999, 0.5 = straight line, -> 1 bends upwards.
- * @return float
- */
-float calcSquircleSimplified(float value, float curvature) {
-    if (curvature == 0.5f)
-        return value;
-
-    float exp = 1.0f / curvature - 1.0f;
-    // float expsq = exp * exp;
-    float ret = std::pow(value, exp);
-    return ret;
-}
+LogCurve audioCurve(64, 0.1);
