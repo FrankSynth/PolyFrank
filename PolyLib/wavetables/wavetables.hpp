@@ -26,6 +26,7 @@ class WaveTable {
      */
   public:
     uint32_t size;
+    uint32_t stepRange;
     const float *data;
     const char *name;
 
@@ -33,6 +34,7 @@ class WaveTable {
         this->size = size;
         this->data = data;
         this->name = name;
+        this->stepRange = size - 1;
     }
     ~WaveTable() {}
 };

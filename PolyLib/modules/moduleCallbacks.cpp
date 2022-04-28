@@ -54,6 +54,7 @@ void setModuleCallbacks() {
 
 extern std::vector<Layer *> allLayers;
 extern LiveData liveData;
+extern COMinterChip layerCom;
 
 void lfoFreqSnap(uint32_t layerID, LFO &lfo) {
     if (lfo.dFreqSnap) {
@@ -77,6 +78,25 @@ void layer1lfoA() {
 }
 void layer1lfoB() {
     lfoFreqSnap(1, allLayers[1]->lfoB);
+}
+
+void retriggerLFOforAlign(uint32_t layerID, LFO &lfo) {
+    if (lfo.dAlignLFOs == 1) {
+        layerCom.sendRetrigger(layerID, lfo.id, VOICEALL);
+    }
+}
+
+void layer0lfoARetrigger() {
+    retriggerLFOforAlign(0, allLayers[0]->lfoA);
+}
+void layer0lfoBRetrigger() {
+    retriggerLFOforAlign(0, allLayers[0]->lfoB);
+}
+void layer1lfoARetrigger() {
+    retriggerLFOforAlign(1, allLayers[1]->lfoA);
+}
+void layer1lfoBRetrigger() {
+    retriggerLFOforAlign(1, allLayers[1]->lfoB);
 }
 
 void layer0WaveShaperX1() {
@@ -161,6 +181,11 @@ void setModuleCallbacks() {
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(layer0lfoB);
     allLayers[1]->lfoA.dFreqSnap.setValueChangedCallback(layer1lfoA);
     allLayers[1]->lfoB.dFreqSnap.setValueChangedCallback(layer1lfoB);
+
+    allLayers[0]->lfoA.dAlignLFOs.setValueChangedCallback(layer0lfoARetrigger);
+    allLayers[0]->lfoB.dAlignLFOs.setValueChangedCallback(layer0lfoBRetrigger);
+    allLayers[1]->lfoA.dAlignLFOs.setValueChangedCallback(layer1lfoARetrigger);
+    allLayers[1]->lfoB.dAlignLFOs.setValueChangedCallback(layer1lfoBRetrigger);
 
     allLayers[0]->waveshaper.aPoint1X.setValueChangedCallback(layer0WaveShaperX1);
     allLayers[0]->waveshaper.aPoint2X.setValueChangedCallback(layer0WaveShaperX2);

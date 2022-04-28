@@ -855,7 +855,7 @@ void MatrixPatch_PanelElement::Draw() {
     }
 
     // create empty patch
-    uint32_t color = 0;
+    // uint32_t color = 0;
 
     if (entry != nullptr) {
 
@@ -900,7 +900,7 @@ void MatrixPatch_PanelElement::Draw() {
 
     select = 0;
     visible = 0;
-    entry == nullptr;
+    entry = nullptr;
 }
 
 void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
@@ -930,7 +930,7 @@ void MatrixIn_PanelElement::Draw() {
                        CENTER);
         }
         if (entry->input->renderBuffer != nullptr) {
-            uint8_t color[4];
+            // uint8_t color[4];
             float amount = entry->input->renderBuffer->currentSample[0];
 
             amount -= entry->min;
@@ -947,7 +947,7 @@ void MatrixIn_PanelElement::Draw() {
     }
     select = 0;
     visible = 0;
-    entry == nullptr;
+    entry = nullptr;
 }
 
 void MatrixIn_PanelElement::addEntry(Analog *entry) {
@@ -957,10 +957,10 @@ void MatrixIn_PanelElement::addEntry(Analog *entry) {
 }
 
 void MatrixOut_PanelElement::Draw() {
-    uint8_t barWidth = 6;
+    uint8_t barWidth = 3; // oder so
     uint8_t barHeight = 4;
 
-    uint8_t color[4];
+    // uint8_t color[4];
 
     if (!visible) {
         return;
@@ -987,21 +987,15 @@ void MatrixOut_PanelElement::Draw() {
                        LEFT);
         }
 
-        float amount = entry->currentSample[0];
-        amount = testFloat(amount, -1, 1);
+        float amount;
 
-        // if (amount < 0) {
-        //     *(uint32_t *)color = cLow;
-        // }
-        // else {
-        //     *(uint32_t *)color = cHigh;
-        // }
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
 
-        // color[3] *= abs(amount);
-
-        int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
-
-        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+            amount = testFloat(entry->currentSample[i], -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                              barWidth, barHeight);
+        }
     }
     select = 0;
     visible = 0;
@@ -1034,7 +1028,7 @@ void MatrixModule_PanelElement::Draw() {
     }
     select = 0;
     visible = 0;
-    entry == nullptr; // FIXME halp, haaallllp
+    entry = nullptr;
 }
 
 void MatrixModule_PanelElement::addEntry(BaseModule *entry) {

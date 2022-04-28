@@ -64,7 +64,6 @@ class ClockSource {
         static int32_t lastBPM = 0;
         if (lastBPM != clockBPM.value) {
 
-            // TODO why -1 ?
             uint32_t periode = (60000000 / (clockBPM.value * 24)) - 1;
             __HAL_TIM_SET_AUTORELOAD(&htim5, periode);
             // htim5.Instance->ARR = periode;

@@ -65,5 +65,6 @@
     "disasexpl.associations": {
         "**/*.c": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s",
         "**/*.cpp": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s"
-    }
+    },
+    "cortex-debug.registerUseNaturalFormat": true
 }

@@ -16,10 +16,14 @@ inline vec<VOICESPERCHIP> accumulateResonance(const Steiner &steiner) {
 
 void renderSteiner(Steiner &steiner) {
 
-    steiner.level = accumulateLevel(steiner);
+    // TODO log fuer blend noeting, wie im panning?
+
+    vec<VOICESPERCHIP> level = accumulateLevel(steiner);
+
+    steiner.level = level * (1.0f - steiner.aParSer);
     steiner.resonance = accumulateResonance(steiner);
     steiner.cutoff = accumulateCutoff(steiner);
-    steiner.toLadder = steiner.aParSer;
+    steiner.toLadder = level * steiner.aParSer;
 }
 
 #endif

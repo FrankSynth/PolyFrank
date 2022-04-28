@@ -138,7 +138,7 @@ class Layer {
     ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
     Out out = Out("OUTPUT", "OUTPUT");
     Feel feel = Feel("FEEL", "FEEL");
-    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LA SET");
+    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs

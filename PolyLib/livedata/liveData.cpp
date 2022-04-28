@@ -51,7 +51,7 @@ void LiveData::distributeCC(uint8_t cc, int16_t value, uint8_t layer) {
 void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
 
     Key key;
-    key.note = std::max(note, (uint8_t)21);
+    key.note = note;
     key.velocity = velocity;
 
     // check Midi channel
@@ -136,8 +136,7 @@ void LiveData::receivedStop() {
 }
 
 void LiveData::receivedReset() {
-    // reset();
-    // TODO reset and default everything
+    // TODO send all notes off, etc
 }
 
 void LiveData::receivedMidiSongPosition(unsigned int spp) {

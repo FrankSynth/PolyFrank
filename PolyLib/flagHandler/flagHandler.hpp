@@ -49,7 +49,7 @@ extern bool cvDacLastFinished[3];
 
 extern volatile bool outputCollect;
 extern volatile bool outputReady;
-extern std::function<void()> outputCollectFunc;
+extern void (*outputCollectFunc)();
 
 extern volatile bool renderNewCV;
 extern void (*renderNewCVFunc)();

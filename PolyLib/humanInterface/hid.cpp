@@ -248,25 +248,32 @@ void renderLED() {
                 setAllLEDs(i, x, LEDBRIGHTNESS_OFF);
             }
 
-            if (currentFocus.type == FOCUSOUTPUT) {
-                Output *output =
-                    allLayers[currentFocus.layer]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+            if (currentFocus.modul < allLayers[i]->modules.size()) {
 
-                setLED(currentFocus.layer, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
+                if (currentFocus.type == FOCUSOUTPUT) {
 
-                for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-                    Input *target = output->getPatchesInOut()[i]->targetIn;
-                    setLED(currentFocus.layer, target->LEDPortID, target->LEDPinID, pulseBrightness);
+                    if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
+                        Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+
+                        setLED(i, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
+
+                        for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
+                            Input *target = output->getPatchesInOut()[i]->targetIn;
+                            setLED(i, target->LEDPortID, target->LEDPinID, pulseBrightness);
+                        }
+                    }
                 }
-            }
-            else if (currentFocus.type == FOCUSINPUT) {
+                else if (currentFocus.type == FOCUSINPUT) {
+                    if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
 
-                Input *input = allLayers[currentFocus.layer]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                setLED(currentFocus.layer, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
+                        Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+                        setLED(i, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
 
-                for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-                    Output *source = input->getPatchesInOut()[i]->sourceOut;
-                    setLED(currentFocus.layer, source->LEDPortID, source->LEDPinID, pulseBrightness);
+                        for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
+                            Output *source = input->getPatchesInOut()[i]->sourceOut;
+                            setLED(i, source->LEDPortID, source->LEDPinID, pulseBrightness);
+                        }
+                    }
                 }
             }
             // mapping Switch settings to LEDs
@@ -317,6 +324,7 @@ void patchLEDMappingInit() {
 }
 
 void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness) {
+
     if (port == 0xFF)
         return;
     if (layer == 0)

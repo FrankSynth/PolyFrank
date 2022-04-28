@@ -224,38 +224,47 @@ void GUIPanelPatchMatrix::activate() {
 // Change Focus with PatchPanel Scolling
 void GUIPanelPatchMatrix::scrollModulePosition(int16_t scroll) {
     scrollModule.scroll(scroll);
-    currentFocus.modul = allModules[scrollModule.position]->id;
-    collectModules();
-    collectInputs();
-
-    currentFocus.id = allInputs[scrollIn.position]->id;
-    currentFocus.type = FOCUSINPUT;
+    updateLocation = true;
 }
 void GUIPanelPatchMatrix::scrollInPosition(int16_t scroll) {
     scrollIn.scroll(scroll);
-    currentFocus.modul = allModules[scrollModule.position]->id;
-    collectModules();
-    collectInputs();
-    currentFocus.id = allInputs[scrollIn.position]->id;
-    currentFocus.type = FOCUSINPUT;
+    updateLocation = true;
 }
 void GUIPanelPatchMatrix::scrollOutPosition(int16_t scroll) {
     scrollOut.scroll(scroll);
-    currentFocus.modul = allOutputs[scrollOut.position]->moduleId;
-    currentFocus.id = allOutputs[scrollOut.position]->id;
-    currentFocus.type = FOCUSOUTPUT;
+    updateLocation = true;
 }
 
 void GUIPanelPatchMatrix::Draw() {
-    // register Panel Seetings
-    registerPanelSettings();
 
     // update number ob entrys
     collectModules();
     collectInputs();
     collectOutputs();
 
+    if (updateLocation) {
+        updateLocation = false;
+
+        // println("module ID:  ", allModules[scrollModule.position]->id);
+        currentFocus.modul = allModules[scrollModule.position]->id;
+
+        if (allInputs.size()) {
+            if (allInputs[scrollIn.position]->input != nullptr) {
+                currentFocus.id = allInputs[scrollIn.position]->input->id;
+            }
+        }
+        else {
+            currentFocus.id = 0;
+        }
+        currentFocus.type = FOCUSINPUT;
+
+        // println("modul :", currentFocus.modul, "  type :", currentFocus.type, "  id :", currentFocus.id);
+    }
+
     registerElements();
+
+    // register Panel Seetings
+    registerPanelSettings();
 
     for (int x = 0; x < MATRIXCOLUMN; x++) {
         panelElementsOut[x].Draw();
@@ -294,11 +303,11 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         actionHandler.registerActionLeft(2);
     }
 
-    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::setEnvView, this), "ENV"}, &this->isEnv);
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::setEnvView, this), "ENV"}, &(this->isEnv));
     actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::setMidiView, this), "MIDI"},
-                                         &this->isMidi);
+                                         &(this->isMidi));
     actionHandler.registerActionLeftData(2, {std::bind(&GUIPanelPatchMatrix::setAudioView, this), "AUDIO"},
-                                         &this->isAudio);
+                                         &(this->isAudio));
 
     actionHandler.registerActionRightData(0, {std::bind(&GUIPanelPatchMatrix::toggleFilterdView, this), "FILTER"},
                                           &(this->filteredView));

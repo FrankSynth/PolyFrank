@@ -41,7 +41,7 @@ class Arpeggiator {
     void keyPressed(Key &key);
     void keyReleased(Key &key);
 
-    void pressKey(Key key);
+    void pressKey(Key &key);
     void lifetime(Key &key);
 
     void setSustain(uint8_t sustain);
@@ -70,16 +70,16 @@ class Arpeggiator {
     void decreaseArpOct();
     void increaseArpOct();
 
-    int16_t direction = 1;        // arp direction for updown etc, 1 = up
-    int16_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
-    int16_t retrigger = 0;        // clears Arp Array on next iteration
-    int16_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
-    int16_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
-    int16_t restarted = 0;        // arp was reset
-    int16_t reorder = 0;          // arp was reset
-    int16_t currentOctave = 0;    // current arp octave being played
+    int32_t direction = 1;        // arp direction for updown etc, 1 = up
+    int32_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
+    int32_t retrigger = 0;        // clears Arp Array on next iteration
+    int32_t triggeredNewNote = 0; // Arp has a new step to send out via middleman
+    int32_t stepRepeat = 1;       // arp repeats step, for upRdownR, etc
+    int32_t restarted = 0;        // arp was reset
+    int32_t reorder = 0;          // arp was reset
+    int32_t currentOctave = 0;    // current arp octave being played
 
-    int16_t stepArp = 0; // current arp step
+    int32_t stepArp = 0; // current arp step
                          // uint16_t stepSeq = 0; // current seq step
 
     Key lastKey; // always holds the last played key, if no keys are pressed

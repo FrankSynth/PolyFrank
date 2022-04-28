@@ -100,6 +100,9 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
     int32_t isAudio = 0;
     int32_t isMidi = 0;
 
+    location newLocation;
+    uint8_t updateLocation = false;
+
     MatrixModule_PanelElement panelElementsModule[MATRIXROWS];
     MatrixIn_PanelElement panelElementsIn[MATRIXROWS];
     MatrixPatch_PanelElement panelElementsPatch[MATRIXCOLUMN][MATRIXROWS];

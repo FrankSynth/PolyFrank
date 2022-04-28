@@ -91,6 +91,13 @@ void deviceConfig();
 
 void PolyControlInit() {
 
+    // Enable Layer Board
+    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
+    // Enable Panel Board
+    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
+    // Enable Control Panel Board
+    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
+
     initWavetables();
 
     // Layer
@@ -103,13 +110,6 @@ void PolyControlInit() {
     fastMemset(&emptyData, (uint32_t *)interChipDMAOutBuffer, 2 * (INTERCHIPBUFFERSIZE + 4) / 4);
 
     initPoly();
-
-    // Enable Layer Board
-    HAL_GPIO_WritePin(Layer_Reset_GPIO_Port, Layer_Reset_Pin, GPIO_PIN_SET);
-    // Enable Panel Board
-    HAL_GPIO_WritePin(Panel_Reset_GPIO_Port, Panel_Reset_Pin, GPIO_PIN_SET);
-    // Enable Control Panel Board
-    HAL_GPIO_WritePin(Control_Reset_GPIO_Port, Control_Reset_Pin, GPIO_PIN_SET);
 
     // let the layer start
     HAL_Delay(500);
@@ -213,15 +213,15 @@ void PolyControlRun() { // Here the party starts
     }
 }
 
-void PolyControlNonUIRunWithoutSend() {
-    mididevice.read();
-    liveData.serviceRoutine();
-}
-void PolyControlNonUIRunWithSend() {
-    mididevice.read();
-    liveData.serviceRoutine();
-    layerCom.beginSendTransmission();
-}
+// void PolyControlNonUIRunWithoutSend() {
+// mididevice.read();
+// liveData.serviceRoutine();
+// }
+// void PolyControlNonUIRunWithSend() {
+//     mididevice.read();
+//     liveData.serviceRoutine();
+//     layerCom.beginSendTransmission();
+// }
 
 // Hardware configuration
 void deviceConfig() {
@@ -412,7 +412,7 @@ void midiConfig() {
  */
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
-        PolyControlNonUIRunWithoutSend();
+        // PolyControlNonUIRunWithoutSend();
     }
 }
 /**
@@ -420,7 +420,6 @@ void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
  *
  */
 void receiveFromAllRenderChip() {
-
     if (layerA.layerState.value)
         if (!(layerCom.chipState[0][0] == CHIP_DATAREADY && layerCom.chipState[0][1] == CHIP_DATAREADY))
             return;
@@ -462,7 +461,6 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         layerCom.spi->callTxComplete();
         // close ChipSelectLine
 
-        // TODO check CS  selection
         if (layerA.layerState.value) {
             HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);

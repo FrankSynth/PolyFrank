@@ -256,7 +256,6 @@ class Analog : public DataElement {
 
     inline void changeValue(int32_t change) { setValue(value + change); }
 
-    // FIXME calc mit ROTARYENCODERACCELERATION float oder int?
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
             setValue(
@@ -296,7 +295,7 @@ class Analog : public DataElement {
     float max;
     float minMaxDifference;
     bool displayVis;
-    Input *input;
+    Input *input = nullptr;
 
     int32_t minInputValue;
     int32_t maxInputValue;
@@ -471,8 +470,8 @@ class Input : public BasePatch {
     void collectCurrentSample();
     typeLinLog mapping;
 
-    uint8_t LEDPortID;
-    uint8_t LEDPinID;
+    uint8_t LEDPortID = 0xFF;
+    uint8_t LEDPinID = 0xFF;
 };
 
 class Output : public BasePatch {

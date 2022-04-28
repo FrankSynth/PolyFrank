@@ -239,6 +239,7 @@ void MX_GPIO_Init(void) {
     HAL_GPIO_Init(Layer_2_READY_2_GPIO_Port, &GPIO_InitStruct);
 
     /* EXTI interrupt init*/
+
     HAL_NVIC_SetPriority(EXTI2_IRQn, 4, 0);
     HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 

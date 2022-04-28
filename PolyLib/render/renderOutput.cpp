@@ -24,7 +24,6 @@ inline vec<VOICESPERCHIP> accumulateDistort(const Out &out) {
 
 void renderOut(Out &out) {
 
-    vec<VOICESPERCHIP> vca;
     vec<VOICESPERCHIP> pan;
     vec<VOICESPERCHIP> panRight;
     vec<VOICESPERCHIP> panLeft;
@@ -34,14 +33,14 @@ void renderOut(Out &out) {
     // const float &spread = out.aPanSpread.valueMapped;
 
     out.distort = accumulateDistort(out);
-    vca = accumulateVCA(out);
-    pan = accumulatePan(out);
+    out.vca = accumulateVCA(out);
+    out.pan = accumulatePan(out);
 
-    panRight = (pan + 1.0f) * 0.5f;
-    panLeft = (-1.0f * pan + 1.0f) * 0.5f;
+    panRight = (out.pan + 1.0f) * 0.5f;
+    panLeft = (out.pan * -1.0f + 1.0f) * 0.5f;
 
-    left = vca * panningAntiLog.mapValue(panLeft * out.aMaster);
-    right = vca * panningAntiLog.mapValue(panRight * out.aMaster);
+    left = out.vca * panningAntiLog.mapValue(panLeft * out.aMaster);
+    right = out.vca * panningAntiLog.mapValue(panRight * out.aMaster);
 
     out.left = clamp(left, 0.0f, 1.0f);
     out.right = clamp(right, 0.0f, 1.0f);

@@ -5,7 +5,7 @@
 void drawVoiceStatus(voiceStateStruct *voiceState, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
     std::string text;
 
-    float amount = allLayers[voiceState->layerID]->out.left.currentSample[voiceState->voiceID];
+    float amount = allLayers[voiceState->layerID]->out.vca.currentSample[voiceState->voiceID];
 
     uint8_t color[4];
     *(uint32_t *)color = cWhite;

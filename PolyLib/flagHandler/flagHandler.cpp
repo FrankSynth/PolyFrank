@@ -90,10 +90,12 @@ bool cvDacLastFinished[3];
 
 volatile bool outputCollect = true;
 volatile bool outputReady = false;
-std::function<void()> outputCollectFunc;
+// std::function<void()> outputCollectFunc;
+void (*outputCollectFunc)();
 
 volatile bool renderNewCV;
 void (*renderNewCVFunc)();
+
 #endif
 
 // handle all interrupts
@@ -159,18 +161,18 @@ void handleFlags() {
 
 #elif POLYRENDER
 
-    if (renderNewCV) {
-        renderNewCV = false;
-        renderNewCVFunc();
-    }
+    // if (renderNewCV) {
+    //     renderNewCV = false;
+    //     renderNewCVFunc();
+    // }
 
     if (outputCollect) {
-        outputCollect = false;
-        outputReady = false;
+        // outputReady = false;
 
         if (outputCollectFunc != nullptr) {
             outputCollectFunc();
         }
+        outputCollect = false;
         outputReady = true;
     }
 

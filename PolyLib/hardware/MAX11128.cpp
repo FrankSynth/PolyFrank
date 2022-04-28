@@ -4,8 +4,6 @@
 RAM2_DMA ALIGN_32BYTES(volatile uint32_t maxBufferIn[16]);
 RAM2_DMA ALIGN_32BYTES(volatile uint32_t maxBufferOut[16]);
 
-extern void PolyControlNonUIRunWithSend();
-
 void MAX11128::fetchNewData() {
 
     // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!

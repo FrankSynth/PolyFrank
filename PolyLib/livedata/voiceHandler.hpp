@@ -13,8 +13,8 @@ class VoiceHandler {
             }
         }
     }
-    void playNote(Key &key);
-    void freeNote(Key &key);
+    void playNote(const Key &key);
+    void freeNote(const Key &key);
     void sendGateOff(voiceStateStruct *v);
     void sustainOff(uint8_t layer);
     void reset(uint8_t layer);

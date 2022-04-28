@@ -40,8 +40,7 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
         return;
 
     oscAwavetable[position].size = wavetable->size;
-    // oscAwavetable[position].cycles = wavetable->cycles;
-    // oscAwavetable[position].sizePerCycle = wavetable->sizePerCycle;
+    oscAwavetable[position].stepRange = wavetable->stepRange;
     oscAwavetable[position].name = wavetable->name;
     sourcesA[position] = wavetable;
 
@@ -72,8 +71,7 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
         return;
 
     oscBwavetable[position].size = wavetable->size;
-    // oscBwavetable[position].cycles = wavetable->cycles;
-    // oscBwavetable[position].sizePerCycle = wavetable->sizePerCycle;
+    oscBwavetable[position].stepRange = wavetable->stepRange;
     oscBwavetable[position].name = wavetable->name;
     sourcesB[position] = wavetable;
 
@@ -215,11 +213,11 @@ inline vec<VOICESPERCHIP> getOscASample() {
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = shapedPhase[i] * wavetableLower[i]->size;
+        stepWavetableLower[i] = shapedPhase[i] * wavetableLower[i]->stepRange;
 
     vec<VOICESPERCHIP> stepWavetableUpper;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableUpper[i] = shapedPhase[i] * wavetableUpper[i]->size;
+        stepWavetableUpper[i] = shapedPhase[i] * wavetableUpper[i]->stepRange;
 
     phase += noteStep * PHASEPROGRESSPERRENDER;
     phase -= floor(phase);
@@ -312,10 +310,10 @@ vec<VOICESPERCHIP> getOscBSample() {
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = phaseOffsetted[i] * wavetableLower[i]->size;
+        stepWavetableLower[i] = phaseOffsetted[i] * wavetableLower[i]->stepRange;
     vec<VOICESPERCHIP> stepWavetableUpper;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableUpper[i] = phaseOffsetted[i] * wavetableUpper[i]->size;
+        stepWavetableUpper[i] = phaseOffsetted[i] * wavetableUpper[i]->stepRange;
 
     vec<VOICESPERCHIP, uint32_t> positionA = stepWavetableLower;
     vec<VOICESPERCHIP, uint32_t> positionAb = positionA + 1U;
@@ -375,8 +373,8 @@ vec<VOICESPERCHIP> getOscBSample() {
 // possible combinations threshold = 0.7, maxloudness = 4
 // possible combinations threshold = 0.8, maxloudness = 4
 // possible combinations threshold = 0.9, maxloudness = 4 (high n!)
-inline float softLimit(const float &inputSample) {
-    const float threshold = 0.8f;
+inline float softLimit(float inputSample) {
+    const float threshold = 0.7f;
 
     const float maxVal = 4.0f;
 
@@ -389,7 +387,7 @@ inline float softLimit(const float &inputSample) {
     if (absInput <= threshold)
         return inputSample;
 
-    float sample = d * powf(threshold - absInput, n) + 1.0f;
+    float sample = d * powf(maxVal - absInput, n) + 1.0f;
 
     return std::clamp(sample * sign, -1.0f, 1.0f);
 }

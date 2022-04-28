@@ -235,7 +235,7 @@ void MX_TIM16_Init(void) {
     htim16.Instance = TIM16;
     htim16.Init.Prescaler = 240 - 1;
     htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim16.Init.Period = 500 - 1;
+    htim16.Init.Period = CVTIMERINTERVALUS - 1;
     htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim16.Init.RepetitionCounter = 0;
     htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -292,8 +292,8 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         __HAL_RCC_TIM16_CLK_ENABLE();
 
         /* TIM16 interrupt Init */
-        HAL_NVIC_SetPriority(TIM16_IRQn, 2, 0);
-        HAL_NVIC_EnableIRQ(TIM16_IRQn);
+        // HAL_NVIC_SetPriority(TIM16_IRQn, 7, 0);
+        // HAL_NVIC_EnableIRQ(TIM16_IRQn);
         /* USER CODE BEGIN TIM16_MspInit 1 */
 
         /* USER CODE END TIM16_MspInit 1 */

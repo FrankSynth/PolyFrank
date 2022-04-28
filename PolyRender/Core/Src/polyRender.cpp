@@ -56,6 +56,8 @@ void sendDACs();
 
 void PolyRenderInit() {
 
+    initCVRendering();
+
     loadInitialWavetables();
 
     HAL_Delay(10);
@@ -63,19 +65,14 @@ void PolyRenderInit() {
     spiBusLayer.connectToInterface(&hspi1);
     deviceManager.addBus(&spiBusLayer);
 
-    // TODO chip ID maybe also could be sent instead of read.
-    // set chip id
     layerA.chipID = !HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin);
 
-    // TODO layer id should maybe rather be sent
-    // set layer ID
     layerA.id = !HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin);
 
     // init pseudo rand so all chips follow different patterns.
     std::srand(layerA.chipID + layerA.id + 1);
 
     // CV DACs init
-    initCVRendering();
 
     testMCPI2CAddress(); // check all MCP4728 addressing
 
@@ -104,13 +101,16 @@ void PolyRenderInit() {
     audioDacA.init();
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
-    FlagHandler::renderNewCVFunc = renderCVs;
+    // FlagHandler::renderNewCVFunc = renderCVs;
     FlagHandler::outputCollectFunc = outputCollect;
 }
 
 elapsedMicros audiorendertimer = 0;
 uint32_t audiorendercounter = 0;
 uint32_t audiorendercache = 0;
+elapsedMicros cvrendertimer = 0;
+uint32_t cvrendercounter = 0;
+uint32_t cvrendercache = 0;
 
 void PolyRenderRun() {
 
@@ -262,7 +262,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     audiorendercache += audiorendertimer;
     audiorendercounter++;
 
-    if (audiorendercounter > 5000) {
+    if (audiorendercounter > 10000) {
         sendString(std::to_string((float)audiorendercache / (float)audiorendercounter));
         audiorendercounter = 0;
         audiorendercache = 0;
@@ -296,6 +296,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
                 PolyError_Handler("ERROR | FATAL | receive bus occuppied");
         }
     }
+
+    if (pin == GPIO_PIN_0) {
+        EXTI->PR1 |= 0x01;
+
+        renderCVs();
+        FlagHandler::renderNewCV = false;
+    }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
@@ -305,7 +312,6 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void sendDACs() {
-    FlagHandler::renderNewCV = true;
     FlagHandler::cvDacLastFinished[0] = false;
     FlagHandler::cvDacLastFinished[1] = false;
     FlagHandler::cvDacLastFinished[2] = false;
@@ -327,15 +333,42 @@ void sendDACs() {
 
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     if (htim == &htim15) {
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
-            sendString("CV not done");
+            sendString("CV send not done");
         }
+
+        if (FlagHandler::renderNewCV == true) {
+            sendString("CV rendering not done");
+        }
+        FlagHandler::renderNewCV = true;
+
+        EXTI->SWIER1 |= 0x01;
+
         sendDACs();
     }
+    // if (htim == &htim16) {
+    //     // sendString("LOLd");
+
+    //     cvStarted = true;
+    //     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    //     cvrendertimer = 0;
+    //     FlagHandler::renderNewCV = true;
+    //     renderCVs();
+    //     FlagHandler::renderNewCV = false;
+
+    //     cvrendercache += cvrendertimer;
+    //     cvrendercounter++;
+
+    //     if (cvrendercounter > 10000) {
+    //         sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
+    //         cvrendercounter = 0;
+    //         cvrendercache = 0;
+    //     }
+    // }
 }
 
 void testMCPI2CAddress() {
@@ -446,6 +479,6 @@ void outputCollect() {
 
     if (layerA.chipID == 1) {
         renderAudioUI(audioSendBuffer);
-        layerCom.sendAudioBuffer((uint8_t *)audioSendBuffer);
+        layerCom.sendAudioBuffer(audioSendBuffer);
     }
 }

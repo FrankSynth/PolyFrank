@@ -83,7 +83,7 @@
         {
             "label": "Build and Flash PolyControl",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
+            "command": "make -f PolyControl/Makefile flash",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -102,7 +102,7 @@
         {
             "label": "Build clean and Flash PolyControl",
             "type": "shell",
-            "command": "make -f PolyControl/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
+            "command": "make -f PolyControl/Makefile flash",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -201,7 +201,7 @@
         {
             "label": "Build and Flash PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
+            "command": "make -f PolyRender/Makefile flash",
             "options": {
                 "cwd": "${workspaceRoot}"
             },
@@ -220,7 +220,7 @@
         {
             "label": "Build clean and Flash PolyRender",
             "type": "shell",
-            "command": "make -f PolyRender/Makefile flash flash ; Remove-Item PolyRender/build/* -Include *.i*",
+            "command": "make -f PolyRender/Makefile flash",
             "options": {
                 "cwd": "${workspaceRoot}"
             },

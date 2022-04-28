@@ -25,7 +25,7 @@ inline vec<VOICESPERCHIP> accumulateOctave(const OSC_A &osc_a) {
 vec<VOICESPERCHIP, float> noteConverted;
 
 inline vec<VOICESPERCHIP> accumulateNote(const OSC_A &osc_a) {
-    noteConverted = (vec<VOICESPERCHIP>)(layerA.midi.rawNote) / 12.0f;
+    noteConverted = (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
 
     noteConverted += layerA.oscA.aMasterTune;
 

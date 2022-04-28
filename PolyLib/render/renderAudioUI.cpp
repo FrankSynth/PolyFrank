@@ -2,6 +2,7 @@
 
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
+#include "render/renderPhaseshaper.hpp"
 #include "render/renderWaveshaper.hpp"
 #include "renderAudio.hpp"
 #include "rng.h"
@@ -73,42 +74,44 @@ inline float getOscASample(float phase) {
     const float &samplecrusher = layerA.oscA.samplecrusher[0];
 
     uint32_t waveTableSelectionLower = morph;
-    uint32_t waveTableSelectionUpper = ceil(morph);
+    uint32_t waveTableSelectionUpper = std::ceil(morph);
 
     WaveTable *wavetableLower = &oscAwavetable[waveTableSelectionLower];
 
     WaveTable *wavetableUpper = &oscAwavetable[waveTableSelectionUpper];
 
+    float shapedPhase = renderPhaseshaperSample(phase, layerA);
+
     float stepWavetableLower;
-    stepWavetableLower = phase * wavetableLower->size;
+    stepWavetableLower = shapedPhase * wavetableLower->stepRange;
 
     float stepWavetableUpper;
-    stepWavetableUpper = phase * wavetableUpper->size;
+    stepWavetableUpper = shapedPhase * wavetableUpper->stepRange;
 
     uint32_t positionA = stepWavetableLower;
-    uint32_t positionAb = positionA + 1U;
-    positionAb = positionAb * (positionAb != wavetableLower->size);
+    // uint32_t positionAb = positionA + 1U;
+    // positionAb = positionAb * (positionAb != wavetableLower->stepRange);
 
     float sampleA;
     sampleA = oscAwavetableRAM[waveTableSelectionLower][positionA];
 
-    float sampleAb;
-    sampleAb = oscAwavetableRAM[waveTableSelectionLower][positionAb];
+    // float sampleAb;
+    // sampleAb = oscAwavetableRAM[waveTableSelectionLower][positionAb];
 
-    float interSampleAPos = stepWavetableLower - positionA;
-    sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
+    // float interSampleAPos = stepWavetableLower - positionA;
+    // sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
 
     uint32_t positionB = stepWavetableUpper;
-    uint32_t positionBb = positionB + 1U;
-    positionBb = positionBb * (positionBb != wavetableUpper->size);
+    // uint32_t positionBb = positionB + 1U;
+    // positionBb = positionBb * (positionBb != wavetableUpper->size);
 
     float sampleB;
     sampleB = oscAwavetableRAM[waveTableSelectionUpper][positionB];
-    float sampleBb;
-    sampleBb = oscAwavetableRAM[waveTableSelectionUpper][positionBb];
+    // float sampleBb;
+    // sampleBb = oscAwavetableRAM[waveTableSelectionUpper][positionBb];
 
-    float interSampleBPos = stepWavetableUpper - positionB;
-    sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
+    // float interSampleBPos = stepWavetableUpper - positionB;
+    // sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
 
     float tempMorph = morph - waveTableSelectionLower;
     float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
@@ -151,34 +154,36 @@ float getOscBSample(float phase) {
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
+    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA);
+
     float stepWavetableLower;
-    stepWavetableLower = phaseOffsetted * wavetableLower->size;
+    stepWavetableLower = phaseOffsetted * wavetableLower->stepRange;
     float stepWavetableUpper;
-    stepWavetableUpper = phaseOffsetted * wavetableUpper->size;
+    stepWavetableUpper = phaseOffsetted * wavetableUpper->stepRange;
 
     uint32_t positionA = stepWavetableLower;
-    uint32_t positionAb = positionA + 1U;
-    positionAb = positionAb * (positionAb != wavetableLower->size);
+    // uint32_t positionAb = positionA + 1U;
+    // positionAb = positionAb * (positionAb != wavetableLower->size);
 
     float sampleA;
     sampleA = oscBwavetableRAM[waveTableSelectionLower][positionA];
-    float sampleAb;
-    sampleAb = oscBwavetableRAM[waveTableSelectionLower][positionAb];
+    // float sampleAb;
+    // sampleAb = oscBwavetableRAM[waveTableSelectionLower][positionAb];
 
-    float interSampleAPos = stepWavetableLower - positionA;
-    sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
+    // float interSampleAPos = stepWavetableLower - positionA;
+    // sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
 
     uint32_t positionB = stepWavetableUpper;
-    uint32_t positionBb = positionB + 1U;
-    positionBb = positionBb * (positionBb != wavetableUpper->size);
+    // uint32_t positionBb = positionB + 1U;
+    // positionBb = positionBb * (positionBb != wavetableUpper->size);
 
     float sampleB;
     sampleB = oscBwavetableRAM[waveTableSelectionUpper][positionB];
-    float sampleBb;
-    sampleBb = oscBwavetableRAM[waveTableSelectionUpper][positionBb];
+    // float sampleBb;
+    // sampleBb = oscBwavetableRAM[waveTableSelectionUpper][positionBb];
 
-    float interSampleBPos = stepWavetableUpper - positionB;
-    sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
+    // float interSampleBPos = stepWavetableUpper - positionB;
+    // sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
 
     float tempMorph = morph - waveTableSelectionLower;
     float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);

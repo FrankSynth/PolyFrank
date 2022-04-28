@@ -302,6 +302,7 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
     uint16_t receiveSize;
 
     requestSize = true;
+    // println("DMA Buffer", (uint32_t)(uint32_t *)dmaInBufferPointer[!currentInBufferSelect]);
     spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, true);
 
     while (spi->state != BUS_READY) {
@@ -394,7 +395,7 @@ uint8_t COMinterChip::sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<V
     return 0;
 }
 
-uint8_t COMinterChip::sendAudioBuffer(uint8_t *audioData) {
+uint8_t COMinterChip::sendAudioBuffer(int8_t *audioData) {
 
     if (dmaOutCurrentBufferSize[currentOutBufferSelect] + UPDATEAUDIOBUFFERSIZE >=
         INTERCHIPBUFFERSIZE - LASTBYTECMDSIZE) {
@@ -407,12 +408,11 @@ uint8_t COMinterChip::sendAudioBuffer(uint8_t *audioData) {
     dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] =
         (uint8_t)UPDATEAUDIOBUFFER;
 
-    fast_copy_f32(
-        (uint32_t *)audioData,
-        (uint32_t *)&dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]],
-        (300 / 4));
+    for (uint32_t i = 0; i < 300; i++) {
+        dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] =
+            *(uint8_t *)&audioData[i];
+    }
 
-    dmaOutCurrentBufferSize[currentOutBufferSelect] += 300;
     __enable_irq();
 
     return 0;
@@ -540,7 +540,6 @@ busState COMinterChip::startSendDMA() {
 #ifdef POLYCONTROL
     // enable NSS to Render Chip A
 
-    // TODO check CS pins
     if (layerA.layerState.value) {
         HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
@@ -624,7 +623,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
         return 1;
     }
 
-    println("BufferSize : ", sizeOfReadBuffer);
+    // println("BufferSize : ", sizeOfReadBuffer);
 
     // copy dma buffer to local space with word speed
     // fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
@@ -801,7 +800,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 if (beginSendTransmission() != BUS_OK)
                     PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
                 FlagHandler::outputCollect = true; // collect next Sample packet;
-
+                FlagHandler::outputReady = false;
                 break;
             }
 
@@ -829,26 +828,11 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 }
 
                 print("layer ", receiveLayer);
-                println(", chip ", receiveChip, ":");
+                print(", chip ", receiveChip, ": ");
                 println(messagebuffer);
 
                 break;
             }
-
-                // case UPDATEINPUT: {
-                //     volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                //     uint8_t setting = module & 0xF;
-                //     module = module >> 4;
-
-                //     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                //     allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[0] = amountFloat;
-
-                //     i += 3;
-
-                //     break;
-                // }
 
             case UPDATERENDERBUFFER: {
                 volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -866,25 +850,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 break;
             }
-
-                // case UPDATERENDERBUFFERVOICE: {
-                //     volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                //     volatile uint8_t setting = module & 0xF;
-                //     module = module >> 4;
-                //     volatile uint8_t voice = (dmaInBufferPointer[currentInBufferSelect])[++i] + 4 * (receiveChip);
-
-                //     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                //     allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[voice] =
-                //     amountFloat;
-
-                //     i += 3;
-
-                //     break;
-                // }
-
-                // case UPDATEOUTPUTINT: println("UPDATEOUTPUTINT"); break;
 
             case UPDATEOUTPUTFLOAT: {
 
@@ -904,9 +869,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
             case UPDATEAUDIOBUFFER: {
 
-                fast_copy_f32((uint32_t *)&((dmaInBufferPointer[currentInBufferSelect])[++i]),
-                              (uint32_t *)(allLayers[receiveLayer]->renderedAudioWaves), (300 / 4));
-                i += 299;
+                for (uint32_t k = 0; k < 300; k++) {
+                    allLayers[receiveLayer]->renderedAudioWaves[k] =
+                        *(int8_t *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                }
                 break;
             }
 
@@ -938,6 +904,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
 void COMinterChip::switchInBuffer() {
     currentInBufferSelect = !currentInBufferSelect;
+    // *(uint16_t *)dmaInBufferPointer[!currentOutBufferSelect] = 2;
 }
 
 void COMinterChip::switchOutBuffer() {
@@ -973,7 +940,12 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
             return ret;
         }
     }
+
+    // println("Index : ", dmaOutCurrentBufferSize[currentOutBufferSelect]);
+    // println("pointer : ", (uint32_t)dmaOutBufferPointer[currentOutBufferSelect]);
+
     __disable_irq();
+
     dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] = data;
 
     __enable_irq();
@@ -988,6 +960,10 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
             return ret;
         }
     }
+
+    // println("Index : ", dmaOutCurrentBufferSize[currentOutBufferSelect]);
+    // println("pointer : ", (uint32_t)dmaOutBufferPointer[currentOutBufferSelect]);
+
     __disable_irq();
     for (uint32_t i = 0; i < length; i++) {
         dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] = data[i];

@@ -62,8 +62,8 @@ class BaseModule {
 
     ModuleType moduleType = MODULE_NOTDEFINED;
 
-    inline virtual void resetPhase(uint16_t voice) {}
-    inline virtual void retrigger(uint16_t voice) {}
+    inline virtual void resetPhase(uint32_t voice) {}
+    inline virtual void retrigger(uint32_t voice) {}
 
   protected:
 };
@@ -107,7 +107,7 @@ class Midi : public BaseModule {
     inline void gateOn(uint16_t voice) { rawGate[voice] = 1; }
     inline void gateOff(uint16_t voice) { rawGate[voice] = 0; }
     inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) {
-        rawNote[voice] = note - 21;
+        rawNote[voice] = note;
         rawVelocity[voice] = velocity;
     }
     inline void resetAllNotes() {
@@ -301,7 +301,6 @@ class Sub : public BaseModule {
     // vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
-// TODO bitrusher
 class Noise : public BaseModule {
   public:
     Noise(const char *name, const char *shortName) : BaseModule(name, shortName) {
@@ -496,7 +495,7 @@ class LFO : public BaseModule {
     Analog aShape = Analog("SHAPE", 0, 6, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
-    // TODO Freq also as Digital knob??
+    // TODO Switch  ywischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 0, false, &nlClockSteps);
     Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff);
     Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
@@ -529,7 +528,7 @@ class LFO : public BaseModule {
     }
 
     inline void gateOn(uint32_t voice) {
-        if (dGateTrigger.valueMapped) {
+        if (dGateTrigger.valueMapped == 1 && dAlignLFOs.valueMapped == 0) {
             resetPhase(voice);
         }
     }
@@ -703,13 +702,13 @@ class Feel : public BaseModule {
         moduleType = MODULE_FEEL;
     }
 
-    Input iGlide = Input("GLIDE", "GLIDE");
-    Input iDetune = Input("DETUNE", "DETUNE");
+    Input iGlide = Input("GLIDE", "GLIDE", &glide);
+    Input iDetune = Input("DETUNE", "DETUNE", &detune);
 
     Output oSpread = Output("SPREAD");
 
-    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true);
-    Analog aDetune = Analog("DETUNE", 0, 1, 0, true);
+    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, linMap, &iGlide);
+    Analog aDetune = Analog("DETUNE", 0, 1, 0, true, linMap, &iDetune);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
     Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.5, true, linMap);
 
@@ -736,13 +735,15 @@ class Out : public BaseModule {
         renderBuffer.push_back(&distort);
         renderBuffer.push_back(&left);
         renderBuffer.push_back(&right);
+        renderBuffer.push_back(&vca);
+        renderBuffer.push_back(&pan);
 
         moduleType = MODULE_OUT;
     }
 
-    Input iDistort = Input("DRIVE", "DRIVE");
-    Input iVCA = Input("VCA", "VCA");
-    Input iPan = Input("PAN", "PAN");
+    Input iDistort = Input("DRIVE", "DRIVE", &distort);
+    Input iVCA = Input("VCA", "VCA", &vca);
+    Input iPan = Input("PAN", "PAN", &pan);
 
     Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
@@ -753,6 +754,8 @@ class Out : public BaseModule {
 
     RenderBuffer left;
     RenderBuffer right;
+    RenderBuffer vca;
+    RenderBuffer pan;
 
     RenderBuffer distort;
 };
@@ -798,17 +801,17 @@ class Waveshaper : public BaseModule {
         renderBuffer.push_back(&DryWet);
     }
 
-    Input iShape1 = Input("Shape 1");
-    Input iShape2 = Input("Shape 2");
-    Input iShape3 = Input("Shape 3");
-    Input iShape4 = Input("Shape 4");
-    Input iPoint1X = Input("P1 X");
-    Input iPoint1Y = Input("P1 Y");
-    Input iPoint2X = Input("P2 X");
-    Input iPoint2Y = Input("P2 Y");
-    Input iPoint3X = Input("P3 X");
-    Input iPoint3Y = Input("P3 Y");
-    Input iDryWet = Input("Dry/Wet");
+    Input iShape1 = Input("Shape 1", "Shape 1", &shape1);
+    Input iShape2 = Input("Shape 2", "Shape 2", &shape2);
+    Input iShape3 = Input("Shape 3", "Shape 3", &shape3);
+    Input iShape4 = Input("Shape 4", "Shape 4", &shape4);
+    Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
+    Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);
+    Input iPoint2X = Input("P2 X", "P2 X", &Point2X);
+    Input iPoint2Y = Input("P2 Y", "P2 Y", &Point2Y);
+    Input iPoint3X = Input("P3 X", "P3 X", &Point3X);
+    Input iPoint3Y = Input("P3 Y", "P3 Y", &Point3Y);
+    Input iDryWet = Input("Dry/Wet", "Dry/Wet", &DryWet);
 
     Analog aShape1 = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape1);
     Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
@@ -864,13 +867,13 @@ class Phaseshaper : public BaseModule {
         renderBuffer.push_back(&DryWet);
     }
 
-    Input iPoint1Y = Input("P1 Y");
-    Input iPoint2X = Input("P2 X");
-    Input iPoint2Y = Input("P2 Y");
-    Input iPoint3X = Input("P3 X");
-    Input iPoint3Y = Input("P3 Y");
-    Input iPoint4Y = Input("P4 Y");
-    Input iDryWet = Input("Dry/Wet");
+    Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);
+    Input iPoint2X = Input("P2 X", "P2 X", &Point2X);
+    Input iPoint2Y = Input("P2 Y", "P2 Y", &Point2Y);
+    Input iPoint3X = Input("P3 X", "P3 X", &Point3X);
+    Input iPoint3Y = Input("P3 Y", "P3 Y", &Point3Y);
+    Input iPoint4Y = Input("P4 Y", "P4 Y", &Point4Y);
+    Input iDryWet = Input("Dry/Wet", "Dry/Wet", &DryWet);
 
     Analog aPoint1Y = Analog("P1 Y", 0, 1, 0, true, linMap, &iPoint1Y);
     Analog aPoint2X = Analog("P2 X", 0, 1, 1.0f / 3.0f, true, linMap, &iPoint2X);
