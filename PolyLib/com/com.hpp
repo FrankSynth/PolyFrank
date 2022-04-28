@@ -282,7 +282,9 @@ class COMinterChip {
     uint8_t sendRequestUIData();
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
     bool sentRequestUICommand = false;
+    bool allChipsReady = false;
     bool requestSize = false;
+    bool singleChipRequested = false;
     uint8_t receiveLayer;
     uint8_t receiveChip;
 
