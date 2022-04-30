@@ -1,6 +1,7 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
+#include "math/spline.hpp"
 #include "wavetables/wavetables.hpp"
 #include <vector>
 
@@ -764,78 +765,92 @@ class Waveshaper : public BaseModule {
   public:
     Waveshaper(const char *name, const char *shortName) : BaseModule(name, shortName) {
 
-        inputs.push_back(&iShape1);
-        inputs.push_back(&iShape2);
-        inputs.push_back(&iShape3);
-        inputs.push_back(&iShape4);
+        // inputs.push_back(&iShape1);
+        // inputs.push_back(&iShape2);
+        // inputs.push_back(&iShape3);
+        // inputs.push_back(&iShape4);
         inputs.push_back(&iPoint1X);
         inputs.push_back(&iPoint1Y);
         inputs.push_back(&iPoint2X);
         inputs.push_back(&iPoint2Y);
         inputs.push_back(&iPoint3X);
-        inputs.push_back(&iPoint3Y);
+        inputs.push_back(&iPoint4Y);
         inputs.push_back(&iDryWet);
 
-        knobs.push_back(&aShape1);
-        knobs.push_back(&aShape2);
-        knobs.push_back(&aShape3);
-        knobs.push_back(&aShape4);
+        // knobs.push_back(&aShape1);
+        // knobs.push_back(&aShape2);
+        // knobs.push_back(&aShape3);
+        // knobs.push_back(&aShape4);
         knobs.push_back(&aPoint1X);
         knobs.push_back(&aPoint1Y);
         knobs.push_back(&aPoint2X);
         knobs.push_back(&aPoint2Y);
         knobs.push_back(&aPoint3X);
-        knobs.push_back(&aPoint3Y);
+        knobs.push_back(&aPoint4Y);
         knobs.push_back(&aDryWet);
 
-        renderBuffer.push_back(&shape1);
-        renderBuffer.push_back(&shape2);
-        renderBuffer.push_back(&shape3);
-        renderBuffer.push_back(&shape4);
+        // renderBuffer.push_back(&shape1);
+        // renderBuffer.push_back(&shape2);
+        // renderBuffer.push_back(&shape3);
+        // renderBuffer.push_back(&shape4);
         renderBuffer.push_back(&Point1X);
         renderBuffer.push_back(&Point1Y);
         renderBuffer.push_back(&Point2X);
         renderBuffer.push_back(&Point2Y);
         renderBuffer.push_back(&Point3X);
-        renderBuffer.push_back(&Point3Y);
+        renderBuffer.push_back(&Point4Y);
         renderBuffer.push_back(&DryWet);
     }
 
-    Input iShape1 = Input("Shape 1", "Shape 1", &shape1);
-    Input iShape2 = Input("Shape 2", "Shape 2", &shape2);
-    Input iShape3 = Input("Shape 3", "Shape 3", &shape3);
-    Input iShape4 = Input("Shape 4", "Shape 4", &shape4);
+    // Input iShape1 = Input("Shape 1", "Shape 1", &shape1);
+    // Input iShape2 = Input("Shape 2", "Shape 2", &shape2);
+    // Input iShape3 = Input("Shape 3", "Shape 3", &shape3);
+    // Input iShape4 = Input("Shape 4", "Shape 4", &shape4);
     Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
     Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);
     Input iPoint2X = Input("P2 X", "P2 X", &Point2X);
     Input iPoint2Y = Input("P2 Y", "P2 Y", &Point2Y);
     Input iPoint3X = Input("P3 X", "P3 X", &Point3X);
     Input iPoint3Y = Input("P3 Y", "P3 Y", &Point3Y);
+    Input iPoint4Y = Input("P3 Y", "P3 Y", &Point4Y);
     Input iDryWet = Input("Dry/Wet", "Dry/Wet", &DryWet);
 
-    Analog aShape1 = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape1);
-    Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
-    Analog aShape3 = Analog("Shape 3", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape3);
-    Analog aShape4 = Analog("Shape 4", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape4);
+    // Analog aShape1 = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape1);
+    // Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
+    // Analog aShape3 = Analog("Shape 3", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape3);
+    // Analog aShape4 = Analog("Shape 4", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape4);
     Analog aPoint1X = Analog("P1 X", 0, 1, 0.25, true, linMap, &iPoint1X);
     Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.25, true, linMap, &iPoint1Y);
     Analog aPoint2X = Analog("P2 X", 0, 1, 0.5, true, linMap, &iPoint2X);
     Analog aPoint2Y = Analog("P2 Y", 0, 1, 0.5, true, linMap, &iPoint2Y);
     Analog aPoint3X = Analog("P3 X", 0, 1, 0.75, true, linMap, &iPoint3X);
     Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.75, true, linMap, &iPoint3Y);
+    Analog aPoint4Y = Analog("P3 Y", 0, 1, 0.75, true, linMap, &iPoint4Y);
     Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
 
-    RenderBuffer shape1;
-    RenderBuffer shape2;
-    RenderBuffer shape3;
-    RenderBuffer shape4;
+    // RenderBuffer shape1;
+    // RenderBuffer shape2;
+    // RenderBuffer shape3;
+    // RenderBuffer shape4;
     RenderBuffer Point1X;
     RenderBuffer Point1Y;
     RenderBuffer Point2X;
     RenderBuffer Point2Y;
     RenderBuffer Point3X;
     RenderBuffer Point3Y;
+    RenderBuffer Point4Y;
     RenderBuffer DryWet;
+
+    std::vector<float> splineX[VOICESPERCHIP];
+    std::vector<float> splineY[VOICESPERCHIP];
+    tk::spline wavespline[VOICESPERCHIP] = {tk::spline(splineX[0], splineY[0], tk::spline::cspline_hermite, false,
+                                                       tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0),
+                                            tk::spline(splineX[1], splineY[1], tk::spline::cspline_hermite, false,
+                                                       tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0),
+                                            tk::spline(splineX[2], splineY[2], tk::spline::cspline_hermite, false,
+                                                       tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0),
+                                            tk::spline(splineX[3], splineY[3], tk::spline::cspline_hermite, false,
+                                                       tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0)};
 };
 
 class Phaseshaper : public BaseModule {

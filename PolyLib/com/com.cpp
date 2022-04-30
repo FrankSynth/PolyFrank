@@ -254,15 +254,18 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
     return 0;
 }
 
-uint8_t COMinterChip::sendRequestUIData() {
+uint8_t COMinterChip::sendRequestUIData(uint8_t layer, uint8_t chip) {
 
-    if (sentRequestUICommand == false) {
-        uint8_t comCommand;
+    if (singleChipRequested == false) {
+        receiveLayer = layer;
+        receiveChip = chip;
+        uint8_t comCommand[SENDUPDATETOCONTROLSIZE];
 
-        comCommand = SENDUPDATETOCONTROL;
-        pushOutBuffer(comCommand);
-
-        sentRequestUICommand = true;
+        uint8_t voice = chip * 4;
+        comCommand[0] = SENDUPDATETOCONTROL;
+        comCommand[1] = (layer << 7) | voice;
+        pushOutBuffer(comCommand, SENDUPDATETOCONTROLSIZE);
+        singleChipRequested = true;
     }
 
     return 0;
@@ -293,9 +296,6 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
     if (spi->state != BUS_READY)
         return spi->state;
-
-    receiveLayer = layer;
-    receiveChip = chip;
 
     setCSLine(receiveLayer, receiveChip, GPIO_PIN_RESET);
 
@@ -456,23 +456,16 @@ busState COMinterChip::beginSendTransmission() {
         }
     }
 
-    if (!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
-          HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) {
-        // println("blocked send");
+    if (((!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
+            HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) &&
+         layerA.layerState.value) ||
+
+        ((!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
+            HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_2_Pin))) &&
+         layerB.layerState.value)) {
+        println("blocked send");
         return BUS_BUSY;
     }
-
-//  if (((!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
-//          HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) &&
-//       layerA.layerState.value) ||
-//
-//      ((!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
-//          HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_2_Pin))) &&
-//       layerB.layerState.value)) {
-//      println("blocked send");
-//      return BUS_BUSY;
-//  }
-//
 #endif
 
     switchOutBuffer();
@@ -499,36 +492,25 @@ busState COMinterChip::startSendDMA() {
 
 #ifdef POLYCONTROL
 
-    if (sentRequestUICommand) {
-        if (layerA.layerState.value) {
-            chipState[0][0] = CHIP_WAITFORDATA;
-            chipState[0][1] = CHIP_WAITFORDATA;
-            chipStateTimeout[0][0] = 0;
-            chipStateTimeout[0][1] = 0;
-        }
-
-        if (layerB.layerState.value) {
-            chipState[1][0] = CHIP_WAITFORDATA;
-            chipState[1][1] = CHIP_WAITFORDATA;
-            chipStateTimeout[1][0] = 0;
-            chipStateTimeout[1][1] = 0;
-        }
+    if (layerA.layerState.value) {
+        chipState[0][0] = CHIP_DATASENT;
+        chipState[0][1] = CHIP_DATASENT;
+        chipStateTimeout[0][0] = 0;
+        chipStateTimeout[0][1] = 0;
     }
-    else {
-        if (layerA.layerState.value) {
-            chipState[0][0] = CHIP_DATASENT;
-            chipState[0][1] = CHIP_DATASENT;
-            chipStateTimeout[0][0] = 0;
-            chipStateTimeout[0][1] = 0;
-        }
 
-        if (layerB.layerState.value) {
-            chipState[1][0] = CHIP_DATASENT;
-            chipState[1][1] = CHIP_DATASENT;
-            chipStateTimeout[1][0] = 0;
-            chipStateTimeout[1][1] = 0;
-        }
+    if (layerB.layerState.value) {
+        chipState[1][0] = CHIP_DATASENT;
+        chipState[1][1] = CHIP_DATASENT;
+        chipStateTimeout[1][0] = 0;
+        chipStateTimeout[1][1] = 0;
     }
+
+    if (singleChipRequested) {
+        chipState[receiveLayer][receiveChip] = CHIP_WAITFORDATA;
+        chipStateTimeout[receiveLayer][receiveChip] = 0;
+    }
+
 #endif
 
     // fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
@@ -792,15 +774,20 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case SENDUPDATETOCONTROL: {
-                // println("send trans");
-                if (FlagHandler::outputReady == false) {
-                    sendString("out not collected");
-                }
+                uint8_t layerID, module, voice;
+                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
 
-                if (beginSendTransmission() != BUS_OK)
-                    PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
-                FlagHandler::outputCollect = true; // collect next Sample packet;
-                FlagHandler::outputReady = false;
+                if (layerID == layerA.id && voice != NOVOICE) {
+
+                    if (FlagHandler::outputReady == false) {
+                        sendString("out not collected");
+                    }
+
+                    if (beginSendTransmission() != BUS_OK)
+                        PolyError_Handler("ERROR | FATAL | send command, send bus occuppied");
+                    FlagHandler::outputCollect = true; // collect next Sample packet;
+                    FlagHandler::outputReady = false;
+                }
                 break;
             }
 

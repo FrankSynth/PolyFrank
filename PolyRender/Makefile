@@ -149,6 +149,10 @@ ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif
 
+ifeq ($(DEBUG), 0)
+C_DEFS += -DNDEBUG
+endif
+
 ifeq ($(DISASSEMBLY), 1)
 CFLAGS += -save-temps=obj
 endif

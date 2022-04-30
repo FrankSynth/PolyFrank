@@ -20,7 +20,7 @@
 #define RETRIGGERCMDSIZE 2
 #define LASTBYTECMDSIZE 1
 #define RESETALLCMDSIZE 2
-#define SENDUPDATETOCONTROLSIZE 1
+#define SENDUPDATETOCONTROLSIZE 2
 #define MESSAGECMDSIZE 1
 
 #define VOICE0 0
@@ -46,24 +46,24 @@
 // second byte all commands
 enum comCommands {
     NOCOMMAND = 0,
-    UPDATEINOUTPATCH,        // update patchesInOut
-    CREATEINOUTPATCH,        // create patchesInOut
-    DELETEINOUTPATCH,        // delete patchesInOut
-    DELETEALLPATCHES,        // delete patchesInOut
-    NEWNOTE,                 // received new Note
-    OPENGATE,                // received NoteOn
-    CLOSEGATE,               // received NoteOff
-    RESETALL,                // received Reset All
-    RETRIGGER,               // retrigger
-    UPDATESETTINGINT,        // next bytes are setting
-    UPDATESETTINGFLOAT,      // next bytes are settings
+    UPDATEINOUTPATCH,   // update patchesInOut
+    CREATEINOUTPATCH,   // create patchesInOut
+    DELETEINOUTPATCH,   // delete patchesInOut
+    DELETEALLPATCHES,   // delete patchesInOut
+    NEWNOTE,            // received new Note
+    OPENGATE,           // received NoteOn
+    CLOSEGATE,          // received NoteOff
+    RESETALL,           // received Reset All
+    RETRIGGER,          // retrigger
+    UPDATESETTINGINT,   // next bytes are setting
+    UPDATESETTINGFLOAT, // next bytes are settings
     // UPDATEINPUT,             // next bytes are settings
-    UPDATEOUTPUTFLOAT,       // next bytes are settings
+    UPDATEOUTPUTFLOAT, // next bytes are settings
     // UPDATEOUTPUTINT,         // next bytes are settings
-    SENDUPDATETOCONTROL,     // pull req from control
-    SENDMESSAGE,             // send a string
-    UPDATERENDERBUFFER,      // next bytes are settings
+    SENDUPDATETOCONTROL, // pull req from control
+    SENDMESSAGE,         // send a string
+    UPDATERENDERBUFFER,  // next bytes are settings
     // UPDATERENDERBUFFERVOICE, // next bytes are settings
-    UPDATEAUDIOBUFFER,       // next bytes are settings
-    LASTBYTE = 0b01111111,   // LAST BYTE of transmission
+    UPDATEAUDIOBUFFER,     // next bytes are settings
+    LASTBYTE = 0b01111111, // LAST BYTE of transmission
 };

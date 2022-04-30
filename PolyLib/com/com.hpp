@@ -253,11 +253,17 @@ enum comInterchipState { COM_READY, COM_DECODE };
 enum renderChipState {
     CHIP_NOTINIT,
     CHIP_READY,
+    CHIP_REQUESTDATA,
     CHIP_DATASENT,
     CHIP_WAITFORDATA,
     CHIP_DATAREADY,
     CHIP_ERROR,
     CHIP_DISABLED
+};
+enum renderChipRequestState {
+    RQ_READY,
+    RQ_REQUESTDATA,
+    RQ_DATARECEIVED,
 };
 #endif
 
@@ -279,16 +285,16 @@ class COMinterChip {
     uint8_t sendResetAll(uint8_t layerId);
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
-    uint8_t sendRequestUIData();
+    uint8_t sendRequestUIData(uint8_t layer, uint8_t chip);
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
-    bool sentRequestUICommand = false;
-    bool allChipsReady = false;
-    bool requestSize = false;
-    bool singleChipRequested = false;
+    volatile bool sentRequestUICommand = false;
+    volatile bool requestSize = false;
+    volatile bool singleChipRequested = false;
     uint8_t receiveLayer;
     uint8_t receiveChip;
 
     volatile renderChipState chipState[2][2] = {{CHIP_NOTINIT}};
+    volatile renderChipRequestState requestState[2][2] = {{RQ_READY}};
     elapsedMillis chipStateTimeout[2][2] = {{0}};
 
   private:

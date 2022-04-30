@@ -209,7 +209,8 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
-    vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase);
+    // TODO set dedicated phaseshaper when ready
+    vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaper);
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -256,7 +257,8 @@ inline vec<VOICESPERCHIP> getOscASample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    newSample = renderWaveshaperSample(newSample);
+    // TODO set dedicated waveshaper when ready
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaper);
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -306,7 +308,8 @@ vec<VOICESPERCHIP> getOscBSample() {
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
-    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted);
+    // TODO set dedicated phaseshaper when ready
+    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaper);
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -348,7 +351,8 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    newSample = renderWaveshaperSample(newSample);
+    // TODO set dedicated waveshaper when ready
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaper);
 
     newSample = bitcrush(bitcrusher, newSample);
 

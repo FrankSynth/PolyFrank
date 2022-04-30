@@ -2,9 +2,6 @@
 #include "renderWaveshaper.hpp"
 
 #ifdef POLYRENDER
-
-extern Layer layerA;
-
 inline vec<VOICESPERCHIP> accumulateValue(const Input &input, const Analog &knob) {
     return clamp(input + knob, knob.min, knob.max);
 }
@@ -27,29 +24,28 @@ void renderPhaseshaper(Phaseshaper &phaseshaper) {
 
 #endif
 
-float renderPhaseshaperSample(float input, const Layer &layer) {
+float renderPhaseshaperSample(float input, const Phaseshaper &phaseshaper) {
     float lowerBoundY;
     float upperBoundY;
     float lerpAmount;
 
-    if (input < layer.phaseshaper.Point2X[0]) {
-        lowerBoundY = layer.phaseshaper.Point1Y[0];
-        upperBoundY = layer.phaseshaper.Point2Y[0];
-        lerpAmount = input / layer.phaseshaper.Point2X[0];
+    if (input < phaseshaper.Point2X[0]) {
+        lowerBoundY = phaseshaper.Point1Y[0];
+        upperBoundY = phaseshaper.Point2Y[0];
+        lerpAmount = input / phaseshaper.Point2X[0];
     }
-    else if (input < layer.phaseshaper.Point3X[0]) {
-        lowerBoundY = layer.phaseshaper.Point2Y[0];
-        upperBoundY = layer.phaseshaper.Point3Y[0];
-        lerpAmount =
-            (input - layer.phaseshaper.Point2X[0]) / (layer.phaseshaper.Point3X[0] - layer.phaseshaper.Point2X[0]);
+    else if (input < phaseshaper.Point3X[0]) {
+        lowerBoundY = phaseshaper.Point2Y[0];
+        upperBoundY = phaseshaper.Point3Y[0];
+        lerpAmount = (input - phaseshaper.Point2X[0]) / (phaseshaper.Point3X[0] - phaseshaper.Point2X[0]);
     }
     else {
-        lowerBoundY = layer.phaseshaper.Point3Y[0];
-        upperBoundY = layer.phaseshaper.Point4Y[0];
-        lerpAmount = (input - layer.phaseshaper.Point3X[0]) / (1.0f - layer.phaseshaper.Point3X[0]);
+        lowerBoundY = phaseshaper.Point3Y[0];
+        upperBoundY = phaseshaper.Point4Y[0];
+        lerpAmount = (input - phaseshaper.Point3X[0]) / (1.0f - phaseshaper.Point3X[0]);
     }
 
     float sample = fast_lerp_f32(lowerBoundY, upperBoundY, lerpAmount);
 
-    return (sample * layer.phaseshaper.aDryWet) + (input * (1.0f - layer.phaseshaper.aDryWet));
+    return (sample * phaseshaper.aDryWet) + (input * (1.0f - phaseshaper.aDryWet));
 }

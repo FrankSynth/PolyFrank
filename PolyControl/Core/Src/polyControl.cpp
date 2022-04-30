@@ -1,3 +1,4 @@
+
 #include "polyControl.hpp"
 
 #include "gfx/gui.hpp"
@@ -7,6 +8,8 @@
 
 #include "midiInterface/MIDIInterface.h"
 #include "usbd_midi_if.hpp"
+
+#include <cassert>
 
 // GUI
 extern midi::MidiInterface<midiUSB::COMusb> mididevice;
@@ -80,8 +83,9 @@ ID layerId;
 RAM1 Layer layerA(layerId.getNewId());
 RAM1 Layer layerB(layerId.getNewId());
 
-uint8_t sendRequestUIData();
+void sendRequestAllUIData();
 void receiveFromRenderChip(uint8_t layer, uint8_t chip);
+void checkLayerRequests();
 
 // InterChip Com
 COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
@@ -206,39 +210,42 @@ void PolyControlRun() { // Here the party starts
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             renderLED();
-            sendRequestUIData();
+            sendRequestAllUIData();
         }
-
-        if (layerCom.allChipsReady && !layerCom.singleChipRequested) {
-            uint32_t layer = 1000;
-            uint32_t chip = 1000;
-            for (int i = 0; i < 2; i++)
-                for (int v = 0; v < 2; v++)
-                    if (allLayers[i]->layerState.value) {
-                        if (layerCom.chipState[i][v] == CHIP_DATAREADY) {
-                            layer = i;
-                            chip = v;
-                            break;
-                        }
-                    }
-            if (layer != 1000 && chip != 1000)
-                receiveFromRenderChip(layer, chip);
-        }
-
-        // if (timer > 1000) {
-        //     timer = 0;}    }
+        checkLayerRequests();
     }
 }
 
-// void PolyControlNonUIRunWithoutSend() {
-// mididevice.read();
-// liveData.serviceRoutine();
-// }
-// void PolyControlNonUIRunWithSend() {
-//     mididevice.read();
-//     liveData.serviceRoutine();
-//     layerCom.beginSendTransmission();
-// }
+void checkLayerRequests() {
+
+    if (!layerCom.sentRequestUICommand)
+        return;
+
+    if (layerCom.singleChipRequested) {
+        if (layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] == CHIP_DATAREADY) {
+            receiveFromRenderChip(layerCom.receiveLayer, layerCom.receiveChip);
+        }
+    }
+    else {
+        uint32_t layer = 1000;
+        uint32_t chip = 1000;
+        for (int i = 0; i < 2; i++)
+            for (int v = 0; v < 2; v++)
+                if (allLayers[i]->layerState.value) {
+                    if (layerCom.requestState[i][v] == RQ_REQUESTDATA) {
+                        layer = i;
+                        chip = v;
+                        break;
+                    }
+                }
+
+        if (layer == 1000 || chip == 1000) {
+            println("ERROR ", __FILE__, __LINE__);
+            return;
+        }
+        layerCom.sendRequestUIData(layer, chip);
+    }
+}
 
 // Hardware configuration
 void deviceConfig() {
@@ -352,9 +359,6 @@ uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId)
 uint8_t sendDeleteAllPatches(uint8_t layerId) {
     return layerCom.sendDeleteAllPatches(layerId);
 }
-uint8_t sendRequestUIData() {
-    return layerCom.sendRequestUIData();
-}
 
 //////////////TEMPERATURE////////////
 
@@ -430,22 +434,20 @@ void midiConfig() {
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
     while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
     }
-    layerCom.singleChipRequested = true;
 }
 
-/**
- * @brief retreive data from all chips
- *
- */
-void receiveFromAllRenderChip() {
-    if (layerA.layerState.value)
-        if (!(layerCom.chipState[0][0] == CHIP_DATAREADY && layerCom.chipState[0][1] == CHIP_DATAREADY))
-            return;
-    if (layerB.layerState.value)
-        if (!(layerCom.chipState[1][0] == CHIP_DATAREADY && layerCom.chipState[1][1] == CHIP_DATAREADY))
-            return;
+void sendRequestAllUIData() {
+    if (layerCom.sentRequestUICommand == true) {
+        println("not all data received yet");
+        return;
+    }
 
-    layerCom.allChipsReady = true;
+    for (int i = 0; i < 2; i++)
+        for (int v = 0; v < 2; v++)
+            if (allLayers[i]->layerState.value) {
+                layerCom.requestState[i][v] = RQ_REQUESTDATA;
+            }
+    layerCom.sentRequestUICommand = true;
 }
 
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
@@ -504,12 +506,18 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.decodeCurrentInBuffer();
 
             layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
+            layerCom.requestState[layerCom.receiveLayer][layerCom.receiveChip] = RQ_DATARECEIVED;
             layerCom.singleChipRequested = false;
 
-            if (!(layerCom.chipState[0][0] == CHIP_DATAREADY || layerCom.chipState[0][1] == CHIP_DATAREADY ||
-                  layerCom.chipState[1][0] == CHIP_DATAREADY || layerCom.chipState[1][1] == CHIP_DATAREADY)) {
+            if (layerCom.sentRequestUICommand &&
+                !(layerCom.requestState[0][0] == RQ_REQUESTDATA || layerCom.requestState[0][1] == RQ_REQUESTDATA ||
+                  layerCom.requestState[1][0] == RQ_REQUESTDATA || layerCom.requestState[1][1] == RQ_REQUESTDATA)) {
                 layerCom.sentRequestUICommand = false;
-                layerCom.allChipsReady = false;
+                for (int i = 0; i < 2; i++)
+                    for (int v = 0; v < 2; v++)
+                        if (allLayers[i]->layerState.value) {
+                            layerCom.requestState[i][v] = RQ_READY;
+                        }
             }
         }
     }
@@ -566,7 +574,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else if (layerCom.chipState[1][0] == CHIP_WAITFORDATA) {
             layerCom.chipState[1][0] = CHIP_DATAREADY;
-            receiveFromAllRenderChip();
             layerCom.chipStateTimeout[1][0] = 0;
         }
         else if (layerCom.chipState[1][0] == CHIP_NOTINIT) {
@@ -581,7 +588,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else if (layerCom.chipState[1][1] == CHIP_WAITFORDATA) {
             layerCom.chipState[1][1] = CHIP_DATAREADY;
-            receiveFromAllRenderChip();
             layerCom.chipStateTimeout[1][1] = 0;
         }
         else if (layerCom.chipState[1][1] == CHIP_NOTINIT) {
@@ -596,7 +602,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else if (layerCom.chipState[0][1] == CHIP_WAITFORDATA) {
             layerCom.chipState[0][1] = CHIP_DATAREADY;
-            receiveFromAllRenderChip();
             layerCom.chipStateTimeout[0][1] = 0;
         }
         else if (layerCom.chipState[0][1] == CHIP_NOTINIT) {
@@ -611,7 +616,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
         else if (layerCom.chipState[0][0] == CHIP_WAITFORDATA) {
             layerCom.chipState[0][0] = CHIP_DATAREADY;
-            receiveFromAllRenderChip();
             layerCom.chipStateTimeout[0][0] = 0;
         }
         else if (layerCom.chipState[0][0] == CHIP_NOTINIT) {
