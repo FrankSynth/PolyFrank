@@ -64,8 +64,6 @@ class BaseModule {
 
     inline virtual void resetPhase(uint32_t voice) {}
     inline virtual void retrigger(uint32_t voice) {}
-
-  protected:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -823,7 +821,7 @@ class Waveshaper : public BaseModule {
     Analog aPoint2Y = Analog("P2 Y", 0, 1, 0.5, true, linMap, &iPoint2Y);
     Analog aPoint3X = Analog("P3 X", 0, 1, 0.75, true, linMap, &iPoint3X);
     Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.75, true, linMap, &iPoint3Y);
-    Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
+    Analog aDryWet = Analog("Dry/Wet", 0, 1, 0, true, linMap, &iDryWet);
 
     RenderBuffer shape1;
     RenderBuffer shape2;
@@ -881,7 +879,7 @@ class Phaseshaper : public BaseModule {
     Analog aPoint3X = Analog("P3 X", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3X);
     Analog aPoint3Y = Analog("P3 Y", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3Y);
     Analog aPoint4Y = Analog("P4 Y", 0, 1, 1, true, linMap, &iPoint4Y);
-    Analog aDryWet = Analog("Dry/Wet", 0, 1, 1, true, linMap, &iDryWet);
+    Analog aDryWet = Analog("Dry/Wet", 0, 1, 0, true, linMap, &iDryWet);
 
     RenderBuffer Point1Y;
     RenderBuffer Point2X;
