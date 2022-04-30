@@ -390,6 +390,8 @@ inline float softLimit(float inputSample) {
 
     if (absInput <= threshold)
         return inputSample;
+    if (absInput >= maxVal)
+        return sign;
 
     float sample = d * powf(maxVal - absInput, n) + 1.0f;
 

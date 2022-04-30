@@ -8,13 +8,16 @@ inline vec<VOICESPERCHIP> accumulateValue(const Input &input, const Analog &knob
     return clamp(input + knob, knob.min, knob.max);
 }
 inline vec<VOICESPERCHIP> accumulateX1(const Waveshaper &waveshaper) {
-    return clamp(waveshaper.iPoint1X + waveshaper.aPoint1X, waveshaper.aPoint1X.min, waveshaper.aPoint2X - 0.001f);
+    return clamp(waveshaper.iPoint1X + waveshaper.aPoint1X, waveshaper.aPoint1X.min,
+                 waveshaper.aPoint2X - WAVESHAPERDISTANCE);
 }
 inline vec<VOICESPERCHIP> accumulateX2(const Waveshaper &waveshaper) {
-    return clamp(waveshaper.iPoint2X + waveshaper.aPoint2X, waveshaper.aPoint1X + 0.001f, waveshaper.aPoint3X - 0.001f);
+    return clamp(waveshaper.iPoint2X + waveshaper.aPoint2X, waveshaper.aPoint1X + WAVESHAPERDISTANCE,
+                 waveshaper.aPoint3X - WAVESHAPERDISTANCE);
 }
 inline vec<VOICESPERCHIP> accumulateX3(const Waveshaper &waveshaper) {
-    return clamp(waveshaper.iPoint3X + waveshaper.aPoint3X, waveshaper.aPoint2X + 0.001f, waveshaper.aPoint3X.max);
+    return clamp(waveshaper.iPoint3X + waveshaper.aPoint3X, waveshaper.aPoint2X + WAVESHAPERDISTANCE,
+                 waveshaper.aPoint3X.max);
 }
 
 void renderWaveshaper(Waveshaper &waveshaper) {
