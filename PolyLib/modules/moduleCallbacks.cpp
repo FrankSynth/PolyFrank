@@ -1,6 +1,7 @@
 #include "moduleCallbacks.hpp"
 #include "layer/layer.hpp"
 #include "render/renderAudio.hpp"
+#include "render/renderAudioDef.h"
 
 #ifdef POLYRENDER
 
@@ -101,7 +102,7 @@ void layer1lfoBRetrigger() {
 
 void layer0WaveShaperX1() {
     allLayers[0]->waveshaper.aPoint1X.valueMapped =
-        std::min((float)allLayers[0]->waveshaper.aPoint1X, allLayers[0]->waveshaper.aPoint2X - WAVESHAPERDISTANCEf);
+        std::min((float)allLayers[0]->waveshaper.aPoint1X, allLayers[0]->waveshaper.aPoint2X - WAVESHAPERDISTANCE);
 
     allLayers[0]->waveshaper.aPoint1X.value =
         allLayers[0]->waveshaper.aPoint1X.reverseMapping(allLayers[0]->waveshaper.aPoint1X.valueMapped);

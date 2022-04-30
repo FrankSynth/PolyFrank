@@ -503,13 +503,14 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
             layerCom.requestState[layerCom.receiveLayer][layerCom.receiveChip] = RQ_READY;
             layerCom.singleChipRequested = false;
-            setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
 
             if (layerCom.sentRequestUICommand && layerCom.requestState[0][0] == RQ_READY &&
                 layerCom.requestState[0][1] == RQ_READY && layerCom.requestState[1][0] == RQ_READY &&
                 layerCom.requestState[1][1] == RQ_READY) {
                 layerCom.sentRequestUICommand = false;
             }
+
+            setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
 
             layerCom.decodeCurrentInBuffer();
             layerCom.spi->callRxComplete();

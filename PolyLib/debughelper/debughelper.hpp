@@ -3,7 +3,7 @@
 #ifdef POLYCONTROL
 #define DEBUG 1
 #elif POLYRENDER
-#define DEBUG 0
+#define DEBUG 1
 #endif
 
 #if DEBUG
