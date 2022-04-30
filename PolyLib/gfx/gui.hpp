@@ -12,11 +12,11 @@
 #include "guiPanelPatchMatrix.hpp"
 #include "guiPanelPath.hpp"
 #include "guiPanelPreset.hpp"
+#include "guiPanelStart.hpp"
 #include "guiPanelState.hpp"
 #include "guiPanelString.hpp"
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
-
 
 /// GUI///
 class GUI {
@@ -44,6 +44,7 @@ class GUI {
 
     GUIPanelPath guiPath;
     GUIPanelState guiState;
+    GUIPanelStart guiPanelStart;
 
     GUIPanelString guiPanelDebug;
 

@@ -186,6 +186,15 @@ void potiMapping() {
         if (allLayers[i]->layerState.value == 1) {
 
             potiFunctionPointer[i][0][0] =
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aDecay), std::placeholders::_1);
+
+            potiFunctionPointer[i][1][0] =
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aSustain), std::placeholders::_1);
+
+            potiFunctionPointer[i][2][0] =
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aRelease), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
 
             potiFunctionPointer[i][1][0] =
@@ -193,6 +202,9 @@ void potiMapping() {
 
             potiFunctionPointer[i][2][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
+
+            // potiFunctionPointer[i][3][0] =
+            // std::bind(&Analog::setValue, &(allLayers[i]->envA.aShape), std::placeholders::_1);
 
             potiFunctionPointer[i][3][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->out.aMaster), std::placeholders::_1);
@@ -203,8 +215,14 @@ void potiMapping() {
             potiFunctionPointer[i][1][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCALevel), std::placeholders::_1);
 
+            // potiFunctionPointer[i][2][1] =
+            // std::bind(&Analog::setValue, &(allLayers[i]->envA.aDelay), std::placeholders::_1);
+
             potiFunctionPointer[i][2][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->feel.aGlide), std::placeholders::_1);
+
+            // potiFunctionPointer[i][3][1] =
+            //     std::bind(&Analog::setValue, &(allLayers[i]->envA.aAttack), std::placeholders::_1);
 
             potiFunctionPointer[i][3][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);

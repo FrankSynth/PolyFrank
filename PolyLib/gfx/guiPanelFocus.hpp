@@ -9,7 +9,7 @@ class GUIPanelFocus : public GUIPanelBase {
 
     void collectEntrys();
 
-    void registerModuleSettings();
+    void registerModuleSettings(Data_PanelElement *dataPanelElements);
     void registerModulePatchIn();
     void registerModulePatchOut();
     void registerLayerModules();
@@ -60,4 +60,5 @@ class GUIPanelFocus : public GUIPanelBase {
     Scroller *scroll = nullptr;
 
     Data_PanelElement panelElements[FOCUSPANELENTRYS];
+    Data_PanelElement panelElementsWave[FOCUSPANELENTRYSWAVE];
 };

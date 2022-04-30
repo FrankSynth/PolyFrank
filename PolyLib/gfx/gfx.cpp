@@ -3,6 +3,8 @@
 #include "gfx.hpp"
 #include "datacore/datalocation.hpp"
 
+#include <algorithm> // std::max
+
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
 
@@ -21,6 +23,7 @@ RENDERSTATE renderState = RENDER_DONE;
 // std::list<renderTask> renderQueueList;
 
 RAM1 CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
+RAM1 ALIGN_32BYTES(WaveBuffer waveBuffer);
 
 void GFX_Init() {
     // IRQHandler();
@@ -271,6 +274,39 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
     }
 }
 
+void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y) {
+    renderTask task;
+
+    task.mode = M2MARGB4444; // Set DMA2D To copy M2M with Blending
+
+    task.x = x;
+    task.y = y;
+
+    task.width = waveBuffer.width;   // Character Width
+    task.height = waveBuffer.height; // Character Width
+
+    task.pSource = (uint32_t)(uint8_t **)waveBuffer.buffer; // Pointer to Character
+
+    addToRenderQueue(task); // Add Task to RenderQue
+}
+
+void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uint16_t y) {
+    renderTask task;
+
+    task.mode = M2MTRANSPARENT_A4; // Set DMA2D To copy M2M with Blending
+
+    task.x = x;
+    task.y = y;
+
+    task.width = image.BytesPerLine * 2; // Character Width
+    task.height = image.YSize;           // Character Width
+    task.color = color;                  // Set Font Height
+
+    task.pSource = (uint32_t)image.pData; // Pointer to Character
+
+    addToRenderQueue(task); // Add Task to RenderQue
+}
+
 void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
                         FONTALIGN alignment) {
     renderTask task;
@@ -438,6 +474,82 @@ void callNextTask() {
                                    task.height);
     }
 
+    // select DMA Mode
+    else if (task.mode == M2MRGB565) { // Memory to Memory with blending
+
+        hdma2d.Init.Mode = DMA2D_M2M;
+
+        /* Foreground layer Configuration */
+        hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+        hdma2d.LayerCfg[1].InputAlpha = task.color;             /* COLOR */
+        hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565; /* Foreground format is A4*/
+        hdma2d.LayerCfg[1].InputOffset = 0x0;                   /* No offset in input */
+        hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input foreground image */
+        hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
+
+        /* Background layer Configuration */
+        hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+        hdma2d.LayerCfg[0].InputAlpha = 0xFF;                   /* 255 : fully opaque */
+        hdma2d.LayerCfg[0].InputColorMode = COLORMODE;          /* Background format*/
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset;     /* Background input offset*/
+        hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
+        hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+
+        /* Init DMA2D */
+        HAL_DMA2D_Init(&hdma2d);
+
+        /* Apply DMA2D Foreground configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+        /* Apply DMA2D Background configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+
+        /* Start DMA2D Task */
+        HAL_DMA2D_BlendingStart_IT(&hdma2d, task.pSource, /* Color value in Register to Memory DMA2D mode */
+                                   task.pTarget,          /* DMA2D src2 */
+                                   task.pTarget,          /* DMA2D output buffer */
+                                   task.width,            /* width of buffer in pixels */
+                                   task.height);
+    }
+
+    // select DMA Mode
+    else if (task.mode == M2MARGB4444) { // Memory to Memory with blending
+
+        hdma2d.Init.Mode = DMA2D_M2M;
+
+        /* Foreground layer Configuration */
+        hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+        hdma2d.LayerCfg[1].InputAlpha = task.color;               /* COLOR */
+        hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB4444; /* Foreground format is A4*/
+        hdma2d.LayerCfg[1].InputOffset = 0x0;                     /* No offset in input */
+        hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;        /* No R&B swap for the input foreground image */
+        hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
+
+        /* Background layer Configuration */
+        hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+        hdma2d.LayerCfg[0].InputAlpha = 0xFF;                   /* 255 : fully opaque */
+        hdma2d.LayerCfg[0].InputColorMode = COLORMODE;          /* Background format*/
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset;     /* Background input offset*/
+        hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
+        hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+
+        /* Init DMA2D */
+        HAL_DMA2D_Init(&hdma2d);
+
+        /* Apply DMA2D Foreground configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+        /* Apply DMA2D Background configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+
+        /* Start DMA2D Task */
+        HAL_DMA2D_BlendingStart_IT(&hdma2d, task.pSource, /* Color value in Register to Memory DMA2D mode */
+                                   task.pTarget,          /* DMA2D src2 */
+                                   task.pTarget,          /* DMA2D output buffer */
+                                   task.width,            /* width of buffer in pixels */
+                                   task.height);
+    }
+
     else if (task.mode == R2M) { // Register to Memory
         hdma2d.Init.Mode = DMA2D_R2M;
 
@@ -449,6 +561,129 @@ void callNextTask() {
                            task.pTarget,        /* DMA2D output buffer */
                            task.width,          /* width of buffer in pixels */
                            task.height);        /* height of buffer in lines */
+    }
+}
+
+inline void drawPixel(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color) {
+    waveBuffer.buffer[y][x] = color;
+}
+
+inline void drawPixelBrigthness(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint8_t brigthness, uint16_t &color) {
+
+    waveBuffer.buffer[y][x] = ((color & 0xFFF) | ((uint16_t((255 - brigthness) & 0xF0)) << 8));
+}
+
+void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy, e2; /* error value e_xy */
+
+    for (;;) { /* loop */
+        drawPixel(waveBuffer, x0, y0, color);
+        if (x0 == x1 && y0 == y1)
+            break;
+        e2 = 2 * err;
+        if (e2 >= dy) {
+            err += dy;
+            x0 += sx;
+        } /* e_xy+e_x > 0 */
+        if (e2 <= dx) {
+            err += dx;
+            y0 += sy;
+        } /* e_xy+e_y < 0 */
+    }
+}
+
+void draw3Line(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy, e2; /* error value e_xy */
+
+    for (;;) { /* loop */
+
+        // if (dx > dy) {
+        drawPixel(waveBuffer, x0, y0 - 1, color);
+        drawPixel(waveBuffer, x0, y0, color);
+        drawPixel(waveBuffer, x0, y0 + 1, color);
+        // }
+        // else {
+        //     drawPixel(waveBuffer, x0 - 1, y0, color);
+        //     drawPixel(waveBuffer, x0, y0, color);
+        //     drawPixel(waveBuffer, x0 + 1, y0, color);
+        // }
+
+        if (x0 == x1 && y0 == y1)
+            break;
+        e2 = 2 * err;
+        if (e2 >= dy) {
+            err += dy;
+            x0 += sx;
+        } /* e_xy+e_x > 0 */
+        if (e2 <= dx) {
+            err += dx;
+            y0 += sy;
+        } /* e_xy+e_y < 0 */
+    }
+}
+
+void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color, float wd) {
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx - dy, e2, x2, y2; /* error value e_xy */
+    float ed = dx + dy == 0 ? 1 : sqrt((float)dx * dx + (float)dy * dy);
+
+    for (wd = (wd + 1) / 2;;) { /* pixel loop */
+        drawPixelBrigthness(waveBuffer, x0, y0, std::max(0.f, 255 * (abs(err - dx + dy) / ed - wd + 1)), color);
+        e2 = err;
+        x2 = x0;
+        if (2 * e2 >= -dx) { /* x step */
+            for (e2 += dy, y2 = y0; e2 < ed * wd && (y1 != y2 || dx > dy); e2 += dx) {
+                // drawPixelBrigthness(waveBuffer, x0, y2 += sy, std::max(0.f, 255 * (abs(e2) / ed - wd + 1)), color);
+                y2 += sy;
+            }
+            if (x0 == x1)
+                break;
+            e2 = err;
+            err -= dy;
+            x0 += sx;
+        }
+        if (2 * e2 <= dy) { /* y step */
+            for (e2 = dx - e2; e2 < ed * wd && (x1 != x2 || dx < dy); e2 += dy)
+                drawPixelBrigthness(waveBuffer, x2 += sx, y0, std::max(0.f, 255 * (abs(e2) / ed - wd + 1)), color);
+            if (y0 == y1)
+                break;
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int err = dx - dy, e2, x2; /* error value e_xy */
+    int ed = dx + dy == 0 ? 1 : sqrt((float)dx * dx + (float)dy * dy);
+
+    for (;;) { /* pixel loop */
+        drawPixelBrigthness(waveBuffer, x0, y0, 255 * abs(err - dx + dy) / ed, color);
+        e2 = err;
+        x2 = x0;
+        if (2 * e2 >= -dx) { /* x step */
+            if (x0 == x1)
+                break;
+            if (e2 + dy < ed)
+                drawPixelBrigthness(waveBuffer, x0, y0 + sy, 255 * (e2 + dy) / ed, color);
+            err -= dy;
+            x0 += sx;
+        }
+        if (2 * e2 <= dy) { /* y step */
+            if (y0 == y1)
+                break;
+            if (dx - e2 < ed)
+                drawPixelBrigthness(waveBuffer, x2 + sx, y0, 255 * (dx - e2) / ed, color);
+            err += dx;
+            y0 += sy;
+        }
     }
 }
 

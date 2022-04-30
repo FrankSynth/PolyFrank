@@ -6,6 +6,7 @@
 #include "globalSettings/globalSettings.hpp"
 #include "guiActionHandler.hpp"
 #include "guiBase.hpp"
+#include "img/polybitmap.h"
 #include "layer/layer.hpp"
 #include "livedata/liveData.hpp"
 #include "poly.hpp"
@@ -13,10 +14,12 @@
 #include <functional>
 #include <string>
 
-#define FOCUSPANELENTRYS 6
+#define FOCUSPANELENTRYS 9
+#define FOCUSPANELENTRYSWAVE 6
+
 #define CONFIGPANELENTRYS 5
 #define PATCHPANELENTRYS 7
-#define PRESETPANELENTRYS 7
+#define PRESETPANELENTRYS 9
 #define LIVEPANELENTRYS 3
 
 extern const GUI_FONTINFO *fontSmall;
@@ -58,6 +61,15 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, u
 
 void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
                         uint8_t hugeFont = 0);
+
+void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y);
+
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats);
+
+void drawVecWave(vec<2> *renderedWave, uint16_t samples);
+
+void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples);
+void calculateADSRWave(ADSR *module, vec<2> *waveBuffer, uint32_t samples);
 
 const char *valueToNote(const byte &noteIn);
 

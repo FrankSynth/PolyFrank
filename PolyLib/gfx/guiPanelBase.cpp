@@ -149,7 +149,7 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 50;
-    uint16_t spaceTopBottomBar = 8;
+    uint16_t spaceTopBottomBar = 4;
 
     // clear
 
@@ -435,8 +435,8 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
 
 void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
 
-    x += 2;
-    w -= 4;
+    // x += 2;
+    // w -= 4;
 
     Digital *data = entry->digital;
     uint16_t nameWidth = w / 2;
@@ -485,7 +485,7 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 15;
-    uint16_t spaceTopBottomBar = 8;
+    uint16_t spaceTopBottomBar = 4;
 
     // clear
 
@@ -859,7 +859,7 @@ void MatrixPatch_PanelElement::Draw() {
 
     if (entry != nullptr) {
 
-        uint8_t barWidth = 6;
+        uint8_t barWidth = 3;
         uint8_t barHeight = 4;
 
         if (select) {
@@ -870,22 +870,22 @@ void MatrixPatch_PanelElement::Draw() {
         }
 
         uint8_t color[4];
-        float amount = entry->amount;
-
-        amount = testFloat(amount, -1, 1);
+        float patchAmount = entry->amount;
 
         *(uint32_t *)color = cWhite;
 
-        color[3] *= abs(amount);
+        color[3] *= abs(patchAmount);
 
-        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth - 2, height - 4);
+        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth * VOICESPERCHIP - 2,
+                          height - 4);
 
-        amount = amount * entry->sourceOut->currentSample[0];
-        amount = testFloat(amount, -1, 1);
-
-        uint16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
-
-        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+            float amount = patchAmount * entry->sourceOut->currentSample[i];
+            amount = testFloat(amount, -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                              barWidth, barHeight);
+        }
     }
     else {
 
@@ -911,7 +911,7 @@ void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
 
 void MatrixIn_PanelElement::Draw() {
 
-    uint8_t barWidth = 6;
+    uint8_t barWidth = 3;
     uint8_t barHeight = 4;
 
     if (!visible) {
@@ -922,27 +922,31 @@ void MatrixIn_PanelElement::Draw() {
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
 
-            drawString(entry->input->shortName, cFont_Select, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
+            drawString(entry->input->shortName, cFont_Select, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + width / 2, panelAbsY + 3, fontMedium,
-                       CENTER);
+            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
         }
         if (entry->input->renderBuffer != nullptr) {
             // uint8_t color[4];
-            float amount = entry->input->renderBuffer->currentSample[0];
-
-            amount -= entry->min;
-            amount /= entry->max;
 
             // entry->
 
-            amount = testFloat(amount, 0, 1);
+            for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+                float amount = entry->input->renderBuffer->currentSample[i];
 
-            int16_t offsetY = ((int16_t)(height - barHeight)) * (1 - amount);
+                amount -= entry->min;
+                amount /= entry->max;
 
-            drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+                amount = testFloat(amount, 0, 1);
+
+                int16_t offsetY = (int16_t)(height - barHeight) * (1 - amount);
+                drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                                  barWidth, barHeight);
+            }
         }
     }
     select = 0;
@@ -1035,6 +1039,320 @@ void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
 
     this->entry = entry;
     visible = 1;
+}
+
+void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y) {
+
+    // empty waveBuffer
+    uint32_t data = 0x00000000;
+
+    fastMemset(&data, (uint32_t *)*(waveBuffer.buffer), (waveBuffer.width * waveBuffer.height) / 2);
+
+    // drwaWavebuffer
+
+    if (module->id == allLayers[currentFocus.layer]->oscA.id) {
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2);
+    }
+    else if (module->id == allLayers[currentFocus.layer]->oscB.id) {
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscB, 100, 2);
+    }
+    else if (module->id == allLayers[currentFocus.layer]->sub.id) {
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesSub, 100, 2);
+    }
+    else if (module->moduleType == MODULE_LFO) {
+        int8_t wave[100];
+
+        calculateLFOWave((LFO *)module, wave, 100);
+        drawWave(wave, 100, 2);
+    }
+    else if (module->moduleType == MODULE_ADSR) {
+        vec<2> wave[100];
+
+        calculateADSRWave((ADSR *)module, wave, 100);
+        drawVecWave(wave, 100);
+    }
+
+    SCB_CleanDCache_by_Addr((uint32_t *)waveBuffer.buffer, waveBuffer.height * waveBuffer.width * 2);
+
+    copyWaveBuffer(waveBuffer, x, y);
+}
+
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats) {
+
+    uint16_t wavecolor = 0xFFFF;
+    uint16_t gridcolor = 0x3FFF;
+    uint16_t framecolor = 0xAFFF;
+
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+
+    // Grid
+
+    uint8_t grid = 12;
+
+    for (uint16_t i = 1; i < grid; i++) {
+        drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
+                 waveBuffer.height - 1, gridcolor);
+    }
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, framecolor);
+
+    // Frame
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+
+    for (uint16_t i = 0; i < 100 * repeats - 1; i++) {
+        x1 = ((float)waveBuffer.width / (100.f * repeats - 1)) * i;
+        x2 = ((float)waveBuffer.width / (100.f * repeats - 1)) * (i + 1);
+        y1 = -renderedWave[i % 100];
+        y2 = -renderedWave[(i + 1) % 100];
+
+        y1 = (float)(y1 + 128) * (waveBuffer.height / 255.f);
+        y2 = (float)(y2 + 128) * (waveBuffer.height / 255.f);
+
+        y1 = testInt(y1, 1, waveBuffer.height - 2);
+        y2 = testInt(y2, 1, waveBuffer.height - 2);
+
+        x1 = testInt(x1, 1, waveBuffer.width - 1);
+        x2 = testInt(x2, 1, waveBuffer.width - 1);
+        draw3Line(waveBuffer, x1, y1, x2, y2, wavecolor);
+    }
+}
+
+void drawVecWave(vec<2> *renderedWave, uint16_t samples) {
+
+    uint16_t wavecolor = 0xFFFF;
+    uint16_t gridcolor = 0x3FFF;
+    uint16_t framecolor = 0xAFFF;
+
+    vec<2> p1;
+    vec<2> p2;
+
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+    // Grid
+
+    uint8_t grid = 12;
+
+    for (uint16_t i = 1; i < grid; i++) {
+        drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
+                 waveBuffer.height - 1, gridcolor);
+    }
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, framecolor);
+
+    // Frame
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+
+    for (uint16_t i = 0; i < (samples - 1); i++) {
+        // load Wave
+        p1 = renderedWave[i];
+        p2 = renderedWave[i + 1];
+
+        // Flip Wave
+        p1[1] = 1 - p1[1];
+        p2[1] = 1 - p2[1];
+
+        // Scale Wave
+        p1[0] *= (waveBuffer.width - 2);
+        p2[0] *= (waveBuffer.width - 2);
+
+        p1[0] += 1;
+        p2[0] += 1;
+
+        p1[1] *= waveBuffer.height - 2;
+        p2[1] *= waveBuffer.height - 2;
+
+        // Check range
+        x1 = testInt((int32_t)p1[0], 1, waveBuffer.width - 1);
+        y1 = testInt((int32_t)p1[1], 1, waveBuffer.height - 2);
+        x2 = testInt((int32_t)p2[0], 1, waveBuffer.width - 1);
+        y2 = testInt((int32_t)p2[1], 1, waveBuffer.height - 2);
+
+        draw3Line(waveBuffer, x1, y1, x2, y2, wavecolor);
+    }
+}
+
+#include "render/renderLFO.cpp"
+
+void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples) {
+
+    const float random[10] = {-.8, 0.6, 0, 1, -0.3, 0.2, 0, -0.9, 0.5};
+
+    float phase = 0;
+
+    float shape = testFloat(module->iShape.renderBuffer->currentSample[0] + module->aShape.valueMapped,
+                            module->aShape.min, module->aShape.max - 0.001);
+
+    float index;
+
+    for (uint16_t i = 0; i < samples; i++) {
+        phase = (1.f / samples) * i;
+
+        phase = phase - floor(phase);
+
+        float fract = shape - std::floor(shape);
+
+        if (shape < 1) {
+            index = fast_lerp_f32(calcSin(phase), calcRamp(phase), fract);
+        }
+        else if (shape < 2) {
+            index = fast_lerp_f32(calcRamp(phase), calcTriangle(phase), fract);
+        }
+        else if (shape < 3) {
+            index = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
+        }
+        else if (shape < 4) {
+            index = fast_lerp_f32(calcInvRamp(phase), calcSquare(phase, shape), fract);
+        }
+        else if (shape < 5)
+            index = calcSquare(phase, shape);
+
+        else {
+            index = fast_lerp_f32(-1.0f, random[(uint16_t)((4.f / samples) * i)], fract);
+        }
+
+        waveBuffer[i] = index * 127;
+    }
+}
+
+void calculateADSRWave(ADSR *module, vec<2> *waveBuffer, uint32_t samples) {
+    vec<2> L0;
+    vec<2> L2;
+
+    vec<2> A0;
+    vec<2> A1;
+    vec<2> A1B;
+    vec<2> A2;
+
+    vec<2> D0;
+    vec<2> D1;
+    vec<2> D1B;
+    vec<2> D2;
+
+    vec<2> S0;
+    vec<2> S1;
+    vec<2> S2;
+
+    vec<2> R0;
+    vec<2> R1;
+    vec<2> R1B;
+    vec<2> R2;
+
+    float range = 4.2;
+
+    float delay = fastMap(module->aDelay, module->aDelay.min, module->aDelay.max, 0.02, 1);
+    float attack = fastMap(module->aAttack, module->aAttack.min, module->aAttack.max, 0.02, 1);
+    float decay = fastMap(module->aDecay, module->aDecay.min, module->aDecay.max, 0.02, 1);
+    float release = fastMap(module->aRelease, module->aRelease.min, module->aRelease.max, 0.02, 1);
+    float sustain = range - attack - decay - release - delay;
+    float sustainLevel = fastMap(module->aSustain, module->aSustain.min, module->aSustain.max, 0.00, 1);
+
+    float shape = module->aShape;
+
+    uint32_t delaySamples = (delay / range) * samples;
+    uint32_t attackSamples = (attack / range) * samples;
+    uint32_t decaySamples = (decay / range) * samples;
+    uint32_t releaseSamples = (release / range) * samples;
+
+    delaySamples = testInt(delaySamples, 2, samples);
+    attackSamples = testInt(attackSamples, 2, samples);
+    decaySamples = testInt(decaySamples, 2, samples);
+    releaseSamples = testInt(releaseSamples, 2, samples);
+
+    uint32_t sustainSamples = samples - attackSamples - decaySamples - releaseSamples - delaySamples;
+
+    // println("samples : ", samples);
+    // println("attackSamples : ", attackSamples);
+    // println("decaySamples : ", decaySamples);
+    // println("sustainSamples : ", sustainSamples);
+    // println("releaseSamples : ", releaseSamples);
+    // Delay
+    L0 = 0;
+    L2[0] = delay / range;
+    L2[1] = 0;
+
+    // Attack
+    A0 = L2;
+    A2[0] = A0[0] + (attack / range);
+    A2[1] = 1;
+
+    // shape Attack
+    A1 = (A0 + A2) / 2.f;
+    A1B[0] = A0[0];
+    A1B[1] = A2[1];
+
+    A1 = fast_lerp_f32(A1, A1B, shape);
+    // Decay
+    D0 = A2;
+
+    D2[0] = D0[0] + decay / range;
+    D2[1] = sustainLevel;
+    D1 = (D0 + D2) / 2.f;
+    D1B[0] = D0[0];
+    D1B[1] = D2[1];
+
+    D1 = fast_lerp_f32(D1, D1B, shape);
+
+    // Sustain
+    S0 = D2;
+
+    S2 = S0;
+    S2[0] += sustain / range;
+    // S1 = (S0 + S2) / 2;
+
+    // Release
+    R0 = S2;
+
+    R2[0] = R0[0] + release / range;
+    R2[1] = 0;
+    R1 = (R0 + R2) / 2.f;
+    R1B[0] = R0[0];
+    R1B[1] = R2[1];
+    R1 = fast_lerp_f32(R1, R1B, shape);
+
+    // set fix points
+    waveBuffer[0] = L0;
+    waveBuffer[delaySamples] = A0;
+    waveBuffer[delaySamples + attackSamples] = D0;
+    waveBuffer[delaySamples + attackSamples + decaySamples] = S0;
+    waveBuffer[delaySamples + attackSamples + decaySamples + sustainSamples] = R0;
+    waveBuffer[samples - 1] = R2;
+
+    uint32_t index = 0;
+    for (uint32_t i = 1; i < delaySamples; i++) {
+        waveBuffer[i + index] = fast_lerp_f32(L0, L2, testFloat((float)i / (delaySamples), 0, 0.999));
+    }
+    index += delaySamples;
+
+    for (uint32_t i = 1; i < attackSamples; i++) {
+        waveBuffer[i + index] = bezier2D(A0, A1, A2, testFloat((float)i / (attackSamples), 0, 0.999));
+    }
+    index += attackSamples;
+    for (uint32_t i = 1; i < decaySamples; i++) {
+        waveBuffer[i + index] = bezier2D(D0, D1, D2, testFloat((float)i / (decaySamples), 0, 0.999));
+    }
+    index += decaySamples;
+
+    for (uint32_t i = 1; i < sustainSamples; i++) {
+        waveBuffer[i + index] = fast_lerp_f32(S0, S2, testFloat((float)i / (sustainSamples), 0, 0.999));
+    }
+    index += sustainSamples;
+
+    for (uint32_t i = 1; i < (releaseSamples - 1); i++) {
+        waveBuffer[i + index] = bezier2D(R0, R1, R2, testFloat((float)i / releaseSamples, 0, 0.999));
+    }
+
+    // for (uint32_t i = 0; i < samples; i++) {
+    //     println(waveBuffer[i][0], "  ", waveBuffer[i][1]);
+    // }
 }
 
 #endif

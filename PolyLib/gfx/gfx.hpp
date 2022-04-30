@@ -7,6 +7,7 @@
 #include "dma2d.h"
 #include "flagHandler/flagHandler.hpp"
 #include "fonts/polyfonts.h"
+#include "img/polybitmap.h"
 #include "ltdc.h"
 #include "tim.h"
 #include <stdint.h>
@@ -24,10 +25,11 @@
 #define BLUE 0x000000FF
 
 typedef enum { LEFT, CENTER, RIGHT, TOP, BOTTOM } FONTALIGN;
-typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4 } DRAWTYPE;
+typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444 } DRAWTYPE;
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
+#define WAVEFORMHEIGHT 130
 
 extern uint8_t *pFrameBuffer;
 // rendertask struct
@@ -44,7 +46,14 @@ typedef struct {
     DRAWTYPE mode;
 } renderTask;
 
+typedef struct {
+    uint16_t buffer[WAVEFORMHEIGHT][LCDWIDTH - 60];
+    uint16_t width = LCDWIDTH - 60;
+    uint16_t height = WAVEFORMHEIGHT;
+} WaveBuffer;
+
 extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
+extern WaveBuffer waveBuffer;
 
 // extern uint8_t FrameBuffer[BUFFERSIZE];
 
@@ -78,3 +87,13 @@ void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t 
 
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
 uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font);
+
+void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y);
+
+void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+void draw3Line(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+
+void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color, float wd);
+void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+
+void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uint16_t y);

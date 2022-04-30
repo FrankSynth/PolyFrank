@@ -11,12 +11,18 @@ void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y
 
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
-    uint16_t elementSpace = 3;
+    uint16_t elementSpace = 1;
     uint16_t elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace) / FOCUSPANELENTRYS;
 
     // init Elements
     for (int i = 0; i < FOCUSPANELENTRYS; i++) {
         panelElements[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i, elementWidth, elementHeight);
+    }
+
+    elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace - waveBuffer.height) / FOCUSPANELENTRYSWAVE;
+    for (int i = 0; i < FOCUSPANELENTRYSWAVE; i++) {
+        panelElementsWave[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + waveBuffer.height,
+                                  elementWidth, elementHeight);
     }
 
     name = "FOCUS";
@@ -63,32 +69,60 @@ void GUIPanelFocus::Draw() {
     newPanelFocus.type = NOFOCUS;
 
     if (currentFocus.type == FOCUSMODULE) {
-        registerModuleSettings();
-        for (int i = 0; i < FOCUSPANELENTRYS; i++) {
-            panelElements[i].Draw();
-        }
-    }
-    else if (currentFocus.type == FOCUSOUTPUT) {
-        registerModulePatchOut();
-        for (int i = 0; i < FOCUSPANELENTRYS; i++) {
-            panelElements[i].Draw();
-        }
-    }
-    else if (currentFocus.type == FOCUSINPUT) {
-        registerModulePatchIn();
-        for (int i = 0; i < FOCUSPANELENTRYS; i++) {
-            panelElements[i].Draw();
-        }
-    }
-    else if (currentFocus.type == FOCUSLAYER) {
-        registerLayerModules();
-        for (int i = 0; i < FOCUSPANELENTRYS; i++) {
-            panelElements[i].Draw();
-        }
-    }
+        ModuleType type = allLayers[currentFocus.layer]->modules[currentFocus.modul]->moduleType;
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll->offset,
-                  scroll->entrys, FOCUSPANELENTRYS);
+        if (type == MODULE_OSC || type == MODULE_SUB || type == MODULE_LFO || type == MODULE_ADSR) {
+            entrys = FOCUSPANELENTRYSWAVE;
+            scroll->maxEntrysVisible = entrys;
+
+            registerModuleSettings(panelElementsWave);
+
+            for (int i = 0; i < FOCUSPANELENTRYSWAVE; i++) {
+                panelElementsWave[i].Draw();
+            }
+            drawWaveFromModule(allLayers[currentFocus.layer]->modules[currentFocus.modul],
+                               LCDWIDTH / 2 - waveBuffer.width / 2, HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
+            drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
+                          panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, FOCUSPANELENTRYSWAVE);
+        }
+        else { // module without wave
+            entrys = FOCUSPANELENTRYS;
+            scroll->maxEntrysVisible = entrys;
+
+            registerModuleSettings(panelElements);
+            for (int i = 0; i < FOCUSPANELENTRYS; i++) {
+                panelElements[i].Draw();
+            }
+
+            drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight,
+                          scroll->offset, scroll->entrys, FOCUSPANELENTRYS);
+        }
+    }
+    else {
+        entrys = FOCUSPANELENTRYS;
+        scroll->maxEntrysVisible = entrys;
+
+        if (currentFocus.type == FOCUSOUTPUT) {
+            registerModulePatchOut();
+            for (int i = 0; i < FOCUSPANELENTRYS; i++) {
+                panelElements[i].Draw();
+            }
+        }
+        else if (currentFocus.type == FOCUSINPUT) {
+            registerModulePatchIn();
+            for (int i = 0; i < FOCUSPANELENTRYS; i++) {
+                panelElements[i].Draw();
+            }
+        }
+        else if (currentFocus.type == FOCUSLAYER) {
+            registerLayerModules();
+            for (int i = 0; i < FOCUSPANELENTRYS; i++) {
+                panelElements[i].Draw();
+            }
+        }
+        drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll->offset,
+                      scroll->entrys, FOCUSPANELENTRYS);
+    }
 }
 void GUIPanelFocus::collectEntrys() {
     // set scroller
@@ -187,7 +221,7 @@ PatchElement *GUIPanelFocus::getPatchEntry() {
     return nullptr;
 }
 
-void GUIPanelFocus::registerModuleSettings() {
+void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements) {
     analogIndex = scroll->offset;
 
     if (analogIndex >= analog.size()) {
@@ -208,7 +242,7 @@ void GUIPanelFocus::registerModuleSettings() {
         }
         else {
 
-            panelElements[elementIndex].addAnalogEntry(a);
+            dataPanelElements[elementIndex].addAnalogEntry(a);
 
             // register newFocus position for downMove
             if ((scroll->relPosition) == elementIndex) {
@@ -232,18 +266,18 @@ void GUIPanelFocus::registerModuleSettings() {
 
         for (int x = 0; x < SwitchEntrysPerElement; x++) { // start new Element
 
-            if (d == nullptr) {                              // no more entry available
-                panelElements[elementIndex].addEmptyEntry(); // empty entry
+            if (d == nullptr) {                                  // no more entry available
+                dataPanelElements[elementIndex].addEmptyEntry(); // empty entry
             }
             else {
-                panelElements[elementIndex].addDigitalEntry(d);
+                dataPanelElements[elementIndex].addDigitalEntry(d);
             }
 
             d = getDigitalEntry();
         }
     }
 
-    panelElements[scroll->relPosition].select = 1;
+    dataPanelElements[scroll->relPosition].select = 1;
     if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
         actionHandler.registerActionRight(
             1, {std::bind(focusPatch, location(currentFocus.layer, currentFocus.modul, currentFocus.id, FOCUSOUTPUT)),

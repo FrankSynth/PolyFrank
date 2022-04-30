@@ -1,11 +1,7 @@
-#ifdef POLYRENDER
+
 
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
-
-extern Layer layerA;
-
-LogCurve linlogMapping(64, 0.01);
 
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
@@ -40,6 +36,11 @@ inline float calcSquare(float phase, float shape) {
         return -1.0f;
     }
 }
+#ifdef POLYRENDER
+
+extern Layer layerA;
+
+LogCurve linlogMapping(64, 0.01);
 
 inline vec<VOICESPERCHIP> accumulateSpeed(const LFO &lfo) {
     if (lfo.dFreqSnap == 0)

@@ -17,6 +17,8 @@ void GUI::Init() { // add settings pointer
     guiPanelConfig.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG",
                         3);
 
+    guiPanelStart.init(0, 0, LCDHEIGHT, LCDHEIGHT);
+
     // multiLayer detected
     if (globalSettings.multiLayer.value == 1) {
         guiPanelVoice.init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
@@ -76,11 +78,19 @@ void GUI::Clear() {
 }
 
 void GUI::Draw() {
+
     // setDisplayBrightness
     __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
                           globalSettings.dispBrightness.getValue() * 1000); // 6553* 1-10 -> 65530
 
     setRenderState(RENDER_PROGRESS);
+
+    if (millis() < 2750) {
+        guiPanelStart.Draw();
+        setRenderState(RENDER_WAIT);
+
+        return;
+    }
 
     // clear
     drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
