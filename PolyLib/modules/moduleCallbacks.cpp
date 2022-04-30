@@ -101,23 +101,23 @@ void layer1lfoBRetrigger() {
 
 void layer0WaveShaperX1() {
     allLayers[0]->waveshaper.aPoint1X.valueMapped =
-        std::min((float)allLayers[0]->waveshaper.aPoint1X, allLayers[0]->waveshaper.aPoint2X - 0.001f);
+        std::min((float)allLayers[0]->waveshaper.aPoint1X, allLayers[0]->waveshaper.aPoint2X - WAVESHAPERDISTANCEf);
 
     allLayers[0]->waveshaper.aPoint1X.value =
         allLayers[0]->waveshaper.aPoint1X.reverseMapping(allLayers[0]->waveshaper.aPoint1X.valueMapped);
 }
 void layer0WaveShaperX2() {
     allLayers[0]->waveshaper.aPoint2X.valueMapped =
-        std::min((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - 0.001f);
+        std::min((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - WAVESHAPERDISTANCE);
     allLayers[0]->waveshaper.aPoint2X.valueMapped =
-        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint1X + 0.001f);
+        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint1X + WAVESHAPERDISTANCE);
 
     allLayers[0]->waveshaper.aPoint2X.value =
         allLayers[0]->waveshaper.aPoint2X.reverseMapping(allLayers[0]->waveshaper.aPoint2X.valueMapped);
 }
 void layer0WaveShaperX3() {
     allLayers[0]->waveshaper.aPoint3X.valueMapped =
-        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - 0.001f);
+        std::max((float)allLayers[0]->waveshaper.aPoint2X, allLayers[0]->waveshaper.aPoint3X - WAVESHAPERDISTANCE);
 
     allLayers[0]->waveshaper.aPoint3X.value =
         allLayers[0]->waveshaper.aPoint3X.reverseMapping(allLayers[0]->waveshaper.aPoint3X.valueMapped);
@@ -125,22 +125,22 @@ void layer0WaveShaperX3() {
 
 void layer1WaveShaperX1() {
     allLayers[1]->waveshaper.aPoint1X.valueMapped =
-        std::min((float)allLayers[1]->waveshaper.aPoint1X, allLayers[1]->waveshaper.aPoint2X - 0.001f);
+        std::min((float)allLayers[1]->waveshaper.aPoint1X, allLayers[1]->waveshaper.aPoint2X - WAVESHAPERDISTANCE);
     allLayers[1]->waveshaper.aPoint1X.value =
         allLayers[1]->waveshaper.aPoint1X.reverseMapping(allLayers[1]->waveshaper.aPoint1X.valueMapped);
 }
 void layer1WaveShaperX2() {
     allLayers[1]->waveshaper.aPoint2X.valueMapped =
-        std::min((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - 0.001f);
+        std::min((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - WAVESHAPERDISTANCE);
     allLayers[1]->waveshaper.aPoint2X.valueMapped =
-        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint1X + 0.001f);
+        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint1X + WAVESHAPERDISTANCE);
 
     allLayers[1]->waveshaper.aPoint2X.value =
         allLayers[1]->waveshaper.aPoint2X.reverseMapping(allLayers[1]->waveshaper.aPoint2X.valueMapped);
 }
 void layer1WaveShaperX3() {
     allLayers[1]->waveshaper.aPoint3X.valueMapped =
-        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - 0.001f);
+        std::max((float)allLayers[1]->waveshaper.aPoint2X, allLayers[1]->waveshaper.aPoint3X - WAVESHAPERDISTANCE);
 
     allLayers[1]->waveshaper.aPoint3X.value =
         allLayers[1]->waveshaper.aPoint3X.reverseMapping(allLayers[1]->waveshaper.aPoint3X.valueMapped);
