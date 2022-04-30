@@ -496,23 +496,23 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
         if (layerCom.requestSize) {
-            layerCom.spi->callRxComplete();
             layerCom.requestSize = false;
+            layerCom.spi->callRxComplete();
         }
         else {
             layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
             layerCom.requestState[layerCom.receiveLayer][layerCom.receiveChip] = RQ_READY;
-            setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
-
-            layerCom.spi->callRxComplete();
-            layerCom.decodeCurrentInBuffer();
             layerCom.singleChipRequested = false;
+            setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
 
             if (layerCom.sentRequestUICommand && layerCom.requestState[0][0] == RQ_READY &&
                 layerCom.requestState[0][1] == RQ_READY && layerCom.requestState[1][0] == RQ_READY &&
                 layerCom.requestState[1][1] == RQ_READY) {
                 layerCom.sentRequestUICommand = false;
             }
+
+            layerCom.decodeCurrentInBuffer();
+            layerCom.spi->callRxComplete();
         }
     }
     else if (hspi == spiBusEEPROM.hspi) {
