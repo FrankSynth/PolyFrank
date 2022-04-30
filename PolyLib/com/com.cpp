@@ -261,11 +261,11 @@ uint8_t COMinterChip::sendRequestUIData(uint8_t layer, uint8_t chip) {
         receiveChip = chip;
         uint8_t comCommand[SENDUPDATETOCONTROLSIZE];
 
-        uint8_t voice = chip * 4;
         comCommand[0] = SENDUPDATETOCONTROL;
-        comCommand[1] = (layer << 7) | voice;
+        comCommand[1] = (layer << 7) | chip;
         pushOutBuffer(comCommand, SENDUPDATETOCONTROLSIZE);
         singleChipRequested = true;
+        requestState[receiveLayer][receiveChip] = RQ_DATAREQUESTED;
     }
 
     return 0;
@@ -296,6 +296,22 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
     if (spi->state != BUS_READY)
         return spi->state;
+
+    if (layerA.layerState.value) {
+        if (!((chipState[0][0] == CHIP_READY || chipState[0][0] == CHIP_DATAREADY) &&
+              (chipState[0][1] == CHIP_READY || chipState[0][1] == CHIP_DATAREADY))) {
+            return BUS_BUSY;
+        }
+    }
+
+    if (layerB.layerState.value) {
+        if (!((chipState[1][0] == CHIP_READY || chipState[1][0] == CHIP_DATAREADY) &&
+              (chipState[1][1] == CHIP_READY || chipState[1][1] == CHIP_DATAREADY))) {
+            return BUS_BUSY;
+        }
+    }
+
+    chipState[receiveLayer][receiveChip] = CHIP_DATAFLOWING;
 
     setCSLine(receiveLayer, receiveChip, GPIO_PIN_RESET);
 
@@ -508,7 +524,6 @@ busState COMinterChip::startSendDMA() {
 
     if (singleChipRequested) {
         chipState[receiveLayer][receiveChip] = CHIP_WAITFORDATA;
-        chipStateTimeout[receiveLayer][receiveChip] = 0;
     }
 
 #endif
@@ -774,10 +789,12 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case SENDUPDATETOCONTROL: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                volatile uint8_t layerID, chip;
+                currentByte = (dmaInBufferPointer[currentInBufferSelect])[++i];
+                layerID = (currentByte & CMD_LAYERMASK) >> 7;
+                chip = currentByte & 0x1;
 
-                if (layerID == layerA.id && voice != NOVOICE) {
+                if (layerID == layerA.id && chip == layerA.chipID) {
 
                     if (FlagHandler::outputReady == false) {
                         sendString("out not collected");

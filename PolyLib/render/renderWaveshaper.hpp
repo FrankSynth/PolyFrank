@@ -20,7 +20,7 @@ inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input
     vec<VOICESPERCHIP> sample;
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
-        sample[voice] = waveshaper.wavespline[voice](inputAbs[voice]);
+        sample[voice] = waveshaper.wavespline[0](inputAbs[voice]);
     }
     sample *= sign;
 

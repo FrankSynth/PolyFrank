@@ -285,13 +285,12 @@ void MPU_Config(void) {
  * @retval None
  */
 void PolyError_Handler(const char *errorMessage) {
-
     if (errorMessage == nullptr) {
         PolyError_Handler("PolyError_Handler | ERROR Message == nullptr");
         return;
     }
 
-    println(errorMessage); // print Error Message
+    // println(errorMessage); // print Error Message
 }
 
 /**

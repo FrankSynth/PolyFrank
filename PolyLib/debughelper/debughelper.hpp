@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef POLYCONTROL
 #define DEBUG 1
+#elif POLYRENDER
+#define DEBUG 0
+#endif
 
 #if DEBUG
 

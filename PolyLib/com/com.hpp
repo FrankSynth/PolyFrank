@@ -257,12 +257,15 @@ enum renderChipState {
     CHIP_DATASENT,
     CHIP_WAITFORDATA,
     CHIP_DATAREADY,
+    CHIP_DATAFLOWING,
+
     CHIP_ERROR,
     CHIP_DISABLED
 };
 enum renderChipRequestState {
     RQ_READY,
     RQ_REQUESTDATA,
+    RQ_DATAREQUESTED,
     RQ_DATARECEIVED,
 };
 #endif

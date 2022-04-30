@@ -500,24 +500,18 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
             layerCom.requestSize = false;
         }
         else {
+            layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
+            layerCom.requestState[layerCom.receiveLayer][layerCom.receiveChip] = RQ_READY;
             setCSLine(layerCom.receiveLayer, layerCom.receiveChip, GPIO_PIN_SET);
 
             layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
-
-            layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] = CHIP_DATASENT;
-            layerCom.requestState[layerCom.receiveLayer][layerCom.receiveChip] = RQ_DATARECEIVED;
             layerCom.singleChipRequested = false;
 
-            if (layerCom.sentRequestUICommand &&
-                !(layerCom.requestState[0][0] == RQ_REQUESTDATA || layerCom.requestState[0][1] == RQ_REQUESTDATA ||
-                  layerCom.requestState[1][0] == RQ_REQUESTDATA || layerCom.requestState[1][1] == RQ_REQUESTDATA)) {
+            if (layerCom.sentRequestUICommand && layerCom.requestState[0][0] == RQ_READY &&
+                layerCom.requestState[0][1] == RQ_READY && layerCom.requestState[1][0] == RQ_READY &&
+                layerCom.requestState[1][1] == RQ_READY) {
                 layerCom.sentRequestUICommand = false;
-                for (int i = 0; i < 2; i++)
-                    for (int v = 0; v < 2; v++)
-                        if (allLayers[i]->layerState.value) {
-                            layerCom.requestState[i][v] = RQ_READY;
-                        }
             }
         }
     }
