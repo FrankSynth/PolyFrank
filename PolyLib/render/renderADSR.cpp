@@ -5,23 +5,23 @@
 
 extern Layer layerA;
 
-inline float accumulateDelay(const ADSR &adsr, uint32_t voice) {
-    return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
-}
-inline float accumulateAttack(const ADSR &adsr, uint32_t voice) {
-    return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
-}
-inline float accumulateDecay(const ADSR &adsr, uint32_t voice) {
-    return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
-}
-inline vec<VOICESPERCHIP> accumulateSustain(const ADSR &adsr) {
-    return clamp(adsr.iSustain + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
-}
-inline float accumulateRelease(const ADSR &adsr, uint32_t voice) {
-    return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
-}
-inline float accumulateAmount(const ADSR &adsr, uint32_t voice) {
-    return std::clamp(adsr.iAmount[voice] + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
+// inline float accumulateDelay(const ADSR &adsr, uint32_t voice) {
+//     return std::clamp(adsr.iDelay[voice] + adsr.aDelay, adsr.aDelay.min, adsr.aDelay.max * 2);
+// }
+// inline float accumulateAttack(const ADSR &adsr, uint32_t voice) {
+//     return std::clamp(adsr.iAttack[voice] + adsr.aAttack, adsr.aAttack.min, adsr.aAttack.max * 2);
+// }
+// inline float accumulateDecay(const ADSR &adsr, uint32_t voice) {
+//     return std::clamp(adsr.iDecay[voice] + adsr.aDecay, adsr.aDecay.min, adsr.aDecay.max * 2);
+// }
+// inline vec<VOICESPERCHIP> accumulateSustain(const ADSR &adsr) {
+//     return clamp(adsr.iSustain + adsr.aSustain, adsr.aSustain.min, adsr.aSustain.max);
+// }
+// inline float accumulateRelease(const ADSR &adsr, uint32_t voice) {
+//     return std::clamp(adsr.iRelease[voice] + adsr.aRelease, adsr.aRelease.min, adsr.aRelease.max * 2);
+// }
+inline vec<VOICESPERCHIP> accumulateAmount(const ADSR &adsr) {
+    return clamp(adsr.iAmount + adsr.aAmount, adsr.aAmount.min, adsr.aAmount.max);
 }
 
 inline float calcCoef(float rate, float targetRatio) {
@@ -69,14 +69,15 @@ void renderADSR(ADSR &adsr) {
         cacheShape = shape;
     }
 
-    adsr.sustain = accumulateSustain(adsr);
+    // adsr.sustain = accumulateSustain(adsr);
+    adsr.amount = accumulateAmount(adsr);
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
         float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];
         const bool &gate = adsr.gate[voice];
-        const float &sustain = adsr.sustain[voice];
+        const float &sustain = adsr.aSustain;
         bool &retriggered = adsr.retriggered[voice];
 
         float imperfection = 1.0f;
@@ -219,7 +220,7 @@ void renderADSR(ADSR &adsr) {
     // keytrack
     adsr.out = fast_lerp_f32(adsr.out.nextSample, adsr.out.nextSample * layerA.midi.oNote, adsr.aKeytrack);
 
-    adsr.out = adsr.out.nextSample * adsr.aAmount;
+    adsr.out = adsr.out.nextSample * adsr.amount.nextSample;
 }
 
 #endif

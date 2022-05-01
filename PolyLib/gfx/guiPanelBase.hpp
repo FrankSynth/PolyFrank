@@ -64,12 +64,17 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
 
 void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y);
 
-void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats);
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
+void drawFrame(uint16_t color);
+void drawGrid(uint16_t color);
 
 void drawVecWave(vec<2> *renderedWave, uint16_t samples);
 
 void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples);
-void calculateADSRWave(ADSR *module, vec<2> *waveBuffer, uint32_t samples);
+void drawADSR(WaveBuffer &wavebuffer, ADSR *module);
+
+void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module);
+void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module);
 
 const char *valueToNote(const byte &noteIn);
 

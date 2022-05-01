@@ -26,7 +26,9 @@ typedef enum {
     MODULE_MIDI,
     MODULE_FEEL,
     MODULE_NOISE,
-    MODULE_VCF
+    MODULE_VCF,
+    MODULE_PHASE,
+    MODULE_WAVESHAPER
 
 } ModuleType;
 
@@ -317,7 +319,7 @@ class Noise : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH");
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 960, 0, true, logMap, &iSamplecrusher);
 
@@ -370,14 +372,14 @@ class Mixer : public BaseModule {
     Digital dSUBDestSwitch = Digital("SUB", 0, 3, 1, true, &nlVCFDest);
     Digital dNOISEDestSwitch = Digital("NOISE", 0, 3, 1, true, &nlVCFDest);
 
-    RenderBuffer oscALevelSteiner;
-    RenderBuffer oscALevelLadder;
-    RenderBuffer oscBLevelSteiner;
-    RenderBuffer oscBLevelLadder;
-    RenderBuffer subLevelSteiner;
-    RenderBuffer subLevelLadder;
-    RenderBuffer noiseLevelSteiner;
-    RenderBuffer noiseLevelLadder;
+    RenderBuffer oscALevelSteiner = RenderBuffer(false);
+    RenderBuffer oscALevelLadder = RenderBuffer(false);
+    RenderBuffer oscBLevelSteiner = RenderBuffer(false);
+    RenderBuffer oscBLevelLadder = RenderBuffer(false);
+    RenderBuffer subLevelSteiner = RenderBuffer(false);
+    RenderBuffer subLevelLadder = RenderBuffer(false);
+    RenderBuffer noiseLevelSteiner = RenderBuffer(false);
+    RenderBuffer noiseLevelLadder = RenderBuffer(false);
 
     RenderBuffer oscALevel;
     RenderBuffer oscBLevel;
@@ -487,7 +489,7 @@ class LFO : public BaseModule {
     }
     Output out = Output("OUT");
 
-    Input iFreq = Input("FM", "FM", &frequency);
+    Input iFreq = Input("FM", "FM", &speed);
     Input iShape = Input("SHAPE", "SHAPE", &shape);
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
@@ -503,7 +505,7 @@ class LFO : public BaseModule {
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
 
-    RenderBuffer frequency;
+    RenderBuffer speed;
     RenderBuffer shape;
     RenderBuffer amount;
 
@@ -540,11 +542,11 @@ class ADSR : public BaseModule {
 
         outputs.push_back(&out);
 
-        inputs.push_back(&iDelay);
-        inputs.push_back(&iAttack);
-        inputs.push_back(&iDecay);
-        inputs.push_back(&iSustain);
-        inputs.push_back(&iRelease);
+        // inputs.push_back(&iDelay);
+        // inputs.push_back(&iAttack);
+        // inputs.push_back(&iDecay);
+        // inputs.push_back(&iSustain);
+        // inputs.push_back(&iRelease);
         inputs.push_back(&iAmount);
 
         knobs.push_back(&aDelay);
@@ -570,18 +572,18 @@ class ADSR : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iDelay = Input("DELAY", "DELAY");
-    Input iAttack = Input("ATTACK", "ATTACK");
-    Input iDecay = Input("DECAY", "DECAY");
-    Input iSustain = Input("SUSTAIN", "SUSTAIN");
-    Input iRelease = Input("RELEASE", "RELEASE");
+    // Input iDelay = Input("DELAY", "DELAY");
+    // Input iAttack = Input("ATTACK", "ATTACK");
+    // Input iDecay = Input("DECAY", "DECAY");
+    // Input iSustain = Input("SUSTAIN", "SUSTAIN");
+    // Input iRelease = Input("RELEASE", "RELEASE");
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
-    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap, &iDelay);
-    Analog aAttack = Analog("ATTACK", 0.001, 200, 5, true, logMap, &iAttack);
-    Analog aDecay = Analog("DECAY", 0.005, 200, 5, true, logMap, &iDecay);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 1, true, antilogMap, &iSustain);
-    Analog aRelease = Analog("RELEASE", 0.001, 200, 5, true, logMap, &iRelease);
+    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap);
+    Analog aAttack = Analog("ATTACK", 0.001, 200, 5, true, logMap);
+    Analog aDecay = Analog("DECAY", 0.005, 200, 5, true, logMap);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.8, true, antilogMap);
+    Analog aRelease = Analog("RELEASE", 0.001, 200, 5, true, logMap);
     Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
@@ -668,18 +670,18 @@ class ADSR : public BaseModule {
     vec<VOICESPERCHIP, bool> retriggered;
     vec<VOICESPERCHIP> level;
     vec<VOICESPERCHIP> currentTime;
-    vec<VOICESPERCHIP> sustain;
+    // vec<VOICESPERCHIP> sustain;
     ADSR_State currentState[VOICESPERCHIP] = {OFF};
 
-    vec<VOICESPERCHIP> attackRate;
-    vec<VOICESPERCHIP> decayRate;
-    vec<VOICESPERCHIP> releaseRate;
-    vec<VOICESPERCHIP> attackCoef;
-    vec<VOICESPERCHIP> decayCoef;
-    vec<VOICESPERCHIP> releaseCoef;
-    vec<VOICESPERCHIP> attackBase;
-    vec<VOICESPERCHIP> decayBase;
-    vec<VOICESPERCHIP> releaseBase;
+    float attackRate;
+    float decayRate;
+    float releaseRate;
+    float attackCoef;
+    float decayCoef;
+    float releaseCoef;
+    float attackBase;
+    float decayBase;
+    float releaseBase;
 };
 
 class Feel : public BaseModule {
@@ -764,73 +766,54 @@ class Waveshaper : public BaseModule {
   public:
     Waveshaper(const char *name, const char *shortName) : BaseModule(name, shortName) {
 
-        // inputs.push_back(&iShape1);
-        // inputs.push_back(&iShape2);
-        // inputs.push_back(&iShape3);
-        // inputs.push_back(&iShape4);
         inputs.push_back(&iPoint1X);
         inputs.push_back(&iPoint1Y);
         inputs.push_back(&iPoint2X);
         inputs.push_back(&iPoint2Y);
         inputs.push_back(&iPoint3X);
+        inputs.push_back(&iPoint3Y);
         inputs.push_back(&iPoint4Y);
         inputs.push_back(&iDryWet);
 
-        // knobs.push_back(&aShape1);
-        // knobs.push_back(&aShape2);
-        // knobs.push_back(&aShape3);
-        // knobs.push_back(&aShape4);
         knobs.push_back(&aPoint1X);
         knobs.push_back(&aPoint1Y);
         knobs.push_back(&aPoint2X);
         knobs.push_back(&aPoint2Y);
         knobs.push_back(&aPoint3X);
+        knobs.push_back(&aPoint3Y);
         knobs.push_back(&aPoint4Y);
         knobs.push_back(&aDryWet);
 
-        // renderBuffer.push_back(&shape1);
-        // renderBuffer.push_back(&shape2);
-        // renderBuffer.push_back(&shape3);
-        // renderBuffer.push_back(&shape4);
         renderBuffer.push_back(&Point1X);
         renderBuffer.push_back(&Point1Y);
         renderBuffer.push_back(&Point2X);
         renderBuffer.push_back(&Point2Y);
         renderBuffer.push_back(&Point3X);
+        renderBuffer.push_back(&Point3Y);
         renderBuffer.push_back(&Point4Y);
         renderBuffer.push_back(&DryWet);
+
+        moduleType = MODULE_WAVESHAPER;
     }
 
-    // Input iShape1 = Input("Shape 1", "Shape 1", &shape1);
-    // Input iShape2 = Input("Shape 2", "Shape 2", &shape2);
-    // Input iShape3 = Input("Shape 3", "Shape 3", &shape3);
-    // Input iShape4 = Input("Shape 4", "Shape 4", &shape4);
     Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
     Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);
     Input iPoint2X = Input("P2 X", "P2 X", &Point2X);
     Input iPoint2Y = Input("P2 Y", "P2 Y", &Point2Y);
     Input iPoint3X = Input("P3 X", "P3 X", &Point3X);
     Input iPoint3Y = Input("P3 Y", "P3 Y", &Point3Y);
-    Input iPoint4Y = Input("P3 Y", "P3 Y", &Point4Y);
+    Input iPoint4Y = Input("P4 Y", "P4 Y", &Point4Y);
     Input iDryWet = Input("Dry/Wet", "Dry/Wet", &DryWet);
 
-    // Analog aShape1 = Analog("Shape 1", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape1);
-    // Analog aShape2 = Analog("Shape 2", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape2);
-    // Analog aShape3 = Analog("Shape 3", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape3);
-    // Analog aShape4 = Analog("Shape 4", 0.000001f, 0.999999f, 0.5, true, linMap, &iShape4);
-    Analog aPoint1X = Analog("P1 X", WAVESHAPERDISTANCE, 1.0f - WAVESHAPERDISTANCE, 0.25, true, linMap, &iPoint1X);
+    Analog aPoint1X = Analog("P1 X", 0, 1, 0.25, true, linMap, &iPoint1X);
     Analog aPoint1Y = Analog("P1 Y", 0, 1, 0.25, true, linMap, &iPoint1Y);
-    Analog aPoint2X = Analog("P2 X", WAVESHAPERDISTANCE, 1.0f - WAVESHAPERDISTANCE, 0.5, true, linMap, &iPoint2X);
+    Analog aPoint2X = Analog("P2 X", 0, 1, 0.5, true, linMap, &iPoint2X);
     Analog aPoint2Y = Analog("P2 Y", 0, 1, 0.5, true, linMap, &iPoint2Y);
-    Analog aPoint3X = Analog("P3 X", WAVESHAPERDISTANCE, 1.0f - WAVESHAPERDISTANCE, 0.75, true, linMap, &iPoint3X);
+    Analog aPoint3X = Analog("P3 X", 0, 1, 0.75, true, linMap, &iPoint3X);
     Analog aPoint3Y = Analog("P3 Y", 0, 1, 0.75, true, linMap, &iPoint3Y);
     Analog aPoint4Y = Analog("P4 Y", 0, 1, 1, true, linMap, &iPoint4Y);
     Analog aDryWet = Analog("Dry/Wet", 0, 1, 0, true, linMap, &iDryWet);
 
-    // RenderBuffer shape1;
-    // RenderBuffer shape2;
-    // RenderBuffer shape3;
-    // RenderBuffer shape4;
     RenderBuffer Point1X;
     RenderBuffer Point1Y;
     RenderBuffer Point2X;
@@ -849,13 +832,13 @@ class Waveshaper : public BaseModule {
                                                  {0.0, 0.25, 0.5, 0.75, 1.0},
                                                  {0.0, 0.25, 0.5, 0.75, 1.0}};
     tk::spline wavespline[VOICESPERCHIP] = {tk::spline(splineX[0], splineY[0], tk::spline::cspline_hermite, false,
-                                                       tk::spline::first_deriv, 1.0f, tk::spline::first_deriv, 1.0f),
+                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
                                             tk::spline(splineX[1], splineY[1], tk::spline::cspline_hermite, false,
-                                                       tk::spline::first_deriv, 1.0f, tk::spline::first_deriv, 1.0f),
+                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
                                             tk::spline(splineX[2], splineY[2], tk::spline::cspline_hermite, false,
-                                                       tk::spline::first_deriv, 1.0f, tk::spline::first_deriv, 1.0f),
+                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
                                             tk::spline(splineX[3], splineY[3], tk::spline::cspline_hermite, false,
-                                                       tk::spline::first_deriv, 1.0f, tk::spline::first_deriv, 1.0f)};
+                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f)};
 };
 
 class Phaseshaper : public BaseModule {
@@ -885,6 +868,8 @@ class Phaseshaper : public BaseModule {
         renderBuffer.push_back(&Point3Y);
         renderBuffer.push_back(&Point4Y);
         renderBuffer.push_back(&DryWet);
+
+        moduleType = MODULE_PHASE;
     }
 
     Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);

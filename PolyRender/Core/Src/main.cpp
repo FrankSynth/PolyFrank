@@ -290,7 +290,7 @@ void PolyError_Handler(const char *errorMessage) {
         return;
     }
 
-    // println(errorMessage); // print Error Message
+    println(errorMessage); // print Error Message
 }
 
 /**

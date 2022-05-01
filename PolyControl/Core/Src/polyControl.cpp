@@ -197,7 +197,7 @@ void PolyControlInit() {
 
 void PolyControlRun() { // Here the party starts
 
-    elapsedMillis timer;
+    elapsedMicros timer;
 
     while (1) {
 
@@ -207,12 +207,15 @@ void PolyControlRun() { // Here the party starts
 
         layerCom.beginSendTransmission();
 
+        checkLayerRequests();
+
         if (getRenderState() == RENDER_DONE) {
+            // timer = 0;
             ui.Draw();
+            // println("ui draw:", timer);
             renderLED();
             sendRequestAllUIData();
         }
-        checkLayerRequests();
     }
 }
 
@@ -227,20 +230,20 @@ void checkLayerRequests() {
         }
     }
     else {
-        uint32_t layer = 1000;
-        uint32_t chip = 1000;
+        uint32_t layer = 0xFF;
+        uint32_t chip = 0xFF;
         for (int i = 0; i < 2; i++)
             for (int v = 0; v < 2; v++)
                 if (allLayers[i]->layerState.value) {
                     if (layerCom.requestState[i][v] == RQ_REQUESTDATA) {
                         layer = i;
                         chip = v;
-                        break;
+                        i = 2;
+                        v = 2;
                     }
                 }
 
-        if (layer == 1000 || chip == 1000) {
-            println("ERROR ", __FILE__, __LINE__);
+        if (layer == 0xFF || chip == 0xFF) {
             return;
         }
         layerCom.sendRequestUIData(layer, chip);

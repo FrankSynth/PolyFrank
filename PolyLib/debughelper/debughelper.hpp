@@ -68,7 +68,9 @@ template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
 
 template <typename... T> void printlnViaSTLink(T &&...args) {
     printViaSTLink(args...);
+#ifdef POLYCONTROL
     printViaSTLink("\r\n");
+#endif
 }
 
 #else

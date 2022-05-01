@@ -61,9 +61,9 @@ void renderLFO(LFO &lfo) {
     vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
     vec<VOICESPERCHIP> &phase = lfo.currentTime;
     bool *newPhase = lfo.newPhase;
-    vec<VOICESPERCHIP> shape;
-    vec<VOICESPERCHIP> speed;
-    vec<VOICESPERCHIP> amount;
+    vec<VOICESPERCHIP> &shape = lfo.shape.nextSample;
+    vec<VOICESPERCHIP> &speed = lfo.speed.nextSample;
+    vec<VOICESPERCHIP> &amount = lfo.amount.nextSample;
     vec<VOICESPERCHIP> fract;
 
     vec<VOICESPERCHIP> sample;

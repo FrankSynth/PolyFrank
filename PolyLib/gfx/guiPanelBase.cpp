@@ -1051,25 +1051,44 @@ void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y) {
     // drwaWavebuffer
 
     if (module->id == allLayers[currentFocus.layer]->oscA.id) {
-        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2);
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
     }
     else if (module->id == allLayers[currentFocus.layer]->oscB.id) {
-        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscB, 100, 2);
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscB, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
     }
     else if (module->id == allLayers[currentFocus.layer]->sub.id) {
-        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesSub, 100, 2);
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesSub, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
     }
     else if (module->moduleType == MODULE_LFO) {
         int8_t wave[100];
-
         calculateLFOWave((LFO *)module, wave, 100);
-        drawWave(wave, 100, 2);
+
+        drawGrid(c4444gridcolor);
+        drawWave(wave, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_PHASE) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 1, c4444wavecolorTrans);
+        drawPhaseshaper(waveBuffer, (Phaseshaper *)module);
+        drawFrame(c4444framecolor);
     }
     else if (module->moduleType == MODULE_ADSR) {
-        vec<2> wave[100];
-
-        calculateADSRWave((ADSR *)module, wave, 100);
-        drawVecWave(wave, 100);
+        drawGrid(c4444gridcolor);
+        drawADSR(waveBuffer, (ADSR *)module);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_WAVESHAPER) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2, c4444wavecolorTrans);
+        drawWaveshaper(waveBuffer, (Waveshaper *)module);
+        drawFrame(c4444framecolor);
     }
 
     SCB_CleanDCache_by_Addr((uint32_t *)waveBuffer.buffer, waveBuffer.height * waveBuffer.width * 2);
@@ -1077,32 +1096,29 @@ void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y) {
     copyWaveBuffer(waveBuffer, x, y);
 }
 
-void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats) {
-
-    uint16_t wavecolor = 0xFFFF;
-    uint16_t gridcolor = 0x3FFF;
-    uint16_t framecolor = 0xAFFF;
-
-    int16_t x1;
-    int16_t y1;
-    int16_t x2;
-    int16_t y2;
-
-    // Grid
+void drawGrid(uint16_t color) {
 
     uint8_t grid = 12;
 
     for (uint16_t i = 1; i < grid; i++) {
         drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
-                 waveBuffer.height - 1, gridcolor);
+                 waveBuffer.height - 1, color);
     }
-    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, color);
+}
+void drawFrame(uint16_t color) {
 
-    // Frame
-    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, framecolor);
-    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
-    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, framecolor);
-    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, color);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, color);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, color);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, color);
+}
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color) {
+
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
 
     for (uint16_t i = 0; i < 100 * repeats - 1; i++) {
         x1 = ((float)waveBuffer.width / (100.f * repeats - 1)) * i;
@@ -1118,15 +1134,11 @@ void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats) {
 
         x1 = testInt(x1, 1, waveBuffer.width - 1);
         x2 = testInt(x2, 1, waveBuffer.width - 1);
-        draw3Line(waveBuffer, x1, y1, x2, y2, wavecolor);
+        drawLineThick(waveBuffer, x1, y1, x2, y2, color);
     }
 }
 
 void drawVecWave(vec<2> *renderedWave, uint16_t samples) {
-
-    uint16_t wavecolor = 0xFFFF;
-    uint16_t gridcolor = 0x3FFF;
-    uint16_t framecolor = 0xAFFF;
 
     vec<2> p1;
     vec<2> p2;
@@ -1141,48 +1153,34 @@ void drawVecWave(vec<2> *renderedWave, uint16_t samples) {
 
     for (uint16_t i = 1; i < grid; i++) {
         drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
-                 waveBuffer.height - 1, gridcolor);
+                 waveBuffer.height - 1, c4444gridcolor);
     }
-    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, c4444framecolor);
 
     // Frame
-    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, framecolor);
-    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
-    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, framecolor);
-    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, framecolor);
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, c4444framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, c4444framecolor);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, c4444framecolor);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, c4444framecolor);
 
     for (uint16_t i = 0; i < (samples - 1); i++) {
         // load Wave
         p1 = renderedWave[i];
         p2 = renderedWave[i + 1];
 
-        // Flip Wave
-        p1[1] = 1 - p1[1];
-        p2[1] = 1 - p2[1];
-
-        // Scale Wave
-        p1[0] *= (waveBuffer.width - 2);
-        p2[0] *= (waveBuffer.width - 2);
-
-        p1[0] += 1;
-        p2[0] += 1;
-
-        p1[1] *= waveBuffer.height - 2;
-        p2[1] *= waveBuffer.height - 2;
-
         // Check range
-        x1 = testInt((int32_t)p1[0], 1, waveBuffer.width - 1);
-        y1 = testInt((int32_t)p1[1], 1, waveBuffer.height - 2);
-        x2 = testInt((int32_t)p2[0], 1, waveBuffer.width - 1);
-        y2 = testInt((int32_t)p2[1], 1, waveBuffer.height - 2);
+        x1 = testInt((int32_t)p1[0], 0, waveBuffer.width - 1);
+        y1 = testInt((int32_t)p1[1], 0, waveBuffer.height - 1);
+        x2 = testInt((int32_t)p2[0], 0, waveBuffer.width - 1);
+        y2 = testInt((int32_t)p2[1], 0, waveBuffer.height - 1);
 
-        draw3Line(waveBuffer, x1, y1, x2, y2, wavecolor);
+        drawLineWidth(waveBuffer, x1, y1, x2, y2, 4, c4444wavecolor);
     }
 }
 
 #include "render/renderLFO.cpp"
 
-void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples) {
+void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
 
     const float random[10] = {-.8, 0.6, 0, 1, -0.3, 0.2, 0, -0.9, 0.5};
 
@@ -1219,140 +1217,181 @@ void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples) {
             index = fast_lerp_f32(-1.0f, random[(uint16_t)((4.f / samples) * i)], fract);
         }
 
-        waveBuffer[i] = index * 127;
+        renderedWave[i] = index * 127;
     }
 }
 
-void calculateADSRWave(ADSR *module, vec<2> *waveBuffer, uint32_t samples) {
-    vec<2> L0;
-    vec<2> L2;
-
-    vec<2> A0;
-    vec<2> A1;
-    vec<2> A1B;
-    vec<2> A2;
-
-    vec<2> D0;
-    vec<2> D1;
-    vec<2> D1B;
-    vec<2> D2;
-
-    vec<2> S0;
-    vec<2> S1;
-    vec<2> S2;
-
-    vec<2> R0;
-    vec<2> R1;
-    vec<2> R1B;
-    vec<2> R2;
+void drawADSR(WaveBuffer &wavebuffer, ADSR *module) {
 
     float range = 4.2;
 
-    float delay = fastMap(module->aDelay, module->aDelay.min, module->aDelay.max, 0.02, 1);
-    float attack = fastMap(module->aAttack, module->aAttack.min, module->aAttack.max, 0.02, 1);
-    float decay = fastMap(module->aDecay, module->aDecay.min, module->aDecay.max, 0.02, 1);
-    float release = fastMap(module->aRelease, module->aRelease.min, module->aRelease.max, 0.02, 1);
+    float delay = fastMap(module->aDelay, module->aDelay.min, module->aDelay.max, 0.04, 1);
+    float attack = fastMap(module->aAttack, module->aAttack.min, module->aAttack.max, 0.04, 1);
+    float decay = fastMap(module->aDecay, module->aDecay.min, module->aDecay.max, 0.04, 1);
+    float release = fastMap(module->aRelease, module->aRelease.min, module->aRelease.max, 0.04, 1);
     float sustain = range - attack - decay - release - delay;
     float sustainLevel = fastMap(module->aSustain, module->aSustain.min, module->aSustain.max, 0.00, 1);
 
     float shape = module->aShape;
 
-    uint32_t delaySamples = (delay / range) * samples;
-    uint32_t attackSamples = (attack / range) * samples;
-    uint32_t decaySamples = (decay / range) * samples;
-    uint32_t releaseSamples = (release / range) * samples;
-
-    delaySamples = testInt(delaySamples, 2, samples);
-    attackSamples = testInt(attackSamples, 2, samples);
-    decaySamples = testInt(decaySamples, 2, samples);
-    releaseSamples = testInt(releaseSamples, 2, samples);
-
-    uint32_t sustainSamples = samples - attackSamples - decaySamples - releaseSamples - delaySamples;
-
-    // println("samples : ", samples);
-    // println("attackSamples : ", attackSamples);
-    // println("decaySamples : ", decaySamples);
-    // println("sustainSamples : ", sustainSamples);
-    // println("releaseSamples : ", releaseSamples);
-    // Delay
-    L0 = 0;
-    L2[0] = delay / range;
-    L2[1] = 0;
-
     // Attack
-    A0 = L2;
-    A2[0] = A0[0] + (attack / range);
-    A2[1] = 1;
+    vec<2> P[6];
+    P[0] = 0;
+    P[1][0] = delay / range;
+    P[1][1] = 0;
+
+    P[2][0] = P[1][0] + (attack / range);
+    P[2][1] = 1;
+
+    P[3][0] = P[2][0] + decay / range;
+    P[3][1] = sustainLevel;
+
+    P[4] = P[3];
+    P[4][0] += sustain / range;
+
+    P[5][0] = P[4][0] + release / range;
+    P[5][1] = 0;
+
+    for (uint32_t i = 0; i < 6; i++) {
+        // Flip Wave
+        P[i][1] = 1 - P[i][1];
+
+        // Scale Wave
+        P[i][0] *= waveBuffer.width - 1;
+        P[i][1] *= waveBuffer.height - 14;
+        P[i][1] += 7;
+    }
 
     // shape Attack
-    A1 = (A0 + A2) / 2.f;
-    A1B[0] = A0[0];
-    A1B[1] = A2[1];
+    vec<2> A1;
+    vec<2> A2;
+    vec<2> A;
 
-    A1 = fast_lerp_f32(A1, A1B, shape);
-    // Decay
-    D0 = A2;
+    A1 = (P[1] + P[2]) / 2.f;
+    A2[0] = P[1][0];
+    A2[1] = P[2][1];
 
-    D2[0] = D0[0] + decay / range;
-    D2[1] = sustainLevel;
-    D1 = (D0 + D2) / 2.f;
-    D1B[0] = D0[0];
-    D1B[1] = D2[1];
+    A = fast_lerp_f32(A1, A2, shape);
 
-    D1 = fast_lerp_f32(D1, D1B, shape);
+    // shape Decay
 
-    // Sustain
-    S0 = D2;
+    vec<2> D1;
+    vec<2> D2;
+    vec<2> D;
 
-    S2 = S0;
-    S2[0] += sustain / range;
-    // S1 = (S0 + S2) / 2;
+    D1 = (P[2] + P[3]) / 2.f;
+    D2[0] = P[2][0];
+    D2[1] = P[3][1];
 
-    // Release
-    R0 = S2;
+    D = fast_lerp_f32(D1, D2, shape);
 
-    R2[0] = R0[0] + release / range;
-    R2[1] = 0;
-    R1 = (R0 + R2) / 2.f;
-    R1B[0] = R0[0];
-    R1B[1] = R2[1];
-    R1 = fast_lerp_f32(R1, R1B, shape);
+    // shape Release
 
-    // set fix points
-    waveBuffer[0] = L0;
-    waveBuffer[delaySamples] = A0;
-    waveBuffer[delaySamples + attackSamples] = D0;
-    waveBuffer[delaySamples + attackSamples + decaySamples] = S0;
-    waveBuffer[delaySamples + attackSamples + decaySamples + sustainSamples] = R0;
-    waveBuffer[samples - 1] = R2;
+    vec<2> R1;
+    vec<2> R2;
+    vec<2> R;
 
-    uint32_t index = 0;
-    for (uint32_t i = 1; i < delaySamples; i++) {
-        waveBuffer[i + index] = fast_lerp_f32(L0, L2, testFloat((float)i / (delaySamples), 0, 0.999));
+    R1 = (P[4] + P[5]) / 2.f;
+    R2[0] = P[4][0];
+    R2[1] = P[5][1];
+
+    R = fast_lerp_f32(R1, R2, shape);
+
+    // Draw Wave
+    drawLineThick(waveBuffer, P[0][0], P[0][1], P[1][0], P[1][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[1][0], P[1][1], A[0], A[1], P[2][0], P[2][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[2][0], P[2][1], D[0], D[1], P[3][0], P[3][1], c4444wavecolor);
+
+    drawLineThick(waveBuffer, P[3][0], P[3][1], P[4][0], P[4][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[4][0], P[4][1], R[0], R[1], P[5][0], P[5][1], c4444wavecolor);
+
+    drawFilledCircle(waveBuffer, P[1][0], P[1][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[2][0], P[2][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[3][0], P[3][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[4][0], P[4][1], c4444dot, 8);
+}
+
+void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module) {
+    vec<2> P1;
+    vec<2> P2;
+    vec<2> P3;
+    vec<2> P4;
+
+    // Invert/Scale
+    P1[0] = 0;
+    P1[1] = 7 + (1 - module->aPoint1Y) * (waveBuffer.height - 14);
+
+    P2[0] = module->aPoint2X * (waveBuffer.width - 1);
+    P2[1] = 7 + (1 - module->aPoint2Y) * (waveBuffer.height - 14);
+
+    P3[0] = module->aPoint3X * (waveBuffer.width - 1);
+    P3[1] = 7 + (1 - module->aPoint3Y) * (waveBuffer.height - 14);
+
+    P4[0] = waveBuffer.width - 1;
+    P4[1] = 7 + (1 - module->aPoint4Y) * (waveBuffer.height - 14);
+
+    drawLineWidth(waveBuffer, P1[0], P1[1], P2[0], P2[1], 3, c4444wavecolor);
+    drawLineWidth(waveBuffer, P2[0], P2[1], P3[0], P3[1], 3, c4444wavecolor);
+    drawLineWidth(waveBuffer, P3[0], P3[1], P4[0], P4[1], 3, c4444wavecolor);
+
+    // Dots
+    drawFilledCircle(waveBuffer, P2[0], P2[1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P3[0], P3[1], c4444dot, 8);
+}
+
+void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
+
+    module->splineX[0].clear();
+    module->splineY[0].clear();
+
+    module->splineX[0].push_back(0.0f);
+    module->splineX[0].push_back(module->Point1X[0]);
+    module->splineX[0].push_back(module->Point2X[0]);
+    module->splineX[0].push_back(module->Point3X[0]);
+    module->splineX[0].push_back(1.0f);
+
+    module->splineY[0].push_back(0.0f);
+    module->splineY[0].push_back(module->Point1Y[0]);
+    module->splineY[0].push_back(module->Point2Y[0]);
+    module->splineY[0].push_back(module->Point3Y[0]);
+    module->splineY[0].push_back(module->Point4Y[0]);
+    module->wavespline[0].set_points(module->splineX[0], module->splineY[0]);
+
+    // int x[4];
+    // int y[4];
+
+    int xdots[4];
+    int ydots[4];
+    // Invert/Scale
+    xdots[0] = module->aPoint1X * (waveBuffer.width - 1);
+    ydots[0] = 7 + (1 - module->aPoint1Y) * (waveBuffer.height - 14);
+
+    xdots[1] = module->aPoint2X * (waveBuffer.width - 1);
+    ydots[1] = 7 + (1 - module->aPoint2Y) * (waveBuffer.height - 14);
+
+    xdots[2] = module->aPoint3X * (waveBuffer.width - 1);
+    ydots[2] = 7 + (1 - module->aPoint3Y) * (waveBuffer.height - 14);
+
+    xdots[3] = 1 * (waveBuffer.width - 1);
+    ydots[3] = 7 + (1 - module->aPoint4Y) * (waveBuffer.height - 14);
+
+    // drawLineThick(waveBuffer, 0, y[0], x[0], y[0], c4444wavecolor);
+
+    float y;
+
+    for (uint32_t i = 0; i < waveBuffer.width; i++) {
+        y = module->wavespline[0]((float)i / (waveBuffer.width - 1));
+
+        drawPixelThick(waveBuffer, i, 7 + (1 - y) * (waveBuffer.height - 14), c4444wavecolor);
     }
-    index += delaySamples;
 
-    for (uint32_t i = 1; i < attackSamples; i++) {
-        waveBuffer[i + index] = bezier2D(A0, A1, A2, testFloat((float)i / (attackSamples), 0, 0.999));
-    }
-    index += attackSamples;
-    for (uint32_t i = 1; i < decaySamples; i++) {
-        waveBuffer[i + index] = bezier2D(D0, D1, D2, testFloat((float)i / (decaySamples), 0, 0.999));
-    }
-    index += decaySamples;
+    // drawCubicSpline(waveBuffer, 3, x, y, c4444wavecolor);
 
-    for (uint32_t i = 1; i < sustainSamples; i++) {
-        waveBuffer[i + index] = fast_lerp_f32(S0, S2, testFloat((float)i / (sustainSamples), 0, 0.999));
-    }
-    index += sustainSamples;
-
-    for (uint32_t i = 1; i < (releaseSamples - 1); i++) {
-        waveBuffer[i + index] = bezier2D(R0, R1, R2, testFloat((float)i / releaseSamples, 0, 0.999));
-    }
-
-    // for (uint32_t i = 0; i < samples; i++) {
-    //     println(waveBuffer[i][0], "  ", waveBuffer[i][1]);
-    // }
+    // Dots
+    drawFilledCircle(waveBuffer, xdots[0], ydots[0], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[1], ydots[1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[2], ydots[2], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[3], ydots[3], c4444dot, 8);
 }
 
 #endif

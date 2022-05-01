@@ -71,7 +71,8 @@ void GUIPanelFocus::Draw() {
     if (currentFocus.type == FOCUSMODULE) {
         ModuleType type = allLayers[currentFocus.layer]->modules[currentFocus.modul]->moduleType;
 
-        if (type == MODULE_OSC || type == MODULE_SUB || type == MODULE_LFO || type == MODULE_ADSR) {
+        if (type == MODULE_OSC || type == MODULE_SUB || type == MODULE_LFO || type == MODULE_ADSR ||
+            type == MODULE_PHASE || type == MODULE_WAVESHAPER) {
             entrys = FOCUSPANELENTRYSWAVE;
             scroll->maxEntrysVisible = entrys;
 

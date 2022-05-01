@@ -29,7 +29,7 @@ typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444 } 
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
-#define WAVEFORMHEIGHT 130
+#define WAVEFORMHEIGHT 150
 
 extern uint8_t *pFrameBuffer;
 // rendertask struct
@@ -90,10 +90,33 @@ uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font);
 
 void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y);
 
+/////Software GFX Functions////////
 void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
-void draw3Line(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd, uint16_t &color);
 
-void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color, float wd);
 void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
+void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t &color);
+
+void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[], uint16_t &color);
 
 void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uint16_t y);
+
+void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t &color, float r);
+
+inline void drawPixelThick(WaveBuffer &waveBuffer, int16_t x0, int16_t y0, uint16_t &color) {
+    // draw a circle
+
+    uint16_t x;
+    uint16_t y;
+
+    for (int16_t xOffset = -1; xOffset < 2; xOffset++) {
+        for (int16_t yOffset = -1; yOffset < 2; yOffset++) {
+            x = x0 + xOffset;
+            y = y0 + yOffset;
+
+            if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
+                waveBuffer.buffer[y][x] = color;               // simple "blend"        }
+        }
+    }
+}

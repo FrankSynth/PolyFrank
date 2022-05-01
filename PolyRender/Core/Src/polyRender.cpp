@@ -469,7 +469,8 @@ void outputCollect() {
     }
     for (BaseModule *m : layerA.modules) {
         for (RenderBuffer *r : m->renderBuffer) {
-            sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
+            if (r->sendOutViaCom)
+                sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
         }
     }
 
