@@ -151,11 +151,7 @@ class Setting : public DataElement {
  */
 class RenderBuffer {
   public:
-    RenderBuffer(bool sendOutViaCom = true) {
-        // currentSample = sample;
-        // nextSample = &sample[1];
-        this->sendOutViaCom = sendOutViaCom;
-    }
+    RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
 
     void updateToNextSample() {
         vec<VOICESPERCHIP> temp = currentSample;

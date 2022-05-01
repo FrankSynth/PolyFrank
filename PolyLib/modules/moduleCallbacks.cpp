@@ -57,89 +57,58 @@ extern std::vector<Layer *> allLayers;
 extern LiveData liveData;
 extern COMinterChip layerCom;
 
-void lfoFreqSnap(uint32_t layerID, LFO &lfo) {
-    if (lfo.dFreqSnap) {
-        lfo.dFreq.displayVis = true;
-        lfo.aFreq.displayVis = false;
+void lfoFreqSnap(LFO *lfo) {
+    if (lfo->dFreqSnap) {
+        lfo->dFreq.displayVis = true;
+        lfo->aFreq.displayVis = false;
     }
     else {
-        lfo.dFreq.displayVis = false;
-        lfo.aFreq.displayVis = true;
+        lfo->dFreq.displayVis = false;
+        lfo->aFreq.displayVis = true;
     }
 }
 
-void layer0lfoA() {
-    lfoFreqSnap(0, allLayers[0]->lfoA);
-}
-void layer0lfoB() {
-    lfoFreqSnap(0, allLayers[0]->lfoB);
-}
-void layer1lfoA() {
-    lfoFreqSnap(1, allLayers[1]->lfoA);
-}
-void layer1lfoB() {
-    lfoFreqSnap(1, allLayers[1]->lfoB);
-}
-
-void retriggerLFOforAlign(uint32_t layerID, LFO &lfo) {
-    if (lfo.dAlignLFOs == 1) {
-        layerCom.sendRetrigger(layerID, lfo.id, VOICEALL);
+void retriggerLFOforAlign(LFO *lfo) {
+    if (lfo->dAlignLFOs == 1) {
+        layerCom.sendRetrigger(lfo->layerId, lfo->id, VOICEALL);
     }
-}
-
-void layer0lfoARetrigger() {
-    retriggerLFOforAlign(0, allLayers[0]->lfoA);
-}
-void layer0lfoBRetrigger() {
-    retriggerLFOforAlign(0, allLayers[0]->lfoB);
-}
-void layer1lfoARetrigger() {
-    retriggerLFOforAlign(1, allLayers[1]->lfoA);
-}
-void layer1lfoBRetrigger() {
-    retriggerLFOforAlign(1, allLayers[1]->lfoB);
 }
 
 void layer0WaveShaperX1(Waveshaper *waveshaper) {
     waveshaper->aPoint1X.valueMapped = std::min((float)waveshaper->aPoint1X, waveshaper->aPoint2X - WAVESHAPERDISTANCE);
     waveshaper->aPoint1X.valueMapped = std::max((float)waveshaper->aPoint1X, WAVESHAPERDISTANCE);
-
     waveshaper->aPoint1X.value = waveshaper->aPoint1X.reverseMapping(waveshaper->aPoint1X.valueMapped);
 }
 void layer0WaveShaperX2(Waveshaper *waveshaper) {
     waveshaper->aPoint2X.valueMapped = std::min((float)waveshaper->aPoint2X, waveshaper->aPoint3X - WAVESHAPERDISTANCE);
     waveshaper->aPoint2X.valueMapped = std::max((float)waveshaper->aPoint2X, waveshaper->aPoint1X + WAVESHAPERDISTANCE);
-
     waveshaper->aPoint2X.value = waveshaper->aPoint2X.reverseMapping(waveshaper->aPoint2X.valueMapped);
 }
 void layer0WaveShaperX3(Waveshaper *waveshaper) {
     waveshaper->aPoint3X.valueMapped = std::min((float)waveshaper->aPoint3X, 1.0f - WAVESHAPERDISTANCE);
     waveshaper->aPoint3X.valueMapped = std::max((float)waveshaper->aPoint3X, waveshaper->aPoint2X + WAVESHAPERDISTANCE);
-
     waveshaper->aPoint3X.value = waveshaper->aPoint3X.reverseMapping(waveshaper->aPoint3X.valueMapped);
 }
 
 void layer0PhaseShaperX2(Phaseshaper *phaseshaper) {
     phaseshaper->aPoint2X.valueMapped = std::min((float)phaseshaper->aPoint2X, (float)phaseshaper->aPoint3X);
-
     phaseshaper->aPoint2X.value = phaseshaper->aPoint2X.reverseMapping(phaseshaper->aPoint2X.valueMapped);
 }
 void layer0PhaseShaperX3(Phaseshaper *phaseshaper) {
     phaseshaper->aPoint3X.valueMapped = std::max((float)phaseshaper->aPoint2X, (float)phaseshaper->aPoint3X);
-
     phaseshaper->aPoint3X.value = phaseshaper->aPoint3X.reverseMapping(phaseshaper->aPoint3X.valueMapped);
 }
 
 void setModuleCallbacks() {
-    allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(layer0lfoA));
-    allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(layer0lfoB));
-    allLayers[1]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(layer1lfoA));
-    allLayers[1]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(layer1lfoB));
+    allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoA));
+    allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoB));
+    allLayers[1]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[1]->lfoA));
+    allLayers[1]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[1]->lfoB));
 
-    allLayers[0]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(layer0lfoARetrigger));
-    allLayers[0]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(layer0lfoBRetrigger));
-    allLayers[1]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(layer1lfoARetrigger));
-    allLayers[1]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(layer1lfoBRetrigger));
+    allLayers[0]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoA));
+    allLayers[0]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoB));
+    allLayers[1]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoA));
+    allLayers[1]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoB));
 
     allLayers[0]->waveshaperA.aPoint1X.setValueChangedCallback(
         std::bind(layer0WaveShaperX1, &allLayers[0]->waveshaperA));

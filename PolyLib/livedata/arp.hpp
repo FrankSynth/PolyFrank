@@ -17,6 +17,8 @@
 #define ARP_ORDR 10
 #define ARP_RND 11
 
+#define RATCHEDMAX 3
+
 class Arpeggiator {
   public:
     Arpeggiator(VoiceHandler *voiceHandler) {
@@ -29,12 +31,13 @@ class Arpeggiator {
         __liveSettingsArp.settings.push_back(&arpMode);
         __liveSettingsArp.settings.push_back(&arpOctave);
         __liveSettingsArp.settings.push_back(&arpPlayedKeysParallel);
-        __liveSettingsArp.settings.push_back(&arpRep);
+        __liveSettingsArp.settings.push_back(&arpRatched);
         __liveSettingsArp.settings.push_back(&arpPolyrythm);
         __liveSettingsArp.settings.push_back(&arpStepsA);
         __liveSettingsArp.settings.push_back(&arpStepsB);
 
         orderedKeys.reserve(30);
+        retriggerKeys.reserve(10);
     }
 
     // functions
@@ -88,7 +91,8 @@ class Arpeggiator {
     uint16_t randomCounter;
 
     std::list<Key> pressedKeys;
-    std::list<Key> retriggerKeys;
+    std::vector<Key> retriggerKeys;
+    std::list<Key> ratchedKeys;
     std::list<Key> inputKeys;
 
     std::vector<Key> orderedKeys;
@@ -108,7 +112,7 @@ class Arpeggiator {
     Setting arpMode = Setting("MODE", 0, 0, 11, false, binary, &arpModeNameList);
     Setting arpLatch = Setting("LATCH", 0, 0, 1, false, binary, &offOnNameList);
     Setting arpOctave = Setting("OCTAVE", 0, -3, 3, false, binary, &arpOctaveNameList);
-    Setting arpRep = Setting("REP", 0, 0, 3, false, binary, &arpRepNameList);
+    Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, false, binary, &arpRatchedNameList);
     Setting arpPolyrythm = Setting("POLYRYTHM", 0, 0, 1, false, binary, &offOnNameList);
 
     Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList);
@@ -118,7 +122,7 @@ class Arpeggiator {
 
     const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 
-    const std::vector<const char *> arpRepNameList = {"OFF", "1", "2", "3"};
+    const std::vector<const char *> arpRatchedNameList = {"OFF", "1", "2", "3"};
     const std::vector<const char *> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
 
     const std::vector<const char *> arpStepNameList = {

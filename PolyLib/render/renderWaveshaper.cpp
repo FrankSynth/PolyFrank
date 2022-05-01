@@ -21,10 +21,6 @@ inline vec<VOICESPERCHIP> accumulateX3(const Waveshaper &waveshaper) {
 }
 
 void renderWaveshaper(Waveshaper &waveshaper) {
-    // waveshaper.shape1 = accumulateValue(waveshaper.iShape1, waveshaper.aShape1);.nextSample
-    // waveshaper.shape2 = accumulateValue(waveshaper.iShape2, waveshaper.aShape2);
-    // waveshaper.shape3 = accumulateValue(waveshaper.iShape3, waveshaper.aShape3);
-    // waveshaper.shape4 = accumulateValue(waveshaper.iShape4, waveshaper.aShape4);
     waveshaper.Point1X = accumulateX1(waveshaper);
     waveshaper.Point1Y = accumulateValue(waveshaper.iPoint1Y, waveshaper.aPoint1Y);
     waveshaper.Point2X = accumulateX2(waveshaper);
@@ -37,20 +33,18 @@ void renderWaveshaper(Waveshaper &waveshaper) {
 
     static uint32_t counter = 0;
 
-    waveshaper.splineX[counter].clear();
-    waveshaper.splineY[counter].clear();
+    // waveshaper.splineX[counter][0] = 0.0f;
+    waveshaper.splineX[counter][1] = waveshaper.Point1X.nextSample[counter];
+    waveshaper.splineX[counter][2] = waveshaper.Point2X.nextSample[counter];
+    waveshaper.splineX[counter][3] = waveshaper.Point3X.nextSample[counter];
+    // waveshaper.splineX[counter][4] = 1.0f;
 
-    waveshaper.splineX[counter].push_back(0.0f);
-    waveshaper.splineX[counter].push_back(waveshaper.Point1X.nextSample[counter]);
-    waveshaper.splineX[counter].push_back(waveshaper.Point2X.nextSample[counter]);
-    waveshaper.splineX[counter].push_back(waveshaper.Point3X.nextSample[counter]);
-    waveshaper.splineX[counter].push_back(1.0f);
+    // waveshaper.splineY[counter][0] = 0.0f;
+    waveshaper.splineY[counter][1] = waveshaper.Point1Y.nextSample[counter];
+    waveshaper.splineY[counter][2] = waveshaper.Point2Y.nextSample[counter];
+    waveshaper.splineY[counter][3] = waveshaper.Point3Y.nextSample[counter];
+    waveshaper.splineY[counter][4] = waveshaper.Point4Y.nextSample[counter];
 
-    waveshaper.splineY[counter].push_back(0.0f);
-    waveshaper.splineY[counter].push_back(waveshaper.Point1Y.nextSample[counter]);
-    waveshaper.splineY[counter].push_back(waveshaper.Point2Y.nextSample[counter]);
-    waveshaper.splineY[counter].push_back(waveshaper.Point3Y.nextSample[counter]);
-    waveshaper.splineY[counter].push_back(waveshaper.Point4Y.nextSample[counter]);
     waveshaper.wavespline[counter].set_points(waveshaper.splineX[counter], waveshaper.splineY[counter]);
 
     counter++;
