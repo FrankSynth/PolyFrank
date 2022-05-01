@@ -311,8 +311,10 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
-    renderWaveshaper(layerA.waveshaper);
-    renderPhaseshaper(layerA.phaseshaper);
+    renderWaveshaper(layerA.waveshaperA);
+    renderWaveshaper(layerA.waveshaperB);
+    renderPhaseshaper(layerA.phaseshaperA);
+    renderPhaseshaper(layerA.phaseshaperB);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();

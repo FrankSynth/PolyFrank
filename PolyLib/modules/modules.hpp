@@ -214,6 +214,7 @@ class OSC_B : public BaseModule {
         switches.push_back(&dSync);
 
         renderBuffer.push_back(&note);
+        renderBuffer.push_back(&tuning);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
@@ -227,7 +228,7 @@ class OSC_B : public BaseModule {
 
     Input iFM = Input("FM", "FM", &note);
     Input iMorph = Input("MORPH", "MORPH", &morph);
-    Input iTuning = Input("TUNING", "TUNING");
+    Input iTuning = Input("TUNING", "TUNING", &tuning);
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iOctave = Input("OCTAVE", "OCT");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
@@ -250,6 +251,7 @@ class OSC_B : public BaseModule {
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable);
 
     RenderBuffer note;
+    RenderBuffer tuning;
     RenderBuffer morph;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
@@ -353,6 +355,11 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&subLevelLadder);
         renderBuffer.push_back(&noiseLevelSteiner);
         renderBuffer.push_back(&noiseLevelLadder);
+
+        renderBuffer.push_back(&oscALevel);
+        renderBuffer.push_back(&oscBLevel);
+        renderBuffer.push_back(&subLevel);
+        renderBuffer.push_back(&noiseLevel);
 
         moduleType = MODULE_MIX;
     }
@@ -485,6 +492,10 @@ class LFO : public BaseModule {
         switches.push_back(&dClockStep);
         switches.push_back(&dAlignLFOs);
 
+        renderBuffer.push_back(&speed);
+        renderBuffer.push_back(&shape);
+        renderBuffer.push_back(&amount);
+
         moduleType = MODULE_LFO;
     }
     Output out = Output("OUT");
@@ -566,6 +577,8 @@ class ADSR : public BaseModule {
         switches.push_back(&dGateTrigger);
         switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
+
+        renderBuffer.push_back(&amount);
 
         moduleType = MODULE_ADSR;
     }
@@ -754,11 +767,10 @@ class Out : public BaseModule {
     Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true);
     Analog aMaster = Analog("MASTER", 0, 1, 0.8, true, linMap);
 
-    RenderBuffer left;
-    RenderBuffer right;
+    RenderBuffer left = RenderBuffer(false);
+    RenderBuffer right = RenderBuffer(false);
     RenderBuffer vca;
     RenderBuffer pan;
-
     RenderBuffer distort;
 };
 

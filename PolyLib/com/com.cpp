@@ -225,7 +225,8 @@ uint8_t COMinterChip::sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t vo
     uint8_t comCommand[RETRIGGERCMDSIZE];
 
     comCommand[0] = RETRIGGER;
-    comCommand[1] = (layerId << 7) | (modulID << 3);
+    comCommand[1] = layerId << 7;
+    comCommand[2] = modulID;
 
     if (voiceID == VOICEALL) {
         for (uint16_t voice = 0; voice < VOICEALL; voice++) {
@@ -274,9 +275,10 @@ uint8_t COMinterChip::sendRequestUIData(uint8_t layer, uint8_t chip) {
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
     uint8_t comCommand[SETTINGCMDSIZE];
     comCommand[0] = UPDATESETTINGINT;
-    comCommand[1] = (layerId << 7) | (modulID << 3);
-    comCommand[2] = settingID;
-    *(int32_t *)(&comCommand[3]) = amount;
+    comCommand[1] = layerId << 7;
+    comCommand[2] = modulID;
+    comCommand[3] = settingID;
+    *(int32_t *)(&comCommand[4]) = amount;
 
     pushOutBuffer(comCommand, SETTINGCMDSIZE);
     return 0;
@@ -285,9 +287,10 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount) {
     uint8_t comCommand[SETTINGCMDSIZE];
     comCommand[0] = UPDATESETTINGFLOAT;
-    comCommand[1] = (layerId << 7) | (modulID << 3);
-    comCommand[2] = settingID;
-    *(float *)(&comCommand[3]) = amount;
+    comCommand[1] = layerId << 7;
+    comCommand[2] = modulID;
+    comCommand[3] = settingID;
+    *(float *)(&comCommand[4]) = amount;
 
     pushOutBuffer(comCommand, SETTINGCMDSIZE);
     return 0;
@@ -376,24 +379,16 @@ uint8_t COMinterChip::sendString(const char *message) {
     return 0;
 }
 
-// uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, int32_t amount) {
-//     uint8_t comCommand[OUTPUTCMDSIZE];
-//     comCommand[0] = UPDATEOUTPUTINT;
-//     comCommand[1] = (modulID << 4) | settingID;
-//     *(int32_t *)(&comCommand[2]) = amount;
-
-//     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
-//     return 0;
-// }
-
 uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
     comCommand[0] = UPDATEOUTPUTFLOAT;
-    comCommand[1] = (modulID << 4) | settingID;
-    *(float *)(&comCommand[2]) = amount[0];
-    *(float *)(&comCommand[6]) = amount[1];
-    *(float *)(&comCommand[10]) = amount[2];
-    *(float *)(&comCommand[14]) = amount[3];
+    comCommand[1] = modulID;
+    comCommand[2] = settingID;
+
+    *(float *)(&comCommand[3]) = amount[0];
+    *(float *)(&comCommand[7]) = amount[1];
+    *(float *)(&comCommand[11]) = amount[2];
+    *(float *)(&comCommand[15]) = amount[3];
 
     pushOutBuffer(comCommand, OUTPUTCMDSIZE);
     return 0;
@@ -402,11 +397,12 @@ uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESP
 uint8_t COMinterChip::sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     uint8_t comCommand[RENDERBUFFERCMDSIZE];
     comCommand[0] = UPDATERENDERBUFFER;
-    comCommand[1] = (modulID << 4) | settingID;
-    *(float *)(&comCommand[2]) = amount[0];
-    *(float *)(&comCommand[6]) = amount[1];
-    *(float *)(&comCommand[10]) = amount[2];
-    *(float *)(&comCommand[14]) = amount[3];
+    comCommand[1] = modulID;
+    comCommand[2] = settingID;
+    *(float *)(&comCommand[3]) = amount[0];
+    *(float *)(&comCommand[7]) = amount[1];
+    *(float *)(&comCommand[11]) = amount[2];
+    *(float *)(&comCommand[15]) = amount[3];
     pushOutBuffer(comCommand, RENDERBUFFERCMDSIZE);
     return 0;
 }
@@ -570,9 +566,8 @@ inline uint8_t checkVoiceAgainstChipID(uint8_t voice) {
 }
 
 // extracts layer, module, voice from currentByte
-inline void readLayerModuleVoice(uint8_t &layerID, uint8_t &module, uint8_t &voice, const uint8_t currentByte) {
+inline void readLayerVoice(uint8_t &layerID, uint8_t &voice, const uint8_t currentByte) {
     layerID = (currentByte & CMD_LAYERMASK) >> 7;
-    module = (currentByte & CMD_MODULEMASK) >> 3;
     voice = currentByte & CMD_VOICEMASK;
     voice = checkVoiceAgainstChipID(voice);
 }
@@ -657,8 +652,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #ifdef POLYRENDER
 
             case CREATEINOUTPATCH: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
 
                 volatile uint8_t outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -673,8 +668,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case UPDATEINOUTPATCH: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
 
                 volatile uint8_t outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -688,8 +683,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case DELETEINOUTPATCH: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
 
                 volatile uint8_t outputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t inputID = (dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -701,8 +696,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case DELETEALLPATCHES: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 // delete all patchesInOut at once
                 if (layerID == layerA.id)
                     layerA.clearPatches();
@@ -710,8 +705,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case NEWNOTE: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 volatile uint8_t note = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t velocity = (dmaInBufferPointer[currentInBufferSelect])[++i];
 
@@ -726,24 +721,24 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case OPENGATE: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOn(voice);
                 break;
             }
 
             case CLOSEGATE: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOff(voice);
                 break;
             }
 
             case RESETALL: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 // clear everything
                 if (layerID == layerA.id)
                     layerA.resetLayer();
@@ -751,16 +746,19 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case RETRIGGER: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.getModules()[module]->retrigger(voice);
                 break;
             }
 
             case UPDATESETTINGINT: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
+
                 volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile int32_t amountInt = *(int32_t *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
                 i += 3; // sizeof(int32_t) - 1
@@ -773,8 +771,10 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
 
             case UPDATESETTINGFLOAT: {
-                uint8_t layerID, module, voice;
-                readLayerModuleVoice(layerID, module, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                uint8_t layerID, voice;
+                readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+                volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
+
                 volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
 
                 float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -840,9 +840,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
             case UPDATERENDERBUFFER: {
                 volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                volatile uint8_t setting = module & 0xF;
-                module = module >> 4;
+                volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
 
                 for (int v = 0; v < 4; v++) {
                     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
@@ -858,9 +856,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case UPDATEOUTPUTFLOAT: {
 
                 volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
-                volatile uint8_t setting = module & 0xF;
-                module = module >> 4;
+                volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
 
                 for (int v = 0; v < 4; v++) {
                     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];

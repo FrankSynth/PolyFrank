@@ -82,7 +82,7 @@ inline float getOscASample(float phase) {
     WaveTable *wavetableUpper = &oscAwavetable[waveTableSelectionUpper];
 
     // TODO set dedicated shaper when ready
-    float shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaper);
+    float shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
 
     float stepWavetableLower;
     stepWavetableLower = shapedPhase * wavetableLower->stepRange;
@@ -119,7 +119,7 @@ inline float getOscASample(float phase) {
     float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
     // TODO set dedicated shaper when ready
-    newSample = renderWaveshaperSample(newSample, layerA.waveshaper);
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaperA);
 
     newSample = bitcrush(bitcrusher, newSample);
 
@@ -159,7 +159,7 @@ float getOscBSample(float phase) {
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
     // TODO set dedicated shaper when ready
-    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaper);
+    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
 
     float stepWavetableLower;
     stepWavetableLower = phaseOffsetted * wavetableLower->stepRange;
@@ -194,7 +194,7 @@ float getOscBSample(float phase) {
     float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
     // TODO set dedicated shaper when ready
-    newSample = renderWaveshaperSample(newSample, layerA.waveshaper);
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaperB);
 
     newSample = bitcrush(bitcrusher, newSample);
 

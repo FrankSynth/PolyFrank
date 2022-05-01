@@ -37,10 +37,10 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
-    void setValueChangedCallback(void (*fptr)()) { valueChangedCallback = fptr; }
+    void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
 
   protected:
-    void (*valueChangedCallback)() = nullptr;
+    std::function<void()> valueChangedCallback = nullptr;
     typeDisplayValue type;
 
     uint8_t sendOutViaCom;

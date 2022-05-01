@@ -20,22 +20,22 @@ void renderMixer(Mixer &mixer) {
     vec<VOICESPERCHIP> oscALevel = accumulateLevelOscA(mixer);
     mixer.oscALevelSteiner = oscALevel * (!(mixer.dOSCADestSwitch & 0b1));
     mixer.oscALevelLadder = oscALevel * (mixer.dOSCADestSwitch == 1 || mixer.dOSCADestSwitch == 2);
-    mixer.oscALevel = max(mixer.oscALevelSteiner, mixer.oscALevelLadder);
+    mixer.oscALevel = max(mixer.oscALevelSteiner.nextSample, mixer.oscALevelLadder.nextSample);
 
     vec<VOICESPERCHIP> oscBLevel = accumulateLevelOscB(mixer);
     mixer.oscBLevelSteiner = oscBLevel * (!(mixer.dOSCBDestSwitch & 0b1));
     mixer.oscBLevelLadder = oscBLevel * (mixer.dOSCBDestSwitch == 1 || mixer.dOSCBDestSwitch == 2);
-    mixer.oscBLevel = max(mixer.oscBLevelSteiner, mixer.oscBLevelLadder);
+    mixer.oscBLevel = max(mixer.oscBLevelSteiner.nextSample, mixer.oscBLevelLadder.nextSample);
 
     vec<VOICESPERCHIP> subLevel = accumulateLevelSub(mixer);
     mixer.subLevelSteiner = subLevel * (!(mixer.dSUBDestSwitch & 0b1));
     mixer.subLevelLadder = subLevel * (mixer.dSUBDestSwitch == 1 || mixer.dSUBDestSwitch == 2);
-    mixer.subLevel = max(mixer.subLevelSteiner, mixer.subLevelLadder);
+    mixer.subLevel = max(mixer.subLevelSteiner.nextSample, mixer.subLevelLadder.nextSample);
 
     vec<VOICESPERCHIP> noiseLevel = accumulateLevelNoise(mixer);
     mixer.noiseLevelSteiner = noiseLevel * (!(mixer.dNOISEDestSwitch & 0b1));
     mixer.noiseLevelLadder = noiseLevel * (mixer.dNOISEDestSwitch == 1 || mixer.dNOISEDestSwitch == 2);
-    mixer.noiseLevel = max(mixer.noiseLevelSteiner, mixer.noiseLevelLadder);
+    mixer.noiseLevel = max(mixer.noiseLevelSteiner.nextSample, mixer.noiseLevelLadder.nextSample);
 
     // switch (oscAFilterSwitch) {
     //     case 0:
