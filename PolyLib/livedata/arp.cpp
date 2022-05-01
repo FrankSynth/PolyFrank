@@ -84,7 +84,8 @@ void Arpeggiator::lifetime(Key &key) {
     key.born = micros();
 
     // uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPlayedKeysParallel.value; // in micros
-    key.lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * (1.0f / (arpRatched.value + 1.0f)); // in micros
+    key.lifespan = (float)((60000000 / (clock.bpm * 24)) * ticksToNextStep) *
+                   (1.0f / ((float)arpRatched.value + 1.0f)); // in micros
 
     key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
     key.ratchedAmounts = arpRatched.value;
