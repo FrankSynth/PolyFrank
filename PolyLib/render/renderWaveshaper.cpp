@@ -31,20 +31,18 @@ void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice) {
 
     waveshaper.DryWet = accumulateValue(waveshaper.iDryWet, waveshaper.aDryWet);
 
-    waveshaper.splineX[voice].clear();
-    waveshaper.splineY[voice].clear();
+    // waveshaper.splineX[counter][0] = 0.0f;
+    waveshaper.splineX[voice][1] = waveshaper.Point1X.nextSample[voice];
+    waveshaper.splineX[voice][2] = waveshaper.Point2X.nextSample[voice];
+    waveshaper.splineX[voice][3] = waveshaper.Point3X.nextSample[voice];
+    // waveshaper.splineX[voice][4] = 1.0f;
 
-    waveshaper.splineX[voice].push_back(0.0f);
-    waveshaper.splineX[voice].push_back(waveshaper.Point1X.nextSample[voice]);
-    waveshaper.splineX[voice].push_back(waveshaper.Point2X.nextSample[voice]);
-    waveshaper.splineX[voice].push_back(waveshaper.Point3X.nextSample[voice]);
-    waveshaper.splineX[voice].push_back(1.0f);
+    // waveshaper.splineY[voice][0] = 0.0f;
+    waveshaper.splineY[voice][1] = waveshaper.Point1Y.nextSample[voice];
+    waveshaper.splineY[voice][2] = waveshaper.Point2Y.nextSample[voice];
+    waveshaper.splineY[voice][3] = waveshaper.Point3Y.nextSample[voice];
+    waveshaper.splineY[voice][4] = waveshaper.Point4Y.nextSample[voice];
 
-    waveshaper.splineY[voice].push_back(0.0f);
-    waveshaper.splineY[voice].push_back(waveshaper.Point1Y.nextSample[voice]);
-    waveshaper.splineY[voice].push_back(waveshaper.Point2Y.nextSample[voice]);
-    waveshaper.splineY[voice].push_back(waveshaper.Point3Y.nextSample[voice]);
-    waveshaper.splineY[voice].push_back(waveshaper.Point4Y.nextSample[voice]);
     waveshaper.wavespline[voice].set_points(waveshaper.splineX[voice], waveshaper.splineY[voice]);
 }
 

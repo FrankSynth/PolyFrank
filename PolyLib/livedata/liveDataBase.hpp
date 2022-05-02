@@ -25,7 +25,8 @@ typedef struct {
     uint8_t released = 0;
     uint32_t born = 0; // in micros?
     uint32_t lifespan = 0;
-    uint32_t retriggerAmounts = 0;
+    uint16_t retriggerAmounts = 0;
+    uint16_t ratchedAmounts = 0;
 } Key;
 
 // struct pro voice für den aktuellen status: gespielter ton, c

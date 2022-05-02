@@ -177,11 +177,9 @@ class OSC_A : public BaseModule {
     RenderBuffer morphRAW;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-    // RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> phase;
-    // vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class OSC_B : public BaseModule {
@@ -196,7 +194,6 @@ class OSC_B : public BaseModule {
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
         inputs.push_back(&iPhaseOffset);
-        // inputs.push_back(&iSquircle);
 
         knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
@@ -253,12 +250,8 @@ class OSC_B : public BaseModule {
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
     RenderBuffer phaseoffset;
-    // RenderBuffer squircle;
 
     bool newPhase[VOICESPERCHIP] = {false};
-    // vec<VOICESPERCHIP> cacheOscAPhase;
-    // vec<VOICESPERCHIP> phaseWavetableLower;
-    // vec<VOICESPERCHIP> phaseWavetableUpper;
 };
 
 class Sub : public BaseModule {
@@ -297,9 +290,6 @@ class Sub : public BaseModule {
     RenderBuffer shape;
     RenderBuffer bitcrusher;
     RenderBuffer samplecrusher;
-
-    // vec<VOICESPERCHIP> phase;
-    // vec<VOICESPERCHIP> oscApreviousPhase;
 };
 
 class Noise : public BaseModule {
@@ -797,6 +787,26 @@ class Waveshaper : public BaseModule {
         renderBuffer.push_back(&DryWet);
 
         moduleType = MODULE_WAVESHAPER;
+
+        for (int i = 0; i < VOICESPERCHIP; i++) {
+            splineX[i].resize(5);
+            splineY[i].resize(5);
+
+            splineX[i][0] = 0.0f;
+            splineX[i][1] = 0.25f;
+            splineX[i][2] = 0.5f;
+            splineX[i][3] = 0.75f;
+            splineX[i][4] = 1.0f;
+
+            splineY[i][0] = 0.0f;
+            splineY[i][1] = 0.25f;
+            splineY[i][2] = 0.5f;
+            splineY[i][3] = 0.75f;
+            splineY[i][4] = 1.0f;
+
+            wavespline[i] = tk::spline(splineX[i], splineY[i], tk::spline::cspline_hermite, false,
+                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f);
+        }
     }
 
     Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
@@ -826,22 +836,10 @@ class Waveshaper : public BaseModule {
     RenderBuffer Point4Y;
     RenderBuffer DryWet;
 
-    std::vector<float> splineX[VOICESPERCHIP] = {{0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0}};
-    std::vector<float> splineY[VOICESPERCHIP] = {{0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0},
-                                                 {0.0, 0.25, 0.5, 0.75, 1.0}};
-    tk::spline wavespline[VOICESPERCHIP] = {tk::spline(splineX[0], splineY[0], tk::spline::cspline_hermite, false,
-                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
-                                            tk::spline(splineX[1], splineY[1], tk::spline::cspline_hermite, false,
-                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
-                                            tk::spline(splineX[2], splineY[2], tk::spline::cspline_hermite, false,
-                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f),
-                                            tk::spline(splineX[3], splineY[3], tk::spline::cspline_hermite, false,
-                                                       tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f)};
+    std::vector<float> splineX[VOICESPERCHIP];
+    std::vector<float> splineY[VOICESPERCHIP];
+
+    tk::spline wavespline[VOICESPERCHIP];
 };
 
 class Phaseshaper : public BaseModule {

@@ -321,7 +321,6 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
     uint16_t receiveSize;
 
     requestSize = true;
-    // println("DMA Buffer", (uint32_t)(uint32_t *)dmaInBufferPointer[!currentInBufferSelect]);
     spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, true);
 
     while (spi->state != BUS_READY) {
@@ -522,17 +521,6 @@ busState COMinterChip::startSendDMA() {
         chipState[receiveLayer][receiveChip] = CHIP_WAITFORDATA;
     }
 
-#endif
-
-    // fast_copy_f32((uint32_t *)outBuffer[!currentOutBufferSelect].data(),
-    //               (uint32_t *)dmaOutBufferPointer[!currentOutBufferSelect], (dmaOutCurrentBufferSize + 3) >> 2);
-
-    // fast_copy_byte(outBuffer[!currentOutBufferSelect].data(), dmaOutBufferPointer[!currentOutBufferSelect],
-    //                dmaOutCurrentBufferSize);
-
-#ifdef POLYCONTROL
-    // enable NSS to Render Chip A
-
     if (layerA.layerState.value) {
         HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
@@ -541,7 +529,6 @@ busState COMinterChip::startSendDMA() {
         HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
     }
-
 #endif
 
     return spi->transmit(dmaOutBufferPointer[!currentOutBufferSelect], dmaOutCurrentBufferSize[!currentOutBufferSelect],
@@ -614,16 +601,6 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 #endif
         return 1;
     }
-
-    // println("BufferSize : ", sizeOfReadBuffer);
-
-    // copy dma buffer to local space with word speed
-    // fast_copy_f32((uint32_t *)(dmaInBufferPointer[currentInBufferSelect]),
-    //               (uint32_t *)(dmaInBufferPointer[currentInBufferSelect]), (sizeOfReadBuffer + 3) >> 2);
-    // fast_copy_byte(dmaInBufferPointer[currentInBufferSelect], dmaInBufferPointer[currentInBufferSelect],
-    // sizeOfReadBuffer);
-    // std::memcpy((dmaInBufferPointer[currentInBufferSelect]), (dmaInBufferPointer[currentInBufferSelect]),
-    //             sizeOfReadBuffer);
 
     // quick check of valid data, buffer should always end with LASTBYTE
     if ((dmaInBufferPointer[currentInBufferSelect])[sizeOfReadBuffer - 1] != LASTBYTE) {

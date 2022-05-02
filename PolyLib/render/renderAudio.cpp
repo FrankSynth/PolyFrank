@@ -210,7 +210,6 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
-    // TODO set dedicated phaseshaper when ready
     vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
 
     vec<VOICESPERCHIP> stepWavetableLower;
@@ -258,7 +257,6 @@ inline vec<VOICESPERCHIP> getOscASample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    // TODO set dedicated waveshaper when ready
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperA);
 
     newSample = bitcrush(bitcrusher, newSample);
@@ -309,7 +307,6 @@ vec<VOICESPERCHIP> getOscBSample() {
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
-    // TODO set dedicated phaseshaper when ready
     phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
 
     vec<VOICESPERCHIP> stepWavetableLower;
@@ -352,7 +349,6 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    // TODO set dedicated waveshaper when ready
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB);
 
     newSample = bitcrush(bitcrusher, newSample);
@@ -379,12 +375,18 @@ vec<VOICESPERCHIP> getOscBSample() {
 // possible combinations threshold = 0.8, maxloudness = 4
 // possible combinations threshold = 0.9, maxloudness = 4 (high n!)
 inline float softLimit(float inputSample) {
-    const float threshold = 0.7f;
 
+    const float threshold = 0.7f;
     const float maxVal = 4.0f;
 
-    const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
-    const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+    // const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
+    // const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+
+    ///////////////////////////////
+    // currently for threshold = 0.7, maxVal = 4.0
+    const uint32_t n = 11;
+    const float d = -5.935644964E-7f;
+    ///////////////////////////////
 
     float sign = getSign(inputSample);
     float absInput = inputSample * sign;
@@ -395,7 +397,6 @@ inline float softLimit(float inputSample) {
         return sign;
 
     float sample = d * powf(maxVal - absInput, n) + 1.0f;
-
     return std::clamp(sample * sign, -1.0f, 1.0f);
 }
 
