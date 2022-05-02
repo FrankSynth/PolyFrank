@@ -293,6 +293,8 @@ inline void setLEDs() {
 }
 
 void renderCVs() {
+    static uint32_t voice = 0;
+
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     collectAllCurrentInputs();
@@ -311,8 +313,8 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
-    renderWaveshaper(layerA.waveshaperA);
-    renderWaveshaper(layerA.waveshaperB);
+    renderWaveshaper(layerA.waveshaperA, voice);
+    renderWaveshaper(layerA.waveshaperB, voice);
     renderPhaseshaper(layerA.phaseshaperA);
     renderPhaseshaper(layerA.phaseshaperB);
 
@@ -321,6 +323,10 @@ void renderCVs() {
 
     setSwitches();
     setLEDs();
+
+    voice++;
+    if (voice >= VOICESPERCHIP)
+        voice = 0;
 }
 
 #endif

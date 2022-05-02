@@ -74,6 +74,8 @@ void Layer::resetLayer() {
     }
     clearPatches();
 
+    envF.aShape.setValue(MAX_VALUE_12BIT);
+
 #ifdef POLYRENDER
     allGatesOff();
     envA.resetAllADSRs();
@@ -187,7 +189,7 @@ void Layer::initLayer() {
         lfoImperfection[i] = calcRandom() * LFOIMPERFECTIONWEIGHT;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++)
-        adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT;
+        adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT + 1;
 
     for (uint16_t i = 0; i < VOICESPERCHIP; i++) {
         for (uint16_t o = 0; o < OSCPERVOICE; o++) {

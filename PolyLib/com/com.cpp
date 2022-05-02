@@ -723,6 +723,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case OPENGATE: {
                 uint8_t layerID, voice;
                 readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
+
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOn(voice);
                 break;

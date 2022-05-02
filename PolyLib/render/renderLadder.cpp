@@ -3,6 +3,7 @@
 #include "renderLadder.hpp"
 
 extern Layer layerA;
+LogCurve LadderlinAntiLog(64, 0.99);
 
 inline vec<VOICESPERCHIP> accumulateLevel(const Ladder &ladder) {
     return clamp(ladder.iLevel + ladder.aLevel, 0.0f, 1.0f);
@@ -15,7 +16,8 @@ inline vec<VOICESPERCHIP> accumulateResonance(const Ladder &ladder) {
 }
 
 void renderLadder(Ladder &ladder) {
-    ladder.level = accumulateLevel(ladder);
+    ladder.levelRAW = accumulateLevel(ladder);
+    ladder.level = LadderlinAntiLog.mapValue(ladder.levelRAW.nextSample);
     ladder.resonance = accumulateResonance(ladder);
     ladder.cutoff = accumulateCutoff(ladder);
 }

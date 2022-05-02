@@ -474,7 +474,7 @@ void outputCollect() {
         }
     }
 
-    if (layerA.chipID == 1) {
+    if (layerA.chipID == 0) {
         renderAudioUI(audioSendBuffer);
         layerCom.sendAudioBuffer(audioSendBuffer);
     }

@@ -116,7 +116,7 @@ inline void drawPixelThick(WaveBuffer &waveBuffer, int16_t x0, int16_t y0, uint1
             y = y0 + yOffset;
 
             if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
-                waveBuffer.buffer[y][x] = color;               // simple "blend"        }
+                waveBuffer.buffer[y][x] = color;               // simple "blend"      
         }
     }
 }

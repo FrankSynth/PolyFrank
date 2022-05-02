@@ -117,7 +117,7 @@ void PolyControlInit() {
     initPoly();
 
     // let the layer start
-    HAL_Delay(500);
+    HAL_Delay(100);
 
     // Device Configuration
     deviceConfig();
@@ -160,7 +160,7 @@ void PolyControlInit() {
     FlagHandler::readTemperature_ISR = temperature; // registerFunction pointer to ISR
 
     // Init Encoder, Touchbuttons,..
-    HAL_Delay(500);
+    HAL_Delay(100);
 
     // User Interface
     if (layerA.layerState.value == 1) {
@@ -171,13 +171,12 @@ void PolyControlInit() {
     }
 
     HIDConfig();
-    ui.Init();
 
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
 
-    HAL_Delay(100);
+    ui.Init();
 
     // Midi configuration
     midiConfig();
