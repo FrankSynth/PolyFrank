@@ -3,7 +3,6 @@
 
 #include "globalsettings/globalSettings.hpp"
 #include <algorithm>
-#include <list>
 #include <string>
 #include <vector>
 

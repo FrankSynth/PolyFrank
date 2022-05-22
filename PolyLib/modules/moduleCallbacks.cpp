@@ -100,6 +100,10 @@ void layer0PhaseShaperX3(Phaseshaper *phaseshaper) {
     phaseshaper->aPoint3X.value = phaseshaper->aPoint3X.reverseMapping(phaseshaper->aPoint3X.valueMapped);
 }
 
+void resetVoiceHandler(Arpeggiator *arp) {
+    arp->voiceHandler->reset(arp->layerID);
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoA));
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoB));
@@ -154,6 +158,9 @@ void setModuleCallbacks() {
         std::bind(layer0PhaseShaperX2, &allLayers[1]->phaseshaperB));
     allLayers[1]->phaseshaperB.aPoint3X.setValueChangedCallback(
         std::bind(layer0PhaseShaperX3, &allLayers[1]->phaseshaperB));
+
+    liveData.arps[0].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[0]));
+    liveData.arps[1].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[1]));
 }
 
 #endif

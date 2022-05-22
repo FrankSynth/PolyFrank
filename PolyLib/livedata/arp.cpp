@@ -7,8 +7,8 @@ extern Clock clock;
 void Arpeggiator::keyPressed(Key &key) {
     allKeysReleased = 1;
     midiUpdateDelayTimer = 0;
-    if (!inputKeys.empty()) {                                                                // inputKey list empty?
-        for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
+    if (!inputKeys.empty()) {                                            // inputKey list empty?
+        for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
             if (!it->released) {
                 allKeysReleased = 0;
             }
@@ -21,7 +21,7 @@ void Arpeggiator::keyPressed(Key &key) {
         }
         else { // check already existing Keys
 
-            for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
+            for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
                 if (it->note == key.note) {
 
                     return;
@@ -39,7 +39,7 @@ void Arpeggiator::keyReleased(Key &key) {
     if (inputKeys.empty()) {
         return;
     }
-    for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {
+    for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         if (it->note == key.note) {
             if (arpLatch.value) { // latch on?
                 it->released = 1; // mark key as released

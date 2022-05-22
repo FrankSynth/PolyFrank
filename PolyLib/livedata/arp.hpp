@@ -3,6 +3,7 @@
 #include "clock.hpp"
 #include "liveDataBase.hpp"
 #include "voiceHandler.hpp"
+#include <list>
 
 #define ARP_UP 0
 #define ARP_DN 1
@@ -21,9 +22,10 @@
 
 class Arpeggiator {
   public:
-    Arpeggiator(VoiceHandler *voiceHandler) {
+    Arpeggiator(VoiceHandler *voiceHandler, uint32_t layerID) {
 
         this->voiceHandler = voiceHandler;
+        this->layerID = layerID;
 
         __liveSettingsArp.category = "ARP";
         __liveSettingsArp.settings.push_back(&arpEnable);
@@ -107,6 +109,7 @@ class Arpeggiator {
     uint8_t arpStepDelayed = 0;
 
     VoiceHandler *voiceHandler;
+    uint32_t layerID = 0;
 
     categoryStruct __liveSettingsArp;
     Setting arpEnable = Setting("ARPEGGIATOR", 0, 0, 1, false, binary, &offOnNameList);
@@ -123,7 +126,7 @@ class Arpeggiator {
 
     const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 
-    const std::vector<const char *> arpRatchedNameList = {"OFF", "DOUBLE", "TRIPLE", "QUAD"};
+    const std::vector<const char *> arpRatchedNameList = {"OFF", "1", "2", "3"};
     const std::vector<const char *> arpOctaveNameList = {"-3", "-2", "-1", "0", "1", "2", "3"};
 
     const std::vector<const char *> arpStepNameList = {
