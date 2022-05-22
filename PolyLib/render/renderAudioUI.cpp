@@ -35,7 +35,7 @@ inline float bitcrush(float bitcrush, float sample) {
 inline float getSubSample(float phase) {
 
     static float sample;
-    static uint32_t sampleCrushCount = 0;
+    // static uint32_t sampleCrushCount = 0;
 
     // const float &bitcrusher = layerA.sub.bitcrusher[0];
     // const float &samplecrusher = layerA.sub.samplecrusher[0];

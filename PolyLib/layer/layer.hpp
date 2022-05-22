@@ -140,7 +140,7 @@ class Layer {
     LFO lfoB = LFO("LFO B", "LFO B");
     ADSR envA = ADSR("ENVELOPE VCA", "ENV A");
     ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
-    Out out = Out("OUTPUT", "OUTPUT");
+    Out out = Out("MASTER", "MASTER");
     Feel feel = Feel("FEEL", "FEEL");
     LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 

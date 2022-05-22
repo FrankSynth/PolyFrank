@@ -260,36 +260,36 @@ class Sub : public BaseModule {
         outputs.push_back(&out);
 
         inputs.push_back(&iShape);
-        inputs.push_back(&iBitcrusher);
-        inputs.push_back(&iSamplecrusher);
+        // inputs.push_back(&iBitcrusher);
+        // inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aShape);
-        knobs.push_back(&aBitcrusher);
-        knobs.push_back(&aSamplecrusher);
+        // knobs.push_back(&aBitcrusher);
+        // knobs.push_back(&aSamplecrusher);
 
         switches.push_back(&dOctaveSwitch);
 
         renderBuffer.push_back(&shape);
-        renderBuffer.push_back(&bitcrusher);
-        renderBuffer.push_back(&samplecrusher);
+        // renderBuffer.push_back(&bitcrusher);
+        // renderBuffer.push_back(&samplecrusher);
         moduleType = MODULE_SUB;
     }
 
     Output out = Output("OUT");
 
     Input iShape = Input("SHAPE", "SHAPE", &shape);
-    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
-    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    // Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    // Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
     Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
-    Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
+    // Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
+    // Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
 
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
     RenderBuffer shape;
-    RenderBuffer bitcrusher;
-    RenderBuffer samplecrusher;
+    // RenderBuffer bitcrusher;
+    // RenderBuffer samplecrusher;
 };
 
 class Noise : public BaseModule {
