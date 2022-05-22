@@ -25,8 +25,8 @@ class Layer {
         modules.push_back(&oscA);
         modules.push_back(&oscB);
         modules.push_back(&waveshaperA);
-        modules.push_back(&phaseshaperB);
-        modules.push_back(&waveshaperA);
+        modules.push_back(&phaseshaperA);
+        modules.push_back(&waveshaperB);
         modules.push_back(&phaseshaperB);
         modules.push_back(&sub);
         modules.push_back(&noise);
@@ -128,8 +128,8 @@ class Layer {
     OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
     OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
     Waveshaper waveshaperA = Waveshaper("WAVESHAPER A", "WAVE A");
-    Phaseshaper phaseshaperA = Phaseshaper("PHASESHAPER A", "PHASE A");
     Waveshaper waveshaperB = Waveshaper("WAVESHAPER B", "WAVE B");
+    Phaseshaper phaseshaperA = Phaseshaper("PHASESHAPER A", "PHASE A");
     Phaseshaper phaseshaperB = Phaseshaper("PHASESHAPER B", "PHASE B");
     Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
     Noise noise = Noise("NOISE GENERATOR", "NOISE");

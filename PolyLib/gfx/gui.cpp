@@ -19,6 +19,8 @@ void GUI::Init() { // add settings pointer
 
     guiPanelStart.init(0, 0, LCDHEIGHT, LCDHEIGHT);
 
+    guiPanelEffect.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+
     // multiLayer detected
     if (globalSettings.multiLayer.value == 1) {
         guiPanelVoice.init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
@@ -39,6 +41,7 @@ void GUI::Init() { // add settings pointer
     panels.push_back(&guiPanelLive);
     panels.push_back(&guiPanelPatch);
     panels.push_back(&guiPanelPreset);
+    panels.push_back(&guiPanelEffect);
     panels.push_back(&guiPanelConfig);
     panels.push_back(&guiPanelFocus);
     panels.push_back(&guiPanelDebug);
@@ -66,7 +69,7 @@ void GUI::Init() { // add settings pointer
 
     Clear();
     checkFocusChange();
-    setPanelActive(0);
+    setPanelActive(3);
 
     // Set Focus for test
 }
@@ -85,7 +88,7 @@ void GUI::Draw() {
 
     setRenderState(RENDER_PROGRESS);
 
-    if (millis() < 2750) {
+    if (millis() < 2000) {
         guiPanelStart.Draw();
         setRenderState(RENDER_WAIT);
 
@@ -151,13 +154,13 @@ void GUI::checkFocusChange() {
         if (currentFocus.id != newFocus.id || currentFocus.modul != newFocus.modul ||
             currentFocus.layer != newFocus.layer || currentFocus.type != newFocus.type) { // something changed?
             oldActivePanelID = activePanelID;
-            activePanel = panels[4];
-            activePanelID = 4;
+            activePanel = panels[5];
+            activePanelID = 5;
             currentFocus = newFocus;
             newFocus.type = NOFOCUS;
         }
         else { // nothing change -> same button pressed twice ->back to last Panel
-            setPanelActive(4);
+            setPanelActive(5);
             newFocus.type = NOFOCUS;
         }
     }

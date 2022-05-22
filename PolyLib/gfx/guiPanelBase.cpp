@@ -548,6 +548,50 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     }
 }
 
+void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+                            uint8_t modulename) {
+
+    uint16_t heightBar = 12;
+    // clear
+
+    drawRectangleChampfered(cGrey, x, y, w, h, 1);
+    std::string text;
+    // get text
+    if (modulename == true) {
+        text = allLayers[data->layerId]->modules[data->moduleId]->getShortName();
+    }
+    else {
+        text = data->getName();
+    }
+
+    // Draw Name
+    if (select) {
+        drawRectangleChampfered(cHighlight, x, y, w, h - heightBar, 1);
+        drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
+    }
+    else {
+        drawRectangleChampfered(cWhiteMedium, x, y, w, h - heightBar, 1);
+        drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
+    }
+
+    uint16_t valueBarWidth = w;
+    uint16_t valueBarHeigth = heightBar;
+
+    uint16_t relY = h - heightBar;
+
+    // text = data->getValueAsString();
+
+    // drawString(text, cFont_Deselect, x + relX + valueBarWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium,
+    //            CENTER); // center Text
+
+    // valueBar
+    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+
+    valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
+
+    drawRectangleChampfered(cWhite, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+}
+
 void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     BaseModule *data = entry->modules;
@@ -939,7 +983,7 @@ void MatrixIn_PanelElement::Draw() {
                 float amount = entry->input->renderBuffer->currentSample[i];
 
                 amount -= entry->min;
-                amount /= entry->max;
+                amount /= entry->max - entry->min;
 
                 amount = testFloat(amount, 0, 1);
 
@@ -1186,8 +1230,9 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
 
     float phase = 0;
 
-    float shape = testFloat(module->iShape.renderBuffer->currentSample[0] + module->aShape.valueMapped,
-                            module->aShape.min, module->aShape.max - 0.001);
+    float shape = testFloat(module->shapeRAW[0], module->aShape.min, module->aShape.max - 0.001);
+
+    shape *= 6;
 
     float index;
 
@@ -1218,6 +1263,34 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
         }
 
         renderedWave[i] = index * 127;
+    }
+}
+
+void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples) {
+    static uint8_t init = false;
+    static int8_t random[100];
+
+    if (init == false) {
+        init = true;
+        for (size_t i = 0; i < 100; i++) {
+            random[i] = (((float)rand() / (RAND_MAX / 2)) - 1) * 127;
+        }
+    }
+    uint32_t sampleCrushCount = 0;
+    int8_t sample;
+    int8_t newSample;
+
+    for (uint16_t i = 0; i < samples; i++) {
+        newSample = random[i];
+
+        sampleCrushCount = sampleCrushCount * std::ceil((float)i / samples);
+        sampleCrushCount = sampleCrushCount + 24;
+        bool sampleCrushNow = sampleCrushCount > (module->samplecrusher[0] * 960);
+
+        sampleCrushCount *= !sampleCrushNow;
+        sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
+
+        renderedWave[i] = sample;
     }
 }
 
@@ -1319,16 +1392,16 @@ void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module) {
 
     // Invert/Scale
     P1[0] = 0;
-    P1[1] = 7 + (1 - module->aPoint1Y) * (waveBuffer.height - 14);
+    P1[1] = 7 + (1 - module->Point1Y[0]) * (waveBuffer.height - 14);
 
-    P2[0] = module->aPoint2X * (waveBuffer.width - 1);
-    P2[1] = 7 + (1 - module->aPoint2Y) * (waveBuffer.height - 14);
+    P2[0] = module->Point2X[0] * (waveBuffer.width - 1);
+    P2[1] = 7 + (1 - module->Point2Y[0]) * (waveBuffer.height - 14);
 
-    P3[0] = module->aPoint3X * (waveBuffer.width - 1);
-    P3[1] = 7 + (1 - module->aPoint3Y) * (waveBuffer.height - 14);
+    P3[0] = module->Point3X[0] * (waveBuffer.width - 1);
+    P3[1] = 7 + (1 - module->Point3Y[0]) * (waveBuffer.height - 14);
 
     P4[0] = waveBuffer.width - 1;
-    P4[1] = 7 + (1 - module->aPoint4Y) * (waveBuffer.height - 14);
+    P4[1] = 7 + (1 - module->Point4Y[0]) * (waveBuffer.height - 14);
 
     drawLineWidth(waveBuffer, P1[0], P1[1], P2[0], P2[1], 3, c4444wavecolor);
     drawLineWidth(waveBuffer, P2[0], P2[1], P3[0], P3[1], 3, c4444wavecolor);
@@ -1357,23 +1430,20 @@ void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
     module->splineY[0].push_back(module->Point4Y[0]);
     module->wavespline[0].set_points(module->splineX[0], module->splineY[0]);
 
-    // int x[4];
-    // int y[4];
-
     int xdots[4];
     int ydots[4];
     // Invert/Scale
-    xdots[0] = module->aPoint1X * (waveBuffer.width - 1);
-    ydots[0] = 7 + (1 - module->aPoint1Y) * (waveBuffer.height - 14);
+    xdots[0] = module->Point1X[0] * (waveBuffer.width - 1);
+    ydots[0] = 7 + (1 - module->Point1Y[0]) * (waveBuffer.height - 14);
 
-    xdots[1] = module->aPoint2X * (waveBuffer.width - 1);
-    ydots[1] = 7 + (1 - module->aPoint2Y) * (waveBuffer.height - 14);
+    xdots[1] = module->Point2X[0] * (waveBuffer.width - 1);
+    ydots[1] = 7 + (1 - module->Point2Y[0]) * (waveBuffer.height - 14);
 
-    xdots[2] = module->aPoint3X * (waveBuffer.width - 1);
-    ydots[2] = 7 + (1 - module->aPoint3Y) * (waveBuffer.height - 14);
+    xdots[2] = module->Point3X[0] * (waveBuffer.width - 1);
+    ydots[2] = 7 + (1 - module->Point3Y[0]) * (waveBuffer.height - 14);
 
     xdots[3] = 1 * (waveBuffer.width - 1);
-    ydots[3] = 7 + (1 - module->aPoint4Y) * (waveBuffer.height - 14);
+    ydots[3] = 7 + (1 - module->Point4Y[0]) * (waveBuffer.height - 14);
 
     // drawLineThick(waveBuffer, 0, y[0], x[0], y[0], c4444wavecolor);
 
@@ -1392,6 +1462,94 @@ void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
     drawFilledCircle(waveBuffer, xdots[1], ydots[1], c4444dot, 8);
     drawFilledCircle(waveBuffer, xdots[2], ydots[2], c4444dot, 8);
     drawFilledCircle(waveBuffer, xdots[3], ydots[3], c4444dot, 8);
+}
+
+void Effect_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    if (select) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (entrys[i] != nullptr) {
+                actionHandler.registerActionEncoder(
+                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), "AMOUNT"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), "AMOUNT"},
+                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+            }
+            else {
+                actionHandler.registerActionEncoder(i); // clear encoder
+            }
+        }
+    }
+
+    entryWidth = width / numberEntrys;
+    for (int i = 0; i < numberEntrys; i++) {
+        if (entrys[i] == nullptr) {
+        }
+        else {
+            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                   select);
+            entrys[i] = nullptr;
+        }
+
+        relX += entryWidth;
+    }
+
+    numberEntrys = 0;
+    select = 0;
+}
+
+void EffectAmount_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    entryWidth = width / (numberEntrys + 1);
+
+    // Feld mit GruppenNamen
+    drawNameElement(&name, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+    relX += entryWidth;
+
+    if (select) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (entrys[i] != nullptr) {
+                actionHandler.registerActionEncoder(
+                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), entrys[i]->getName()},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), entrys[i]->getName()},
+                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+            }
+            else {
+                actionHandler.registerActionEncoder(i); // clear encoder
+            }
+        }
+    }
+
+    for (int i = 0; i < numberEntrys; i++) {
+        if (entrys[i] == nullptr) {
+        }
+        else {
+            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                   select, moduleName[i]);
+            entrys[i] = nullptr;
+        }
+
+        relX += entryWidth;
+    }
+    numberEntrys = 0;
+    select = 0;
 }
 
 #endif

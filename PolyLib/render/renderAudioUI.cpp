@@ -37,8 +37,8 @@ inline float getSubSample(float phase) {
     static float sample;
     static uint32_t sampleCrushCount = 0;
 
-    const float &bitcrusher = layerA.sub.bitcrusher[0];
-    const float &samplecrusher = layerA.sub.samplecrusher[0];
+    // const float &bitcrusher = layerA.sub.bitcrusher[0];
+    // const float &samplecrusher = layerA.sub.samplecrusher[0];
     const float &shape = layerA.sub.shape[0];
 
     float newSample;
@@ -54,14 +54,14 @@ inline float getSubSample(float phase) {
         newSample = std::max(newSample, -1.0f);
     }
 
-    newSample = bitcrush(bitcrusher, newSample);
-    sampleCrushCount = sampleCrushCount * std::ceil(phase);
+    // newSample = bitcrush(bitcrusher, newSample);
+    // sampleCrushCount = sampleCrushCount * std::ceil(phase);
 
-    sampleCrushCount = sampleCrushCount + 24;
+    // sampleCrushCount = sampleCrushCount + 24;
 
-    bool sampleCrushNow = (sampleCrushCount) > samplecrusher;
-    sampleCrushCount *= !sampleCrushNow;
-    sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
+    // bool sampleCrushNow = (sampleCrushCount) > (samplecrusher * 960.f);
+    // sampleCrushCount *= !sampleCrushNow;
+    // sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
 
     return sample;
 }
@@ -128,7 +128,7 @@ inline float getOscASample(float phase) {
 
     sampleCrushCount = sampleCrushCount + 24;
 
-    bool sampleCrushNow = sampleCrushCount > samplecrusher;
+    bool sampleCrushNow = sampleCrushCount > (samplecrusher * 960.f);
 
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
@@ -202,7 +202,7 @@ float getOscBSample(float phase) {
 
     sampleCrushCount = sampleCrushCount * std::ceil(phase);
     sampleCrushCount = sampleCrushCount + 24;
-    bool sampleCrushNow = sampleCrushCount > samplecrusher;
+    bool sampleCrushNow = sampleCrushCount > (samplecrusher * 960.f);
 
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;

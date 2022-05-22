@@ -154,9 +154,9 @@ class RenderBuffer {
     RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> temp = currentSample;
+        // vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = temp;
+        // nextSample = temp;
     }
 
     uint8_t id;
@@ -491,9 +491,9 @@ class Output : public BasePatch {
     }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> temp = currentSample;
+        // vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = temp;
+        // nextSample = temp;
     }
     vec<VOICESPERCHIP> currentSample;
     vec<VOICESPERCHIP> nextSample;

@@ -20,7 +20,7 @@ inline vec<VOICESPERCHIP> accumulateX3(const Waveshaper &waveshaper) {
                  1.0f - WAVESHAPERDISTANCE);
 }
 
-void renderWaveshaper(Waveshaper &waveshaper) {
+void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice) {
     waveshaper.Point1X = accumulateX1(waveshaper);
     waveshaper.Point1Y = accumulateValue(waveshaper.iPoint1Y, waveshaper.aPoint1Y);
     waveshaper.Point2X = accumulateX2(waveshaper);
@@ -31,25 +31,19 @@ void renderWaveshaper(Waveshaper &waveshaper) {
 
     waveshaper.DryWet = accumulateValue(waveshaper.iDryWet, waveshaper.aDryWet);
 
-    static uint32_t counter = 0;
-
     // waveshaper.splineX[counter][0] = 0.0f;
-    waveshaper.splineX[counter][1] = waveshaper.Point1X.nextSample[counter];
-    waveshaper.splineX[counter][2] = waveshaper.Point2X.nextSample[counter];
-    waveshaper.splineX[counter][3] = waveshaper.Point3X.nextSample[counter];
-    // waveshaper.splineX[counter][4] = 1.0f;
+    waveshaper.splineX[voice][1] = waveshaper.Point1X.nextSample[voice];
+    waveshaper.splineX[voice][2] = waveshaper.Point2X.nextSample[voice];
+    waveshaper.splineX[voice][3] = waveshaper.Point3X.nextSample[voice];
+    // waveshaper.splineX[voice][4] = 1.0f;
 
-    // waveshaper.splineY[counter][0] = 0.0f;
-    waveshaper.splineY[counter][1] = waveshaper.Point1Y.nextSample[counter];
-    waveshaper.splineY[counter][2] = waveshaper.Point2Y.nextSample[counter];
-    waveshaper.splineY[counter][3] = waveshaper.Point3Y.nextSample[counter];
-    waveshaper.splineY[counter][4] = waveshaper.Point4Y.nextSample[counter];
+    // waveshaper.splineY[voice][0] = 0.0f;
+    waveshaper.splineY[voice][1] = waveshaper.Point1Y.nextSample[voice];
+    waveshaper.splineY[voice][2] = waveshaper.Point2Y.nextSample[voice];
+    waveshaper.splineY[voice][3] = waveshaper.Point3Y.nextSample[voice];
+    waveshaper.splineY[voice][4] = waveshaper.Point4Y.nextSample[voice];
 
-    waveshaper.wavespline[counter].set_points(waveshaper.splineX[counter], waveshaper.splineY[counter]);
-
-    counter++;
-    if (counter >= VOICESPERCHIP)
-        counter = 0;
+    waveshaper.wavespline[voice].set_points(waveshaper.splineX[voice], waveshaper.splineY[voice]);
 }
 
 #endif

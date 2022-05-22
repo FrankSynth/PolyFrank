@@ -15,7 +15,7 @@ inline vec<VOICESPERCHIP> accumulatePan(const Out &out) {
 }
 
 inline vec<VOICESPERCHIP> accumulateVCA(const Out &out) {
-    return clamp(out.iVCA + out.aVCA + layerA.envA.out * out.aADSR, out.aVCA.min, out.aVCA.max);
+    return clamp(out.iVCA + out.aVCA + layerA.envA.out, out.aVCA.min, out.aVCA.max);
 }
 
 inline vec<VOICESPERCHIP> accumulateDistort(const Out &out) {

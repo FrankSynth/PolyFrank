@@ -5,6 +5,7 @@
 #include "guiActionHandler.hpp"
 #include "guiButtons.hpp"
 #include "guiPanelConfig.hpp"
+#include "guiPanelEffect.hpp"
 #include "guiPanelError.hpp"
 #include "guiPanelFocus.hpp"
 #include "guiPanelLive.hpp"
@@ -17,6 +18,7 @@
 #include "guiPanelString.hpp"
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
+
 
 /// GUI///
 class GUI {
@@ -45,6 +47,7 @@ class GUI {
     GUIPanelPath guiPath;
     GUIPanelState guiState;
     GUIPanelStart guiPanelStart;
+    GUIPanelEffect guiPanelEffect;
 
     GUIPanelString guiPanelDebug;
 
