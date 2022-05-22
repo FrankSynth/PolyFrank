@@ -70,7 +70,8 @@ void lfoFreqSnap(LFO *lfo) {
 
 void retriggerLFOforAlign(LFO *lfo) {
     if (lfo->dAlignLFOs == 1) {
-        layerCom.sendRetrigger(lfo->layerId, lfo->id, VOICEALL);
+        layerCom.sendRetrigger(lfo->layerId, lfo->id, 0);
+        layerCom.sendRetrigger(lfo->layerId, lfo->id, 4);
     }
 }
 
