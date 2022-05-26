@@ -8,7 +8,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # This program built for i386-pc-mingw32
  
 
-# Make data base, printed on Sun May 22 22:37:32 2022
+# Make data base, printed on Thu May 26 12:57:43 2022
 
 # Variables
 
@@ -54,7 +54,7 @@ PROGRAMW6432 = C:\Program Files
 # environment
 PROGRAMDATA = C:\ProgramData
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-2cece154-983a-4118-8afc-1c5eeddec1b1-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-1475bd4d-86df-4996-b461-a5e489cdb566-sock
 # environment
 VSCODE_CWD = C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code
 # environment
@@ -80,7 +80,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_13988_HHQBXUWWRKYCLEIH
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_15708_CQGBIPCVBCGTDOSO
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -90,7 +90,8 @@ PROGRAMFILES = C:\Program Files (x86)
 # environment
 DRIVERDATA = C:\Windows\System32\Drivers\DriverData
 # environment
-ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+ORIGI 
+NAL_XDG_CURRENT_DESKTOP = undefined
 # environment
 USERNAME = lukas
 # environment
@@ -98,16 +99,15 @@ PUBLIC = C:\Users\Public
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-VSCODE_CODE_CACHE_PATH = C:\Users\lukas\AppData\Roaming\Code\CachedData\da15b6fd3ef856477bf6f4fb29ba1b7af717770d
+VSCODE_CODE_CACHE_PATH = C:\Users\lukas\AppData\Roaming\Code\CachedData\c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 COMMONPROGRAMFILES = C:\Program Files (x86)\Common Files
 # environment
 LOGONSERVER = \\LUKELAPTOP
 # environment
-ONEDRIVE 
-CONSUMER = D:\OneDrive
+ONEDRIVECONSUMER = D:\OneDrive
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # environment
@@ -141,7 +141,7 @@ PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 166 Stepping 0, GenuineIntel
 # environment
 OS = Windows_NT
 # environment
-VSCODE_IPC_HOOK = \\.\pipe\83b59789b14c4d609ba91a64aa5ffde3-1.67.1-main-sock
+VSCODE_IPC_HOOK = \\.\pipe\83b59789b14c4d609ba91a64aa5ffde3-1.67.2-main-sock
 # environment
 HOMEPATH = \Users\lukas
 # environment
@@ -149,8 +149,8 @@ COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
 # environment
 PROMPT = $P$G
 # environment
-MFLAG 
-S = -Rrqp
+MFLAGS = 
+ -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
@@ -178,8 +178,7 @@ SUFFIXES :=
 # environment
 SYSTEMDRIVE = C:
 # environment
-SESSION 
-NAME = Console
+SESSIONNAME = Console
 # environment
 PROCESSOR_REVISION = a600
 # environment
@@ -189,7 +188,7 @@ LANG = C
 # environment
 PROCESSOR_LEVEL = 6
 # environment
-VSCODE_PID = 13988
+VSCODE_PID = 15708
 # environment
 USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # variable set hash-table stats:
@@ -202,30 +201,29 @@ USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # Directories
 
 # C:\Program Files\LLVM\bin (key C:/Program Files/LLVM/bin, mtime 1605537618): 109 files, no impossibilities.
-# C:\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
+# C: 
+\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
 # C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1620362531): 30 files, no impossibilities.
 # C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1652303486): 171 files, no impossibilities.
 # . (key c:/Users/lukas/Documents/GitHub/PolyFrank, mtime 1649617379): 14 files, no impossibilities.
-# C:\Program Files (x86)\STMicroelectronics\S 
-TM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
+# C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
 # C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
 # C:\Program Files\WireGuard\ (key C:/Program Files/WireGuard/, mtime 1641226295): 5 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1652647035): 4 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1653251463): 4 files, no impossibilities.
 # C:\Users\lukas\AppData\Roaming\Python\Python39\Scripts (key C:/Users/lukas/AppData/Roaming/Python/Python39/Scripts, mtime 1606057407): 7 files, no impossibilities.
 # C:\WINDOWS\System32\OpenSSH\: could not be stat'd.
 # C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1605575009): 12 files, no impossibilities.
-# C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Progra 
-m Files (x86)/Common Files/Oracle/Java/javapath, mtime 1605535691): 5 files, no impossibilities.
+# C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1605535691): 5 files, no impossibilities.
 # C:\WINDOWS (key C:/WINDOWS, mtime 1652303485): 118 files, no impossibilities.
 # C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin (key C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2020-q4-major/bin, mtime 1613529144): 35 files, no impossibilities.
-# C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/lukas/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
+# C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/luk 
+as/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Programs\Python\Python39\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/, mtime 1605283973): 18 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\GitHubDesktop\bin (key C:/Users/lukas/AppData/Local/GitHubDesktop/bin, mtime 1605284003): 4 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Microsoft\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1650915926): 17 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Microsoft\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1653512142): 17 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 1642367705): 13 files, no impossibilities.
 # C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1605286843): 8 files, no impossibilities.
-# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1653251528): 3025 files, no impossibilities.
- 
+# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1653512394): 3025 files, no impossibilities.
 # C:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
 
 # 3635 files, no impossibilities in 23 directories.
@@ -247,7 +245,8 @@ all:
 
 # Not a target:
 .DEFAULT:
-#  Implicit rule search has not been done.
+#  Implicit rule search has not been done. 
+
 #  Modification time never checked.
 #  File has not been updated.
 
@@ -269,8 +268,7 @@ makefile:
 
 # Not a target:
 GNUmakefile:
-# 
-  A default, MAKEFILES, or -include/sinclude makefile.
+#  A default, MAKEFILES, or -include/sinclude makefile.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
@@ -291,7 +289,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sun May 22 22:37:32 2022
+# Finished Make data base on Thu May 26 12:57:43 2022
 
  
 make.exe: *** No rule to make target `all'.  Stop.

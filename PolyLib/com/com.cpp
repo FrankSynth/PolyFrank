@@ -819,7 +819,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             case UPDATERENDERBUFFER: {
                 volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
+                // __disable_irq();
                 for (int v = 0; v < 4; v++) {
                     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
                     allLayers[receiveLayer]->modules[module]->renderBuffer[setting]->currentSample[v +
@@ -827,6 +827,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                         amountFloat;
                     i += 3;
                 }
+                // __enable_irq();
 
                 break;
             }
@@ -835,13 +836,14 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 volatile uint8_t module = (dmaInBufferPointer[currentInBufferSelect])[++i];
                 volatile uint8_t setting = (dmaInBufferPointer[currentInBufferSelect])[++i];
-
+                // __disable_irq();
                 for (int v = 0; v < 4; v++) {
                     float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
                     allLayers[receiveLayer]->modules[module]->outputs[setting]->currentSample[v + 4 * (receiveChip)] =
                         amountFloat;
                     i += 3;
                 }
+                // __enable_irq();
 
                 break;
             }

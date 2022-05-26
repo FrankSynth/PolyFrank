@@ -20,8 +20,8 @@ TARGET = PolyRender
 # building variables
 ######################################
 # debug build?
-DEBUG = 0
-DISASSEMBLY = 1
+DEBUG = 1
+DISASSEMBLY = 0
 # optimization
 OPT = -Ofast
 

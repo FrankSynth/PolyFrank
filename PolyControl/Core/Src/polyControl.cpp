@@ -196,7 +196,7 @@ void PolyControlInit() {
 
 void PolyControlRun() { // Here the party starts
 
-    elapsedMicros timer;
+    // elapsedMicros timer;
 
     while (1) {
 

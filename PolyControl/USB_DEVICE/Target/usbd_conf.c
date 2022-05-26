@@ -100,7 +100,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
         HAL_Delay(50);
 
         /* Peripheral interrupt init */
-        HAL_NVIC_SetPriority(OTG_FS_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(OTG_FS_IRQn, 1, 1);
         HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
         /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
 
@@ -138,7 +138,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef *pcdHandle) {
         HAL_Delay(50);
 
         /* Peripheral interrupt init */
-        HAL_NVIC_SetPriority(OTG_HS_IRQn, 1, 0);
+        HAL_NVIC_SetPriority(OTG_HS_IRQn, 1, 1);
         HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
         /* USER CODE BEGIN USB_OTG_HS_MspInit 1 */
 

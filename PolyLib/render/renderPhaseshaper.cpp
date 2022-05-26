@@ -13,12 +13,14 @@ inline vec<VOICESPERCHIP> accumulateX3(const Phaseshaper &phaseshaper) {
 }
 
 void renderPhaseshaper(Phaseshaper &phaseshaper) {
+
     phaseshaper.Point1Y = accumulateValue(phaseshaper.iPoint1Y, phaseshaper.aPoint1Y);
     phaseshaper.Point2X = accumulateX2(phaseshaper);
     phaseshaper.Point2Y = accumulateValue(phaseshaper.iPoint2Y, phaseshaper.aPoint2Y);
     phaseshaper.Point3X = accumulateX3(phaseshaper);
     phaseshaper.Point3Y = accumulateValue(phaseshaper.iPoint3Y, phaseshaper.aPoint3Y);
     phaseshaper.Point4Y = accumulateValue(phaseshaper.iPoint4Y, phaseshaper.aPoint4Y);
+
     phaseshaper.DryWet = accumulateValue(phaseshaper.iDryWet, phaseshaper.aDryWet);
 }
 

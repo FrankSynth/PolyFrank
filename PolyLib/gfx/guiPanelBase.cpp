@@ -1414,32 +1414,40 @@ void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module) {
 
 void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
 
-    module->splineX[0].clear();
-    module->splineY[0].clear();
+    __disable_irq();
 
-    module->splineX[0].push_back(0.0f);
-    module->splineX[0].push_back(module->Point1X[0]);
-    module->splineX[0].push_back(module->Point2X[0]);
-    module->splineX[0].push_back(module->Point3X[0]);
-    module->splineX[0].push_back(1.0f);
+    if ((module->Point1X[0] < module->Point2X[0]) && (module->Point2X[0] < module->Point3X[0])) {
 
-    module->splineY[0].push_back(0.0f);
-    module->splineY[0].push_back(module->Point1Y[0]);
-    module->splineY[0].push_back(module->Point2Y[0]);
-    module->splineY[0].push_back(module->Point3Y[0]);
-    module->splineY[0].push_back(module->Point4Y[0]);
-    module->wavespline[0].set_points(module->splineX[0], module->splineY[0]);
+        // module->splineX[0].clear();
+        // module->splineY[0].clear();
+
+        // module->splineX[0].push_back(0.0f);
+        module->splineX[0][1] = module->Point1X[0];
+        module->splineX[0][2] = module->Point2X[0];
+        module->splineX[0][3] = module->Point3X[0];
+        // module->splineX[0].push_back(1.0f);
+
+        // module->splineY[0].push_back(0.0f);
+        module->splineY[0][1] = module->Point1Y[0];
+        module->splineY[0][2] = module->Point2Y[0];
+        module->splineY[0][3] = module->Point3Y[0];
+        module->splineY[0][4] = module->Point4Y[0];
+        __enable_irq();
+        module->wavespline[0].set_points(module->splineX[0], module->splineY[0]);
+    }
+
+    __enable_irq();
 
     int xdots[4];
     int ydots[4];
     // Invert/Scale
-    xdots[0] = module->Point1X[0] * (waveBuffer.width - 1);
+    xdots[0] = module->splineX[0][1] * (waveBuffer.width - 1);
     ydots[0] = 7 + (1 - module->Point1Y[0]) * (waveBuffer.height - 14);
 
-    xdots[1] = module->Point2X[0] * (waveBuffer.width - 1);
+    xdots[1] = module->splineX[0][2] * (waveBuffer.width - 1);
     ydots[1] = 7 + (1 - module->Point2Y[0]) * (waveBuffer.height - 14);
 
-    xdots[2] = module->Point3X[0] * (waveBuffer.width - 1);
+    xdots[2] = module->splineX[0][3] * (waveBuffer.width - 1);
     ydots[2] = 7 + (1 - module->Point3Y[0]) * (waveBuffer.height - 14);
 
     xdots[3] = 1 * (waveBuffer.width - 1);

@@ -8,10 +8,10 @@
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
 
-volatile RAM1 ALIGN_32BYTES(uint32_t color_1);
-volatile RAM1 ALIGN_32BYTES(uint32_t color_2);
-volatile RAM1 ALIGN_32BYTES(uint32_t color_3);
-volatile RAM1 ALIGN_32BYTES(uint32_t color_4);
+// volatile RAM1 ALIGN_32BYTES(uint32_t color_1);
+// volatile RAM1 ALIGN_32BYTES(uint32_t color_2);
+// volatile RAM1 ALIGN_32BYTES(uint32_t color_3);
+// volatile RAM1 ALIGN_32BYTES(uint32_t color_4);
 
 volatile uint32_t dma2d_TransferComplete_Flag = 0;
 
@@ -393,6 +393,8 @@ uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font) {
     return offset;
 }
 
+// uint32_t maxCalls = 0;
+
 void addToRenderQueue(renderTask &task) {
 
     task.outputOffset = LCDWIDTH - task.width;
@@ -405,6 +407,7 @@ void addToRenderQueue(renderTask &task) {
         && (renderQueue.size() < MAXDRAWCALLS)) { // in render region and width and height not 0
 
         renderQueue.push_back(task);
+        // maxCalls++;
 
         if (HAL_DMA2D_GetState(&hdma2d) == HAL_DMA2D_STATE_READY)
             callNextTask();
@@ -425,6 +428,8 @@ void callNextTask() {
         if (renderState == RENDER_WAIT) { // last render task done -> switch Buffer
             HAL_LTDC_ProgramLineEvent(&hltdc, 0);
         }
+        // println("max calls: ", maxCalls);
+        // maxCalls = 0;
         return;
     }
 
