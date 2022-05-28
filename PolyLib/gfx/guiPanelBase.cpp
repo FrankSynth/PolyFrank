@@ -1455,12 +1455,18 @@ void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
 
     // drawLineThick(waveBuffer, 0, y[0], x[0], y[0], c4444wavecolor);
 
-    float y;
+    int32_t previousYInt = 0;
 
     for (uint32_t i = 0; i < waveBuffer.width; i++) {
-        y = module->wavespline[0]((float)i / (waveBuffer.width - 1));
+        float y = module->wavespline[0]((float)i / (waveBuffer.width - 1));
+        int32_t yInt = 7 + (1.0f - y) * (waveBuffer.height - 14);
 
-        drawPixelThick(waveBuffer, i, 7 + (1 - y) * (waveBuffer.height - 14), c4444wavecolor);
+        if (std::abs(yInt - previousYInt) < 4 || i == 0)
+            drawPixelThick(waveBuffer, i, yInt, c4444wavecolor);
+        else
+            drawLineThick(waveBuffer, i - 1, previousYInt, i, yInt, c4444wavecolor);
+
+        previousYInt = yInt;
     }
 
     // drawCubicSpline(waveBuffer, 3, x, y, c4444wavecolor);

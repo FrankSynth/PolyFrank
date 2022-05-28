@@ -53,7 +53,7 @@
         {
             "label": "Clean PolyControl",
             "type": "shell",
-            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it* ; Remove-Item PolyControl/build/* -Include *.i*",
+            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it* ; Remove-Item * -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}/PolyControl/build"
             },
@@ -171,7 +171,7 @@
         {
             "label": "Clean PolyRender",
             "type": "shell",
-            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it*",
+            "command": "Remove-Item * -Exclude *stm32* ; Remove-Item * -Include *stm32h7xx_it* ; Remove-Item * -Include *.i*",
             "options": {
                 "cwd": "${workspaceRoot}/PolyRender/build"
             },
