@@ -1,11 +1,7 @@
-#ifdef POLYRENDER
+
 
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
-
-extern Layer layerA;
-
-LogCurve linlogMapping(64, 0.01);
 
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
@@ -40,19 +36,24 @@ inline float calcSquare(float phase, float shape) {
         return -1.0f;
     }
 }
+#ifdef POLYRENDER
+
+extern Layer layerA;
+
+LogCurve linlogMapping(64, 0.01);
 
 inline vec<VOICESPERCHIP> accumulateSpeed(const LFO &lfo) {
     if (lfo.dFreqSnap == 0)
-        return (linlogMapping.mapValue(lfo.aFreq) * 100.0f) * (lfo.iFreq + 1.0f); // max 200 Hz
+        return lfo.iFreq + lfo.aFreq; // max 200 Hz
 
-    return (lfo.iFreq + 1.0f) * lfo.aFreq; // max 200 Hz
+    return (lfo.iFreq + 1.0f) * lfo.aFreq; // max 200 Hz  //TODO Lucas check das mal nochmal dann die werte
     // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline vec<VOICESPERCHIP> accumulateShape(const LFO &lfo) {
-    return clamp((vec<VOICESPERCHIP> &)lfo.iShape + lfo.aShape, lfo.aShape.min, lfo.aShape.max);
+    return clamp(lfo.iShape + lfo.aShape, lfo.aShape.min, lfo.aShape.max);
 }
 inline vec<VOICESPERCHIP> accumulateAmount(const LFO &lfo) {
-    return clamp((vec<VOICESPERCHIP> &)lfo.iAmount + lfo.aAmount, lfo.aAmount.min, lfo.aAmount.max);
+    return clamp(lfo.iAmount + lfo.aAmount, lfo.aAmount.min, lfo.aAmount.max);
 }
 
 void renderLFO(LFO &lfo) {
@@ -60,18 +61,23 @@ void renderLFO(LFO &lfo) {
     vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
     vec<VOICESPERCHIP> &phase = lfo.currentTime;
     bool *newPhase = lfo.newPhase;
-    vec<VOICESPERCHIP> shape;
-    vec<VOICESPERCHIP> speed;
-    vec<VOICESPERCHIP> amount;
+    vec<VOICESPERCHIP> &shape = lfo.shape.nextSample;
+    vec<VOICESPERCHIP> &shapeRAW = lfo.shapeRAW.nextSample;
+    vec<VOICESPERCHIP> &speed = lfo.speed.nextSample;
+    vec<VOICESPERCHIP> &speedRAW = lfo.speedRAW.nextSample;
+
+    vec<VOICESPERCHIP> &amount = lfo.amount.nextSample;
     vec<VOICESPERCHIP> fract;
 
     vec<VOICESPERCHIP> sample;
 
-    shape = accumulateShape(lfo);
+    shapeRAW = accumulateShape(lfo);
+    speedRAW = accumulateSpeed(lfo) * (layerA.lfoImperfection * layerA.feel.aImperfection.valueMapped + 1.0f);
 
-    speed = accumulateSpeed(lfo) * (layerA.lfoImperfection * layerA.feel.aImperfection.valueMapped + 1.0f);
-
+    speed = linlogMapping.mapValue(speedRAW) * 100.0f;
     amount = accumulateAmount(lfo);
+
+    shape = shapeRAW * 6;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {

@@ -37,10 +37,10 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
-    void setValueChangedCallback(void (*fptr)()) { valueChangedCallback = fptr; }
+    void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
 
   protected:
-    void (*valueChangedCallback)() = nullptr;
+    std::function<void()> valueChangedCallback = nullptr;
     typeDisplayValue type;
 
     uint8_t sendOutViaCom;
@@ -151,20 +151,18 @@ class Setting : public DataElement {
  */
 class RenderBuffer {
   public:
-    RenderBuffer() {
-        // currentSample = sample;
-        // nextSample = &sample[1];
-    }
+    RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> temp = currentSample;
+        // vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = temp;
+        // nextSample = temp;
     }
 
     uint8_t id;
     uint8_t layerId;
     uint8_t moduleId;
+    bool sendOutViaCom;
 
     // vec<VOICESPERCHIP> sample[2];
     vec<VOICESPERCHIP> currentSample;
@@ -493,9 +491,9 @@ class Output : public BasePatch {
     }
 
     void updateToNextSample() {
-        vec<VOICESPERCHIP> temp = currentSample;
+        // vec<VOICESPERCHIP> temp = currentSample;
         currentSample = nextSample;
-        nextSample = temp;
+        // nextSample = temp;
     }
     vec<VOICESPERCHIP> currentSample;
     vec<VOICESPERCHIP> nextSample;

@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef POLYCONTROL
 #define DEBUG 1
+#elif POLYRENDER
+#define DEBUG 1
+#endif
 
 #if DEBUG
 
@@ -12,7 +16,9 @@
 extern elapsedMicros USBHSTIMEOUT;
 
 #elif POLYRENDER
-#include "main.h"
+uint8_t sendString(const char *message);
+uint8_t sendString(const std::string &message);
+uint8_t sendString(std::string &&message);
 #endif
 
 #include <stdint.h>
@@ -21,16 +27,16 @@ extern elapsedMicros USBHSTIMEOUT;
 #define print(...) printViaSTLink(__VA_ARGS__)
 #define println(...) printlnViaSTLink(__VA_ARGS__)
 
-// std::string printString;
-
-void appendBuffer(std::string *string);
+#ifdef POLYCONTROL
+void appendBuffer(const std::string &string);
+#endif
 
 template <typename T> void printViaSTLink(T &&arg) {
     std::string str;
     str.append(std::to_string(arg));
 
 #ifdef POLYCONTROL
-    appendBuffer(&str);
+    appendBuffer(str);
 
     if (FlagHandler::USB_HS_CONNECTED) {
         USBHSTIMEOUT = 0;
@@ -42,9 +48,7 @@ template <typename T> void printViaSTLink(T &&arg) {
         }
     }
 #elif POLYRENDER
-    for (uint32_t i = 0; i < str.size(); i++) {
-        ITM_SendChar(str.data()[i]);
-    }
+    sendString(str);
 #endif
 }
 
@@ -54,8 +58,8 @@ void printViaSTLink(char *arg);
 void printViaSTLink(unsigned char *arg);
 
 void printViaSTLink(const std::string &arg);
-
 void printViaSTLink(std::string &arg);
+void printViaSTLink(std::string &&arg);
 
 template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
     printViaSTLink(arg);
@@ -64,7 +68,9 @@ template <typename T, typename... A> void printViaSTLink(T &&arg, A &&...args) {
 
 template <typename... T> void printlnViaSTLink(T &&...args) {
     printViaSTLink(args...);
+#ifdef POLYCONTROL
     printViaSTLink("\r\n");
+#endif
 }
 
 #else

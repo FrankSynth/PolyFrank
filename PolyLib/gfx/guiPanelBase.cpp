@@ -149,7 +149,7 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 50;
-    uint16_t spaceTopBottomBar = 8;
+    uint16_t spaceTopBottomBar = 4;
 
     // clear
 
@@ -435,8 +435,8 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
 
 void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
 
-    x += 2;
-    w -= 4;
+    // x += 2;
+    // w -= 4;
 
     Digital *data = entry->digital;
     uint16_t nameWidth = w / 2;
@@ -485,7 +485,7 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     uint16_t nameWidth = 200;
 
     uint16_t spaceLeftRightBar = 15;
-    uint16_t spaceTopBottomBar = 8;
+    uint16_t spaceTopBottomBar = 4;
 
     // clear
 
@@ -546,6 +546,50 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
             drawRectangleChampfered(cWhiteMedium, x, y, 13, h, 1);
         }
     }
+}
+
+void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+                            uint8_t modulename) {
+
+    uint16_t heightBar = 12;
+    // clear
+
+    drawRectangleChampfered(cGrey, x, y, w, h, 1);
+    std::string text;
+    // get text
+    if (modulename == true) {
+        text = allLayers[data->layerId]->modules[data->moduleId]->getShortName();
+    }
+    else {
+        text = data->getName();
+    }
+
+    // Draw Name
+    if (select) {
+        drawRectangleChampfered(cHighlight, x, y, w, h - heightBar, 1);
+        drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
+    }
+    else {
+        drawRectangleChampfered(cWhiteMedium, x, y, w, h - heightBar, 1);
+        drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
+    }
+
+    uint16_t valueBarWidth = w;
+    uint16_t valueBarHeigth = heightBar;
+
+    uint16_t relY = h - heightBar;
+
+    // text = data->getValueAsString();
+
+    // drawString(text, cFont_Deselect, x + relX + valueBarWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium,
+    //            CENTER); // center Text
+
+    // valueBar
+    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+
+    valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
+
+    drawRectangleChampfered(cWhite, x, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
 void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
@@ -859,7 +903,7 @@ void MatrixPatch_PanelElement::Draw() {
 
     if (entry != nullptr) {
 
-        uint8_t barWidth = 6;
+        uint8_t barWidth = 3;
         uint8_t barHeight = 4;
 
         if (select) {
@@ -870,22 +914,22 @@ void MatrixPatch_PanelElement::Draw() {
         }
 
         uint8_t color[4];
-        float amount = entry->amount;
-
-        amount = testFloat(amount, -1, 1);
+        float patchAmount = entry->amount;
 
         *(uint32_t *)color = cWhite;
 
-        color[3] *= abs(amount);
+        color[3] *= abs(patchAmount);
 
-        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth - 2, height - 4);
+        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth * VOICESPERCHIP - 2,
+                          height - 4);
 
-        amount = amount * entry->sourceOut->currentSample[0];
-        amount = testFloat(amount, -1, 1);
-
-        uint16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
-
-        drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+            float amount = patchAmount * entry->sourceOut->currentSample[i];
+            amount = testFloat(amount, -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                              barWidth, barHeight);
+        }
     }
     else {
 
@@ -911,7 +955,7 @@ void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
 
 void MatrixIn_PanelElement::Draw() {
 
-    uint8_t barWidth = 6;
+    uint8_t barWidth = 3;
     uint8_t barHeight = 4;
 
     if (!visible) {
@@ -922,27 +966,31 @@ void MatrixIn_PanelElement::Draw() {
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
 
-            drawString(entry->input->shortName, cFont_Select, panelAbsX + width / 2, panelAbsY + 3, fontMedium, CENTER);
+            drawString(entry->input->shortName, cFont_Select, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + width / 2, panelAbsY + 3, fontMedium,
-                       CENTER);
+            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
         }
         if (entry->input->renderBuffer != nullptr) {
             // uint8_t color[4];
-            float amount = entry->input->renderBuffer->currentSample[0];
-
-            amount -= entry->min;
-            amount /= entry->max;
 
             // entry->
 
-            amount = testFloat(amount, 0, 1);
+            for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+                float amount = entry->input->renderBuffer->currentSample[i];
 
-            int16_t offsetY = ((int16_t)(height - barHeight)) * (1 - amount);
+                amount -= entry->min;
+                amount /= entry->max - entry->min;
 
-            drawRectangleFill(cWhite, panelAbsX + width - barWidth - 2, panelAbsY + offsetY, barWidth, barHeight);
+                amount = testFloat(amount, 0, 1);
+
+                int16_t offsetY = (int16_t)(height - barHeight) * (1 - amount);
+                drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                                  barWidth, barHeight);
+            }
         }
     }
     select = 0;
@@ -1035,6 +1083,487 @@ void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
 
     this->entry = entry;
     visible = 1;
+}
+
+void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y) {
+
+    // empty waveBuffer
+    uint32_t data = 0x00000000;
+
+    fastMemset(&data, (uint32_t *)*(waveBuffer.buffer), (waveBuffer.width * waveBuffer.height) / 2);
+
+    // drwaWavebuffer
+
+    if (module->id == allLayers[currentFocus.layer]->oscA.id) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->id == allLayers[currentFocus.layer]->oscB.id) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscB, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->id == allLayers[currentFocus.layer]->sub.id) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesSub, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_LFO) {
+        int8_t wave[100];
+        calculateLFOWave((LFO *)module, wave, 100);
+
+        drawGrid(c4444gridcolor);
+        drawWave(wave, 100, 2, c4444wavecolor);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_PHASE) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 1, c4444wavecolorTrans);
+        drawPhaseshaper(waveBuffer, (Phaseshaper *)module);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_ADSR) {
+        drawGrid(c4444gridcolor);
+        drawADSR(waveBuffer, (ADSR *)module);
+        drawFrame(c4444framecolor);
+    }
+    else if (module->moduleType == MODULE_WAVESHAPER) {
+        drawGrid(c4444gridcolor);
+        drawWave(allLayers[currentFocus.layer]->renderedAudioWavesOscA, 100, 2, c4444wavecolorTrans);
+        drawWaveshaper(waveBuffer, (Waveshaper *)module);
+        drawFrame(c4444framecolor);
+    }
+
+    SCB_CleanDCache_by_Addr((uint32_t *)waveBuffer.buffer, waveBuffer.height * waveBuffer.width * 2);
+
+    copyWaveBuffer(waveBuffer, x, y);
+}
+
+void drawGrid(uint16_t color) {
+
+    uint8_t grid = 12;
+
+    for (uint16_t i = 1; i < grid; i++) {
+        drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
+                 waveBuffer.height - 1, color);
+    }
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, color);
+}
+void drawFrame(uint16_t color) {
+
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, color);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, color);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, color);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, color);
+}
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color) {
+
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+
+    for (uint16_t i = 0; i < 100 * repeats - 1; i++) {
+        x1 = ((float)waveBuffer.width / (100.f * repeats - 1)) * i;
+        x2 = ((float)waveBuffer.width / (100.f * repeats - 1)) * (i + 1);
+        y1 = -renderedWave[i % 100];
+        y2 = -renderedWave[(i + 1) % 100];
+
+        y1 = (float)(y1 + 128) * (waveBuffer.height / 255.f);
+        y2 = (float)(y2 + 128) * (waveBuffer.height / 255.f);
+
+        y1 = testInt(y1, 1, waveBuffer.height - 2);
+        y2 = testInt(y2, 1, waveBuffer.height - 2);
+
+        x1 = testInt(x1, 1, waveBuffer.width - 1);
+        x2 = testInt(x2, 1, waveBuffer.width - 1);
+        drawLineThick(waveBuffer, x1, y1, x2, y2, color);
+    }
+}
+
+void drawVecWave(vec<2> *renderedWave, uint16_t samples) {
+
+    vec<2> p1;
+    vec<2> p2;
+
+    int16_t x1;
+    int16_t y1;
+    int16_t x2;
+    int16_t y2;
+    // Grid
+
+    uint8_t grid = 12;
+
+    for (uint16_t i = 1; i < grid; i++) {
+        drawLine(waveBuffer, i * ((float)waveBuffer.width / grid), 0, i * ((float)waveBuffer.width / grid),
+                 waveBuffer.height - 1, c4444gridcolor);
+    }
+    drawLine(waveBuffer, 0, waveBuffer.height / 2, waveBuffer.width - 1, waveBuffer.height / 2, c4444framecolor);
+
+    // Frame
+    drawLine(waveBuffer, 0, 0, waveBuffer.width - 1, 0, c4444framecolor);
+    drawLine(waveBuffer, 0, waveBuffer.height - 1, waveBuffer.width - 1, waveBuffer.height - 1, c4444framecolor);
+    drawLine(waveBuffer, 0, 0, 0, waveBuffer.height - 1, c4444framecolor);
+    drawLine(waveBuffer, waveBuffer.width - 1, 0, waveBuffer.width - 1, waveBuffer.height - 1, c4444framecolor);
+
+    for (uint16_t i = 0; i < (samples - 1); i++) {
+        // load Wave
+        p1 = renderedWave[i];
+        p2 = renderedWave[i + 1];
+
+        // Check range
+        x1 = testInt((int32_t)p1[0], 0, waveBuffer.width - 1);
+        y1 = testInt((int32_t)p1[1], 0, waveBuffer.height - 1);
+        x2 = testInt((int32_t)p2[0], 0, waveBuffer.width - 1);
+        y2 = testInt((int32_t)p2[1], 0, waveBuffer.height - 1);
+
+        drawLineWidth(waveBuffer, x1, y1, x2, y2, 4, c4444wavecolor);
+    }
+}
+
+#include "render/renderLFO.cpp"
+
+void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
+
+    const float random[10] = {-.8, 0.6, 0, 1, -0.3, 0.2, 0, -0.9, 0.5};
+
+    float phase = 0;
+
+    float shape = testFloat(module->shapeRAW[0], module->aShape.min, module->aShape.max - 0.001);
+
+    shape *= 6;
+
+    float index;
+
+    for (uint16_t i = 0; i < samples; i++) {
+        phase = (1.f / samples) * i;
+
+        phase = phase - floor(phase);
+
+        float fract = shape - std::floor(shape);
+
+        if (shape < 1) {
+            index = fast_lerp_f32(calcSin(phase), calcRamp(phase), fract);
+        }
+        else if (shape < 2) {
+            index = fast_lerp_f32(calcRamp(phase), calcTriangle(phase), fract);
+        }
+        else if (shape < 3) {
+            index = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
+        }
+        else if (shape < 4) {
+            index = fast_lerp_f32(calcInvRamp(phase), calcSquare(phase, shape), fract);
+        }
+        else if (shape < 5)
+            index = calcSquare(phase, shape);
+
+        else {
+            index = fast_lerp_f32(-1.0f, random[(uint16_t)((4.f / samples) * i)], fract);
+        }
+
+        renderedWave[i] = index * 127;
+    }
+}
+
+void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples) {
+    static uint8_t init = false;
+    static int8_t random[100];
+
+    if (init == false) {
+        init = true;
+        for (size_t i = 0; i < 100; i++) {
+            random[i] = (((float)rand() / (RAND_MAX / 2)) - 1) * 127;
+        }
+    }
+    uint32_t sampleCrushCount = 0;
+    int8_t sample;
+    int8_t newSample;
+
+    for (uint16_t i = 0; i < samples; i++) {
+        newSample = random[i];
+
+        sampleCrushCount = sampleCrushCount * std::ceil((float)i / samples);
+        sampleCrushCount = sampleCrushCount + 24;
+        bool sampleCrushNow = sampleCrushCount > (module->samplecrusher[0] * 960);
+
+        sampleCrushCount *= !sampleCrushNow;
+        sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
+
+        renderedWave[i] = sample;
+    }
+}
+
+void drawADSR(WaveBuffer &wavebuffer, ADSR *module) {
+
+    float range = 4.2;
+
+    float delay = fastMap(module->aDelay, module->aDelay.min, module->aDelay.max, 0.04, 1);
+    float attack = fastMap(module->aAttack, module->aAttack.min, module->aAttack.max, 0.04, 1);
+    float decay = fastMap(module->aDecay, module->aDecay.min, module->aDecay.max, 0.04, 1);
+    float release = fastMap(module->aRelease, module->aRelease.min, module->aRelease.max, 0.04, 1);
+    float sustain = range - attack - decay - release - delay;
+    float sustainLevel = fastMap(module->aSustain, module->aSustain.min, module->aSustain.max, 0.00, 1);
+
+    float shape = module->aShape;
+
+    // Attack
+    vec<2> P[6];
+    P[0] = 0;
+    P[1][0] = delay / range;
+    P[1][1] = 0;
+
+    P[2][0] = P[1][0] + (attack / range);
+    P[2][1] = 1;
+
+    P[3][0] = P[2][0] + decay / range;
+    P[3][1] = sustainLevel;
+
+    P[4] = P[3];
+    P[4][0] += sustain / range;
+
+    P[5][0] = P[4][0] + release / range;
+    P[5][1] = 0;
+
+    for (uint32_t i = 0; i < 6; i++) {
+        // Flip Wave
+        P[i][1] = 1 - P[i][1];
+
+        // Scale Wave
+        P[i][0] *= waveBuffer.width - 1;
+        P[i][1] *= waveBuffer.height - 14;
+        P[i][1] += 7;
+    }
+
+    // shape Attack
+    vec<2> A1;
+    vec<2> A2;
+    vec<2> A;
+
+    A1 = (P[1] + P[2]) / 2.f;
+    A2[0] = P[1][0];
+    A2[1] = P[2][1];
+
+    A = fast_lerp_f32(A1, A2, shape);
+
+    // shape Decay
+
+    vec<2> D1;
+    vec<2> D2;
+    vec<2> D;
+
+    D1 = (P[2] + P[3]) / 2.f;
+    D2[0] = P[2][0];
+    D2[1] = P[3][1];
+
+    D = fast_lerp_f32(D1, D2, shape);
+
+    // shape Release
+
+    vec<2> R1;
+    vec<2> R2;
+    vec<2> R;
+
+    R1 = (P[4] + P[5]) / 2.f;
+    R2[0] = P[4][0];
+    R2[1] = P[5][1];
+
+    R = fast_lerp_f32(R1, R2, shape);
+
+    // Draw Wave
+    drawLineThick(waveBuffer, P[0][0], P[0][1], P[1][0], P[1][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[1][0], P[1][1], A[0], A[1], P[2][0], P[2][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[2][0], P[2][1], D[0], D[1], P[3][0], P[3][1], c4444wavecolor);
+
+    drawLineThick(waveBuffer, P[3][0], P[3][1], P[4][0], P[4][1], c4444wavecolor);
+    drawQuadBezier(waveBuffer, P[4][0], P[4][1], R[0], R[1], P[5][0], P[5][1], c4444wavecolor);
+
+    drawFilledCircle(waveBuffer, P[1][0], P[1][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[2][0], P[2][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[3][0], P[3][1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P[4][0], P[4][1], c4444dot, 8);
+}
+
+void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module) {
+    vec<2> P1;
+    vec<2> P2;
+    vec<2> P3;
+    vec<2> P4;
+
+    // Invert/Scale
+    P1[0] = 0;
+    P1[1] = 7 + (1 - module->Point1Y[0]) * (waveBuffer.height - 14);
+
+    P2[0] = module->Point2X[0] * (waveBuffer.width - 1);
+    P2[1] = 7 + (1 - module->Point2Y[0]) * (waveBuffer.height - 14);
+
+    P3[0] = module->Point3X[0] * (waveBuffer.width - 1);
+    P3[1] = 7 + (1 - module->Point3Y[0]) * (waveBuffer.height - 14);
+
+    P4[0] = waveBuffer.width - 1;
+    P4[1] = 7 + (1 - module->Point4Y[0]) * (waveBuffer.height - 14);
+
+    drawLineWidth(waveBuffer, P1[0], P1[1], P2[0], P2[1], 3, c4444wavecolor);
+    drawLineWidth(waveBuffer, P2[0], P2[1], P3[0], P3[1], 3, c4444wavecolor);
+    drawLineWidth(waveBuffer, P3[0], P3[1], P4[0], P4[1], 3, c4444wavecolor);
+
+    // Dots
+    drawFilledCircle(waveBuffer, P2[0], P2[1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, P3[0], P3[1], c4444dot, 8);
+}
+
+void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module) {
+
+    __disable_irq();
+
+    if ((module->Point1X[0] < module->Point2X[0]) && (module->Point2X[0] < module->Point3X[0])) {
+
+        // module->splineX[0].clear();
+        // module->splineY[0].clear();
+
+        // module->splineX[0].push_back(0.0f);
+        module->splineX[0][1] = module->Point1X[0];
+        module->splineX[0][2] = module->Point2X[0];
+        module->splineX[0][3] = module->Point3X[0];
+        // module->splineX[0].push_back(1.0f);
+
+        // module->splineY[0].push_back(0.0f);
+        module->splineY[0][1] = module->Point1Y[0];
+        module->splineY[0][2] = module->Point2Y[0];
+        module->splineY[0][3] = module->Point3Y[0];
+        module->splineY[0][4] = module->Point4Y[0];
+        __enable_irq();
+        module->wavespline[0].set_points(module->splineX[0], module->splineY[0]);
+    }
+
+    __enable_irq();
+
+    int xdots[4];
+    int ydots[4];
+    // Invert/Scale
+    xdots[0] = module->splineX[0][1] * (waveBuffer.width - 1);
+    ydots[0] = 7 + (1 - module->Point1Y[0]) * (waveBuffer.height - 14);
+
+    xdots[1] = module->splineX[0][2] * (waveBuffer.width - 1);
+    ydots[1] = 7 + (1 - module->Point2Y[0]) * (waveBuffer.height - 14);
+
+    xdots[2] = module->splineX[0][3] * (waveBuffer.width - 1);
+    ydots[2] = 7 + (1 - module->Point3Y[0]) * (waveBuffer.height - 14);
+
+    xdots[3] = 1 * (waveBuffer.width - 1);
+    ydots[3] = 7 + (1 - module->Point4Y[0]) * (waveBuffer.height - 14);
+
+    // drawLineThick(waveBuffer, 0, y[0], x[0], y[0], c4444wavecolor);
+
+    int32_t previousYInt = 0;
+
+    for (uint32_t i = 0; i < waveBuffer.width; i++) {
+        float y = module->wavespline[0]((float)i / (waveBuffer.width - 1));
+        int32_t yInt = 7 + (1.0f - y) * (waveBuffer.height - 14);
+
+        if (std::abs(yInt - previousYInt) < 4 || i == 0)
+            drawPixelThick(waveBuffer, i, yInt, c4444wavecolor);
+        else
+            drawLineThick(waveBuffer, i - 1, previousYInt, i, yInt, c4444wavecolor);
+
+        previousYInt = yInt;
+    }
+
+    // drawCubicSpline(waveBuffer, 3, x, y, c4444wavecolor);
+
+    // Dots
+    drawFilledCircle(waveBuffer, xdots[0], ydots[0], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[1], ydots[1], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[2], ydots[2], c4444dot, 8);
+    drawFilledCircle(waveBuffer, xdots[3], ydots[3], c4444dot, 8);
+}
+
+void Effect_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    if (select) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (entrys[i] != nullptr) {
+                actionHandler.registerActionEncoder(
+                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), "AMOUNT"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), "AMOUNT"},
+                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+            }
+            else {
+                actionHandler.registerActionEncoder(i); // clear encoder
+            }
+        }
+    }
+
+    entryWidth = width / numberEntrys;
+    for (int i = 0; i < numberEntrys; i++) {
+        if (entrys[i] == nullptr) {
+        }
+        else {
+            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                   select);
+            entrys[i] = nullptr;
+        }
+
+        relX += entryWidth;
+    }
+
+    numberEntrys = 0;
+    select = 0;
+}
+
+void EffectAmount_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    entryWidth = width / (numberEntrys + 1);
+
+    // Feld mit GruppenNamen
+    drawNameElement(&name, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+    relX += entryWidth;
+
+    if (select) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (entrys[i] != nullptr) {
+                actionHandler.registerActionEncoder(
+                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), entrys[i]->getName()},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), entrys[i]->getName()},
+                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+            }
+            else {
+                actionHandler.registerActionEncoder(i); // clear encoder
+            }
+        }
+    }
+
+    for (int i = 0; i < numberEntrys; i++) {
+        if (entrys[i] == nullptr) {
+        }
+        else {
+            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                   select, moduleName[i]);
+            entrys[i] = nullptr;
+        }
+
+        relX += entryWidth;
+    }
+    numberEntrys = 0;
+    select = 0;
 }
 
 #endif

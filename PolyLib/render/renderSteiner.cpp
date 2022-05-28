@@ -3,6 +3,7 @@
 #include "renderSteiner.hpp"
 
 extern Layer layerA;
+LogCurve SteinerlinAntiLog(64, 0.99);
 
 inline vec<VOICESPERCHIP> accumulateLevel(const Steiner &steiner) {
     return clamp(steiner.iLevel + steiner.aLevel, 0.0f, 1.0f);
@@ -20,10 +21,12 @@ void renderSteiner(Steiner &steiner) {
 
     vec<VOICESPERCHIP> level = accumulateLevel(steiner);
 
-    steiner.level = level * (1.0f - steiner.aParSer);
+    steiner.levelRAW = level;
+
+    steiner.level = SteinerlinAntiLog.mapValue(level * (1.0f - steiner.aParSer));
     steiner.resonance = accumulateResonance(steiner);
     steiner.cutoff = accumulateCutoff(steiner);
-    steiner.toLadder = level * steiner.aParSer;
+    steiner.toLadder = SteinerlinAntiLog.mapValue(level * steiner.aParSer);
 }
 
 #endif

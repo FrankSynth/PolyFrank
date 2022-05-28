@@ -173,12 +173,18 @@ inline void updateAllOutputSamples() {
     // LayerRenBufferSw = !LayerRenBufferSw;
 
     for (BaseModule *m : layerA.modules) {
+
+        // __disable_irq();
         for (Output *o : m->outputs) {
             o->updateToNextSample();
         }
+        // __enable_irq();
+
+        // __disable_irq();
         for (RenderBuffer *b : m->renderBuffer) {
             b->updateToNextSample();
         }
+        // __enable_irq();
     }
 }
 
@@ -293,6 +299,8 @@ inline void setLEDs() {
 }
 
 void renderCVs() {
+    static uint32_t voice = 0;
+
     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     collectAllCurrentInputs();
@@ -311,14 +319,20 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
-    renderWaveshaper(layerA.waveshaper);
-    renderPhaseshaper(layerA.phaseshaper);
+    renderWaveshaper(layerA.waveshaperA, voice);
+    renderWaveshaper(layerA.waveshaperB, voice);
+    renderPhaseshaper(layerA.phaseshaperA);
+    renderPhaseshaper(layerA.phaseshaperB);
 
     updateAllOutputSamples();
     writeDataToDACBuffer();
 
     setSwitches();
     setLEDs();
+
+    voice++;
+    if (voice >= VOICESPERCHIP)
+        voice = 0;
 }
 
 #endif

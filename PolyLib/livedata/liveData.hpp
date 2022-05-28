@@ -56,7 +56,7 @@ class LiveData {
 
     VoiceHandler voiceHandler;
 
-    Arpeggiator arps[2] = {Arpeggiator(&voiceHandler), Arpeggiator(&voiceHandler)};
+    Arpeggiator arps[2] = {Arpeggiator(&voiceHandler, 0), Arpeggiator(&voiceHandler, 1)};
 
     // uint16_t bpm = 0;
 

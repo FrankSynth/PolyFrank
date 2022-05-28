@@ -1,0 +1,292 @@
+make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.81
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# This is free software; see the source for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# This program built for i386-pc-mingw32
+ 
+
+# Make data base, printed on Sat May 28 15:06:42 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+HOMEDRIVE = C:
+# automatic
+@F = $(notdir $@)
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# makefile
+CURDIR := c:/Users/lukas/Documents/GitHub/PolyFrank
+# default
+SHELL := sh.exe
+# environment
+WINDIR = C:\WINDOWS
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{},"_languagePackSupport":true}
+# environment
+ONEDRIVE = D:\OneDrive
+# environment
+PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+# makefile
+MAKEFILE_LIST := 
+# environment
+TMP = C:\Users\lukas\AppData\Local\Temp
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+PROGRAMW6432 = C:\Program Files
+# environment
+PROGRAMDATA = C:\ProgramData
+# environment
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-ef4201a5-dc41-4ad1-9065-25a3f6c3e92c-sock
+# environment
+VSCODE_CWD = C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code
+# environment
+PATH = C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility;C:\Program Files\PuTTY\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\WireGuard\;C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin;C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\;C:\Users\lukas\AppData\Local\Programs\Python\Python39\;C:\Users\lukas\AppData\Local\Microsoft\WindowsApps;C:\Users\lukas\AppData\Local\GitHubDesktop\bin;C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\l 
+ukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin;C:\Program Files\OpenOCD\bin;C:\Program Files (x86)\GnuWin32\bin;C:\Program Files\LLVM\bin;C:\Users\lukas\AppData\Roaming\Python\Python39\Scripts;
+# environment
+COMMONPROGRAMW6432 = C:\Program Files\Common Files
+# environment
+ZES_ENABLE_SYSMAN = 1
+# environment
+PROCESSOR_ARCHITECTURE = x86
+# environment
+USERPROFILE = C:\Users\lukas
+# environment
+ALLUSERSPROFILE = C:\ProgramData
+# environment
+VSCODE_LOG_STACK = false
+# environment
+NUMBER_OF_PROCESSORS = 12
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if archives
+# automatic
+%F = $(notdir $%)
+# environment
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_1636_YQZVFLUOSKSUPDMU
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+COMPUTERNAME = LUKELAPTOP
+# environment
+PROGRAMFILES = C:\Program Files (x86)
+# environment
+DRIVERDATA = C:\Windows\System32\Drivers\DriverData
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# environment
+USERNAME = lukas
+# environment
+PUBLIC = C:\Users\Public
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+VSCODE_CODE_CACHE_PATH = C:\Users\lukas\AppData\Roaming\Code\CachedData\c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# environment
+COMMONPROGRAMFILES = C:\Program Files (x86)\Common Files
+# environment
+LOGONSERVER = \\LUKELAPTOP
+# environment
+ONEDRIVECONSUMER = D:\OneDrive
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# environment
+USERDOMAIN = LUKELAPTOP
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# default
+MAKE_VERSION := 3.81
+# makefile
+.DEFAULT_GOAL := 
+# environment
+PROGRAMFILES(X86) = C:\Program Files (x86)
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+LOCALAPPDATA = C:\Users\lukas\AppData\Local
+# environment
+PSMODULEPATH = C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+# default
+MAKE_COMMAND := make.exe
+# environment
+PROCESSOR_ARCHITEW6432 = AMD64
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# environment
+PROCESSOR_IDENTIFIER = Intel64 Family 6 Model 166 Stepping 0, GenuineIntel
+# environment
+OS = Windows_NT
+# environment
+VSCODE_IPC_HOOK = \\.\pipe\83b59789b14c4d609ba91a64aa5ffde3-1.67.2-main-sock
+# environment
+HOMEPATH = \Users\lukas
+# environment
+COMMONPROGRAMFILES(X86) = C:\Program Files (x86)\Common Files
+# environment
+PROMPT = $P$G
+# environment
+MFLAGS = -Rrqp
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+SYSTEMROOT = C:\WINDOWS
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# automatic
++F = $(notdir $+)
+# environment
+APPDATA = C:\Users\lukas\AppData\Roaming
+# environment
+TEMP = C:\Users\lukas\AppData\Local\Temp
+# environment
+COMSPEC = C:\WINDOWS\system32\cmd.exe
+# default
+MAKEFILES := 
+# automatic
+<F = $(notdir $<)
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# default
+SUFFIXES := 
+# environment
+SYSTEMDRIVE = C:
+# environment
+SESSIONNAME = Console
+# environment
+PROCESSOR_REVISION = a600
+# environment
+MAKELEVEL := 0
+# environment
+LANG = C
+# environment
+PROCESSOR_LEVEL = 6
+# environment
+VSCODE_PID = 1636
+# environment
+USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
+# variable set hash-table stats:
+# Load=88/1024=9%, Rehash=0, Collisions=9/105=9%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# C:\Program Files\LLVM\bin (key C:/Program Files/LLVM/bin, mtime 1605537618): 109 files, no impossibilities.
+# C:\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
+# C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1620362531): 30 files, no impossibilities.
+# C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1652303486): 171 files, no impossibilities.
+# . (key c:/Users/lukas/Documents/GitHub/PolyFrank, mtime 1649617379): 14 files, no impossibilities.
+# C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
+# C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
+# C:\Program Files\WireGuard\ (key C:/Program Files/WireGuard/, mtime 1641226295): 5 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1653251463): 4 files, no impossibilities.
+# C:\Users\lukas\AppData\Roaming\Python\Python39\Scripts (key C:/Users/lukas/AppData/Roaming/Python/Python39/Scripts, mtime 1606057407): 7 files, no impossibilities.
+# C:\WINDOWS\System32\OpenSSH\: could not be stat'd.
+# C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1605575009): 12 files, no impossibilities.
+# C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1605535691): 5 files, no impossibilities.
+# C:\WINDOWS (key C:/WINDOWS, mtime 1652303485): 118 files, no impossibilities.
+# C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin (key C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2020-q4-major/bin, mtime 1613529144): 35 files, no impossibilities.
+# C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/lukas/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Python\Python39\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/, mtime 1605283973): 18 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\GitHubDesktop\bin (key C:/Users/lukas/AppData/Local/GitHubDesktop/bin, mtime 1605284003): 4 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Microsoft 
+\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1653688918): 17 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 1642367705): 13 files, no impossibilities.
+# C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1605286843): 8 files, no impossibilities.
+# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1653685407): 3025 files, no impossibilities.
+# C:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
+
+# 3635 files, no impossibilities in 23 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+# Not a target:
+all:
+#  Command-line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+makefile:
+#  A default, MAKEFILES, or -include/sinclude makefile.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Failed to be updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+GNUmakefile:
+#  A default, MAKEFILES, or -include/sinclude makefile.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Failed to be updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# files hash-table stats:
+# Load=5/1024=0%, Rehash=0, Collisions=0/16=0%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 0
+# # of strcache buffers: 0
+# strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
+# strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
+
+# Finished Make data base on Sat May 28 15:06:42 2022
+
+ 
+make.exe: *** No rule to make target `all'.  Stop.
+

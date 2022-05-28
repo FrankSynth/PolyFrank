@@ -7,8 +7,8 @@ extern Clock clock;
 void Arpeggiator::keyPressed(Key &key) {
     allKeysReleased = 1;
     midiUpdateDelayTimer = 0;
-    if (!inputKeys.empty()) {                                                                // inputKey list empty?
-        for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
+    if (!inputKeys.empty()) {                                            // inputKey list empty?
+        for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
             if (!it->released) {
                 allKeysReleased = 0;
             }
@@ -21,7 +21,7 @@ void Arpeggiator::keyPressed(Key &key) {
         }
         else { // check already existing Keys
 
-            for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
+            for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
                 if (it->note == key.note) {
 
                     return;
@@ -39,7 +39,7 @@ void Arpeggiator::keyReleased(Key &key) {
     if (inputKeys.empty()) {
         return;
     }
-    for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {
+    for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         if (it->note == key.note) {
             if (arpLatch.value) { // latch on?
                 it->released = 1; // mark key as released
@@ -84,9 +84,11 @@ void Arpeggiator::lifetime(Key &key) {
     key.born = micros();
 
     // uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPlayedKeysParallel.value; // in micros
-    key.lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep; // in micros
+    key.lifespan = (float)((60000000 / (clock.bpm * 24)) * ticksToNextStep) *
+                   (1.0f / ((float)arpRatched.value + 1.0f)); // in micros
 
     key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
+    key.ratchedAmounts = arpRatched.value;
 }
 
 void Arpeggiator::serviceRoutine() {
@@ -99,15 +101,35 @@ void Arpeggiator::serviceRoutine() {
         nextStep();
     checkLatch();
 }
-void Arpeggiator::ratched() {}
+
+void Arpeggiator::ratched() {
+    for (auto it = ratchedKeys.begin(); it != ratchedKeys.end();) {
+        if ((micros() - it->born) > it->lifespan) {
+            it->born = micros();
+            pressKey(*it);
+            it = ratchedKeys.erase(it); // delete key
+        }
+        else {
+            it++;
+        }
+    }
+}
+
 void Arpeggiator::release() {
 
     for (auto it = pressedKeys.begin(); it != pressedKeys.end();) {
         // find keys to be released , check sustain-> half lifespan
         if (((micros() - it->born) > it->lifespan && arpSustain) ||
             (((micros() - it->born) > (it->lifespan / 2)) && !arpSustain)) {
+
             voiceHandler->freeNote(*it); // free Note
-            if (it->retriggerAmounts) {
+
+            if (it->ratchedAmounts) {
+                it->ratchedAmounts--;
+                ratchedKeys.push_back(*it);
+            }
+
+            else if (it->retriggerAmounts) {
                 it->retriggerAmounts--;
                 retriggerKeys.push_back(*it);
             }
@@ -131,7 +153,7 @@ void Arpeggiator::setSustain(uint8_t sustain) {
 
 void Arpeggiator::checkLatch() {
     if (arpLatch.value == 0) {
-        for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end();) {
+        for (auto it = inputKeys.begin(); it != inputKeys.end();) {
             if (it->released) {
                 it = inputKeys.erase(it); // delete key
             }
@@ -149,11 +171,12 @@ void Arpeggiator::restart() {
     restarted = 1;
     midiUpdateDelayTimer = 0;
 
-    for (std::list<Key>::iterator it = pressedKeys.begin(); it != pressedKeys.end();)
+    for (auto it = pressedKeys.begin(); it != pressedKeys.end();)
         voiceHandler->freeNote(*it); // free Note
 
     pressedKeys.clear();
     retriggerKeys.clear();
+    ratchedKeys.clear();
     reorder = 1;
 }
 
@@ -161,7 +184,7 @@ void Arpeggiator::orderKeys() {
     // println(micros(), " - ordered");
     orderedKeys.clear();
 
-    for (std::list<Key>::iterator it = inputKeys.begin(); it != inputKeys.end(); it++) {
+    for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         orderedKeys.push_back(*it);
     }
     std::sort(orderedKeys.begin(), orderedKeys.end(), compareByNote);
@@ -251,10 +274,11 @@ void Arpeggiator::nextStep() {
     // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
     if (!retriggerKeys.empty()) {
         // repress all retrigger Notes
-        for (std::list<Key>::iterator it = retriggerKeys.begin(); it != retriggerKeys.end(); it++) {
-            it->lifespan = key.lifespan;
-            it->born = key.born;
-            pressKey(*it);
+        for (Key retKey : retriggerKeys) {
+            retKey.lifespan = key.lifespan;
+            retKey.born = key.born;
+            retKey.ratchedAmounts = key.ratchedAmounts;
+            pressKey(retKey);
         }
         retriggerKeys.clear();
     }

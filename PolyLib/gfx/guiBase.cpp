@@ -33,6 +33,14 @@ uint32_t cWarning = 0xFFFF0000;
 
 uint32_t cPatch = 0xFFFFFFFF;
 
+uint16_t c4444dot = 0xFfd4;
+
+uint16_t c4444wavecolor = 0xFFFF;
+uint16_t c4444wavecolorTrans = 0x8FFF;
+
+uint16_t c4444gridcolor = 0x3FFF;
+uint16_t c4444framecolor = 0xAFFF;
+
 uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
                          uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer, FONTALIGN alignment) {
     uint16_t width = getStringWidth(text, font) + space; // text witdh + space

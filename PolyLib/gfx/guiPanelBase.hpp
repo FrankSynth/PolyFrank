@@ -6,6 +6,7 @@
 #include "globalSettings/globalSettings.hpp"
 #include "guiActionHandler.hpp"
 #include "guiBase.hpp"
+#include "img/polybitmap.h"
 #include "layer/layer.hpp"
 #include "livedata/liveData.hpp"
 #include "poly.hpp"
@@ -13,10 +14,12 @@
 #include <functional>
 #include <string>
 
-#define FOCUSPANELENTRYS 6
+#define FOCUSPANELENTRYS 9
+#define FOCUSPANELENTRYSWAVE 6
+
 #define CONFIGPANELENTRYS 5
 #define PATCHPANELENTRYS 7
-#define PRESETPANELENTRYS 7
+#define PRESETPANELENTRYS 9
 #define LIVEPANELENTRYS 3
 
 extern const GUI_FONTINFO *fontSmall;
@@ -58,6 +61,25 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, u
 
 void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
                         uint8_t hugeFont = 0);
+
+void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+                            uint8_t modulename = false);
+
+void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y);
+
+void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
+void drawFrame(uint16_t color);
+void drawGrid(uint16_t color);
+
+void drawVecWave(vec<2> *renderedWave, uint16_t samples);
+
+void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples);
+void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples);
+
+void drawADSR(WaveBuffer &wavebuffer, ADSR *module);
+
+void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module);
+void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module);
 
 const char *valueToNote(const byte &noteIn);
 
@@ -281,6 +303,83 @@ class Live_PanelElement {
     uint16_t entryHeight;
 
     entryStruct entrys[4];
+
+    uint16_t width;
+    uint16_t height;
+};
+
+// GUIHeader Box for Panel Selection
+class EffectAmount_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+        this->select = select;
+    }
+    void Draw();
+
+    void addEntry(Analog *data = nullptr, uint16_t moduleName = false) {
+
+        entrys[numberEntrys] = data;
+        this->moduleName[numberEntrys] = moduleName;
+
+        numberEntrys++;
+        visible = 1;
+    }
+
+    uint8_t select = 0;
+    uint8_t visible = 0;
+    uint16_t numberEntrys = 0;
+    std::string name;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    Analog *entrys[4];
+    uint16_t moduleName[4];
+
+    uint16_t width;
+    uint16_t height;
+};
+
+// GUIHeader Box for Panel Selection
+class Effect_PanelElement {
+  public:
+    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+        this->select = select;
+    }
+    void Draw();
+
+    void addEntry(Analog *data = nullptr) {
+
+        entrys[numberEntrys] = data;
+
+        numberEntrys++;
+        visible = 1;
+    }
+
+    uint8_t select = 0;
+    uint8_t visible = 0;
+    uint16_t numberEntrys = 0;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    Analog *entrys[4];
 
     uint16_t width;
     uint16_t height;

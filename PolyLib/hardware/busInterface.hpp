@@ -1,5 +1,6 @@
 #pragma once
 
+#include "datacore/dataHelperFunctions.hpp"
 #include <functional>
 #include <string>
 #include <vector>

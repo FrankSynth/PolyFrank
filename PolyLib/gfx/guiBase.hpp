@@ -31,6 +31,13 @@ extern uint32_t cLow;
 extern uint32_t cPatch;
 extern uint32_t cWarning;
 
+extern uint16_t c4444dot;
+extern uint16_t c4444wavecolor;
+extern uint16_t c4444wavecolorTrans;
+
+extern uint16_t c4444gridcolor;
+extern uint16_t c4444framecolor;
+
 // responsive sizes
 #define HEADERHEIGHT 36
 #define FOOTERHEIGHT 44

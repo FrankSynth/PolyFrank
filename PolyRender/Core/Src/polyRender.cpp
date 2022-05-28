@@ -11,10 +11,6 @@ Layer layerA(layerId.getNewId());
 extern devManager deviceManager;
 spiBus spiBusLayer;
 
-uint8_t sendString(const char *message);
-uint8_t sendString(std::string &message);
-uint8_t sendString(std::string &&message);
-
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
@@ -262,7 +258,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
     audiorendercounter++;
 
     if (audiorendercounter > 10000) {
-        sendString(std::to_string((float)audiorendercache / (float)audiorendercounter));
+        println(std::to_string((float)audiorendercache / (float)audiorendercounter));
         audiorendercounter = 0;
         audiorendercache = 0;
     }
@@ -337,11 +333,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
         if (FlagHandler::cvDacLastFinished[2] == false) {
             PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
-            sendString("CV send not done");
+            println("CV send not done");
         }
 
         if (FlagHandler::renderNewCV == true) {
-            sendString("CV rendering not done");
+            println("CV rendering not done");
         }
         FlagHandler::renderNewCV = true;
 
@@ -448,20 +444,20 @@ void resetMCPI2CAddress() {
     }
 }
 
-inline uint8_t sendString(std::string &message) {
+uint8_t sendString(const std::string &message) {
     return layerCom.sendString(message);
 }
-inline uint8_t sendString(std::string &&message) {
+uint8_t sendString(std::string &&message) {
     return layerCom.sendString(message);
 }
-inline uint8_t sendString(const char *message) {
+uint8_t sendString(const char *message) {
     return layerCom.sendString(message);
 }
-inline uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
+uint8_t sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendOutput(modulID, settingID, amount);
 }
 
-inline uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
+uint8_t sendRenderbuffer(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     return layerCom.sendRenderbuffer(modulID, settingID, amount);
 }
 
@@ -472,11 +468,12 @@ void outputCollect() {
     }
     for (BaseModule *m : layerA.modules) {
         for (RenderBuffer *r : m->renderBuffer) {
-            sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
+            if (r->sendOutViaCom)
+                sendRenderbuffer(m->id, r->id, r->currentSample); // send all voices
         }
     }
 
-    if (layerA.chipID == 1) {
+    if (layerA.chipID == 0) {
         renderAudioUI(audioSendBuffer);
         layerCom.sendAudioBuffer(audioSendBuffer);
     }

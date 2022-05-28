@@ -15,19 +15,20 @@ inline vec<VOICESPERCHIP> accumulateSamplecrusher(const OSC_A &osc_a) {
 inline vec<VOICESPERCHIP> accumulateMorph(const OSC_A &osc_a) {
     return clamp(osc_a.iMorph + osc_a.aMorph, osc_a.aMorph.min, osc_a.aMorph.max);
 }
-// inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_A &osc_a) {
-//     return clamp(osc_a.iSquircle + osc_a.aSquircle, osc_a.aSquircle.min, osc_a.aSquircle.max);
-// }
+
 inline vec<VOICESPERCHIP> accumulateOctave(const OSC_A &osc_a) {
     return clamp(round(osc_a.iOctave + (float)osc_a.dOctave), osc_a.dOctave.min, osc_a.dOctave.max);
 }
 
 vec<VOICESPERCHIP, float> noteConverted;
 
-inline vec<VOICESPERCHIP> accumulateNote(const OSC_A &osc_a) {
-    noteConverted = (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
+inline vec<VOICESPERCHIP> accumulateNote(OSC_A &osc_a) {  //Musste ich auch nicht const ändern damit die fm zuweisung geht, keine ahnung
 
-    noteConverted += layerA.oscA.aMasterTune;
+    noteConverted = layerA.oscA.aMasterTune;
+    noteConverted += (osc_a.iFM * 0.25);
+    osc_a.fm = noteConverted;  
+
+    noteConverted += (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
 
     static vec<VOICESPERCHIP> currentNote;
     static vec<VOICESPERCHIP> desiredNote;
@@ -48,7 +49,7 @@ inline vec<VOICESPERCHIP> accumulateNote(const OSC_A &osc_a) {
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
-    vec<VOICESPERCHIP> note = currentNote + osc_a.iFM;
+    vec<VOICESPERCHIP> note = currentNote;
 
     note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
 
@@ -60,10 +61,10 @@ inline vec<VOICESPERCHIP> accumulateNote(const OSC_A &osc_a) {
 
 void renderOSC_A(OSC_A &osc_A) {
     osc_A.note = accumulateNote(osc_A);
-    osc_A.morph = accumulateMorph(osc_A);
+    osc_A.morphRAW = accumulateMorph(osc_A);
+    osc_A.morph = osc_A.morphRAW * (WAVETABLESPERVOICE - 1);
     osc_A.bitcrusher = accumulateBitcrusher(osc_A);
     osc_A.samplecrusher = accumulateSamplecrusher(osc_A);
-    // osc_A.squircle = accumulateSquircle(osc_A);
 }
 
 ///////////////////////////// OSC B /////////////////////////////////
@@ -72,8 +73,7 @@ inline vec<VOICESPERCHIP> accumulateBitcrusher(const OSC_B &osc_b) {
     return clamp(osc_b.iBitcrusher + osc_b.aBitcrusher, osc_b.aBitcrusher.min, osc_b.aBitcrusher.max);
 }
 inline vec<VOICESPERCHIP> accumulateSamplecrusher(const OSC_B &osc_b) {
-    return clamp(osc_b.iSamplecrusher * osc_b.aSamplecrusher + osc_b.aSamplecrusher.valueMapped,
-                 osc_b.aSamplecrusher.min, osc_b.aSamplecrusher.max);
+    return clamp(osc_b.iSamplecrusher + osc_b.aSamplecrusher, osc_b.aSamplecrusher.min, osc_b.aSamplecrusher.max);
 }
 inline vec<VOICESPERCHIP> accumulateMorph(const OSC_B &osc_b) {
     return clamp(osc_b.iMorph + osc_b.aMorph, osc_b.aMorph.min, osc_b.aMorph.max);
@@ -85,9 +85,6 @@ inline vec<VOICESPERCHIP> accumulateOctave(const OSC_B &osc_b) {
 inline vec<VOICESPERCHIP> accumulatePhaseoffset(const OSC_B &osc_b) {
     return osc_b.iPhaseOffset + osc_b.aPhaseoffset;
 }
-// inline vec<VOICESPERCHIP> accumulateSquircle(const OSC_B &osc_b) {
-//     return clamp(osc_b.iSquircle + osc_b.aSquircle, osc_b.aSquircle.min, osc_b.aSquircle.max);
-// }
 
 inline vec<VOICESPERCHIP> accumulateNote(const OSC_B &osc_b) {
 
@@ -125,11 +122,11 @@ inline vec<VOICESPERCHIP> accumulateNote(const OSC_B &osc_b) {
 
 void renderOSC_B(OSC_B &osc_B) {
     osc_B.note = accumulateNote(osc_B);
-    osc_B.morph = accumulateMorph(osc_B);
+    osc_B.morphRAW = accumulateMorph(osc_B);
+    osc_B.morph = osc_B.morphRAW * (WAVETABLESPERVOICE - 1);
     osc_B.bitcrusher = accumulateBitcrusher(osc_B);
     osc_B.samplecrusher = accumulateSamplecrusher(osc_B);
     osc_B.phaseoffset = accumulatePhaseoffset(osc_B);
-    // osc_B.squircle = accumulateSquircle(osc_B);
 }
 
 #endif

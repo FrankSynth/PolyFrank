@@ -134,7 +134,7 @@ inline vec<VOICESPERCHIP> getNoiseSample() {
 
     // map to -1, 1
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        if (sampleCrushCount[i] > layerA.noise.samplecrusher[i]) {
+        if (sampleCrushCount[i] > (layerA.noise.samplecrusher[i]) * 960.f) {
             sample[i] = ((float)randomNumber[i] / 8388607.0f) - 1.0f;
             sampleCrushCount[i] = 0;
         }
@@ -148,33 +148,33 @@ inline vec<VOICESPERCHIP> getSubSample() {
     static vec<VOICESPERCHIP> phaseDifferenceOscA;
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
 
-    const vec<VOICESPERCHIP> &bitcrusher = layerA.sub.bitcrusher;
-    const vec<VOICESPERCHIP> &samplecrusher = layerA.sub.samplecrusher;
+    // const vec<VOICESPERCHIP> &bitcrusher = layerA.sub.bitcrusher;
+    // const vec<VOICESPERCHIP> &samplecrusher = layerA.sub.samplecrusher;
     const vec<VOICESPERCHIP> &shape = layerA.sub.shape;
 
     static vec<VOICESPERCHIP> phase;
     static vec<VOICESPERCHIP> oscApreviousPhase;
 
-    vec<VOICESPERCHIP> newSample;
+    // vec<VOICESPERCHIP> newSample;
 
     vec<VOICESPERCHIP> shapeDiv = 4.0f / max(0.01f, shape);
     phase -= floor(phase);
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         if (phase[i] < 0.5f) {
-            newSample[i] = phase[i] * (shapeDiv[i]) - 1.0f;
-            newSample[i] = std::min(newSample[i], 1.0f);
+            sample[i] = phase[i] * (shapeDiv[i]) - 1.0f;
+            sample[i] = std::min(sample[i], 1.0f);
         }
         else {
-            newSample[i] = (phase[i] - 0.5f) * (-shapeDiv[i]) + 1.0f;
-            newSample[i] = std::max(newSample[i], -1.0f);
+            sample[i] = (phase[i] - 0.5f) * (-shapeDiv[i]) + 1.0f;
+            sample[i] = std::max(sample[i], -1.0f);
         }
     }
 
-    newSample = bitcrush(bitcrusher, newSample);
+    // newSample = bitcrush(bitcrusher, newSample);
 
-    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
-    sampleCrushCount *= !sampleCrushNow;
-    sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
+    // vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
+    // sampleCrushCount *= !sampleCrushNow;
+    // sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
 
     float phaseLength = 0.5f * !layerA.sub.dOctaveSwitch + 0.25f * layerA.sub.dOctaveSwitch;
 
@@ -183,6 +183,7 @@ inline vec<VOICESPERCHIP> getSubSample() {
     oscApreviousPhase = layerA.oscA.phase;
 
     phase += phaseDifferenceOscA * phaseLength;
+    // sample = newSample;
 
     return sample;
 }
@@ -209,7 +210,7 @@ inline vec<VOICESPERCHIP> getOscASample() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         wavetableUpper[i] = &oscAwavetable[waveTableSelectionUpper[i]];
 
-    vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase);
+    vec<VOICESPERCHIP> shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -256,12 +257,12 @@ inline vec<VOICESPERCHIP> getOscASample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    newSample = renderWaveshaperSample(newSample);
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaperA);
 
     newSample = bitcrush(bitcrusher, newSample);
 
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
-    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
+    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > (samplecrusher * 960.f);
 
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
@@ -306,7 +307,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
-    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted);
+    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
 
     vec<VOICESPERCHIP> stepWavetableLower;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -348,12 +349,12 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP> tempMorph = morph - waveTableSelectionLower;
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
 
-    newSample = renderWaveshaperSample(newSample);
+    newSample = renderWaveshaperSample(newSample, layerA.waveshaperB);
 
     newSample = bitcrush(bitcrusher, newSample);
 
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
-    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > samplecrusher;
+    vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > (samplecrusher * 960.f);
 
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
@@ -374,21 +375,28 @@ vec<VOICESPERCHIP> getOscBSample() {
 // possible combinations threshold = 0.8, maxloudness = 4
 // possible combinations threshold = 0.9, maxloudness = 4 (high n!)
 inline float softLimit(float inputSample) {
-    const float threshold = 0.7f;
 
+    const float threshold = 0.7f;
     const float maxVal = 4.0f;
 
-    const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
-    const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+    // const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
+    // const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+
+    ///////////////////////////////
+    // currently for threshold = 0.7, maxVal = 4.0
+    const uint32_t n = 11;
+    const float d = -5.935644964E-7f;
+    ///////////////////////////////
 
     float sign = getSign(inputSample);
     float absInput = inputSample * sign;
 
     if (absInput <= threshold)
         return inputSample;
+    if (absInput >= maxVal)
+        return sign;
 
     float sample = d * powf(maxVal - absInput, n) + 1.0f;
-
     return std::clamp(sample * sign, -1.0f, 1.0f);
 }
 

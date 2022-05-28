@@ -20,10 +20,10 @@ TARGET = PolyControl
 # building variabless
 ######################################
 # debug build?
-DEBUG = 1
+DEBUG = 0
 DISASSEMBLY = 0
 # optimization
-OPT = -O2
+OPT = -Ofast
 
 #######################################
 # paths
@@ -165,6 +165,10 @@ CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g3 -gdwarf-2
+endif
+
+ifeq ($(DEBUG), 0)
+C_DEFS += -DNDEBUG
 endif
 
 ifeq ($(DISASSEMBLY), 1)

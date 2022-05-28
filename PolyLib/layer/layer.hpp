@@ -24,8 +24,10 @@ class Layer {
         // add Modules
         modules.push_back(&oscA);
         modules.push_back(&oscB);
-        modules.push_back(&waveshaper);
-        modules.push_back(&phaseshaper);
+        modules.push_back(&waveshaperA);
+        modules.push_back(&phaseshaperA);
+        modules.push_back(&waveshaperB);
+        modules.push_back(&phaseshaperB);
         modules.push_back(&sub);
         modules.push_back(&noise);
         modules.push_back(&mixer);
@@ -125,8 +127,10 @@ class Layer {
     Midi midi = Midi("MIDI INTERFACE", "MIDI");
     OSC_A oscA = OSC_A("OSCILLATOR A", "OSC A");
     OSC_B oscB = OSC_B("OSCILLATOR B", "OSC B");
-    Waveshaper waveshaper = Waveshaper("WAVESHAPER", "WVSHPR");
-    Phaseshaper phaseshaper = Phaseshaper("PHASESHAPER", "PHSHPR");
+    Waveshaper waveshaperA = Waveshaper("WAVESHAPER A", "WAVE A");
+    Waveshaper waveshaperB = Waveshaper("WAVESHAPER B", "WAVE B");
+    Phaseshaper phaseshaperA = Phaseshaper("PHASESHAPER A", "PHASE A");
+    Phaseshaper phaseshaperB = Phaseshaper("PHASESHAPER B", "PHASE B");
     Sub sub = Sub("SUB OSCILLATOR (A)", "SUB");
     Noise noise = Noise("NOISE GENERATOR", "NOISE");
     Mixer mixer = Mixer("MIXER", "MIXER");
@@ -136,7 +140,7 @@ class Layer {
     LFO lfoB = LFO("LFO B", "LFO B");
     ADSR envA = ADSR("ENVELOPE VCA", "ENV A");
     ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
-    Out out = Out("OUTPUT", "OUTPUT");
+    Out out = Out("MASTER", "MASTER");
     Feel feel = Feel("FEEL", "FEEL");
     LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 
