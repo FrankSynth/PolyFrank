@@ -237,23 +237,14 @@ void checkLayerRequests() {
         }
     }
     else {
-        uint32_t layer = 0xFF;
-        uint32_t chip = 0xFF;
-        for (int i = 0; i < 2; i++)
-            for (int v = 0; v < 2; v++)
-                if (allLayers[i]->layerState.value) {
-                    if (layerCom.requestState[i][v] == RQ_REQUESTDATA) {
-                        layer = i;
-                        chip = v;
-                        i = 2;
-                        v = 2;
+        for (uint32_t layer = 0; layer < 2; layer++)
+            for (uint32_t chip = 0; chip < 2; chip++)
+                if (allLayers[layer]->layerState.value) {
+                    if (layerCom.requestState[layer][chip] == RQ_REQUESTDATA) {
+                        layerCom.sendRequestUIData(layer, chip);
+                        return;
                     }
                 }
-
-        if (layer == 0xFF || chip == 0xFF) {
-            return;
-        }
-        layerCom.sendRequestUIData(layer, chip);
     }
 }
 

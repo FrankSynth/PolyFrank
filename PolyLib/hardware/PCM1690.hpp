@@ -26,7 +26,7 @@ class PCM1690 {
     }
 
     void init() {
-        uint8_t config[2] = {0, 0};
+        uint8_t config[2];
 
         // if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
         //     Error_Handler();
@@ -37,8 +37,7 @@ class PCM1690 {
         // disable sleep
 
         config[0] = 0x41;
-        // config[1] = config[1] | (1 << 7);
-        config[1] = config[1] | 0b1000; // mode
+        config[1] = 0b00001000; // mode
 
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
 
@@ -47,6 +46,19 @@ class PCM1690 {
         }
 
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
+
+        // HAL_Delay(10);
+
+        // config[0] = 0x42;
+        // config[1] = 0b00001111; // mode
+
+        // HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+
+        // if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
+        //     PolyError_Handler("ERROR | FATAL | PCM 1690 transmit");
+        // }
+
+        // HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
     }
 
     void startSAI() {

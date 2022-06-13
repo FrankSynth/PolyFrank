@@ -1,6 +1,7 @@
 #ifdef POLYRENDER
 
 #include "renderAudio.hpp"
+#include "LowPassFilter.hpp"
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
 #include "render/renderPhaseshaper.hpp"
@@ -400,6 +401,25 @@ inline float softLimit(float inputSample) {
     return std::clamp(sample * sign, -1.0f, 1.0f);
 }
 
+// #define OUTFILTERCUTOFF 6000
+// #define OUTFILTERTIMEDELTA 1.0 / 48000.0
+
+// LowPassFilter lpfLadderA[VOICESPERCHIP] = {
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA),
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA)};
+
+// LowPassFilter lpfLadderB[VOICESPERCHIP] = {
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA),
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA)};
+
+// LowPassFilter lpfSteinerA[VOICESPERCHIP] = {
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA),
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA)};
+
+// LowPassFilter lpfSteinerB[VOICESPERCHIP] = {
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA),
+//     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA)};
+
 /**
  * @brief render all Audio Samples
  *
@@ -424,8 +444,14 @@ void renderAudio(volatile int32_t *renderDest) {
         sampleSteiner += oscASample * layerA.mixer.oscALevelSteiner;
         sampleSteiner += oscBSample * layerA.mixer.oscBLevelSteiner;
 
+        // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        //     sampleSteiner[i] = lpfSteinerA[i].update(sampleSteiner[i]);
+
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             sampleSteiner[i] = softLimit(sampleSteiner[i]);
+
+        // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        //     sampleSteiner[i] = lpfSteinerB[i].update(sampleSteiner[i]);
 
         sampleSteiner *= 8388607.0f;
 
@@ -441,12 +467,27 @@ void renderAudio(volatile int32_t *renderDest) {
         sampleLadder += oscASample * layerA.mixer.oscALevelLadder;
         sampleLadder += oscBSample * layerA.mixer.oscBLevelLadder;
 
+        // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        //     sampleLadder[i] = lpfLadderA[i].update(sampleLadder[i]);
+
         for (uint32_t i = 0; i < VOICESPERCHIP; i++)
             sampleLadder[i] = softLimit(sampleLadder[i]);
+
+        // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        //     sampleLadder[i] = lpfLadderB[i].update(sampleLadder[i]);
 
         sampleLadder *= 8388607.0f;
 
         vec<VOICESPERCHIP, int32_t> intSampleLadder = sampleLadder;
+
+        for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+            if (layerA.oscA.phase[i] < 0.5f) {
+                intSampleLadder[i] = 8000000;
+            }
+            else {
+                intSampleLadder[i] = -8000000;
+            }
+        }
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];

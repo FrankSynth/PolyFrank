@@ -75,10 +75,10 @@ void sendI2CAddressUpdate(i2cpin i2cPins, GPIO_TypeDef *latchPort, uint16_t latc
     HAL_GPIO_Init(i2cPins.portSDA, &GPIO_InitStruct);
 
     if (nack) {
-        println("I2C AddressChange - NACK!", "-> Address change from ", fromAddress, " to ", toAddress, " failed ");
+        // println("I2C AddressChange - NACK!", "-> Address change from ", fromAddress, " to ", toAddress, " failed ");
     }
     else {
-        println("I2C Address changed", "-> from ", fromAddress, " to ", toAddress);
+        // println("I2C Address changed", "-> from ", fromAddress, " to ", toAddress);
     }
 
     HAL_Delay(100);
