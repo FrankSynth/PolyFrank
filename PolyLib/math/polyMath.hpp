@@ -26,20 +26,6 @@
 #define ALWAYS_INLINE __attribute__((always_inline))
 #endif
 
-/**
- * @brief  Process function for the floating-point Linear Interpolation Function.
- * @param[in,out] S  is an instance of the floating-point Linear Interpolation structure
- * @param[in]     x  input sample to process
- * @return y processed output sample.
- *
- */
-typedef struct {
-    uint32_t nValues; /**< nValues */
-    float x1;         /**< x1 */
-    float xSpacing;   /**< xSpacing */
-    float *pYData;    /**< pointer to the table of Y values */
-} arm_linear_interp_instance_f32;
-
 // table for fast sin
 extern const float sinTable_f32[FAST_MATH_TABLE_SIZE + 1];
 

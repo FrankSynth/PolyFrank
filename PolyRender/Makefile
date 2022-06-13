@@ -61,10 +61,22 @@ PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
+\
+PolyRender/Drivers/CMSIS/DSP/Source/BasicMathFunctions/BasicMathFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/CommonTables/CommonTables.c \
+PolyRender/Drivers/CMSIS/DSP/Source/ComplexMathFunctions/ComplexMathFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/ControllerFunctions/ControllerFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/FastMathFunctions/FastMathFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/FilteringFunctions/FilteringFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/MatrixFunctions/MatrixFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/StatisticsFunctions/StatisticsFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/SupportFunctions/SupportFunctions.c \
+PolyRender/Drivers/CMSIS/DSP/Source/TransformFunctions/TransformFunctions.c 
 
 C_SOURCES += $(wildcard PolyRender/Core/**/*.c)
 C_SOURCES += $(wildcard PolyLib/**/*.c)
 C_SOURCES += $(wildcard PolyLib/**/**/*.c)
+
 
 CPP_SOURCES =  $(wildcard PolyRender/**/**/*.cpp) $(wildcard PolyRender/**/*.cpp) $(wildcard PolyRender/**/**/**/*.cpp)
 CPP_SOURCES +=  $(wildcard PolyLib/**/**/*.cpp) $(wildcard PolyLib/**/*.cpp) $(wildcard PolyLib/**/**/**/*.cpp) $(wildcard PolyLib/*.cpp)
@@ -172,7 +184,7 @@ LDSCRIPT = PolyRender/PolyRenderMemoryLayout.ld
 
 # libraries
 LIBS = -lc -lm -lnosys -lstdc++
-LIBDIR = -LPolyRender/Drivers/CMSIS/Lib/GCC -larm_cortexM7lfdp_math
+# LIBDIR = -LPolyRender/Drivers/CMSIS/DSP/Lib/GCC -larm_cortexM7lfdp_math
 # LIBDIR = 
 
 

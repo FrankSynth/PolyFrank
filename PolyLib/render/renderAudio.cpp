@@ -2,6 +2,7 @@
 
 #include "renderAudio.hpp"
 #include "LowPassFilter.hpp"
+#include "arm_math.h"
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
 #include "render/renderPhaseshaper.hpp"
