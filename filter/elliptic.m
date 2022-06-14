@@ -1,4 +1,4 @@
-function Hd = elliptic
+clear;
 %ELLIPTIC Returns a discrete-time filter object.
 
 % MATLAB Code
@@ -20,8 +20,17 @@ h  = fdesign.lowpass('N,Fp,Ap,Ast', N, Fpass, Apass, Astop, Fs);
 Hd = design(h, 'ellip');
 set(Hd, 'Arithmetic', 'single');
 
+scale =  Hd.scaleValues(1:2)
+
+matrix = Hd.sosMatrix()
+matrix(1 , 1:3) = matrix(1 , 1:3) * scale(1)
+matrix(2 , 1:3) = matrix(2 , 1:3) * scale(2)
+
+
+
 % flatten coefficients for ARM
-coeffs = reshape(Hd.sosMatrix(:,[1 2 3 5 6])' .* [1 1 1 -1 -1]',[],1);
+coeffs = reshape(matrix(:,[1 2 3 5 6])' .* [1 1 1 -1 -1]',[],1);
+
 % create string for copy/paste, cut off last ,\n
-coeffStr = sprintf('%1.10ff,\n',coeffs);
+coeffStr = sprintf('%1.20ff,\n',coeffs);
 disp(coeffStr(1:end-2));

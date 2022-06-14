@@ -428,14 +428,14 @@ static float m_biquad_state1[IIR_ORDER];
 static float m_biquad_state2[IIR_ORDER];
 static float m_biquad_state3[IIR_ORDER];
 static float m_biquad_state4[IIR_ORDER];
-const float m_biquad_coeffs[5 * IIR_NUMSTAGES] = {1.0000000000f,  1.7096315622f, 1.0000000000f, 1.1975271702f,
-                                                  -0.4675616324f, 1.0000000000f, 0.8004875779f, 1.0000000000f,
-                                                  0.9061619639f,  -0.7999926209f};
+const float m_biquad_coeffs[5 * IIR_NUMSTAGES] = {
+    1.15727341175079345703f,  1.97851115086218953820f, 1.15727341175079345703f, 1.19752717018127441406f,
+    -0.46756163239479064941f, 0.01789262518286705017f, 0.01432282419517760808f, 0.01789262518286705017f,
+    0.90616196393966674805f,  -0.79999262094497680664f};
 arm_biquad_cascade_df2T_instance_f32 const filtInst1 = {IIR_ORDER / 2, m_biquad_state1, m_biquad_coeffs};
 arm_biquad_cascade_df2T_instance_f32 const filtInst2 = {IIR_ORDER / 2, m_biquad_state2, m_biquad_coeffs};
 arm_biquad_cascade_df2T_instance_f32 const filtInst3 = {IIR_ORDER / 2, m_biquad_state3, m_biquad_coeffs};
 arm_biquad_cascade_df2T_instance_f32 const filtInst4 = {IIR_ORDER / 2, m_biquad_state4, m_biquad_coeffs};
-
 
 /**
  * @brief render all Audio Samples
