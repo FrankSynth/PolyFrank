@@ -1,7 +1,8 @@
 #ifdef POLYRENDER
 
 #include "renderAudio.hpp"
-#include "LowPassFilter.hpp"
+// #include "LowPassFilter.hpp"
+#include "arm_const_structs.h"
 #include "arm_math.h"
 #include "datacore/dataHelperFunctions.hpp"
 #include "render/renderAudioDef.h"
@@ -421,6 +422,21 @@ inline float softLimit(float inputSample) {
 //     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA),
 //     LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA), LowPassFilter(OUTFILTERCUTOFF, OUTFILTERTIMEDELTA)};
 
+#define IIR_ORDER 4
+#define IIR_NUMSTAGES (IIR_ORDER / 2)
+static float m_biquad_state1[IIR_ORDER];
+static float m_biquad_state2[IIR_ORDER];
+static float m_biquad_state3[IIR_ORDER];
+static float m_biquad_state4[IIR_ORDER];
+const float m_biquad_coeffs[5 * IIR_NUMSTAGES] = {1.0000000000f,  1.7096315622f, 1.0000000000f, 1.1975271702f,
+                                                  -0.4675616324f, 1.0000000000f, 0.8004875779f, 1.0000000000f,
+                                                  0.9061619639f,  -0.7999926209f};
+arm_biquad_cascade_df2T_instance_f32 const filtInst1 = {IIR_ORDER / 2, m_biquad_state1, m_biquad_coeffs};
+arm_biquad_cascade_df2T_instance_f32 const filtInst2 = {IIR_ORDER / 2, m_biquad_state2, m_biquad_coeffs};
+arm_biquad_cascade_df2T_instance_f32 const filtInst3 = {IIR_ORDER / 2, m_biquad_state3, m_biquad_coeffs};
+arm_biquad_cascade_df2T_instance_f32 const filtInst4 = {IIR_ORDER / 2, m_biquad_state4, m_biquad_coeffs};
+
+
 /**
  * @brief render all Audio Samples
  *
@@ -477,18 +493,34 @@ void renderAudio(volatile int32_t *renderDest) {
         // for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         //     sampleLadder[i] = lpfLadderB[i].update(sampleLadder[i]);
 
+        // for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        //     if (layerA.oscA.phase[i] < 0.5f) {
+        //         sampleLadder[i] = 0.7f;
+        //     }
+        //     else {
+        //         sampleLadder[i] = -0.7f;
+        //     }
+        // }
+        float calc[2] = {sampleLadder[0], 0.0f};
+        float out[2];
+        arm_biquad_cascade_df2T_f32(&filtInst1, calc, out, 2);
+        sampleLadder[0] = out[0] * 2;
+
+        calc[0] = sampleLadder[1];
+        arm_biquad_cascade_df2T_f32(&filtInst2, calc, out, 2);
+        sampleLadder[1] = out[0] * 2;
+
+        calc[0] = sampleLadder[2];
+        arm_biquad_cascade_df2T_f32(&filtInst3, calc, out, 2);
+        sampleLadder[2] = out[0] * 2;
+
+        calc[0] = sampleLadder[3];
+        arm_biquad_cascade_df2T_f32(&filtInst4, calc, out, 2);
+        sampleLadder[3] = out[0] * 2;
+
         sampleLadder *= 8388607.0f;
 
         vec<VOICESPERCHIP, int32_t> intSampleLadder = sampleLadder;
-
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            if (layerA.oscA.phase[i] < 0.5f) {
-                intSampleLadder[i] = 8000000;
-            }
-            else {
-                intSampleLadder[i] = -8000000;
-            }
-        }
 
         renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
         renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
