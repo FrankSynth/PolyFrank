@@ -313,7 +313,9 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP, bool> syncWavetablesNow = (cacheOscAPhase > oscAphase) && layerA.oscB.dSync;
     phase = phase * !syncWavetablesNow;
     cacheOscAPhase = oscAphase;
+
     phase += noteStep * PHASEPROGRESSPERRENDER;
+    phase -= floor(phase);
 
     vec<VOICESPERCHIP> phaseOffsetted = phase + phaseoffset + 1.0f;
     phaseOffsetted -= floor(phaseOffsetted);

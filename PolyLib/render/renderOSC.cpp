@@ -59,13 +59,12 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     // static uint32_t cacheSubTable = 100;
 
-    layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp(
-        (note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
-        (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
+    layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
+                                                                   (float)(SUBWAVETABLES - 1));
 
     // if (cacheSubTable != layerA.oscA.subWavetable[0]) {
     //     cacheSubTable = layerA.oscA.subWavetable[0];
-    //     println(layerA.oscA.subWavetable[0]); // TODO remove print once done
+    //     println(layerA.oscA.subWavetable[0]);
     // }
 
     layerA.sub.oscANote = note; // to calc subtable
@@ -142,9 +141,8 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
     note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
 
-    layerA.oscB.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp(
-        (note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
-        (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
+    layerA.oscB.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
+                                                                   (float)(SUBWAVETABLES - 1));
 
     vec<VOICESPERCHIP> logNote;
 

@@ -89,6 +89,9 @@ class Midi : public BaseModule {
         knobs.push_back(&aPitchbend);
 
         moduleType = MODULE_MIDI;
+
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+            rawNote[voice] = 21;
     }
 
     Output oMod = Output("MOD", "MOD");

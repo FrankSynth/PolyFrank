@@ -99,14 +99,9 @@ SECTIONS
     *device.o (.text .text*)
     *MCP4728.o (.text .text*) 
     *flagHandler.o (.text .text*) 
-     /* *sai.o (.text .text*) */
-    /* *spi.o (.text .text*) */
-    /* *dma.o (.text .text*) */
-    /* *mdma.o (.text .text*) */
-    /* *tim.o (.text .text*) */
-    /* *i2c.o (.text .text*) */
     *com* (.text .text*) 
     *stm32h7xx_it.o (.text .text*)
+    
     *render* (.rodata .rodata*) 
     *spline.o (.rodata .rodata*) 
     *polyMath.o (.rodata .rodata*) 
