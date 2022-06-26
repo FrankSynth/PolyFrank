@@ -145,6 +145,7 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&fm);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&morphRAW);
+        renderBuffer.push_back(&morphFract);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
 
@@ -153,15 +154,15 @@ class OSC_A : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", "FM", &fm);
-    Input iMorph = Input("MORPH", "MORPH", &morphRAW);
+    Input iFM = Input("FM", "FM", &fm);                // TODO different to OSC B?????
+    Input iMorph = Input("MORPH", "MORPH", &morphRAW); // TODO morph raw?
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iOctave = Input("OCTAVE", "OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable);
@@ -175,9 +176,14 @@ class OSC_A : public BaseModule {
     RenderBuffer fm;
     RenderBuffer morph;
     RenderBuffer morphRAW;
+    RenderBuffer morphFract;
     RenderBuffer bitcrusher;
+    RenderBuffer bitcrusherInv;
     RenderBuffer samplecrusher;
 
+    vec<VOICESPERCHIP, uint32_t> subWavetable;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> phase;
 };
@@ -212,6 +218,7 @@ class OSC_B : public BaseModule {
         renderBuffer.push_back(&tuning);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&morphRAW);
+        renderBuffer.push_back(&morphFract);
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
         renderBuffer.push_back(&phaseoffset);
@@ -221,7 +228,7 @@ class OSC_B : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", "FM", &note);
+    Input iFM = Input("FM", "FM", &note); // TODO ?? different to OSC A
     Input iMorph = Input("MORPH", "MORPH", &morphRAW);
     Input iTuning = Input("TUNING", "TUNING", &tuning);
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
@@ -231,7 +238,7 @@ class OSC_B : public BaseModule {
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iTuning);
-    Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
+    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
 
@@ -247,10 +254,15 @@ class OSC_B : public BaseModule {
     RenderBuffer tuning;
     RenderBuffer morph;
     RenderBuffer morphRAW;
+    RenderBuffer morphFract;
     RenderBuffer bitcrusher;
+    RenderBuffer bitcrusherInv;
     RenderBuffer samplecrusher;
     RenderBuffer phaseoffset;
 
+    vec<VOICESPERCHIP, uint32_t> subWavetable;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
     bool newPhase[VOICESPERCHIP] = {false};
 };
 
@@ -288,6 +300,10 @@ class Sub : public BaseModule {
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
     RenderBuffer shape;
+    vec<VOICESPERCHIP, uint32_t> subWavetable;
+    float phaseLength;
+    vec<VOICESPERCHIP> oscANote;
+
     // RenderBuffer bitcrusher;
     // RenderBuffer samplecrusher;
 };
@@ -881,12 +897,12 @@ class Phaseshaper : public BaseModule {
     Input iPoint4Y = Input("P4 Y", "P4 Y", &Point4Y);
     Input iDryWet = Input("Dry/Wet", "Dry/Wet", &DryWet);
 
-    Analog aPoint1Y = Analog("P1 Y", 0, 1, 0, true, linMap, &iPoint1Y);
-    Analog aPoint2X = Analog("P2 X", 0, 1, 1.0f / 3.0f, true, linMap, &iPoint2X);
-    Analog aPoint2Y = Analog("P2 Y", 0, 1, 1.0f / 3.0f, true, linMap, &iPoint2Y);
-    Analog aPoint3X = Analog("P3 X", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3X);
-    Analog aPoint3Y = Analog("P3 Y", 0, 1, 2.0f / 3.0f, true, linMap, &iPoint3Y);
-    Analog aPoint4Y = Analog("P4 Y", 0, 1, 1, true, linMap, &iPoint4Y);
+    Analog aPoint1Y = Analog("P1 Y", 0, 0.99999f, 0, true, linMap, &iPoint1Y); // TODO does this work, with 0.9999?
+    Analog aPoint2X = Analog("P2 X", 0, 0.99999f, 1.0f / 3.0f, true, linMap, &iPoint2X);
+    Analog aPoint2Y = Analog("P2 Y", 0, 0.99999f, 1.0f / 3.0f, true, linMap, &iPoint2Y);
+    Analog aPoint3X = Analog("P3 X", 0, 0.99999f, 2.0f / 3.0f, true, linMap, &iPoint3X);
+    Analog aPoint3Y = Analog("P3 Y", 0, 0.99999f, 2.0f / 3.0f, true, linMap, &iPoint3Y);
+    Analog aPoint4Y = Analog("P4 Y", 0, 0.99999f, 0.99999f, true, linMap, &iPoint4Y);
     Analog aDryWet = Analog("Dry/Wet", 0, 1, 0, true, linMap, &iDryWet);
 
     RenderBuffer Point1Y;

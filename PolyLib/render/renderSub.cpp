@@ -16,8 +16,11 @@ inline vec<VOICESPERCHIP> accumulateShape(const Sub &sub) {
 
 void renderSub(Sub &sub) {
     sub.shape = accumulateShape(sub);
-    // sub.bitcrusher = accumulateBitcrusher(sub);
-    // sub.samplecrusher = accumulateSamplecrusher(sub);
+    sub.phaseLength = 0.5f * !layerA.sub.dOctaveSwitch + 0.25f * layerA.sub.dOctaveSwitch;
+
+    sub.subWavetable =
+        clamp(round((sub.oscANote - (sub.dOctaveSwitch + 1)) * ((float)SUBWAVETABLES / 10.0f)), 0.0f,
+              (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
 }
 
 #endif

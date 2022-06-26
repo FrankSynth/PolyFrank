@@ -17,7 +17,7 @@ inline vec<VOICESPERCHIP> accumulateResonance(const Ladder &ladder) {
 
 void renderLadder(Ladder &ladder) {
     ladder.levelRAW = accumulateLevel(ladder);
-    ladder.level = LadderlinAntiLog.mapValue(ladder.levelRAW.nextSample);
+    ladder.level = LadderlinAntiLog.mapValue((vec<VOICESPERCHIP>)ladder.levelRAW);
     ladder.resonance = accumulateResonance(ladder);
     ladder.cutoff = accumulateCutoff(ladder);
 }

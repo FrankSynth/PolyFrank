@@ -11,120 +11,82 @@
 
 extern Layer layerA;
 
-// std::vector<const WaveTable *> wavetables;
+#define UIAUDIOPHASESTEP 0.01f
 
-extern const WaveTable *sourcesA[4];
-extern const WaveTable *sourcesB[4];
-
-extern float oscAwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH];
 extern WaveTable oscAwavetable[MAXWAVETABLESPERVOICE];
-
-extern float oscBwavetableRAM[MAXWAVETABLESPERVOICE][MAXWAVETABLELENGTH];
 extern WaveTable oscBwavetable[MAXWAVETABLESPERVOICE];
+extern WaveTable subOscWavetable[2];
 
-inline float bitcrush(float bitcrush, float sample) {
+inline float bitcrush(float bitcrush, float bitcrushInv, float sample) {
 
-    float mult = 1.0f / std::max(bitcrush, (1.0f / 8388607.0f));
-    float bitCrushedSample = mult * sample;
+    // vec<VOICESPERCHIP> mult = 1.0f / max(bitcrush, (1.0f / 8388607.0f));
+    float bitCrushedSample = bitcrushInv * sample;
     bitCrushedSample = std::round(bitCrushedSample);
-    bitCrushedSample = bitCrushedSample / mult;
+    bitCrushedSample = bitCrushedSample * bitcrush;
 
     return bitCrushedSample;
 }
 
 inline float getSubSample(float phase) {
 
-    static float sample;
-    // static uint32_t sampleCrushCount = 0;
-
-    // const float &bitcrusher = layerA.sub.bitcrusher[0];
-    // const float &samplecrusher = layerA.sub.samplecrusher[0];
     const float &shape = layerA.sub.shape[0];
 
-    float newSample;
+    uint32_t positionA = phase * WaveTable::subSize[0];
 
-    float shapeDiv = 4.0f / std::max(0.01f, shape);
+    float sampleA = subOscWavetable[0].subData[0][positionA];
+    float sampleB = subOscWavetable[1].subData[0][positionA];
 
-    if (phase < 0.5f) {
-        newSample = phase * (shapeDiv)-1.0f;
-        newSample = std::min(newSample, 1.0f);
-    }
-    else {
-        newSample = (phase - 0.5f) * (-shapeDiv) + 1.0f;
-        newSample = std::max(newSample, -1.0f);
-    }
+    float newSample = fast_lerp_f32(sampleA, sampleB, shape);
 
-    // newSample = bitcrush(bitcrusher, newSample);
-    // sampleCrushCount = sampleCrushCount * std::ceil(phase);
+    // static float prevNewSample = 0;
 
-    // sampleCrushCount = sampleCrushCount + 24;
+    // float derivCorrection = 1.0f / UIAUDIOPHASESTEP;
 
-    // bool sampleCrushNow = (sampleCrushCount) > (samplecrusher * 960.f);
-    // sampleCrushCount *= !sampleCrushNow;
-    // sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
+    // float derivSample1 = (newSample - prevNewSample) * derivCorrection;
 
-    return sample;
+    // prevNewSample = newSample;
+
+    return newSample;
 }
 
 inline float getOscASample(float phase) {
+    static uint32_t sampleCrushCount = 0;
+    sampleCrushCount = sampleCrushCount * (phase > 0.0001f); // first run = 0
 
     static float sample;
 
-    const float &morph = layerA.oscA.morph[0];
+    // const float &morph = layerA.oscA.morph[0];
     const float &bitcrusher = layerA.oscA.bitcrusher[0];
+    const float &bitcrusherInv = layerA.oscA.bitcrusherInv[0];
     const float &samplecrusher = layerA.oscA.samplecrusher[0];
+    const float &morphFract = layerA.oscA.morphFract[0];
 
-    uint32_t waveTableSelectionLower = morph;
-    uint32_t waveTableSelectionUpper = std::ceil(morph);
+    const uint32_t &waveTableSelectionLower = layerA.oscA.waveTableSelectionLower[0];
+    const uint32_t &waveTableSelectionUpper = layerA.oscA.waveTableSelectionUpper[0];
 
-    WaveTable *wavetableLower = &oscAwavetable[waveTableSelectionLower];
+    // static float prevPhase = -UIAUDIOPHASESTEP;
 
-    WaveTable *wavetableUpper = &oscAwavetable[waveTableSelectionUpper];
-
-    // TODO set dedicated shaper when ready
     float shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
+    // float phaseStep = std::min(fabsf(shapedPhase - prevPhase), fabsf(shapedPhase - prevPhase - 1.0f));
+    // prevPhase = shapedPhase;
 
-    float stepWavetableLower;
-    stepWavetableLower = shapedPhase * wavetableLower->stepRange;
+    uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
-    float stepWavetableUpper;
-    stepWavetableUpper = shapedPhase * wavetableUpper->stepRange;
+    float sampleA = oscAwavetable[waveTableSelectionLower].subData[0][positionA];
+    float sampleB = oscAwavetable[waveTableSelectionUpper].subData[0][positionA];
 
-    uint32_t positionA = stepWavetableLower;
-    // uint32_t positionAb = positionA + 1U;
-    // positionAb = positionAb * (positionAb != wavetableLower->stepRange);
+    float newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
 
-    float sampleA;
-    sampleA = oscAwavetableRAM[waveTableSelectionLower][positionA];
+    // static float prevNewSample = 0;
 
-    // float sampleAb;
-    // sampleAb = oscAwavetableRAM[waveTableSelectionLower][positionAb];
+    // float derivCorrection = 1.0f / std::max(phaseStep, 0.0000000000000000000000000000000000000000001f);
 
-    // float interSampleAPos = stepWavetableLower - positionA;
-    // sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
+    // float derivSample1 = (newSample - prevNewSample) * derivCorrection;
 
-    uint32_t positionB = stepWavetableUpper;
-    // uint32_t positionBb = positionB + 1U;
-    // positionBb = positionBb * (positionBb != wavetableUpper->size);
+    // prevNewSample = newSample;
 
-    float sampleB;
-    sampleB = oscAwavetableRAM[waveTableSelectionUpper][positionB];
-    // float sampleBb;
-    // sampleBb = oscAwavetableRAM[waveTableSelectionUpper][positionBb];
-
-    // float interSampleBPos = stepWavetableUpper - positionB;
-    // sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
-
-    float tempMorph = morph - waveTableSelectionLower;
-    float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
-
-    // TODO set dedicated shaper when ready
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperA);
-
-    newSample = bitcrush(bitcrusher, newSample);
-
-    static uint32_t sampleCrushCount = 0;
-    sampleCrushCount = sampleCrushCount * std::ceil(phase);
+    newSample = bitcrush(bitcrusher, bitcrusherInv, newSample);
 
     sampleCrushCount = sampleCrushCount + 24;
 
@@ -137,71 +99,52 @@ inline float getOscASample(float phase) {
 }
 
 float getOscBSample(float phase) {
+    static uint32_t sampleCrushCount = 0;
+    sampleCrushCount = sampleCrushCount * (phase > 0.0001f); // first run = 0
 
     static float sample;
 
-    // cache step of osc A, if smaller, new phase has begun.
-
-    const float &morph = layerA.oscB.morph[0];
+    // const float &morph = layerA.oscB.morph[0];
     const float &bitcrusher = layerA.oscB.bitcrusher[0];
+    const float &bitcrusherInv = layerA.oscA.bitcrusherInv[0];
     const float &samplecrusher = layerA.oscB.samplecrusher[0];
     const float &phaseoffset = layerA.oscB.phaseoffset[0];
+    const float &morphFract = layerA.oscB.morphFract[0];
 
-    uint32_t waveTableSelectionLower = morph;
-    uint32_t waveTableSelectionUpper = ceil(morph);
+    const uint32_t &waveTableSelectionLower = layerA.oscB.waveTableSelectionLower[0];
+    const uint32_t &waveTableSelectionUpper = layerA.oscB.waveTableSelectionUpper[0];
 
-    WaveTable *wavetableLower = &oscBwavetable[waveTableSelectionLower];
-    WaveTable *wavetableUpper = &oscBwavetable[waveTableSelectionUpper];
+    // static float prevPhase = -UIAUDIOPHASESTEP;
 
     // make sure to be in the right step range
     float phaseOffsetted = phase + phaseoffset;
     phaseOffsetted -= floor(phaseOffsetted);
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
-    // TODO set dedicated shaper when ready
-    phaseOffsetted = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
+    float shapedPhase = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
+    // float phaseStep = std::min(fabsf(shapedPhase - prevPhase), fabsf(shapedPhase - prevPhase - 1.0f));
+    // prevPhase = shapedPhase;
 
-    float stepWavetableLower;
-    stepWavetableLower = phaseOffsetted * wavetableLower->stepRange;
-    float stepWavetableUpper;
-    stepWavetableUpper = phaseOffsetted * wavetableUpper->stepRange;
+    uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
-    uint32_t positionA = stepWavetableLower;
-    // uint32_t positionAb = positionA + 1U;
-    // positionAb = positionAb * (positionAb != wavetableLower->size);
+    float sampleA = oscBwavetable[waveTableSelectionLower].subData[0][positionA];
+    float sampleB = oscBwavetable[waveTableSelectionUpper].subData[0][positionA];
 
-    float sampleA;
-    sampleA = oscBwavetableRAM[waveTableSelectionLower][positionA];
-    // float sampleAb;
-    // sampleAb = oscBwavetableRAM[waveTableSelectionLower][positionAb];
+    float newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
 
-    // float interSampleAPos = stepWavetableLower - positionA;
-    // sampleA = fast_lerp_f32(sampleA, sampleAb, interSampleAPos);
+    // static float prevNewSample = 0;
 
-    uint32_t positionB = stepWavetableUpper;
-    // uint32_t positionBb = positionB + 1U;
-    // positionBb = positionBb * (positionBb != wavetableUpper->size);
+    // float derivCorrection = 1.0f / std::max(phaseStep, 0.0000000000000000000000000000000000000000001f);
 
-    float sampleB;
-    sampleB = oscBwavetableRAM[waveTableSelectionUpper][positionB];
-    // float sampleBb;
-    // sampleBb = oscBwavetableRAM[waveTableSelectionUpper][positionBb];
+    // float derivSample1 = (newSample - prevNewSample) * derivCorrection;
 
-    // float interSampleBPos = stepWavetableUpper - positionB;
-    // sampleB = fast_lerp_f32(sampleB, sampleBb, interSampleBPos);
+    // prevNewSample = newSample;
 
-    float tempMorph = morph - waveTableSelectionLower;
-    float newSample = fast_lerp_f32(sampleA, sampleB, tempMorph);
-
-    // TODO set dedicated shaper when ready
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB);
+    newSample = bitcrush(bitcrusher, bitcrusherInv, newSample);
 
-    newSample = bitcrush(bitcrusher, newSample);
-
-    static uint32_t sampleCrushCount = 0;
-
-    sampleCrushCount = sampleCrushCount * std::ceil(phase);
     sampleCrushCount = sampleCrushCount + 24;
+
     bool sampleCrushNow = sampleCrushCount > (samplecrusher * 960.f);
 
     sampleCrushCount *= !sampleCrushNow;
@@ -211,24 +154,33 @@ float getOscBSample(float phase) {
 }
 
 inline float softLimit(float inputSample) {
-    const float threshold = 0.7f;
 
-    const float maxVal = 4.0f;
+    const float threshold = 0.8f;
+    const float maxVal = 3.0f;
 
-    const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
-    const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
+    // const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
+    // const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
 
-    float sign = getSign(inputSample);
-    float absInput = inputSample * sign;
+    ///////////////////////////////
+    // currently for threshold = 0.8, maxVal = 3.0
+    // const uint32_t n = 11;
+    const float d = -0.0000342279198712f;
+    ///////////////////////////////
+
+    // float sign = getSign(inputSample);
+    float absInput = fabs(inputSample);
 
     if (absInput <= threshold)
         return inputSample;
-    if (absInput >= maxVal)
-        return sign;
+    // if (absInput >= maxVal)
+    //     return sign;
 
-    float sample = d * powf(maxVal - absInput, n) + 1.0f;
+    float sub = maxVal - absInput;
 
-    return std::clamp(sample * sign, -1.0f, 1.0f);
+    sub = sub * sub * sub * sub * sub * sub * sub * sub * sub * sub * sub;
+
+    float sample = d * sub + 1.0f;
+    return std::min(sample, 1.0f) * getSign(inputSample);
 }
 
 void renderAudioUI(int8_t *renderDest) {
@@ -239,8 +191,7 @@ void renderAudioUI(int8_t *renderDest) {
 
         renderDest[sample] = (int8_t)(softLimit(getOscASample(phase)) * 127.0f);
         renderDest[sample + 100] = (int8_t)(softLimit(getOscBSample(phase)) * 127.0f);
-        renderDest[sample + 200] = (int8_t)(softLimit(getSubSample(phase)) * 127.0f);
-
+        renderDest[sample + (100 * 2)] = (int8_t)(softLimit(getSubSample(phase)) * 127.0f);
         phase += 0.01f;
     }
 }

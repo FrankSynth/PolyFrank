@@ -235,7 +235,7 @@ class LogCurve {
         vec<Size> findex;
 
         /* Calculation of index of the table */
-        findex = (vec<Size>)size * clamp(value, 0.0f, 1.0f);
+        findex = clamp(value, 0.0f, 1.0f) * size;
 
         index = ((vec<Size, uint32_t>)findex);
 

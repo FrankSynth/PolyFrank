@@ -61,12 +61,12 @@ void renderLFO(LFO &lfo) {
     vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
     vec<VOICESPERCHIP> &phase = lfo.currentTime;
     bool *newPhase = lfo.newPhase;
-    vec<VOICESPERCHIP> &shape = lfo.shape.nextSample;
-    vec<VOICESPERCHIP> &shapeRAW = lfo.shapeRAW.nextSample;
-    vec<VOICESPERCHIP> &speed = lfo.speed.nextSample;
-    vec<VOICESPERCHIP> &speedRAW = lfo.speedRAW.nextSample;
+    vec<VOICESPERCHIP> &shape = lfo.shape;
+    vec<VOICESPERCHIP> &shapeRAW = lfo.shapeRAW;
+    vec<VOICESPERCHIP> &speed = lfo.speed;
+    vec<VOICESPERCHIP> &speedRAW = lfo.speedRAW;
 
-    vec<VOICESPERCHIP> &amount = lfo.amount.nextSample;
+    vec<VOICESPERCHIP> &amount = lfo.amount;
     vec<VOICESPERCHIP> fract;
 
     vec<VOICESPERCHIP> sample;
@@ -138,12 +138,10 @@ void renderLFO(LFO &lfo) {
         newPhase[voice] = false;
 
     // check if all voices should output the same LFO
-    if (alignLFOs) {
-        for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
-            sample[otherVoice] = sample[0];
-        for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
-            lfo.newPhase[otherVoice] = newPhase[0];
-    }
+    for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+        sample[otherVoice] = sample[0] * alignLFOs + sample[otherVoice] * !alignLFOs;
+    for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+        lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
 
     for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
         sample[voice] = sample[voice] * amount[voice];

@@ -501,4 +501,19 @@ template <uint32_t Size, typename A = float> class vec {
             newVector[i] = (A)(a[i] >= (A)0) - (A)(a[i] < (A)0);
         return newVector;
     }
+
+    // // returns a * b + c
+    // friend inline vec vecVFMA(const vec &a, const vec &b, const vec &c) {
+    //     vec newVector;
+    //     for (uint32_t i = 0; i < Size; i++)
+    //         newVector[i] = a[i] * b[i] + c[i];
+    //     return newVector;
+    // }
+    // // returns a * b - c
+    // friend inline vec vecVFMS(const vec &a, const vec &b, const vec &c) {
+    //     vec newVector;
+    //     for (uint32_t i = 0; i < Size; i++)
+    //         newVector[i] = a[i] * b[i] - c[i];
+    //     return newVector;
+    // }
 };

@@ -117,21 +117,20 @@ void PolyRenderRun() {
     // enable reception line
     // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
 
+    // start cv rendering
+    renderCVs();
+    sendDACs();
+
     // start audio rendering
     renderAudio((int32_t *)saiBuffer);
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
-
-    // start cv rendering
-    renderCVs();
-    sendDACs();
 
     HAL_TIM_Base_Start_IT(&htim15);
 
     // run loop
     while (true) {
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
-
         FlagHandler::handleFlags();
     }
 }
@@ -295,8 +294,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
     if (pin == GPIO_PIN_0) {
         EXTI->PR1 |= 0x01;
-
+        cvrendertimer = 0;
         renderCVs();
+        cvrendercache += cvrendertimer;
+        cvrendercounter++;
+
+        if (cvrendercounter > 10000) {
+            sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
+            cvrendercounter = 0;
+            cvrendercache = 0;
+        }
         FlagHandler::renderNewCV = false;
     }
 }
@@ -346,25 +353,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
         sendDACs();
     }
-    // if (htim == &htim16) {
-    //     // sendString("LOLd");
-
-    //     cvStarted = true;
-    //     HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-    //     cvrendertimer = 0;
-    //     FlagHandler::renderNewCV = true;
-    //     renderCVs();
-    //     FlagHandler::renderNewCV = false;
-
-    //     cvrendercache += cvrendertimer;
-    //     cvrendercounter++;
-
-    //     if (cvrendercounter > 10000) {
-    //         sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
-    //         cvrendercounter = 0;
-    //         cvrendercache = 0;
-    //     }
-    // }
 }
 
 void testMCPI2CAddress() {
