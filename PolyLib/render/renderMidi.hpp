@@ -2,4 +2,4 @@
 
 #include "layer/layer.hpp"
 
-void renderMidi(Midi &midi);
+void renderMidi();

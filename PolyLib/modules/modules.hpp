@@ -195,14 +195,13 @@ class OSC_B : public BaseModule {
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
-        inputs.push_back(&iTuning);
         inputs.push_back(&iOctave);
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
         inputs.push_back(&iPhaseOffset);
 
-        knobs.push_back(&aMorph);
         knobs.push_back(&aTuning);
+        knobs.push_back(&aMorph);
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
         knobs.push_back(&aPhaseoffset);
@@ -215,7 +214,7 @@ class OSC_B : public BaseModule {
         switches.push_back(&dSync);
 
         renderBuffer.push_back(&note);
-        renderBuffer.push_back(&tuning);
+        renderBuffer.push_back(&fm);
         renderBuffer.push_back(&morph);
         renderBuffer.push_back(&morphRAW);
         renderBuffer.push_back(&morphFract);
@@ -228,16 +227,15 @@ class OSC_B : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", "FM", &note); // TODO ?? different to OSC A
+    Input iFM = Input("FM", "FM", &fm); // TODO ?? different to OSC A
     Input iMorph = Input("MORPH", "MORPH", &morphRAW);
-    Input iTuning = Input("TUNING", "TUNING", &tuning);
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iOctave = Input("OCTAVE", "OCT");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
-    Input iPhaseOffset = Input("PHASE", "PHASE", &phaseoffset);
+    Input iPhaseOffset = Input("PHASE", "PH OFF+", &phaseoffset);
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iTuning);
+    Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iFM);
     Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
@@ -251,7 +249,7 @@ class OSC_B : public BaseModule {
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable);
 
     RenderBuffer note;
-    RenderBuffer tuning;
+    RenderBuffer fm;
     RenderBuffer morph;
     RenderBuffer morphRAW;
     RenderBuffer morphFract;

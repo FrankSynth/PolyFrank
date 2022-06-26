@@ -81,6 +81,49 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  _siITCM = LOADADDR(.ITCMSection);
+
+  .ITCMSection :
+  {
+ 
+    . = ALIGN(4);
+    _sITCM = .;      
+    *render* (.text .text*)
+    *spline.o (.text .text*)
+    *polyMath.o (.text .text*)
+    *module* (.text .text*)
+    *layer* (.text .text*)
+    *datacore* (.text .text*)
+    *wavetables.o (.text .text*)
+   *polyRenderIRQ.o (.text .text*)
+    *device.o (.text .text*)
+    *MCP4728.o (.text .text*) 
+    *flagHandler.o (.text .text*) 
+     /* *sai.o (.text .text*) */
+    /* *spi.o (.text .text*) */
+    /* *dma.o (.text .text*) */
+    /* *mdma.o (.text .text*) */
+    /* *tim.o (.text .text*) */
+    /* *i2c.o (.text .text*) */
+    *com* (.text .text*) 
+    *stm32h7xx_it.o (.text .text*)
+    *render* (.rodata .rodata*) 
+    *spline.o (.rodata .rodata*) 
+    *polyMath.o (.rodata .rodata*) 
+    *module* (.rodata .rodata*) 
+    *layer* (.rodata .rodata*) 
+    *datacore* (.rodata .rodata*) 
+     *wavetables.o (.rodata .rodata*) 
+   *polyRenderIRQ.o (.rodata .rodata*)
+    *device.o (.rodata .rodata*) 
+    *stm32h7xx_it.o (.rodata .rodata*) 
+    *flagHandler.o (.rodata .rodata*) 
+    . = ALIGN(4); 
+    _eITCM = .;        
+   
+  } >ITCMRAM AT> FLASH
+
+
   /* The program code and other data goes into FLASH */
   .text :
   {
@@ -210,6 +253,8 @@ SECTIONS
   {
     *(.ram_D3_buffer)
   } >RAM_D3
+
+
 
 
 }

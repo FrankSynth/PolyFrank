@@ -305,10 +305,10 @@ void renderCVs() {
 
     collectAllCurrentInputs();
 
-    renderMidi(layerA.midi);
-    renderOSC_A(layerA.oscA);
-    renderOSC_B(layerA.oscB);
-    renderSub(layerA.sub);
+    renderMidi();
+    renderOSC_A();
+    renderOSC_B();
+    renderSub();
     renderNoise(layerA.noise);
     renderMixer(layerA.mixer);
     renderSteiner(layerA.steiner);

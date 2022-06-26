@@ -14,8 +14,6 @@
 
 extern Layer layerA;
 
-// std::vector<const WaveTable *> wavetables;
-
 const WaveTable *sourcesA[4] = {nullptr, nullptr, nullptr, nullptr};
 const WaveTable *sourcesB[4] = {nullptr, nullptr, nullptr, nullptr};
 
@@ -304,7 +302,6 @@ vec<VOICESPERCHIP> getOscBSample() {
     const vec<VOICESPERCHIP> &noteStep = layerA.oscB.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscB.bitcrusher;
     const vec<VOICESPERCHIP> &bitcrusherInv = layerA.oscA.bitcrusherInv;
-
     const vec<VOICESPERCHIP> &samplecrusher = layerA.oscB.samplecrusher;
     const vec<VOICESPERCHIP> &phaseoffset = layerA.oscB.phaseoffset;
     const vec<VOICESPERCHIP> &morphFract = layerA.oscB.morphFract;
@@ -316,7 +313,6 @@ vec<VOICESPERCHIP> getOscBSample() {
     vec<VOICESPERCHIP, bool> syncWavetablesNow = (cacheOscAPhase > oscAphase) && layerA.oscB.dSync;
     phase = phase * !syncWavetablesNow;
     cacheOscAPhase = oscAphase;
-
     phase += noteStep * PHASEPROGRESSPERRENDER;
 
     vec<VOICESPERCHIP> phaseOffsetted = phase + phaseoffset + 1.0f;
