@@ -3,4 +3,4 @@ PolyControl/build/*
 PolyRender/build/*
 PolyLib/build/*
 .VSCodeCounter/*
-.vscode/*.log
+*.log
