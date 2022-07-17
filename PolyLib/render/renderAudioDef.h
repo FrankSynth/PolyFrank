@@ -1,11 +1,11 @@
 #pragma once
 
-#define SAIDMABUFFERSIZE 12 // 32bit buffer - was 8
+#define SAIDMABUFFERSIZE 24 // 32bit buffer - was 8
 #define AUDIOCHANNELS 8
 #define ALLDACS 10
 #define OSCPERVOICE 2
 
 #define MAXVOLUMEPERMODULE 0.5f
 #define MAXPOSSIBLEVOLUME (1.0f / MAXVOLUMEPERMODULE)
-#define PHASEPROGRESSPERRENDER 0.0005727376f // 1.0f / (48000/27.5))
-#define WAVESHAPERDISTANCE 0.025f            // 1.0f / (48000/27.5))
+#define PHASEPROGRESSPERRENDER ((float)(1.0 / (96000 / 27.5))) // 1.0f / (48000/27.5))
+#define WAVESHAPERDISTANCE 0.025f

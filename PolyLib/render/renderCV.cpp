@@ -168,25 +168,25 @@ inline void collectAllCurrentInputs() {
     }
 }
 
-inline void updateAllOutputSamples() {
+// inline void updateAllOutputSamples() {
 
-    // LayerRenBufferSw = !LayerRenBufferSw;
+//     // LayerRenBufferSw = !LayerRenBufferSw;
 
-    for (BaseModule *m : layerA.modules) {
+//     for (BaseModule *m : layerA.modules) {
 
-        // __disable_irq();
-        for (Output *o : m->outputs) {
-            o->updateToNextSample();
-        }
-        // __enable_irq();
+//         // __disable_irq();
+//         // for (Output *o : m->outputs) {
+//         //     o->updateToNextSample();
+//         // }
+//         // __enable_irq();
 
-        // __disable_irq();
-        for (RenderBuffer *b : m->renderBuffer) {
-            b->updateToNextSample();
-        }
-        // __enable_irq();
-    }
-}
+//         // __disable_irq();
+//         // for (RenderBuffer *b : m->renderBuffer) {
+//         //     b->updateToNextSample();
+//         // }
+//         // __enable_irq();
+//     }
+// }
 
 inline void writeDataToDACBuffer() {
 
@@ -305,10 +305,10 @@ void renderCVs() {
 
     collectAllCurrentInputs();
 
-    renderMidi(layerA.midi);
-    renderOSC_A(layerA.oscA);
-    renderOSC_B(layerA.oscB);
-    renderSub(layerA.sub);
+    renderMidi();
+    renderOSC_A();
+    renderOSC_B();
+    renderSub();
     renderNoise(layerA.noise);
     renderMixer(layerA.mixer);
     renderSteiner(layerA.steiner);
@@ -324,7 +324,7 @@ void renderCVs() {
     renderPhaseshaper(layerA.phaseshaperA);
     renderPhaseshaper(layerA.phaseshaperB);
 
-    updateAllOutputSamples();
+    // updateAllOutputSamples();
     writeDataToDACBuffer();
 
     setSwitches();

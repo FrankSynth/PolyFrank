@@ -1,16 +1,16 @@
 #pragma once
 
 #include <main.h>
-#include <stdint.h>
+// #include <stdint.h>
+#include "datacore/datalocation.hpp"
 #include <string>
 #include <vector>
 
-// 48k wavetable length
-// #define MINWAVETABLELENGTH 1746
-#define MAXWAVETABLELENGTH 13968
+#define MAXWAVETABLELENGTH 12760
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4
 #define WAVETABLESAMOUNT 18
+#define SUBWAVETABLES 16
 
 class WaveTable;
 
@@ -20,21 +20,21 @@ extern std::vector<const WaveTable *> wavetables;
 extern std::vector<const char *> nlWavetable;
 
 class WaveTable {
-    /**
-     * @brief wave table size must be smaller than 13968
-     *
-     */
   public:
-    uint32_t size;
-    uint32_t stepRange;
+    static uint32_t size;
+    static uint32_t subSize[SUBWAVETABLES];
+
+    const float *subData[SUBWAVETABLES];
     const float *data;
     const char *name;
 
-    WaveTable(uint32_t size, const float *data, const char *name) {
-        this->size = size;
+    WaveTable(const float *data, const char *name = "noName") {
         this->data = data;
         this->name = name;
-        this->stepRange = size - 1;
+        subData[0] = data;
+        for (int i = 1; i < SUBWAVETABLES; i++) {
+            subData[i] = &(subData[i - 1][subSize[i - 1]]);
+        }
     }
     ~WaveTable() {}
 };

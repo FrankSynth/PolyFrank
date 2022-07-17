@@ -153,11 +153,11 @@ class RenderBuffer {
   public:
     RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
 
-    void updateToNextSample() {
-        // vec<VOICESPERCHIP> temp = currentSample;
-        currentSample = nextSample;
-        // nextSample = temp;
-    }
+    // void updateToNextSample() {
+    // vec<VOICESPERCHIP> temp = currentSample;
+    // currentSample = nextSample;
+    // nextSample = temp;
+    // }
 
     uint8_t id;
     uint8_t layerId;
@@ -166,7 +166,7 @@ class RenderBuffer {
 
     // vec<VOICESPERCHIP> sample[2];
     vec<VOICESPERCHIP> currentSample;
-    vec<VOICESPERCHIP> nextSample;
+    // vec<VOICESPERCHIP> nextSample;
 
     operator float *() { return currentSample; }
     operator const float *() const { return currentSample; }
@@ -179,7 +179,7 @@ class RenderBuffer {
     operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
 
     // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return currentSample = other; }
 
     template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
     template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
@@ -490,13 +490,13 @@ class Output : public BasePatch {
         this->visible = visible;
     }
 
-    void updateToNextSample() {
-        // vec<VOICESPERCHIP> temp = currentSample;
-        currentSample = nextSample;
-        // nextSample = temp;
-    }
+    // void updateToNextSample() {
+    //     // vec<VOICESPERCHIP> temp = currentSample;
+    //     currentSample = nextSample;
+    //     // nextSample = temp;
+    // }
     vec<VOICESPERCHIP> currentSample;
-    vec<VOICESPERCHIP> nextSample;
+    // vec<VOICESPERCHIP> nextSample;
 
     operator float *() { return currentSample; }
     operator const float *() const { return currentSample; }
@@ -509,7 +509,7 @@ class Output : public BasePatch {
     operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
 
     // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (nextSample) = other; }
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return (currentSample) = other; }
 
     template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
     template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }

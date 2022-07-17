@@ -60,11 +60,12 @@ PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sai_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
-PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c
 
 C_SOURCES += $(wildcard PolyRender/Core/**/*.c)
 C_SOURCES += $(wildcard PolyLib/**/*.c)
 C_SOURCES += $(wildcard PolyLib/**/**/*.c)
+
 
 CPP_SOURCES =  $(wildcard PolyRender/**/**/*.cpp) $(wildcard PolyRender/**/*.cpp) $(wildcard PolyRender/**/**/**/*.cpp)
 CPP_SOURCES +=  $(wildcard PolyLib/**/**/*.cpp) $(wildcard PolyLib/**/*.cpp) $(wildcard PolyLib/**/**/**/*.cpp) $(wildcard PolyLib/*.cpp)
@@ -172,7 +173,7 @@ LDSCRIPT = PolyRender/PolyRenderMemoryLayout.ld
 
 # libraries
 LIBS = -lc -lm -lnosys -lstdc++
-LIBDIR = -LPolyRender/Drivers/CMSIS/Lib/GCC -larm_cortexM7lfdp_math
+LIBDIR = -LPolyRender/Drivers/CMSIS/DSP/Lib/GCC -larm_cortexM7lfdp_math
 # LIBDIR = 
 
 
@@ -218,13 +219,13 @@ $(BUILD_DIR):
 # flash
 #######################################
 flash: $(BUILD_DIR)/$(TARGET).elf
-	openocd -f interface/stlink.cfg  -f target/stm32h7x.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
+	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
 
 #######################################
 # erase
 #######################################
 erase: $(BUILD_DIR)/$(TARGET).elf
-	openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c "init; reset halt; stm32h7x mass_erase 0; exit"
+	openocd -f interface/stlink.cfg -f target/stm32h7x_dual_bank.cfg -c "init; reset halt; stm32h7x mass_erase 0; exit"
 
 #######################################
 # clean up

@@ -1,10 +1,12 @@
 #include "renderMidi.hpp"
 
-void renderMidi(Midi &midi) {
-    midi.oMod = midi.aMod.valueMapped;
-    midi.oAftertouch = midi.aAftertouch.valueMapped;
-    midi.oPitchbend = midi.aPitchbend.valueMapped;
-    midi.oNote = ((vec<VOICESPERCHIP, float>)midi.rawNote) / 127.0f;
-    midi.oVelocity = ((vec<VOICESPERCHIP, float>)midi.rawVelocity) / 127.0f;
-    midi.oGate = midi.rawGate;
+extern Layer layerA;
+
+void renderMidi() {
+    layerA.midi.oMod = layerA.midi.aMod.valueMapped;
+    layerA.midi.oAftertouch = layerA.midi.aAftertouch.valueMapped;
+    layerA.midi.oPitchbend = layerA.midi.aPitchbend.valueMapped;
+    layerA.midi.oNote = ((vec<VOICESPERCHIP, float>)layerA.midi.rawNote) / 127.0f;
+    layerA.midi.oVelocity = ((vec<VOICESPERCHIP, float>)layerA.midi.rawVelocity) / 127.0f;
+    layerA.midi.oGate = layerA.midi.rawGate;
 }

@@ -273,14 +273,6 @@ bool spline::make_monotonic() {
     return modified;
 }
 
-// return the closest idx so that m_x[idx] <= x (return 0 if x<m_x[0])
-size_t spline::find_closest(float x) const {
-    std::vector<float>::const_iterator it;
-    it = std::upper_bound(m_x.begin(), m_x.end(), x);    // *it > x
-    size_t idx = std::max(int(it - m_x.begin()) - 1, 0); // m_x[idx] <= x
-    return idx;
-}
-
 float spline::operator()(float x) const {
     // polynomial evaluation using Horner's scheme
     // TODO: consider more numerically accurate algorithms, e.g.:

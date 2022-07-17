@@ -12,11 +12,11 @@ inline vec<VOICESPERCHIP> accumulateX1(const Waveshaper &waveshaper) {
                  waveshaper.aPoint2X - WAVESHAPERDISTANCE);
 }
 inline vec<VOICESPERCHIP> accumulateX2(const Waveshaper &waveshaper) {
-    return clamp(waveshaper.iPoint2X + waveshaper.aPoint2X, waveshaper.Point1X.nextSample + WAVESHAPERDISTANCE,
+    return clamp(waveshaper.iPoint2X + waveshaper.aPoint2X, waveshaper.Point1X + WAVESHAPERDISTANCE,
                  waveshaper.aPoint3X - WAVESHAPERDISTANCE);
 }
 inline vec<VOICESPERCHIP> accumulateX3(const Waveshaper &waveshaper) {
-    return clamp(waveshaper.iPoint3X + waveshaper.aPoint3X, waveshaper.Point2X.nextSample + WAVESHAPERDISTANCE,
+    return clamp(waveshaper.iPoint3X + waveshaper.aPoint3X, waveshaper.Point2X + WAVESHAPERDISTANCE,
                  1.0f - WAVESHAPERDISTANCE);
 }
 
@@ -32,28 +32,27 @@ void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice) {
     waveshaper.DryWet = accumulateValue(waveshaper.iDryWet, waveshaper.aDryWet);
 
     // waveshaper.splineX[counter][0] = 0.0f;
-    waveshaper.splineX[voice][1] = waveshaper.Point1X.nextSample[voice];
-    waveshaper.splineX[voice][2] = waveshaper.Point2X.nextSample[voice];
-    waveshaper.splineX[voice][3] = waveshaper.Point3X.nextSample[voice];
+    waveshaper.splineX[voice][1] = waveshaper.Point1X[voice];
+    waveshaper.splineX[voice][2] = waveshaper.Point2X[voice];
+    waveshaper.splineX[voice][3] = waveshaper.Point3X[voice];
     // waveshaper.splineX[voice][4] = 1.0f;
 
     // waveshaper.splineY[voice][0] = 0.0f;
-    waveshaper.splineY[voice][1] = waveshaper.Point1Y.nextSample[voice];
-    waveshaper.splineY[voice][2] = waveshaper.Point2Y.nextSample[voice];
-    waveshaper.splineY[voice][3] = waveshaper.Point3Y.nextSample[voice];
-    waveshaper.splineY[voice][4] = waveshaper.Point4Y.nextSample[voice];
+    waveshaper.splineY[voice][1] = waveshaper.Point1Y[voice];
+    waveshaper.splineY[voice][2] = waveshaper.Point2Y[voice];
+    waveshaper.splineY[voice][3] = waveshaper.Point3Y[voice];
+    waveshaper.splineY[voice][4] = waveshaper.Point4Y[voice];
 
-    waveshaper.wavespline[voice].set_points(waveshaper.splineX[voice], waveshaper.splineY[voice]);
+    waveshaper.wavespline[voice].set_points_polyfrank(waveshaper.splineX[voice], waveshaper.splineY[voice]);
 }
 
 #endif
 
 float renderWaveshaperSample(float input, const Waveshaper &waveshaper) {
-    float sign = getSign(input);
-    float inputAbs = input * sign;
+    float inputAbs = fabs(input);
 
-    float sample = waveshaper.wavespline[0](inputAbs);
-    sample *= sign;
+    float sample = waveshaper.wavespline[0].getValueWithoutExtrapolation(inputAbs);
+    sample *= getSign(input);
 
     return (sample * waveshaper.aDryWet) + (input * (1.0f - waveshaper.aDryWet));
 }

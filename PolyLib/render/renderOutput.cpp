@@ -30,8 +30,6 @@ void renderOut(Out &out) {
     vec<VOICESPERCHIP> left;
     vec<VOICESPERCHIP> right;
 
-    // const float &spread = out.aPanSpread.valueMapped;
-
     out.distort = accumulateDistort(out);
     out.vca = accumulateVCA(out);
     out.pan = accumulatePan(out);

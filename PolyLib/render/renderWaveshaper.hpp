@@ -14,15 +14,14 @@ void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice);
  * @return vec<VOICESPERCHIP>
  */
 inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input, const Waveshaper &waveshaper) {
-    vec<VOICESPERCHIP> sign = getSign(input);
-    vec<VOICESPERCHIP> inputAbs = input * sign;
+    vec<VOICESPERCHIP> inputAbs = fabs(input);
 
     vec<VOICESPERCHIP> sample;
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
-        sample[voice] = waveshaper.wavespline[voice](inputAbs[voice]);
+        sample[voice] = waveshaper.wavespline[voice].getValueWithoutExtrapolation(inputAbs[voice]);
     }
-    sample *= sign;
+    sample *= getSign(input);
 
     return (sample * waveshaper.aDryWet) + (input * (1.0f - waveshaper.aDryWet));
 }

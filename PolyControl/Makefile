@@ -237,13 +237,13 @@ $(BUILD_DIR):
 # flash
 #######################################
 flash: $(BUILD_DIR)/$(TARGET).elf
-	openocd -f interface/stlink.cfg  -f target/stm32h7x.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
+	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
 
 #######################################
 # erase
 #######################################
 erase: $(BUILD_DIR)/$(TARGET).elf
-	openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c "init; reset halt; stm32h7x mass_erase 0; exit"
+	openocd -f interface/stlink.cfg -f target/stm32h7x_dual_bank.cfg -c "init; reset halt; stm32h7x mass_erase 0; exit"
 
 #######################################
 # clean up

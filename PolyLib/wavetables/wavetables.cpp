@@ -1,7 +1,11 @@
 #include "wavetables.hpp"
-#ifdef POLYRENDER
 std::vector<const WaveTable *> wavetables;
-#endif
+
+uint32_t WaveTable::subSize[SUBWAVETABLES] = {2048, 2048, 2048, 2048, 1448, 936, 608, 392,
+                                              256,  160,  128,  128,  128,  128, 128, 128};
+
+uint32_t WaveTable::size = MAXWAVETABLELENGTH;
+
 std::vector<const char *> nlWavetable;
 
 inline void pushWavetable(const WaveTable &wavetable) {

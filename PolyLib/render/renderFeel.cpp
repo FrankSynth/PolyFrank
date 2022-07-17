@@ -14,7 +14,7 @@ inline vec<VOICESPERCHIP> accumulateDetune(const Feel &feel) {
 
 void renderFeel(Feel &feel) {
     feel.glide = accumulateGlide(feel);
-    feel.detune = accumulateDetune(feel) * layerA.spreadValues * 0.1;
+    feel.detune = accumulateDetune(feel) * layerA.spreadValues * 0.1f;
     feel.oSpread = layerA.spreadValues * layerA.feel.aSpread;
 }
 
