@@ -193,7 +193,7 @@ void SystemClock_Config(void) {
     RCC_OscInitStruct.PLL.PLLN = 480;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 20;
-    RCC_OscInitStruct.PLL.PLLR = 2;
+    RCC_OscInitStruct.PLL.PLLR = 8;
     RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_1;
     RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
     RCC_OscInitStruct.PLL.PLLFRACN = 0;
@@ -221,8 +221,8 @@ void SystemClock_Config(void) {
         RCC_PERIPHCLK_SPI6 | RCC_PERIPHCLK_I2C4 | RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC | RCC_PERIPHCLK_ADC;
     PeriphClkInitStruct.PLL2.PLL2M = 4;
     PeriphClkInitStruct.PLL2.PLL2N = 128;
-    PeriphClkInitStruct.PLL2.PLL2P = 2;
-    PeriphClkInitStruct.PLL2.PLL2Q = 2;
+    PeriphClkInitStruct.PLL2.PLL2P = 8;
+    PeriphClkInitStruct.PLL2.PLL2Q = 4;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;

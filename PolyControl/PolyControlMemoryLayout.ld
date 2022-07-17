@@ -84,6 +84,70 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  _siITCM = LOADADDR(.ITCMSection);
+
+  .ITCMSection :
+  {
+ 
+    . = ALIGN(4);
+    _sITCM = .;      
+
+    /* *gfx* (.text .text*) */
+    *guiBase* (.text .text*)
+    *datacore* (.text .text*)
+    *polyMath.o (.text .text*)
+    *module* (.text .text*)
+    *layer* (.text .text*)
+    *hid* (.text .text*)
+    *flagHandler.o (.text .text*) 
+    *com* (.text .text*) 
+    *stm32h7xx_it.o (.text .text*)
+    *arp.o (.text .text*)
+    *clock.o (.text .text*)
+    *liveData.o (.text .text*)
+    *liveDataBase.o (.text .text*)
+    *voiceHandler.o (.text .text*)
+    *IS31FL3216.o (.text .text*)
+    *MAX11128.o (.text .text*)
+    *rotary.o (.text .text*)
+    *bus.o (.text .text*)
+    *busInterface.o (.text .text*)
+    *device.o (.text .text*)
+
+
+    /* *gfx* (.rodata .rodata*)  */
+    *datacore* (.rodata .rodata*) 
+    *polyMath.o (.rodata .rodata*) 
+    *module* (.rodata .rodata*) 
+    *layer* (.rodata .rodata*) 
+    *hid* (.rodata .rodata*) 
+    *flagHandler.o (.rodata .rodata*) 
+    *com* (.rodata .rodata*) 
+    *stm32h7xx_it.o (.rodata .rodata*) 
+    *arp.o (.rodata .rodata*)
+    *clock.o (.rodata .rodata*)
+    *liveData.o (.rodata .rodata*)
+    *liveDataBase.o (.rodata .rodata*)
+    *voiceHandler.o (.rodata .rodata*)
+    *IS31FL3216.o (.rodata .rodata*)
+    *MAX11128.o (.rodata .rodata*)
+    *rotary.o (.rodata .rodata*)
+    *bus.o (.rodata .rodata*)
+    *busInterface.o (.rodata .rodata*)
+    *device.o (.rodata .rodata*)
+
+
+
+
+
+
+
+    . = ALIGN(4); 
+    _eITCM = .;        
+   
+  } >ITCMRAM AT> FLASH
+
+
   /* The program code and other data goes into FLASH */
   .text :
   {
