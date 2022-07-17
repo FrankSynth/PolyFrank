@@ -121,12 +121,6 @@ void PolyRenderRun() {
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
 
-<<<<<<< HEAD
-    // start cv rendering
-    renderCVs();
-    sendDACs();
-=======
->>>>>>> polyrender
     HAL_TIM_Base_Start_IT(&htim15);
 
     // run loop
