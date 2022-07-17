@@ -68,8 +68,8 @@ class ClockSource {
             __HAL_TIM_SET_AUTORELOAD(&htim5, periode);
             // htim5.Instance->ARR = periode;
             // println("set clockPeriod  : ", periode);
+            lastBPM = clockBPM.value;
         }
-        lastBPM = clockBPM.value;
     }
     Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary);
 };

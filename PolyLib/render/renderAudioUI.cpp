@@ -106,7 +106,7 @@ float getOscBSample(float phase) {
 
     // const float &morph = layerA.oscB.morph[0];
     const float &bitcrusher = layerA.oscB.bitcrusher[0];
-    const float &bitcrusherInv = layerA.oscA.bitcrusherInv[0];
+    const float &bitcrusherInv = layerA.oscB.bitcrusherInv[0];
     const float &samplecrusher = layerA.oscB.samplecrusher[0];
     const float &phaseoffset = layerA.oscB.phaseoffset[0];
     const float &morphFract = layerA.oscB.morphFract[0];
