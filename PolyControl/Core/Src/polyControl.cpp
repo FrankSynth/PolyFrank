@@ -190,6 +190,7 @@ void PolyControlInit() {
         println("Layer B active");
     }
 
+    HAL_Delay(100);
     // And turn the Display on
     HAL_GPIO_WritePin(Control_Display_Enable_GPIO_Port, Control_Display_Enable_Pin, GPIO_PIN_SET);
 }
@@ -197,8 +198,7 @@ void PolyControlInit() {
 void PolyControlRun() { // Here the party starts
 
     // elapsedMicros timer;
-    // elapsedMillis timerMillis;
-    // int32_t counter = 0;
+    //
 
     while (1) {
 
@@ -211,17 +211,11 @@ void PolyControlRun() { // Here the party starts
         checkLayerRequests();
 
         if (getRenderState() == RENDER_DONE) {
-            // counter++;
             // timer = 0;
             ui.Draw();
             // println("ui draw:", timer);
             renderLED();
             sendRequestAllUIData();
-            // if (timerMillis > 1000) {
-            //     println("fps: ", counter);
-            //     counter = 0;
-            //     timerMillis = 0;
-            // }
         }
     }
 }

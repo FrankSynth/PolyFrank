@@ -32,20 +32,15 @@ void GFX_Init() {
     MX_LTDC_Init();
     SwitchFrameBuffer();
 
-    // set BG Color;
-    hltdc.Init.Backcolor.Red = 0;
-    hltdc.Init.Backcolor.Green = 3;
-    hltdc.Init.Backcolor.Blue = 5;
-
     //__HAL_LTDC_RELOAD_CONFIG(&hltdc);
     HAL_LTDC_Init(&hltdc); // update config
 
     // init DMA2D //
     MX_DMA2D_Init();
-    DMA2D_DefaultConfig(DMA2D_OUTPUT_ARGB4444);
+    DMA2D_DefaultConfig(DMA2D_OUTPUT_RGB565);
 
     // clean
-    drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(0xFF000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 
     HAL_LTDC_ProgramLineEvent(&hltdc, 0);
 }
@@ -74,6 +69,19 @@ void DMA2D_DefaultConfig(int colorMode) {
     hdma2d.Init.OutputOffset = 0x0;                  /* No offset in output */
     hdma2d.Init.RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the output image */
     hdma2d.Init.AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the output image */
+
+    /* Background layer Configuration */
+    hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+    hdma2d.LayerCfg[0].InputColorMode = colorMode;          /* Background format*/
+    hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
+    hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+
+    /*Foreground layer Configuration */
+    hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+    hdma2d.LayerCfg[0].InputColorMode = colorMode;          /* Background format*/
+    hdma2d.LayerCfg[1].InputOffset = 0x0;                   /* No offset in input */
+    hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input foreground image */
+    hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
 
     // Register Callbacks
     hdma2d.XferCpltCallback = TransferComplete;
@@ -447,20 +455,11 @@ void callNextTask() {
         hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 
         /* Foreground layer Configuration */
-        hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[1].InputAlpha = task.color;             /* COLOR */
-        hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_A4;     /* Foreground format is A4*/
-        hdma2d.LayerCfg[1].InputOffset = 0x0;                   /* No offset in input */
-        hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input foreground image */
-        hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
+        hdma2d.LayerCfg[1].InputAlpha = task.color;         /* COLOR */
+        hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_A4; /* Foreground format is A4*/
 
         /* Background layer Configuration */
-        hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[0].InputAlpha = 0xFF;                   /* 255 : fully opaque */
-        hdma2d.LayerCfg[0].InputColorMode = COLORMODE;          /* Background format*/
-        hdma2d.LayerCfg[0].InputOffset = task.outputOffset;     /* Background input offset*/
-        hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
-        hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
         /* Init DMA2D */
         HAL_DMA2D_Init(&hdma2d);
@@ -485,20 +484,10 @@ void callNextTask() {
         hdma2d.Init.Mode = DMA2D_M2M;
 
         /* Foreground layer Configuration */
-        hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[1].InputAlpha = task.color;             /* COLOR */
         hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565; /* Foreground format is A4*/
-        hdma2d.LayerCfg[1].InputOffset = 0x0;                   /* No offset in input */
-        hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input foreground image */
-        hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
 
         /* Background layer Configuration */
-        hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[0].InputAlpha = 0xFF;                   /* 255 : fully opaque */
-        hdma2d.LayerCfg[0].InputColorMode = COLORMODE;          /* Background format*/
-        hdma2d.LayerCfg[0].InputOffset = task.outputOffset;     /* Background input offset*/
-        hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
-        hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
         /* Init DMA2D */
         HAL_DMA2D_Init(&hdma2d);
@@ -520,23 +509,13 @@ void callNextTask() {
     // select DMA Mode
     else if (task.mode == M2MARGB4444) { // Memory to Memory with blending
 
-        hdma2d.Init.Mode = DMA2D_M2M;
+        hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 
         /* Foreground layer Configuration */
-        hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[1].InputAlpha = task.color;               /* COLOR */
         hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB4444; /* Foreground format is A4*/
-        hdma2d.LayerCfg[1].InputOffset = 0x0;                     /* No offset in input */
-        hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;        /* No R&B swap for the input foreground image */
-        hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input foreground image */
 
         /* Background layer Configuration */
-        hdma2d.LayerCfg[0].AlphaMode = DMA2D_NO_MODIF_ALPHA;
-        hdma2d.LayerCfg[0].InputAlpha = 0xFF;                   /* 255 : fully opaque */
-        hdma2d.LayerCfg[0].InputColorMode = COLORMODE;          /* Background format*/
-        hdma2d.LayerCfg[0].InputOffset = task.outputOffset;     /* Background input offset*/
-        hdma2d.LayerCfg[0].RedBlueSwap = DMA2D_RB_REGULAR;      /* No R&B swap for the input background image */
-        hdma2d.LayerCfg[0].AlphaInverted = DMA2D_REGULAR_ALPHA; /* No alpha inversion for the input background image */
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
         /* Init DMA2D */
         HAL_DMA2D_Init(&hdma2d);
@@ -556,16 +535,30 @@ void callNextTask() {
     }
 
     else if (task.mode == R2M) { // Register to Memory
-        hdma2d.Init.Mode = DMA2D_R2M;
+        hdma2d.Init.Mode = DMA2D_M2M_BLEND_FG;
+
+        hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
+
+        hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
         /* Init DMA2D */
         HAL_DMA2D_Init(&hdma2d);
 
+        /* Apply DMA2D Background configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+
+        /* Apply DMA2D Foreground configuration */
+        HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+        hdma2d.Instance->FGPFCCR = (task.color & 0xFF000000) | (hdma2d.Instance->FGPFCCR & 0x00FFFFFF);
+        hdma2d.Instance->FGPFCCR = 0x10000 | (hdma2d.Instance->FGPFCCR & 0xFFFCFFFF);
+
         /* Start DMA2D Task */
-        HAL_DMA2D_Start_IT(&hdma2d, task.color, /* Color value in Register to Memory DMA2D mode */
-                           task.pTarget,        /* DMA2D output buffer */
-                           task.width,          /* width of buffer in pixels */
-                           task.height);        /* height of buffer in lines */
+        HAL_DMA2D_BlendingStart_IT(&hdma2d, task.color, /* Color value in Register to Memory DMA2D mode */
+                                   task.pTarget,        /* DMA2D output buffer */
+                                   task.pTarget,        /* DMA2D output buffer */
+                                   task.width,          /* width of buffer in pixels */
+                                   task.height);        /* height of buffer in lines */
     }
 }
 
@@ -575,8 +568,8 @@ inline void drawPixel(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &
 }
 
 inline void drawPixelAlpha(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color, uint8_t alpha) {
-    if (x < waveBuffer.width && y < waveBuffer.height)              // check boundaries
-        waveBuffer.buffer[y][x] = (color & 0x0FFF) | (alpha << 12); // simple "blend"
+    if (x < waveBuffer.width && y < waveBuffer.height)                       // check boundaries
+        waveBuffer.buffer[y][x] = (color & 0x0FFF) | ((alpha & 0x0F) << 12); // simple "blend"
 }
 
 inline void drawPixelBlend(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color) {

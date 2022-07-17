@@ -77,7 +77,7 @@ void GUI::Init() { // add settings pointer
 void GUI::Clear() {
     // clear
 
-    drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(0xFF000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 }
 
 void GUI::Draw() {
@@ -88,15 +88,22 @@ void GUI::Draw() {
 
     setRenderState(RENDER_PROGRESS);
 
-    if (millis() < 2000) {
-        guiPanelStart.Draw();
-        setRenderState(RENDER_WAIT);
+    static bool introFrame = true;
 
-        return;
+    if (introFrame) {
+        if (millis() < 2000) {
+            guiPanelStart.Draw();
+            setRenderState(RENDER_WAIT);
+
+            return;
+        }
+        else {
+            introFrame = false;
+        }
     }
 
     // clear
-    drawRectangleFill(0x00000000, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(cClear, 0, 0, LCDWIDTH, LCDHEIGHT);
 
     // Error Occurred?
     if (globalSettings.error.errorActive) {

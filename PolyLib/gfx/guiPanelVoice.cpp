@@ -14,7 +14,10 @@ void drawVoiceStatus(voiceStateStruct *voiceState, uint16_t x, uint16_t y, uint1
 
     // if (voiceState->status == PLAY) {
     if (voiceState->status != FREE) {
-        drawRectangleChampfered(cWhite, x, y, w, h, 1);
+        drawRectangleFill(cWhite, x, y, w, 1);
+        drawRectangleFill(cWhite, x, y, 1, h);
+        drawRectangleFill(cWhite, x + w - 1, y, 1, h);
+        drawRectangleFill(cWhite, x, y + h - 1, w, 1);
     }
     drawRectangleChampfered(*(uint32_t *)color, x + 1, y + 1, w - 2, h - 2, 1);
 

@@ -27,11 +27,13 @@ inline vec<VOICESPERCHIP> accumulateAmount(const ADSR &adsr) {
 inline float calcCoef(float rate, float targetRatio) {
     return (rate <= 0.0f) ? 0.0f : expf(-logf((1.0f + targetRatio) / targetRatio) / rate);
 }
+
+// goal value + speed; smaller values equal more log, big ones lin
 inline float calcARatio(float shape) {
-    return 0.0001f + 0.001f * (expf(12.0f * shape) - 1.0f);
+    return 0.1f + 0.001f * (expf(12.0f * (1.0f - shape)) - 1.0f);
 }
 inline float calcDRRatio(float shape) {
-    return 0.00001f + 0.0001f * (expf(12.0f * shape) - 1.0f);
+    return 0.0001f + 0.001f * (expf(12.0f * (1.0f - shape)) - 1.0f);
 }
 
 #define ADSRTHRESHOLD 0.001f
@@ -106,7 +108,7 @@ void renderADSR(ADSR &adsr) {
                 if (attack != cacheAttack || targetRatioA != cacheTargetRatioA) {
                     float attackRate = attack * (1.0f / SECONDSPERCVRENDER);
                     attackCoef = calcCoef(attackRate, targetRatioA);
-                    attackBase = (1.0 + targetRatioA) * (1.0 - attackCoef);
+                    attackBase = (1.0f + targetRatioA) * (1.0f - attackCoef);
 
                     cacheAttack = attack;
                     cacheTargetRatioA = targetRatioA;

@@ -5,34 +5,25 @@
 location currentFocus;
 location newFocus;
 
-// colors
+// DMA2D Colors
 uint32_t cSelect = 0xD0FFFFFF;
-uint32_t cDeselect = 0x00000000;
-uint32_t cFont_Select = 0xFF000000;
+uint32_t cDeselect = 0xFF080808;
+uint32_t cFont_Select = 0xFF080808;
 uint32_t cFont_Deselect = 0xFFFFFFFF;
 
-uint32_t cClear = 0x00000000;
+uint32_t cClear = 0xFF080808;
 uint32_t cBlack = 0xFF000000;
 
-uint32_t cGreyLight2 = 0x60FFFFFF;
-uint32_t cGreyLight = 0x10FFFFFF;
-uint32_t cGreyDark = 0x60202020;
-
-uint32_t cGrey = 0x10808080;
-
-uint32_t cHigh = 0xFFEAE2B7;
-uint32_t cLow = 0xFF003049;
-
 uint32_t cWhite = 0xFFFFFFFF;
-uint32_t cWhiteMedium = 0x40FFFFFF;
-uint32_t cWhiteBright = 0x80FFFFFF;
-uint32_t cWhiteLight = 0x10FFFFFF;
+uint32_t cWhiteMedium = 0xFF404040;
+uint32_t cGreyLight = 0xFF202020;
+uint32_t cGreyDark = 0xFF181818; // check
+uint32_t cGrey = 0xFF101010;
 
 uint32_t cHighlight = 0xFFffda47;
 uint32_t cWarning = 0xFFFF0000;
 
-uint32_t cPatch = 0xFFFFFFFF;
-
+// Wavedraw
 uint16_t c4444dot = 0xFfd4;
 
 uint16_t c4444wavecolor = 0xFFFF;

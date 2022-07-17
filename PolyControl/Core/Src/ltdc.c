@@ -54,7 +54,7 @@ void MX_LTDC_Init(void) {
     pLayerCfg.WindowX1 = 800;
     pLayerCfg.WindowY0 = 0;
     pLayerCfg.WindowY1 = 480;
-    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB4444;
+    pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
     pLayerCfg.Alpha = 0xFF;
     pLayerCfg.Alpha0 = 0;
     pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;

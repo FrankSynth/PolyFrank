@@ -253,7 +253,7 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     std::string text = data->getName();
 
     if (data->disable) {
-        drawRectangleChampfered(cWhiteLight, x + 2, y, w - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cGreyLight, x + 2, y, w - 4, dataHeight / 2, 1);
         drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
         text = "Disable";
@@ -340,14 +340,14 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -381,14 +381,14 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 
     float amount;
@@ -422,14 +422,14 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
     }
 
     if (patched == 1) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
     }
     else if (patched == 2) {
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
     else if (patched == 3) {
-        drawRectangleChampfered(cPatch, x - 12, y, 10, h, 1);
-        drawRectangleChampfered(cPatch, x + w + 2, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x - 12, y, 10, h, 1);
+        drawRectangleChampfered(cWhite, x + w + 2, y, 10, h, 1);
     }
 }
 
@@ -540,7 +540,7 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
 
     if (data->input != nullptr) {               // patchable?
         if (data->input->patchesInOut.size()) { // patched?
-            drawRectangleChampfered(cPatch, x, y, 13, h, 1);
+            drawRectangleChampfered(cWhite, x, y, 13, h, 1);
         }
         else {
             drawRectangleChampfered(cWhiteMedium, x, y, 13, h, 1);
@@ -645,7 +645,7 @@ void Data_PanelElement::Draw() {
     entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
@@ -788,7 +788,7 @@ void Live_PanelElement::Draw() {
     entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
@@ -938,7 +938,7 @@ void MatrixPatch_PanelElement::Draw() {
             drawRectangleFill(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
         }
         else {
-            drawRectangleFill(cWhiteLight, panelAbsX, panelAbsY, width, height);
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
         }
     }
 
@@ -1485,7 +1485,7 @@ void Effect_PanelElement::Draw() {
     entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
@@ -1527,7 +1527,7 @@ void EffectAmount_PanelElement::Draw() {
     entryHeight = height;
 
     if (!visible) {
-        drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 

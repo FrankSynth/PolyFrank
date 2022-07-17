@@ -3,7 +3,7 @@
 #include "renderSteiner.hpp"
 
 extern Layer layerA;
-LogCurve SteinerlinAntiLog(64, 0.99);
+LogCurve SteinerlinAntiLog(64, 0.9);
 
 inline vec<VOICESPERCHIP> accumulateLevel(const Steiner &steiner) {
     return clamp(steiner.iLevel + steiner.aLevel, 0.0f, 1.0f);

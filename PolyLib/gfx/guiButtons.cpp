@@ -29,7 +29,7 @@ void Footer_PanelBox::Draw() {
         secondName = "-";
     }
 
-    drawRectangleFill(cClear, x, y, width, heigth);
+    //drawRectangleFill(cClear, x, y, width, heigth);
 
     drawString(mainName, cWhite, x + width / 2, y - fontBig->size + heigth / 2 - fontShift, fontBig, CENTER);
     drawString(secondName, cWhite, x + width / 2, y + heigth / 2 + fontShift, fontSmall, CENTER);
@@ -150,7 +150,7 @@ void GUIFooter::Draw() {
     }
     // draw Spacer
     for (unsigned int p = 1; p < panelCount; p++) {
-        drawRectangleFill(cWhiteLight, panelWidth * p + panelAbsX, (int32_t)panelAbsY - panelHeight, 1, panelHeight);
+        drawRectangleFill(cGreyLight, panelWidth * p + panelAbsX, (int32_t)panelAbsY - panelHeight, 1, panelHeight);
     }
 }
 
