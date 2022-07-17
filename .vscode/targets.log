@@ -8,7 +8,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # This program built for i386-pc-mingw32
  
 
-# Make data base, printed on Mon Jun 27 00:20:46 2022
+# Make data base, printed on Sun Jul 17 14:16:34 2022
 
 # Variables
 
@@ -35,8 +35,7 @@ CURDIR := c:/Users/lukas/Documents/GitHub/PolyFrank
 # default
 SHELL := sh.exe
 # environment
-WINDIR  
-= C:\WINDOWS
+WINDIR = C:\WINDOWS
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{},"_languagePackSupport":true}
 # environment
@@ -54,7 +53,7 @@ PROGRAMW6432 = C:\Program Files
 # environment
 PROGRAMDATA = C:\ProgramData
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-501e5509-ee7a-48ad-a552-ccbee7f5a3ac-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-174bbc01-33ef-43ae-9ac3-fcd32527288b-sock
 # environment
 VSCODE_CWD = C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code
 # environment
@@ -80,7 +79,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_10576_YMCKGBWMXXKHYWRF
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_11168_EJNJHDGBFWDUWUDA
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -126,8 +125,7 @@ PROGRAMFILES(X86) = C:\Program Files (x86)
 # environment
 LOCALAPPDATA = C:\Users\lukas\AppData\Local
 # environment
-PSMODULEPATH = C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modul 
-es
+PSMODULEPATH = C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
 # default
 MAKE_COMMAND := make.exe
 # environment
@@ -177,8 +175,7 @@ SUFFIXES :=
 # environment
 SYSTEMDRIVE = C:
 # environment
-SESSIONNAM 
-E = Console
+SESSIONNAME = Console
 # environment
 PROCESSOR_REVISION = a600
 # environment
@@ -188,7 +185,7 @@ LANG = C
 # environment
 PROCESSOR_LEVEL = 6
 # environment
-VSCODE_PID = 10576
+VSCODE_PID = 11168
 # environment
 USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # variable set hash-table stats:
@@ -201,35 +198,30 @@ USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # Directories
 
 # C:\Program Files\LLVM\bin (key C:/Program Files/LLVM/bin, mtime 1605537618): 109 files, no impossibilities.
-# C: 
-\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
+# C:\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
 # C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1620362531): 30 files, no impossibilities.
 # C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1655605088): 171 files, no impossibilities.
 # . (key c:/Users/lukas/Documents/GitHub/PolyFrank, mtime 1656266466): 16 files, no impossibilities.
 # C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
 # C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
 # C:\Program Files\WireGuard\ (key C:/Program Files/WireGuard/, mtime 1641226295): 5 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (k 
-ey C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1655418644): 4 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1655418644): 4 files, no impossibilities.
 # C:\Users\lukas\AppData\Roaming\Python\Python39\Scripts (key C:/Users/lukas/AppData/Roaming/Python/Python39/Scripts, mtime 1606057407): 7 files, no impossibilities.
 # C:\WINDOWS\System32\OpenSSH\: could not be stat'd.
 # C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1605575009): 12 files, no impossibilities.
 # C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1605535691): 5 files, no impossibilities.
-# C:\WINDOWS (key C:/WINDOWS, mtime 1656246978): 116 files, no impossibilities.
+# C:\WINDOWS (key C:/WINDOWS, mtime 1658058935): 119 files, no impossibilities.
 # C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin (key C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2020-q4-major/bin, mtime 1613529144): 35 files, no impossibilities.
-# C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/luk 
-as/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
+# C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/lukas/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Programs\Python\Python39\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/, mtime 1655418684): 19 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\GitHubDesktop\bin (key C:/Users/lukas/AppData/Local/GitHubDesktop/bin, mtime 1605284003): 4 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Microso 
-ft\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1656241909): 17 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Microsoft\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1657148957): 17 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 1655547170): 19 files, no impossibilities.
 # C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1605286843): 8 files, no impossibilities.
-# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1656246502): 3026 files, no impossibilities.
-# C 
-:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
+# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1658058776): 3026 files, no impossibilities.
+# C:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
 
-# 3643 files, no impossibilities in 23 directories.
+# 3646 files, no impossibilities in 23 directories.
 
 # Implicit Rules
 
@@ -270,8 +262,7 @@ makefile:
 
 # Not a target:
 GNUmakefile:
-#  A 
- default, MAKEFILES, or -include/sinclude makefile.
+#  A default, MAKEFILES, or -include/sinclude makefile.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
@@ -289,11 +280,10 @@ GNUmakefile:
 
 # # of strings in strcache: 0
 # # of strcache buffers: 0
-# strcache size: total = 0 / max = 0 / min 
- = 4096 / avg = 0
+# strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Mon Jun 27 00:20:46 2022
+# Finished Make data base on Sun Jul 17 14:16:34 2022
 
  
 make.exe: *** No rule to make target `all'.  Stop.
