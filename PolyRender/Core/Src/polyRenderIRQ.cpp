@@ -23,9 +23,25 @@ extern volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS];
 extern PCM1690 audioDacA;
 
 void polyRenderLoop() {
+
+    elapsedMillis timerWFI;
+    bool enableWFI = false;
+
     while (true) {
+
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
         FlagHandler::handleFlags();
+
+        if (enableWFI) {
+            __disable_irq();
+            __DSB();
+            __WFI();
+            __enable_irq();
+        }
+        else {
+            if (timerWFI > 60000)
+                enableWFI = true;
+        }
     }
 }
 

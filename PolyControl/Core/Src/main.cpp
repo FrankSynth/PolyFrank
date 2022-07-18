@@ -133,6 +133,7 @@ int main(void) {
     MX_TIM2_Init();
     MX_ADC3_Init();
 
+    MX_TIM16_Init();
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));

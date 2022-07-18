@@ -81,6 +81,7 @@ void OTG_FS_IRQHandler(void);
 
 void TIM5_IRQHandler(void);
 void TIM4_IRQHandler(void);
+void TIM16_IRQHandler(void);
 void BDMA_Channel0_IRQHandler(void);
 void BDMA_Channel1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
