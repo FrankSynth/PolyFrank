@@ -72,7 +72,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8656_CITIEXFHIIDMMRZG
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_12864_PDKITHOGXWZGKYEY
 # environment
 COMPUTERNAME = LUKELAPTOP
 # environment
@@ -151,8 +151,8 @@ SYSTEMROOT = C:\WINDOWS
 # environment
 APPDATA = C:\Users\lukas\AppData\Roaming
 # environment
-TEMP = C:\Users\lukas\AppData\Local 
-\Temp
+TEMP = C:\Users\lukas\AppData\Loca 
+l\Temp
 # environment
 COMSPEC = C:\WINDOWS\system32\cmd.exe
 # default
@@ -178,7 +178,7 @@ LANG = C
 # environment
 PROCESSOR_LEVEL = 6
 # environment
-VSCODE_PID = 8656
+VSCODE_PID = 12864
 # environment
 USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # variable set hash-table stats:
@@ -193,8 +193,8 @@ USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # C:\Program Files\LLVM\bin (key C:/Program Files/LLVM/bin, mtime 1605537618): 109 files, no impossibilities.
 # C:\Program Files\OpenOCD\bin (key C:/Program Files/OpenOCD/bin, mtime 1648577662): 9 files, no impossibilities.
 # C:\WINDOWS\System32\WindowsPowerShell\v1.0\ (key C:/WINDOWS/System32/WindowsPowerShell/v1.0/, mtime 1620362531): 30 files, no impossibilities.
-# C:\WINDOWS\ 
-System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1655605088): 171 files, no impossibilities.
+# C:\WINDOW 
+S\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1655605088): 171 files, no impossibilities.
 # . (key c:/Users/lukas/Documents/GitHub/PolyFrank, mtime 1658071320): 16 files, no impossibilities.
 # C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
 # C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corporation/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
@@ -214,7 +214,7 @@ System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1655605088): 171 files, no im
 # C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 1655547 
 170): 19 files, no impossibilities.
 # C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1605286843): 8 files, no impossibilities.
-# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1658060942): 3026 files, no impossibilities.
+# C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1658162831): 3026 files, no impossibilities.
 # C:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
 
 # 3646 files, no impossibilities in 23 directories.
@@ -281,7 +281,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sun Jul 17 17:56:33 2022
+# Finished Make data base on Mon Jul 18 20:03:29 2022
 
  
 make.exe: *** No rule to make target `all'.  Stop.
