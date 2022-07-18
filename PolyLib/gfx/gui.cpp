@@ -89,9 +89,10 @@ void GUI::Draw() {
     setRenderState(RENDER_PROGRESS);
 
     static bool introFrame = true;
+    static elapsedMillis timerIntroScreen;
 
     if (introFrame) {
-        if (millis() < 2000) {
+        if (timerIntroScreen < 2000) {
             guiPanelStart.Draw();
             setRenderState(RENDER_WAIT);
 

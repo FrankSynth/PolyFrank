@@ -96,7 +96,6 @@ SECTIONS
     *guiBase* (.text .text*)
     *datacore* (.text .text*)
     *polyMath.o (.text .text*)
-    *module* (.text .text*)
     *layer* (.text .text*)
     *hid* (.text .text*)
     *flagHandler.o (.text .text*) 
@@ -112,35 +111,27 @@ SECTIONS
     *rotary.o (.text .text*)
     *bus.o (.text .text*)
     *busInterface.o (.text .text*)
-    *device.o (.text .text*)
+    *stm32h7xx_hal_dma2d.o (.text .text*)
+    *guiPanelEffect.o (.text .text*)
+    *polyControlIRQ.o (.text .text*)
+    *usbd_midi_if.o (.text .text*)
 
 
     /* *gfx* (.rodata .rodata*)  */
-    *datacore* (.rodata .rodata*) 
     *polyMath.o (.rodata .rodata*) 
-    *module* (.rodata .rodata*) 
-    *layer* (.rodata .rodata*) 
-    *hid* (.rodata .rodata*) 
     *flagHandler.o (.rodata .rodata*) 
-    *com* (.rodata .rodata*) 
     *stm32h7xx_it.o (.rodata .rodata*) 
     *arp.o (.rodata .rodata*)
     *clock.o (.rodata .rodata*)
     *liveData.o (.rodata .rodata*)
     *liveDataBase.o (.rodata .rodata*)
     *voiceHandler.o (.rodata .rodata*)
-    *IS31FL3216.o (.rodata .rodata*)
-    *MAX11128.o (.rodata .rodata*)
     *rotary.o (.rodata .rodata*)
     *bus.o (.rodata .rodata*)
     *busInterface.o (.rodata .rodata*)
     *device.o (.rodata .rodata*)
-
-
-
-
-
-
+    *polyControlIRQ.o (.rodata .rodata*)
+    *usbd_midi_if.o (.rodata .rodata*)
 
     . = ALIGN(4); 
     _eITCM = .;        
