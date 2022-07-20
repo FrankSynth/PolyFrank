@@ -68,7 +68,7 @@ void polyControlLoop() { // Here the party starts
             __enable_irq();
         }
         else {
-            if (timerWFI > 10000)
+            if (timerWFI > 60000)
                 enableWFI = true;
         }
     }

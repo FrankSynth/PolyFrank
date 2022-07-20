@@ -93,6 +93,7 @@ void Arpeggiator::lifetime(Key &key) {
 }
 
 void Arpeggiator::serviceRoutine() {
+    checkLatch();
     release();
     ratched();
 
@@ -100,7 +101,6 @@ void Arpeggiator::serviceRoutine() {
         return;
     if (arpStepDelayed)
         nextStep();
-    checkLatch();
 }
 
 void Arpeggiator::ratched() {
@@ -204,8 +204,8 @@ void Arpeggiator::continueRestart() {
 }
 
 void Arpeggiator::reset() {
-    restart();
     inputKeys.clear();
+    restart();
 }
 
 void Arpeggiator::orderKeys() {

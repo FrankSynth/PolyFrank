@@ -8,7 +8,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # This program built for i386-pc-mingw32
  
 
-# Make data base, printed on Wed Jul 20 02:17:28 2022
+# Make data base, printed on Wed Jul 20 11:51:39 2022
 
 # Variables
 
@@ -72,7 +72,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8552_FTVEKLADSKVSCWFW
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_15020_EIOMQSFOHTXKSEAJ
 # environment
 COMPUTERNAME = LUKELAPTOP
 # environment
@@ -88,10 +88,9 @@ PUBLIC = C:\Users\Public
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-VSCODE_CODE_CACHE_PATH = C:\Users\lukas\AppData\Roaming\Code\Cache 
-dData\3b889b090b5ad5793f524b5d1d39fda662b96a2a
+VSCODE_CODE_CACHE_PATH = C:\Users\lukas\AppData\Roaming\Code\CachedData\3b889b090b5ad5793f524b5d1d39fda662b96a2a
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 COMMONPROGRAMFILES = C:\Program Files (x86)\Common Files
 # environment
@@ -111,7 +110,8 @@ MAKE_VERSION := 3.81
 # makefile
 .DEFAULT_GOAL := 
 # environment
-PROGRAMFILES(X86) = C:\Program Files (x86)
+PROGRAMFILES(X86 
+) = C:\Program Files (x86)
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
@@ -151,8 +151,8 @@ SYSTEMROOT = C:\WINDOWS
 # environment
 APPDATA = C:\Users\lukas\AppData\Roaming
 # environment
-TEMP = C:\Users\lukas\AppData\Local 
-\Temp
+TEMP = C:\Users\lukas\AppData\L 
+ocal\Temp
 # environment
 COMSPEC = C:\WINDOWS\system32\cmd.exe
 # default
@@ -178,7 +178,7 @@ LANG = C
 # environment
 PROCESSOR_LEVEL = 6
 # environment
-VSCODE_PID = 8552
+VSCODE_PID = 15020
 # environment
 USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # variable set hash-table stats:
@@ -196,8 +196,8 @@ USERDOMAIN_ROAMINGPROFILE = LUKELAPTOP
 # C:\WINDOWS\System32\Wbem (key C:/WINDOWS/System32/Wbem, mtime 1655605088): 171 files, no impossibilities.
 # . (key c:/Users/lukas/Documents/GitHub/PolyFrank, mtime 1658071320): 16 files, no impossibilities.
 # C:\Program Files (x86)\STMicroelectronics\STM32 ST-LINK Utility\ST-LINK Utility (key C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility, mtime 1605571313): 11 files, no impossibilities.
-# C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Corpora 
-tion/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
+# C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common (key C:/Program Files (x86)/NVIDIA Co 
+rporation/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
 # C:\Program Files\WireGuard\ (key C:/Program Files/WireGuard/, mtime 1641226295): 5 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Programs\Microsoft VS Code\bin (key C:/Users/lukas/AppData/Local/Programs/Microsoft VS Code/bin, mtime 1658178250): 4 files, no impossibilities.
 # C:\Users\lukas\AppData\Roaming\Python\Python39\Scripts (key C:/Users/lukas/AppData/Roaming/Python/Python39/Scripts, mtime 1606057407): 7 files, no impossibilities.
@@ -205,13 +205,14 @@ tion/PhysX/Common, mtime 1605287655): 10 files, no impossibilities.
 # C:\Program Files\PuTTY\ (key C:/Program Files/PuTTY/, mtime 1605575009): 12 files, no impossibilities.
 # C:\Program Files (x86)\Common Files\Oracle\Java\javapath (key C:/Program Files (x86)/Common Files/Oracle/Java/javapath, mtime 1605535691): 5 files, no impossibilities.
 # C:\WINDOWS (key C:/WINDOWS, mtime 1658270539): 120 files, no impossibilities.
-# C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin (key C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2020-q4-major/bin, mtime 1613529144): 35 files, no impossibilities.
+# C:\Program Files (x86)\GNU Arm Embedded Toolchain\10 2020-q4-major\bin (key C:/Program  
+Files (x86)/GNU Arm Embedded Toolchain/10 2020-q4-major/bin, mtime 1613529144): 35 files, no impossibilities.
 # C:\Users\lukas\Documents\ownCloud\Synth\stm\st-link\stlink-1.6.1-x86_64-w64-mingw32\stlink-1.6.1-x86_64-w64-mingw32\bin (key C:/Users/lukas/Documents/ownCloud/Synth/stm/st-link/stlink-1.6.1-x86_64-w64-mingw32/stlink-1.6.1-x86_64-w64-mingw32/bin, mtime 1598177776): 5 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Programs\Python\Python39\ (key C:/Users/lukas/AppData/Local/Programs/Python/Pyth 
-on39/, mtime 1655418684): 19 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Python\Python39\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/, mtime 1655418684): 19 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\GitHubDesktop\bin (key C:/Users/lukas/AppData/Local/GitHubDesktop/bin, mtime 1605284003): 4 files, no impossibilities.
 # C:\Users\lukas\AppData\Local\Microsoft\WindowsApps (key C:/Users/lukas/AppData/Local/Microsoft/WindowsApps, mtime 1658265110): 17 files, no impossibilities.
-# C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 1655547170): 19 files, no impossibilities.
+# C:\Users\lukas\AppData\Local\Programs\Python\Python39\Scripts\ (key C:/Users/lukas/AppData/Local/Programs/Python/Python39/Scripts/, mtime 16 
+55547170): 19 files, no impossibilities.
 # C:\Program Files\Git\cmd (key C:/Program Files/Git/cmd, mtime 1605286843): 8 files, no impossibilities.
 # C:\WINDOWS\system32 (key C:/WINDOWS/system32, mtime 1658254023): 3026 files, no impossibilities.
 # C:\Program Files (x86)\GnuWin32\bin (key C:/Program Files (x86)/GnuWin32/bin, mtime 1605536819): 5 files, no impossibilities.
@@ -226,8 +227,7 @@ on39/, mtime 1655418684): 19 files, no impossibilities.
 
 # Not a target:
 all:
-#  Command-line tar 
-get.
+#  Command-line target.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has not been updated.
@@ -246,9 +246,9 @@ makefile:
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
-#  Failed to be updated.
-# va 
-riable set hash-table stats:
+#  Failed to be updated. 
+
+# variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
 # Not a target:
@@ -267,8 +267,8 @@ GNUmakefile:
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
-# files hash-table stats 
-:
+# files hash-table  
+stats:
 # Load=5/1024=0%, Rehash=0, Collisions=0/16=0%
 # VPATH Search Paths
 
@@ -281,7 +281,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Wed Jul 20 02:17:28 2022
+# Finished Make data base on Wed Jul 20 11:51:39 2022
 
  
 make.exe: *** No rule to make target `all'.  Stop.

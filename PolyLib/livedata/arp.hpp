@@ -94,11 +94,10 @@ class Arpeggiator {
 
     uint16_t randomCounter;
 
-    // TODO try std::deque instead of std::list, should be way faster, reserve also possible
-    std::list<Key> pressedKeys;
+    std::vector<Key> pressedKeys;
     std::vector<Key> retriggerKeys;
-    std::list<Key> ratchedKeys;
-    std::list<Key> inputKeys;
+    std::vector<Key> ratchedKeys;
+    std::vector<Key> inputKeys;
 
     std::vector<Key> orderedKeys;
 
