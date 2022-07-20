@@ -106,7 +106,7 @@ class Layer {
     inline void setNote(uint16_t voice, uint8_t note, uint8_t velocity) { midi.setNote(voice, note, velocity); }
 
     inline void allGatesOff() {
-        for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             gateOff(voice);
         }
     }

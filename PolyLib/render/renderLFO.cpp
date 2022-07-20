@@ -79,7 +79,7 @@ void renderLFO(LFO &lfo) {
 
     shape = shapeRAW * 6;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
             phase[voice] += speed[voice] * SECONDSPERCVRENDER;
             newPhase[voice] = phase[voice] > 1.0f;
@@ -88,7 +88,7 @@ void renderLFO(LFO &lfo) {
 
     fract = shape - floor(shape);
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
         if (shape[voice] < 1) {
             sample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
         }
@@ -134,16 +134,16 @@ void renderLFO(LFO &lfo) {
             break;
     }
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         newPhase[voice] = false;
 
     // check if all voices should output the same LFO
-    for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+    for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         sample[otherVoice] = sample[0] * alignLFOs + sample[otherVoice] * !alignLFOs;
-    for (uint16_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+    for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
 
-    for (uint16_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         sample[voice] = sample[voice] * amount[voice];
 
     lfo.out = sample;

@@ -429,15 +429,3 @@ inline float calcRandom() {
     // map to -1, 1
     return ((float)randomNumber / 8388607.0f) - 1.0f;
 }
-
-inline void disableInterruptBelowLevel(uint32_t level) {
-    __disable_irq();
-    // __ASM volatile("MSR basepri, %0" : : "r"(level) : "memory");
-    // // __enable_irq();
-}
-
-inline void enableAllInterruptLevels() {
-    // __disable_irq();
-    // __ASM volatile("MSR basepri, %0" : : "r"(0U) : "memory");
-    __enable_irq();
-}

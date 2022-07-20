@@ -15,7 +15,7 @@ void MAX11128::fetchNewData() {
     // fast_copy_f32(command, (uint32_t *)maxBufferOut, nChannels);
 
     // // receive new samples and send sample command
-    // // for (uint16_t i = 0; i < nChannels; i++) {
+    // // for (uint32_t i = 0; i < nChannels; i++) {
     // // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
 
     // if (busInterface->transmitReceive((uint8_t *)maxBufferOut, (uint8_t *)maxBufferIn, nChannels, true) == BUS_OK) {

@@ -9,7 +9,7 @@ typedef enum { MIDIVIEW, AUDIOVIEW, ENVVIEW } ViewMode;
 
 class GUIPanelPatchMatrix : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0,
+    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, std::string name = "", uint8_t id = 0,
               uint8_t pathVisible = 1);
     void Draw();
 
@@ -26,9 +26,9 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
 
     void activate();
 
-    void scrollModulePosition(int16_t scroll);
-    void scrollInPosition(int16_t scroll);
-    void scrollOutPosition(int16_t scroll);
+    void scrollModulePosition(int32_t scroll);
+    void scrollInPosition(int32_t scroll);
+    void scrollOutPosition(int32_t scroll);
 
     void setFocus(FOCUSMODE focusMode) {
 

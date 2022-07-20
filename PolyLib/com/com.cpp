@@ -22,7 +22,7 @@ uint8_t COMusb::write(uint8_t data) {
 }
 
 uint8_t COMusb::write(uint8_t *data, uint16_t size) {
-    for (uint16_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         wBuffer[writeBufferSelect].push_back(data[i]);
     }
     return 0; // might be used for error codes
@@ -77,7 +77,7 @@ uint8_t COMdin::write(uint8_t data) {
 }
 
 uint8_t COMdin::write(uint8_t *data, uint16_t size) {
-    for (uint16_t i = 0; i < size; i++) {
+    for (uint32_t i = 0; i < size; i++) {
         wBuffer[writeBufferSelect].push_back(data[i]);
     }
     return 0; // might be used for error codes
@@ -168,7 +168,7 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
     // println(voiceID);
 
     if (voiceID == VOICEALL) {
-        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+        for (uint32_t voice = 0; voice < VOICEALL; voice++) {
             comCommand[1] |= voice;
             pushOutBuffer(comCommand, NEWNOTECMDSIZE);
         }
@@ -188,7 +188,7 @@ uint8_t COMinterChip::sendOpenGate(uint8_t layerId, uint8_t voiceID) {
     comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
-        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+        for (uint32_t voice = 0; voice < VOICEALL; voice++) {
             comCommand[1] |= voice;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
@@ -208,7 +208,7 @@ uint8_t COMinterChip::sendCloseGate(uint8_t layerId, uint8_t voiceID) {
     comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
-        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+        for (uint32_t voice = 0; voice < VOICEALL; voice++) {
             comCommand[1] |= voice;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
@@ -229,7 +229,7 @@ uint8_t COMinterChip::sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t vo
     comCommand[2] = modulID;
 
     if (voiceID == VOICEALL) {
-        for (uint16_t voice = 0; voice < VOICEALL; voice++) {
+        for (uint32_t voice = 0; voice < VOICEALL; voice++) {
             comCommand[1] |= voice;
 
             pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
@@ -297,50 +297,56 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 }
 
 busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
-    if (spi->state != BUS_READY)
-        return spi->state;
-
-    if (layerA.layerState.value) {
-        if (!((chipState[0][0] == CHIP_READY || chipState[0][0] == CHIP_DATAREADY) &&
-              (chipState[0][1] == CHIP_READY || chipState[0][1] == CHIP_DATAREADY))) {
-            return BUS_BUSY;
-        }
-    }
-
-    if (layerB.layerState.value) {
-        if (!((chipState[1][0] == CHIP_READY || chipState[1][0] == CHIP_DATAREADY) &&
-              (chipState[1][1] == CHIP_READY || chipState[1][1] == CHIP_DATAREADY))) {
-            return BUS_BUSY;
-        }
-    }
-
-    chipState[receiveLayer][receiveChip] = CHIP_DATAFLOWING;
-
-    setCSLine(receiveLayer, receiveChip, GPIO_PIN_RESET);
-
     uint16_t receiveSize;
 
-    requestSize = true;
-    spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, true);
+    if (!requestSize) {
 
-    while (spi->state != BUS_READY) {
+        if (spi->state != BUS_READY)
+            return spi->state;
+
+        if (layerA.layerState.value) {
+            if (!((chipState[0][0] == CHIP_READY || chipState[0][0] == CHIP_DATAREADY) &&
+                  (chipState[0][1] == CHIP_READY || chipState[0][1] == CHIP_DATAREADY))) {
+                return BUS_BUSY;
+            }
+        }
+
+        if (layerB.layerState.value) {
+            if (!((chipState[1][0] == CHIP_READY || chipState[1][0] == CHIP_DATAREADY) &&
+                  (chipState[1][1] == CHIP_READY || chipState[1][1] == CHIP_DATAREADY))) {
+                return BUS_BUSY;
+            }
+        }
+
+        chipState[receiveLayer][receiveChip] = CHIP_DATAFLOWING;
+
+        setCSLine(receiveLayer, receiveChip, GPIO_PIN_RESET);
+
+        requestSize = true;
+        spi->receive(dmaInBufferPointer[!currentInBufferSelect], 2, true);
     }
+    else {
 
-    receiveSize = *(uint16_t *)dmaInBufferPointer[!currentInBufferSelect];
+        if (spi->state != BUS_READY)
+            return spi->state;
 
-    if (receiveSize > INTERCHIPBUFFERSIZE) {
-        PolyError_Handler("ERROR | FATAL | com buffer too big");
-        chipState[receiveLayer][receiveChip] = CHIP_ERROR;
-        return BUS_ERROR;
+        requestSize = false;
+
+        receiveSize = *(uint16_t *)dmaInBufferPointer[!currentInBufferSelect];
+
+        if (receiveSize > INTERCHIPBUFFERSIZE) {
+            PolyError_Handler("ERROR | FATAL | com buffer too big");
+            chipState[receiveLayer][receiveChip] = CHIP_ERROR;
+            return BUS_ERROR;
+        }
+
+        if (receiveSize < 2) {
+            println("retreive buffer was 0, chip", receiveChip);
+            return BUS_OK;
+        }
+
+        spi->receive(&dmaInBufferPointer[!currentInBufferSelect][2], receiveSize - 2, true);
     }
-
-    if (receiveSize < 2) {
-        println("retreive buffer was 0, chip", receiveChip);
-        return BUS_OK;
-    }
-
-    spi->receive(&dmaInBufferPointer[!currentInBufferSelect][2], receiveSize - 2, true);
-
     return BUS_OK;
 }
 
@@ -479,11 +485,10 @@ busState COMinterChip::beginSendTransmission() {
     }
 #endif
 
+    __disable_irq();
+
     switchOutBuffer();
     appendLastByte();
-
-    // write size into first two bytes of outBuffers
-    // dmaOutCurrentBufferSize = outBuffer[!currentOutBufferSelect].size();
     *(uint16_t *)dmaOutBufferPointer[!currentOutBufferSelect] = dmaOutCurrentBufferSize[!currentOutBufferSelect];
 
     busState ret = startSendDMA();
@@ -493,6 +498,8 @@ busState COMinterChip::beginSendTransmission() {
         HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
     }
 #endif
+
+    __enable_irq();
 
     return ret;
 }
@@ -622,7 +629,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
     }
 
     // start with offset, as two bytes were size
-    for (uint16_t i = 2; i < sizeOfReadBuffer; i++) {
+    for (uint32_t i = 2; i < sizeOfReadBuffer; i++) {
         uint8_t currentByte = (dmaInBufferPointer[currentInBufferSelect])[i];
         switch (currentByte) {
 
@@ -899,10 +906,8 @@ void COMinterChip::switchOutBuffer() {
 uint8_t COMinterChip::appendLastByte() {
     uint8_t comCommand = LASTBYTE;
 
-    __disable_irq();
     // buffer has been switched already
     dmaOutBufferPointer[!currentOutBufferSelect][dmaOutCurrentBufferSize[!currentOutBufferSelect]++] = comCommand;
-    __enable_irq();
     return 0;
 }
 

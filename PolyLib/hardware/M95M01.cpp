@@ -136,7 +136,7 @@ void M95M01::SPI_ReadBuffer(uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByt
     uint16_t nbBytes;
     uint8_t *pToBuffer;
 
-    for (uint16_t i = 0; i < nReadCommands; i++) {
+    for (uint32_t i = 0; i < nReadCommands; i++) {
         if ((NumByteToRead - i * 0xFFFF) > 0xFFFF) {
             nbBytes = 0xFFFF;
         }

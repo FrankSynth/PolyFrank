@@ -36,14 +36,14 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     desiredNote = noteConverted;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
     desiredNote += layerA.feel.detune;
     desiredNote += accumulateOctave();
 
     // // TODO check glide, plus glide settings, i.e. CT & CR
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
             currentNote[i] = std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
         else
@@ -71,7 +71,7 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     vec<VOICESPERCHIP> logNote;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         logNote[i] = fastNoteLin2Log_f32(note[i]);
 
     return logNote;
@@ -121,14 +121,14 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
     desiredNote = noteConverted; // from oscA
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
     desiredNote += layerA.oscB.aTuning;
     desiredNote += layerA.feel.detune;
     desiredNote += accumulateOctaveOscB();
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
             currentNote[i] = std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
         else
@@ -146,7 +146,7 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
     vec<VOICESPERCHIP> logNote;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         logNote[i] = fastNoteLin2Log_f32(note[i]);
 
     return logNote;

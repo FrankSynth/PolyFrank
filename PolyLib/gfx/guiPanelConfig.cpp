@@ -90,7 +90,7 @@ void GUIPanelConfig::registerPanelSettings() {
     actionHandler.registerActionRight(1);
     actionHandler.registerActionRight(2);
 }
-void GUIPanelConfig::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,
+void GUIPanelConfig::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t id,
                           uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;

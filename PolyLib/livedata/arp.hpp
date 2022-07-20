@@ -54,6 +54,8 @@ class Arpeggiator {
     void ratched();
     void release();
     void restart();
+    void reset();
+    void continueRestart();
     void serviceRoutine();
 
     void mode_down();

@@ -104,7 +104,7 @@ void processPanelTouch(uint8_t layerID) {
             }
         }
     }
-    if (layerID == 1) {
+    else if (layerID == 1) {
 
         for (unsigned int x = 0; x < touchPanelB.size(); x++) {
             uint16_t touchState = touchPanelB[x].readTouchStatus();
@@ -148,7 +148,7 @@ void processPanelPotis() {
 
     if (allLayers[0]->layerState.value == 1) {                // check layer active state
         adcA.fetchNewData();                                  // fetch ADC data
-        for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
+        for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
             if (std::abs((panelADCStates[0][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
                 treshold) {
@@ -164,7 +164,7 @@ void processPanelPotis() {
     }
     if (allLayers[1]->layerState.value == 1) {                // check layer active state
         adcA.fetchNewData();                                  // fetch ADC data
-        for (uint16_t channel = 0; channel < 16; channel++) { // for all Channels
+        for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
             if (std::abs((panelADCStates[1][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
                 treshold) {
@@ -182,7 +182,7 @@ void processPanelPotis() {
 // }
 
 void potiMapping() {
-    for (uint16_t i = 0; i < 2; i++) { // register potis for both layer
+    for (uint32_t i = 0; i < 2; i++) { // register potis for both layer
         if (allLayers[i]->layerState.value == 1) {
 
             potiFunctionPointer[i][0][0] =
@@ -256,13 +256,13 @@ void potiMapping() {
 
 //////////// LED ///////////
 void renderLED() {
-    for (int i = 0; i < 2; i++) { // for both Layer
+    for (uint32_t i = 0; i < 2; i++) { // for both Layer
         if (allLayers[i]->layerState.value) {
 
             uint8_t pulseBrightness =
                 uint8_t((fast_sin_f32(millis() / 1000.f) + 1) / 2.f * (float)LEDBRIGHTNESS_MEDIUM);
 
-            for (unsigned int x = 0; x < ledDriverA.size(); x++) {
+            for (uint32_t x = 0; x < ledDriverA.size(); x++) {
                 setAllLEDs(i, x, LEDBRIGHTNESS_OFF);
             }
 
@@ -271,12 +271,12 @@ void renderLED() {
                 if (currentFocus.type == FOCUSOUTPUT) {
 
                     if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
-                        Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
 
+                        Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
                         setLED(i, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
 
-                        for (uint8_t i = 0; i < output->getPatchesInOut().size(); i++) {
-                            Input *target = output->getPatchesInOut()[i]->targetIn;
+                        for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
+                            Input *target = output->getPatchesInOut()[p]->targetIn;
                             setLED(i, target->LEDPortID, target->LEDPinID, pulseBrightness);
                         }
                     }
@@ -287,8 +287,8 @@ void renderLED() {
                         Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
                         setLED(i, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
 
-                        for (uint8_t i = 0; i < input->getPatchesInOut().size(); i++) {
-                            Output *source = input->getPatchesInOut()[i]->sourceOut;
+                        for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
+                            Output *source = input->getPatchesInOut()[p]->sourceOut;
                             setLED(i, source->LEDPortID, source->LEDPinID, pulseBrightness);
                         }
                     }
@@ -299,10 +299,10 @@ void renderLED() {
         }
     }
     // update LEDDriver Outputs
-    for (unsigned int i = 0; i < ledDriverA.size(); i++) {
+    for (uint32_t i = 0; i < ledDriverA.size(); i++) {
         ledDriverA[i].updateLEDs();
     }
-    for (unsigned int i = 0; i < ledDriverB.size(); i++) {
+    for (uint32_t i = 0; i < ledDriverB.size(); i++) {
         ledDriverB[i].updateLEDs();
     }
 }
@@ -341,9 +341,9 @@ void patchLEDMappingInit() {
     }
 }
 
-void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness) {
+void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint8_t brigthness) {
 
-    if (port == 0xFF)
+    if (port == 0xFF || pin == 0xFF)
         return;
     if (layer == 0)
         ledDriverA[port].pwmValue[pin] = brigthness;

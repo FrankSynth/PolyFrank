@@ -23,7 +23,8 @@ void Arpeggiator::keyPressed(Key &key) {
 
             for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
                 if (it->note == key.note) {
-
+                    it->velocity = key.velocity;
+                    reorder = 1;
                     return;
                 }
             }
@@ -103,6 +104,10 @@ void Arpeggiator::serviceRoutine() {
 }
 
 void Arpeggiator::ratched() {
+
+    if (ratchedKeys.empty())
+        return;
+
     for (auto it = ratchedKeys.begin(); it != ratchedKeys.end();) {
         if ((micros() - it->born) > it->lifespan) {
             it->born = micros();
@@ -116,6 +121,9 @@ void Arpeggiator::ratched() {
 }
 
 void Arpeggiator::release() {
+
+    if (pressedKeys.empty())
+        return;
 
     for (auto it = pressedKeys.begin(); it != pressedKeys.end();) {
         // find keys to be released , check sustain-> half lifespan
@@ -153,6 +161,8 @@ void Arpeggiator::setSustain(uint8_t sustain) {
 
 void Arpeggiator::checkLatch() {
     if (arpLatch.value == 0) {
+        if (inputKeys.empty())
+            return;
         for (auto it = inputKeys.begin(); it != inputKeys.end();) {
             if (it->released) {
                 it = inputKeys.erase(it); // delete key
@@ -171,18 +181,39 @@ void Arpeggiator::restart() {
     restarted = 1;
     midiUpdateDelayTimer = 0;
 
-    for (auto it = pressedKeys.begin(); it != pressedKeys.end();)
-        voiceHandler->freeNote(*it); // free Note
+    pressedKeys.clear();
+    retriggerKeys.clear();
+    ratchedKeys.clear();
+    reorder = 1;
+
+    if (arpEnable.value)
+        voiceHandler->reset(layerID); // free Note
+}
+
+void Arpeggiator::continueRestart() {
+
+    midiUpdateDelayTimer = 0;
 
     pressedKeys.clear();
     retriggerKeys.clear();
     ratchedKeys.clear();
     reorder = 1;
+
+    if (arpEnable.value)
+        voiceHandler->reset(layerID); // free Note
+}
+
+void Arpeggiator::reset() {
+    restart();
+    inputKeys.clear();
 }
 
 void Arpeggiator::orderKeys() {
     // println(micros(), " - ordered");
     orderedKeys.clear();
+
+    if (inputKeys.empty())
+        return;
 
     for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         orderedKeys.push_back(*it);
@@ -208,9 +239,8 @@ void Arpeggiator::nextStep() {
     if (reorder)
         orderKeys();
 
-    if (orderedKeys.empty()) {
+    if (orderedKeys.empty())
         return;
-    }
 
     switch (arpMode.value) {
         case ARP_DN: // down

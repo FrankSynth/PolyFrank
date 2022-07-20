@@ -156,90 +156,91 @@ void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t wi
     uint32_t tmpWidth = width;
     uint32_t tmpHeight = height;
 
-    task.x = x;
-    task.y = y;
-
     task.color = color;
 
     // Choose render task type
     task.mode = R2M;
 
     // check boundaries
-    if ((task.x + width) > LCDWIDTH) {
-        tmpWidth = LCDWIDTH - task.x;
+    if ((x + width) > LCDWIDTH) {
+        tmpWidth = LCDWIDTH - x;
     }
 
-    if ((task.y + height) > LCDHEIGHT) {
-        tmpHeight = LCDHEIGHT - task.y;
+    if ((y + height) > LCDHEIGHT) {
+        tmpHeight = LCDHEIGHT - y;
     }
 
     if (tmpWidth == 0 || tmpHeight == 0) {
         return;
     }
 
-    int tmpRadius;
+    if (tmpWidth < 3 || tmpHeight < 3) {
+        task.x = x;
+        task.y = y;
+        task.height = tmpHeight;
+        task.width = tmpWidth;
 
-    if (2 * radius >= tmpWidth) {
-        tmpRadius = tmpWidth / 4;
+        addToRenderQueue(task);
+        return;
     }
-    else if (2 * radius >= tmpHeight) {
-        tmpRadius = tmpHeight / 4;
+
+    uint32_t tmpRadius = radius;
+
+    if (tmpRadius >= tmpWidth / 2) {
+        tmpRadius = (tmpWidth - 1) / 2u;
     }
-    else {
-        tmpRadius = radius;
+    if (tmpRadius >= tmpHeight / 2) {
+        tmpRadius = (tmpHeight - 1) / 2u;
     }
 
     // draw center
 
+    uint32_t innerHeight = tmpHeight - 2 * tmpRadius;
+    uint32_t innerWidth = tmpWidth - 2 * tmpRadius;
+
     task.x = x + tmpRadius;
     task.y = y + tmpRadius;
-    task.height = tmpHeight - 2 * tmpRadius;
-    task.width = tmpWidth - 2 * tmpRadius;
+    task.height = innerHeight;
+    task.width = innerWidth;
 
-    if (width != 0 && task.height != 0) {
+    addToRenderQueue(task);
+
+    // links
+    for (uint32_t i = 0; i < tmpRadius; i++) {
+        task.x = x + i;
+        task.y = y - i + tmpRadius;
+        task.width = 1;
+        task.height = innerHeight + i * 2;
+        addToRenderQueue(task);
+    }
+    // rechts
+    for (uint32_t i = 0; i < tmpRadius; i++) {
+        task.x = x + width - 1 - i;
+        task.y = y - i + tmpRadius;
+        task.width = 1;
+        task.height = innerHeight + i * 2;
         addToRenderQueue(task);
     }
 
-    if (task.height > 1) {
-        // links
-        for (int i = 0; i < tmpRadius; i++) {
-            task.x = x + i;
-            task.y = y + 2 * tmpRadius - i;
-            task.width = 1;
-            task.height = tmpHeight - 4 * tmpRadius + 2 * i;
-            addToRenderQueue(task);
-        }
-        // rechts
-        for (int i = 0; i < tmpRadius; i++) {
-            task.x = x + width - i - 1;
-            task.y = y + 2 * tmpRadius - i;
-            task.width = 1;
-            task.height = tmpHeight - 4 * tmpRadius + 2 * i;
-            addToRenderQueue(task);
-        }
-    }
     // oben
-    if (task.width > 1) {
-
-        for (int i = 0; i < tmpRadius; i++) {
-            task.x = x + 2 * tmpRadius - i;
-            task.y = y + i;
-            task.width = tmpWidth + 2 * i - 4 * tmpRadius;
-            task.height = 1;
-            addToRenderQueue(task);
-        }
-        // unten
-        for (int i = 0; i < tmpRadius; i++) {
-            task.x = x + 2 * tmpRadius - i;
-            task.y = y + height - i - 1;
-            task.width = tmpWidth + 2 * i - 4 * tmpRadius;
-            task.height = 1;
-            addToRenderQueue(task);
-        }
+    for (uint32_t i = 0; i < tmpRadius; i++) {
+        task.x = x + tmpRadius - i;
+        task.y = y + i;
+        task.width = innerWidth + i * 2;
+        task.height = 1;
+        addToRenderQueue(task);
+    }
+    // unten
+    for (uint32_t i = 0; i < tmpRadius; i++) {
+        task.x = x + tmpRadius - i;
+        task.y = y + height - i - 1;
+        task.width = innerWidth + i * 2;
+        task.height = 1;
+        addToRenderQueue(task);
     }
 }
 
-void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment) {
     renderTask task;
 
@@ -248,17 +249,15 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
     task.color = color;             // Set Font Height
 
     // Curser Position
-    uint16_t posX = x;
-    uint16_t posY = y;
+    uint32_t posX = x;
+    uint32_t posY = y;
 
     // alignment
     if (alignment != LEFT) {
-        uint16_t offset = 0;
+
+        uint32_t offset = getStringWidth(text, activeFont);
 
         // calculate center of current string
-        for (char &c : text) {
-            offset += activeFont->font[(uint8_t)c - 32].XSize;
-        }
         if (alignment == CENTER) {
             posX -= offset / 2; // offset posX to Center
         }
@@ -268,21 +267,21 @@ void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const
     }
 
     // For each Char
-    for (char &c : text) {
+    for (const char &c : text) {
 
         task.x = posX;
         task.y = posY;
 
-        task.width = activeFont->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
-        task.pSource = (uint32_t)activeFont->font[(uint8_t)c - 32].pData; // Pointer to Character
+        task.width = activeFont->font[(uint32_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint32_t)c - 32].pData; // Pointer to Character
 
         addToRenderQueue(task); // Add Task to RenderQue
 
-        posX += activeFont->font[(uint8_t)c - 32].XSize; // Distance to next character
+        posX += activeFont->font[(uint32_t)c - 32].XSize; // Distance to next character
     }
 }
 
-void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y) {
+void copyWaveBuffer(const WaveBuffer &waveBuffer, uint32_t x, uint32_t y) {
     renderTask task;
 
     task.mode = M2MARGB4444; // Set DMA2D To copy M2M with Blending
@@ -298,7 +297,7 @@ void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y) {
     addToRenderQueue(task); // Add Task to RenderQue
 }
 
-void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uint16_t y) {
+void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y) {
     renderTask task;
 
     task.mode = M2MTRANSPARENT_A4; // Set DMA2D To copy M2M with Blending
@@ -315,7 +314,7 @@ void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uin
     addToRenderQueue(task); // Add Task to RenderQue
 }
 
-void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawStringVertical(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                         FONTALIGN alignment) {
     renderTask task;
 
@@ -324,8 +323,8 @@ void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t 
     task.color = color;             // Set Font Height
 
     // Curser Position
-    uint16_t posX = x;
-    uint16_t posY = y;
+    uint32_t posX = x;
+    uint32_t posY = y;
 
     if (alignment == CENTER) {
         posY = y - (text.size() * (task.height - 4)) / 2;
@@ -334,20 +333,20 @@ void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t 
         posY = y - (text.size() * (task.height - 4));
     }
     // For each Char
-    for (char &c : text) {
+    for (const char &c : text) {
 
-        task.x = posX - activeFont->font[(uint8_t)c - 32].XSize / 2;
+        task.x = posX - activeFont->font[(uint32_t)c - 32].XSize / 2;
         task.y = posY;
 
-        task.width = activeFont->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
-        task.pSource = (uint32_t)activeFont->font[(uint8_t)c - 32].pData; // Pointer to Character
+        task.width = activeFont->font[(uint32_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint32_t)c - 32].pData; // Pointer to Character
 
         addToRenderQueue(task); // Add Task to RenderQue
 
         posY += task.height - 4; // Distance to next character
     }
 }
-void drawString(const char *charArray, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const char *charArray, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment) {
     renderTask task;
 
@@ -358,16 +357,16 @@ void drawString(const char *charArray, uint32_t color, uint16_t x, uint16_t y, c
     task.color = color;             // Set Font Height
 
     // Curser Position
-    uint16_t posX = x;
-    uint16_t posY = y;
+    uint32_t posX = x;
+    uint32_t posY = y;
 
     // alignment
     if (alignment != LEFT) {
-        uint16_t offset = 0;
+        uint32_t offset = 0;
 
         // calculate center of current string
-        for (char &c : text) {
-            offset += activeFont->font[(uint8_t)c - 32].XSize;
+        for (const char &c : text) {
+            offset += activeFont->font[(uint32_t)c - 32].XSize;
         }
         if (alignment == CENTER) {
             posX -= offset / 2; // offset posX to Center
@@ -378,25 +377,25 @@ void drawString(const char *charArray, uint32_t color, uint16_t x, uint16_t y, c
     }
 
     // For each Char
-    for (char &c : text) {
+    for (const char &c : text) {
 
         task.x = posX;
         task.y = posY;
 
-        task.width = activeFont->font[(uint8_t)c - 32].BytesPerLine * 2;  // Character Width
-        task.pSource = (uint32_t)activeFont->font[(uint8_t)c - 32].pData; // Pointer to Character
+        task.width = activeFont->font[(uint32_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint32_t)c - 32].pData; // Pointer to Character
 
         addToRenderQueue(task); // Add Task to RenderQue
 
-        posX += activeFont->font[(uint8_t)c - 32].XSize; // Distance to next character
+        posX += activeFont->font[(uint32_t)c - 32].XSize; // Distance to next character
     }
 }
 
-uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font) {
-    uint16_t offset = 0;
+uint32_t getStringWidth(const std::string &text, const GUI_FONTINFO *font) {
+    uint32_t offset = 0;
 
-    for (char &c : text) {
-        offset += font->font[(uint8_t)c - 32].XSize;
+    for (const char &c : text) {
+        offset += font->font[(uint32_t)c - 32].XSize;
     }
     return offset;
 }
@@ -562,17 +561,17 @@ void callNextTask() {
     }
 }
 
-inline void drawPixel(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color) {
+inline void drawPixel(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
     if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
         waveBuffer.buffer[y][x] = color;               // simple "blend"
 }
 
-inline void drawPixelAlpha(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color, uint8_t alpha) {
+inline void drawPixelAlpha(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color, uint32_t alpha) {
     if (x < waveBuffer.width && y < waveBuffer.height)                       // check boundaries
         waveBuffer.buffer[y][x] = (color & 0x0FFF) | ((alpha & 0x0F) << 12); // simple "blend"
 }
 
-inline void drawPixelBlend(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color) {
+inline void drawPixelBlend(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
     if (x < waveBuffer.width && y < waveBuffer.height) { // check boundaries
 
         uint8_t newA = (color >> 12) & 0x000F;
@@ -595,13 +594,13 @@ inline void drawPixelBlend(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint1
     }
 }
 
-inline void drawPixelBlendFast(WaveBuffer &waveBuffer, uint16_t x, uint16_t y, uint16_t &color) {
+inline void drawPixelBlendFast(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
 
     if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
         waveBuffer.buffer[y][x] |= color;              // simple "blend"
 }
 
-void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = dx + dy, e2; /* error value e_xy */
@@ -622,7 +621,7 @@ void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &
     }
 }
 
-void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
 
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -653,7 +652,7 @@ void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t
 }
 
 // Bresenham's line algorithm
-void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color) {
+void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
 
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -678,7 +677,7 @@ void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint1
 }
 
 void plotQuadBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
-                       uint16_t &color) { /* plot a limited quadratic Bezier segment */
+                       uint16_t color) { /* plot a limited quadratic Bezier segment */
     int sx = x2 - x1, sy = y2 - y1;
     long xx = x0 - x1, yy = y0 - y1, xy;         /* relative values for checks */
     double dx, dy, err, cur = xx * sy - yy * sx; /* curvature */
@@ -730,7 +729,7 @@ void plotQuadBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, i
 }
 
 void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
-                    uint16_t &color) { /* plot any quadratic Bezier curve */
+                    uint16_t color) { /* plot any quadratic Bezier curve */
     int x = x0 - x1, y = y0 - y1;
     double t = x0 - 2 * x1 + x2, r;
 
@@ -773,7 +772,7 @@ void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
 
 // irgendwas stimmt da nicht...
 void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd,
-                   uint16_t &color) { /* plot an anti-aliased line of width wd */
+                   uint16_t color) { /* plot an anti-aliased line of width wd */
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = dx - dy, e2, x2, y2; /* error value e_xy */
@@ -806,7 +805,7 @@ void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float
     }
 }
 
-void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t &color, float r) {
+void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t color, float r) {
     uint16_t colorAA;
     for (float y = 0; y < 2.0 * r; y++) {
         for (float x = 0; x < 2 * r; x++) {
@@ -822,7 +821,7 @@ void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t &color, f
 }
 
 void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float y1, float x2, float y2, int x3, int y3,
-                        uint16_t &color) { /* plot limited cubic Bezier segment */
+                        uint16_t color) { /* plot limited cubic Bezier segment */
     int f, fx, fy, leg = 1;
     int sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1; /* step direction */
     float xc = -fabs(x0 + x1 - x2 - x3), xa = xc - 4 * sx * (x1 - x2), xb = sx * (x0 - x1 - x2 + x3);
@@ -924,7 +923,7 @@ void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float 
 }
 
 void plotCubicBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3,
-                     uint16_t &color) { /* plot any cubic Bezier curve */
+                     uint16_t color) { /* plot any cubic Bezier curve */
     int n = 0, i = 0;
     long xc = x0 + x1 - x2 - x3, xa = xc - 4 * (x1 - x2);
     long xb = x0 - x1 - x2 + x3, xd = xb + 4 * (x1 + x2);
@@ -998,7 +997,7 @@ void plotCubicBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int
 }
 
 void plotQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
-                    uint16_t &color) { /* plot any quadratic Bezier curve */
+                    uint16_t color) { /* plot any quadratic Bezier curve */
     int x = x0 - x1, y = y0 - y1;
     double t = x0 - 2 * x1 + x2, r;
 
@@ -1040,7 +1039,7 @@ void plotQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
 }
 
 void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[],
-                     uint16_t &color) { /* plot cubic spline, destroys input arrays x,y */
+                     uint16_t color) { /* plot cubic spline, destroys input arrays x,y */
 #define M_MAX 6
     float mi = 0.25, m[M_MAX]; /* diagonal constants of matrix */
     int x3 = x[n - 1], y3 = y[n - 1], x4 = x[n], y4 = y[n];

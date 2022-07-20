@@ -45,6 +45,7 @@ class Clock {
 
     void reset() {
         ticked = 0;
+        receivedNewSPP = 1;
         counter = MAXCLOCKTICKS;
     }
 

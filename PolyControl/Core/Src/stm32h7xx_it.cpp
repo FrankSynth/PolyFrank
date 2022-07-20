@@ -206,6 +206,18 @@ void SysTick_Handler(void) {
 /******************************************************************************/
 
 /**
+ * @brief This function handles EXTI line3 interrupt.
+ */
+void EXTI0_IRQHandler(void) {
+    /* USER CODE BEGIN EXTI0_IRQn 0 */
+    /* USER CODE END EXTI0_IRQn 0 */
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+    /* USER CODE BEGIN EXTI0_IRQn 1 */
+
+    /* USER CODE END EXTI0_IRQn 1 */
+}
+
+/**
  * @brief This function handles EXTI line2 interrupt.
  */
 void EXTI2_IRQHandler(void) {
@@ -245,31 +257,29 @@ void EXTI4_IRQHandler(void) {
 }
 
 /**
-  * @brief This function handles DMA1 stream0 global interrupt.
-  */
-void DMA1_Stream0_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
+ * @brief This function handles DMA1 stream0 global interrupt.
+ */
+void DMA1_Stream0_IRQHandler(void) {
+    /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
 
-  /* USER CODE END DMA1_Stream0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi4_rx);
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
+    /* USER CODE END DMA1_Stream0_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi4_rx);
+    /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
 
-  /* USER CODE END DMA1_Stream0_IRQn 1 */
+    /* USER CODE END DMA1_Stream0_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA1 stream1 global interrupt.
-  */
-void DMA1_Stream1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
+ * @brief This function handles DMA1 stream1 global interrupt.
+ */
+void DMA1_Stream1_IRQHandler(void) {
+    /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
 
-  /* USER CODE END DMA1_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi4_tx);
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
+    /* USER CODE END DMA1_Stream1_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi4_tx);
+    /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
 
-  /* USER CODE END DMA1_Stream1_IRQn 1 */
+    /* USER CODE END DMA1_Stream1_IRQn 1 */
 }
 
 /**
@@ -333,57 +343,53 @@ void EXTI15_10_IRQHandler(void) {
 /**
  * @brief This function handles DMA2 stream0 global interrupt.
  */
-void DMA2_Stream0_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+void DMA2_Stream0_IRQHandler(void) {
+    /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_rx);
-  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+    /* USER CODE END DMA2_Stream0_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi1_rx);
+    /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream0_IRQn 1 */
+    /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA2 stream1 global interrupt.
-  */
-void DMA2_Stream1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+ * @brief This function handles DMA2 stream1 global interrupt.
+ */
+void DMA2_Stream1_IRQHandler(void) {
+    /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_tx);
-  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+    /* USER CODE END DMA2_Stream1_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi1_tx);
+    /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream1_IRQn 1 */
+    /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA2 stream2 global interrupt.
-  */
-void DMA2_Stream2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+ * @brief This function handles DMA2 stream2 global interrupt.
+ */
+void DMA2_Stream2_IRQHandler(void) {
+    /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi2_rx);
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+    /* USER CODE END DMA2_Stream2_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi2_rx);
+    /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream2_IRQn 1 */
+    /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /**
-  * @brief This function handles DMA2 stream3 global interrupt.
-  */
-void DMA2_Stream3_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
+ * @brief This function handles DMA2 stream3 global interrupt.
+ */
+void DMA2_Stream3_IRQHandler(void) {
+    /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi2_tx);
-  /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
+    /* USER CODE END DMA2_Stream3_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi2_tx);
+    /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream3_IRQn 1 */
+    /* USER CODE END DMA2_Stream3_IRQn 1 */
 }
 
 /**
@@ -409,29 +415,27 @@ void SPI4_IRQHandler(void) {
     HAL_SPI_IRQHandler(&hspi4);
     /* USER CODE BEGIN SPI4_IRQn 1 */
 
-  /* USER CODE END SPI4_IRQn 1 */
+    /* USER CODE END SPI4_IRQn 1 */
 }
 
 /**
-  * @brief This function handles SPI6 global interrupt.
-  */
-void SPI6_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI6_IRQn 0 */
+ * @brief This function handles SPI6 global interrupt.
+ */
+void SPI6_IRQHandler(void) {
+    /* USER CODE BEGIN SPI6_IRQn 0 */
 
-  /* USER CODE END SPI6_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi6);
-  /* USER CODE BEGIN SPI6_IRQn 1 */
+    /* USER CODE END SPI6_IRQn 0 */
+    HAL_SPI_IRQHandler(&hspi6);
+    /* USER CODE BEGIN SPI6_IRQn 1 */
 
-  /* USER CODE END SPI6_IRQn 1 */
+    /* USER CODE END SPI6_IRQn 1 */
 }
 
 /**
-  * @brief This function handles LTDC global interrupt.
-  */
-void LTDC_IRQHandler(void)
-{
-  /* USER CODE BEGIN LTDC_IRQn 0 */
+ * @brief This function handles LTDC global interrupt.
+ */
+void LTDC_IRQHandler(void) {
+    /* USER CODE BEGIN LTDC_IRQn 0 */
 
     /* USER CODE END LTDC_IRQn 0 */
     HAL_LTDC_IRQHandler(&hltdc);
@@ -492,17 +496,16 @@ void MDMA_IRQHandler(void) {
     /* USER CODE END MDMA_IRQn 1 */
 }
 /**
-  * @brief This function handles TIM16 global interrupt.
-  */
-void TIM16_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM16_IRQn 0 */
+ * @brief This function handles TIM16 global interrupt.
+ */
+void TIM16_IRQHandler(void) {
+    /* USER CODE BEGIN TIM16_IRQn 0 */
 
-  /* USER CODE END TIM16_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim16);
-  /* USER CODE BEGIN TIM16_IRQn 1 */
+    /* USER CODE END TIM16_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim16);
+    /* USER CODE BEGIN TIM16_IRQn 1 */
 
-  /* USER CODE END TIM16_IRQn 1 */
+    /* USER CODE END TIM16_IRQn 1 */
 }
 /**
  * @brief This function handles TIM5 global interrupt.
@@ -527,31 +530,29 @@ void TIM4_IRQHandler(void) {
     /* USER CODE END TIM5_IRQn 1 */
 }
 /**
-  * @brief This function handles BDMA channel0 global interrupt.
-  */
-void BDMA_Channel0_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
+ * @brief This function handles BDMA channel0 global interrupt.
+ */
+void BDMA_Channel0_IRQHandler(void) {
+    /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
 
-  /* USER CODE END BDMA_Channel0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi6_rx);
-  /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
+    /* USER CODE END BDMA_Channel0_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi6_rx);
+    /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
 
-  /* USER CODE END BDMA_Channel0_IRQn 1 */
+    /* USER CODE END BDMA_Channel0_IRQn 1 */
 }
 
 /**
-  * @brief This function handles BDMA channel1 global interrupt.
-  */
-void BDMA_Channel1_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
+ * @brief This function handles BDMA channel1 global interrupt.
+ */
+void BDMA_Channel1_IRQHandler(void) {
+    /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
 
-  /* USER CODE END BDMA_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi6_tx);
-  /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */
+    /* USER CODE END BDMA_Channel1_IRQn 0 */
+    HAL_DMA_IRQHandler(&hdma_spi6_tx);
+    /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */
 
-  /* USER CODE END BDMA_Channel1_IRQn 1 */
+    /* USER CODE END BDMA_Channel1_IRQn 1 */
 }
 /* USER CODE BEGIN 1 */
 

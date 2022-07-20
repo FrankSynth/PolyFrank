@@ -51,6 +51,16 @@ void polyControlLoop() { // Here the party starts
 
     while (1) {
 
+        // checkLayerRequests();
+        // __disable_irq();
+        if (getRenderState() == RENDER_DONE) {
+            // timer = 0;
+            ui.Draw();
+            // println(timer);
+            renderLED();
+            sendRequestAllUIData();
+        }
+        // __enable_irq();
         if (enableWFI) {
             __disable_irq();
             __DSB();
@@ -58,7 +68,7 @@ void polyControlLoop() { // Here the party starts
             __enable_irq();
         }
         else {
-            if (timerWFI > 60000)
+            if (timerWFI > 10000)
                 enableWFI = true;
         }
     }
@@ -70,7 +80,7 @@ void checkLayerRequests() {
         return;
 
     if (layerCom.singleChipRequested) {
-        if (layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] == CHIP_DATAREADY) {
+        if (layerCom.chipState[layerCom.receiveLayer][layerCom.receiveChip] == CHIP_DATAREADY || layerCom.requestSize) {
             receiveFromRenderChip(layerCom.receiveLayer, layerCom.receiveChip);
         }
     }
@@ -118,9 +128,7 @@ void temperature() {
     adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
     globalSettings.temperature = (uint32_t)round(adcx * (adc_v - *(unsigned short *)(0x1FF1E820)) + 30);
 
-    if (HAL_ADC_PollForConversion(&hadc3, 100) != HAL_OK) {
-        Error_Handler();
-    }
+    HAL_ADC_Start(&hadc3);
 }
 
 //////////////MIDI////////////
@@ -166,8 +174,7 @@ void receivedSPP(unsigned int spp) {
  * @param chip chip to retreive
  */
 void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
-    while (layerCom.beginReceiveTransmission(layer, chip) != BUS_OK) {
-    }
+    layerCom.beginReceiveTransmission(layer, chip);
 }
 
 void sendRequestAllUIData() {
@@ -175,6 +182,7 @@ void sendRequestAllUIData() {
         println("not all data received yet");
         return;
     }
+    __disable_irq();
 
     for (int i = 0; i < 2; i++)
         for (int v = 0; v < 2; v++)
@@ -182,6 +190,7 @@ void sendRequestAllUIData() {
                 layerCom.requestState[i][v] = RQ_REQUESTDATA;
             }
     layerCom.sentRequestUICommand = true;
+    __enable_irq();
 }
 
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
@@ -230,7 +239,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
         if (layerCom.requestSize) {
-            layerCom.requestSize = false;
             layerCom.spi->callRxComplete();
         }
         else {
@@ -351,6 +359,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
             layerCom.chipState[0][0] = CHIP_READY;
         }
     }
+
+    // software IRQ
+    if (pin == GPIO_PIN_0) {
+        EXTI->PR1 |= 0x01;
+        FlagHandler::handleFlags();
+    }
 }
 
 // USB Connect detection
@@ -376,19 +390,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
     }
     if (htim->Instance == htim16.Instance) {
 
+        elapsedMicros timTimer;
+
         mididevice.read();
         liveData.serviceRoutine();
-        FlagHandler::handleFlags();
-
+        checkLayerRequests();
         layerCom.beginSendTransmission();
 
-        checkLayerRequests();
-        if (getRenderState() == RENDER_DONE) {
-            // timer = 0;
-            ui.Draw();
-            // println("ui draw:", timer);
-            renderLED();
-            sendRequestAllUIData();
-        }
+        uint32_t timerVal = timTimer;
+
+        // if (getRenderState() == RENDER_DONE) {
+        //     // timer = 0;
+        //     ui.Draw();
+        //     // println("ui draw:", timer);
+        //     renderLED();
+        //     sendRequestAllUIData();
+        // }
+
+        // software IRQ
+        EXTI->SWIER1 |= 0x01;
     }
 }

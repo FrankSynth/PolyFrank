@@ -8,7 +8,7 @@ void GUIPanelPatch::registerElements() {
     dataIndex = scrollModule.offset;
 
     // register Module Elements
-    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysModule) {
 
             panelElementsModule[elementIndex].addEntry(allModules[dataIndex]);
@@ -23,7 +23,7 @@ void GUIPanelPatch::registerElements() {
     dataIndex = scrollSource.offset;
     // register Source Elements
 
-    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysSource) {
 
             panelElementsSource[elementIndex].addEntry(allOutputs[dataIndex], 1);
@@ -38,7 +38,7 @@ void GUIPanelPatch::registerElements() {
     dataIndex = scrollTarget.offset;
     // register Target Elements
 
-    for (uint16_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < maxEntrys; elementIndex++) {
         if (dataIndex < entrysTarget) {
 
             panelElementsTarget[elementIndex].addEntry(allInputs[dataIndex]);
@@ -198,7 +198,7 @@ void GUIPanelPatch::activate() {
 
     if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSMODULE) {
 
-        for (uint16_t i = 0; i < allModules.size(); i++) {
+        for (uint32_t i = 0; i < allModules.size(); i++) {
             if (allModules[i]->id == currentFocus.modul) {
                 scrollModule.setScroll(i);
                 break;
@@ -208,7 +208,7 @@ void GUIPanelPatch::activate() {
 
     if (currentFocus.type == FOCUSINPUT) {
         collectInputs();
-        for (uint16_t i = 0; i < allInputs.size(); i++) {
+        for (uint32_t i = 0; i < allInputs.size(); i++) {
             if (allInputs[i]->id == currentFocus.id) {
                 scrollTarget.setScroll(i);
                 break;
@@ -222,7 +222,7 @@ void GUIPanelPatch::activate() {
             uint16_t searchID = allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs[0]->idGlobal;
 
             collectOutputs();
-            for (uint16_t i = 0; i < allOutputs.size(); i++) {
+            for (uint32_t i = 0; i < allOutputs.size(); i++) {
                 if (allOutputs[i]->idGlobal == searchID) {
                     scrollSource.setScroll(i);
                     break;
@@ -334,7 +334,7 @@ void GUIPanelPatch::registerPanelSettings() {
     actionHandler.registerActionEncoder(3, {nullptr, ""}, {nullptr, ""}, {nullptr, ""}); // clear action
 }
 
-void GUIPanelPatch::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,
+void GUIPanelPatch::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t id,
                          uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;

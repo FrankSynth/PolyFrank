@@ -9,7 +9,7 @@ const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift32_FontInfo;
 
 const GUI_FONTINFO *fontConsole = &GUI_FontBahnschrift16_FontInfo;
 
-void drawConsole(CircularBuffer<char, 1024> consoleBuffer, uint16_t rows, uint16_t x, uint16_t y, uint16_t w,
+void drawConsole(const CircularBuffer<char, 1024> &consoleBuffer, uint16_t rows, uint32_t x, uint32_t y, uint16_t w,
                  uint16_t h) {
 
     uint8_t characterHeigth = fontConsole->size;
@@ -28,7 +28,7 @@ void drawConsole(CircularBuffer<char, 1024> consoleBuffer, uint16_t rows, uint16
     // For each Char
     uint16_t relX = 0;
 
-    char *pData = consoleBuffer.m_head;
+    const char *pData = consoleBuffer.m_head;
 
     char c;
 
@@ -79,7 +79,7 @@ void drawConsole(CircularBuffer<char, 1024> consoleBuffer, uint16_t rows, uint16
     }
 }
 
-void drawDeviceManager(std::string *string, uint16_t rows, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+void drawDeviceManager(std::string *string, uint16_t rows, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
 
     uint8_t characterHeigth = fontConsole->size;
 
@@ -139,7 +139,7 @@ void drawDeviceManager(std::string *string, uint16_t rows, uint16_t x, uint16_t 
     }
 }
 
-void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
     // PatchElementOutOut *dataOutOut = nullptr;
     PatchElement *data = nullptr;
     // uint8_t outOutFlag = 0;
@@ -219,7 +219,7 @@ void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t 
     drawRectangleFill(cWhite, relX + x + valueBarWidth / 2 - 1, relY + y + 2, 1, valueBarHeigth - 4);
 }
 
-void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                         uint8_t hugeFont) {
     const GUI_FONTINFO *selectedFont;
     if (hugeFont) {
@@ -294,7 +294,7 @@ void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     drawRectangleChampfered(cWhite, x + 4, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
-void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawNameElement(std::string *name, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     // clear
     if (name != nullptr) {
@@ -302,7 +302,7 @@ void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint
 
         // Draw Name
         if (select) {
-            drawRectangleChampfered(cHighlight, x, y, w, h, 1);
+            drawRectangleChampfered(cHighlight, x, y, w - 1, h, 1);
             drawString(*name, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
         }
         else {
@@ -312,7 +312,7 @@ void drawNameElement(std::string *name, uint16_t x, uint16_t y, uint16_t w, uint
     }
 }
 
-void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawBasePatchElement(BasePatch *element, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                           uint8_t patched, uint8_t showModuleName) {
 
     uint32_t colorFont;
@@ -351,7 +351,7 @@ void drawBasePatchElement(BasePatch *element, uint16_t x, uint16_t y, uint16_t w
     }
 }
 
-void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, uint16_t y, uint16_t w, uint16_t h,
+void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint32_t x, uint32_t y, uint16_t w, uint16_t h,
                           uint8_t select, uint8_t patched, uint8_t showModuleName) {
 
     int valueBarHeigth = 6;
@@ -409,7 +409,7 @@ void drawBasePatchElement(BasePatch *element, PatchElement *patch, uint16_t x, u
     drawRectangleFill(cWhite, x + w / 2 - 1, y + h - valueBarHeigth, 1, valueBarHeigth);
 }
 
-void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawModuleElement(BaseModule *element, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                        uint8_t patched) {
 
     if (select) {
@@ -433,7 +433,7 @@ void drawModuleElement(BaseModule *element, uint16_t x, uint16_t y, uint16_t w, 
     }
 }
 
-void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     // x += 2;
     // w -= 4;
@@ -479,7 +479,7 @@ void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, 
     drawRectangleChampfered(cWhite, relX + x + 2, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
-void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     Analog *data = entry->analog;
     uint16_t nameWidth = 200;
@@ -548,10 +548,10 @@ void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     }
 }
 
-void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                             uint8_t modulename) {
 
-    uint16_t heightBar = 12;
+    uint16_t heightBar = 10;
     // clear
 
     drawRectangleChampfered(cGrey, x, y, w, h, 1);
@@ -566,11 +566,11 @@ void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, ui
 
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cHighlight, x, y, w, h - heightBar, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h - heightBar - 2, 1);
         drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteMedium, x, y, w, h - heightBar, 1);
+        drawRectangleChampfered(cWhiteMedium, x, y, w, h - heightBar - 2, 1);
         drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
 
@@ -592,7 +592,7 @@ void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, ui
     drawRectangleChampfered(cWhite, x, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
-void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawModuleElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     BaseModule *data = entry->modules;
 
@@ -613,7 +613,7 @@ void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, u
     }
 }
 
-void drawPresetElement(presetStruct *element, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawPresetElement(presetStruct *element, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     std::string name;
 
@@ -1085,7 +1085,7 @@ void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
     visible = 1;
 }
 
-void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y) {
+void drawWaveFromModule(BaseModule *module, uint32_t x, uint32_t y) {
 
     // empty waveBuffer
     uint32_t data = 0x00000000;
@@ -1277,7 +1277,7 @@ void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples) {
         }
     }
     uint32_t sampleCrushCount = 0;
-    int8_t sample;
+    int8_t sample = 0;
     int8_t newSample;
 
     for (uint16_t i = 0; i < samples; i++) {

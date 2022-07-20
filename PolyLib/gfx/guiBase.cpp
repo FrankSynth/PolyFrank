@@ -32,36 +32,37 @@ uint16_t c4444wavecolorTrans = 0x8FFF;
 uint16_t c4444gridcolor = 0x3FFF;
 uint16_t c4444framecolor = 0xAFFF;
 
-uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
-                         uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer, FONTALIGN alignment) {
-    uint16_t width = getStringWidth(text, font) + space; // text witdh + space
+uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer,
+                         FONTALIGN alignment) {
+    uint32_t width = getStringWidth(text, font) + space; // text witdh + space
 
     drawRectangleChampfered(colorBox, x, y, width, heigth, champfer); // draw Box
-    drawString(text, colorText, x + space / 2, y + (-font->size + heigth) / 2, font,
+    drawString(text, colorText, x + space / 2, y + (-(font->size) + heigth) / 2, font,
                LEFT); // draw text, height centered
 
     return width;
 }
-uint16_t drawBoxWithTextFixWidth(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
-                                 uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t space,
-                                 uint16_t champfer, FONTALIGN alignment) {
+uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
+                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
+                                 uint32_t space, uint32_t champfer, FONTALIGN alignment) {
 
     drawRectangleChampfered(colorBox, x - width, y, width, heigth, champfer); // draw Box
-    drawString(text, colorText, x + space / 2 - width, y + (-font->size + heigth) / 2, font,
+    drawString(text, colorText, x + space / 2 - width, y + (-(font->size) + heigth) / 2, font,
                LEFT); // draw text, height centered
 
     return width;
 }
-void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
-                   uint16_t viewable) {
+void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
+                   uint32_t viewable) {
 
     if (viewable >= entrys) {
         return;
     }
     drawRectangleChampfered(cGreyDark, x, y, width, heigth, 1); // draw Box
     float entryHeight = heigth / (float)entrys;
-    uint16_t scrollBarHeight = entryHeight * viewable;
-    uint16_t scrollBarPositionY = entryHeight * scroll;
+    uint32_t scrollBarHeight = entryHeight * viewable;
+    uint32_t scrollBarPositionY = entryHeight * scroll;
 
     drawRectangleChampfered(cWhite, x, y + scrollBarPositionY, width, scrollBarHeight, 1); // draw Box
 }
@@ -112,15 +113,15 @@ void focusPatch(location focus) {
     setPanelActive(1);
 }
 
-void Scroller::scroll(int16_t change) {
+void Scroller::scroll(int32_t change) {
 
     if (position + change != 0) {
-        position = std::clamp(position + change, 0, entrys - 1);
+        position = std::clamp(position + change, (int32_t)0, (int32_t)entrys - 1);
     }
     else
         position = 0;
 
-    if (position >= entrys) {
+    if (position >= (int32_t)entrys) {
         position = 0;
         offset = 0;
     }
@@ -128,14 +129,14 @@ void Scroller::scroll(int16_t change) {
     if (entrys <= maxEntrysVisible) {
         offset = 0;
     }
-    else if (position == entrys - 1) {
+    else if (position == (int32_t)entrys - 1) {
         offset = entrys - maxEntrysVisible;
     }
     else if (position == 0) {
         offset = 0;
     }
 
-    else if (position >= (maxEntrysVisible + offset - 1)) {
+    else if (position >= (int32_t)(maxEntrysVisible + offset - 1)) {
         offset++;
     }
     else if (position < (offset + 1)) {
@@ -145,7 +146,7 @@ void Scroller::scroll(int16_t change) {
     relPosition = position - offset;
 }
 
-void Scroller::setScroll(int16_t scrollPosition) {
+void Scroller::setScroll(int32_t scrollPosition) {
 
     if (scrollPosition == 0) { // new position = 0
         position = 0;
@@ -158,7 +159,7 @@ void Scroller::setScroll(int16_t scrollPosition) {
     else {
         position = testInt(scrollPosition, 0, entrys - 1);
 
-        if (position - offset >= maxEntrysVisible) { // scroll
+        if (position - offset >= (int32_t)maxEntrysVisible) { // scroll
             offset = position - maxEntrysVisible / 2;
         }
         if (position - offset <= 0) { // scroll

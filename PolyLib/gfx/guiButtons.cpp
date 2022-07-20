@@ -29,7 +29,7 @@ void Footer_PanelBox::Draw() {
         secondName = "-";
     }
 
-    //drawRectangleFill(cClear, x, y, width, heigth);
+    // drawRectangleFill(cClear, x, y, width, heigth);
 
     drawString(mainName, cWhite, x + width / 2, y - fontBig->size + heigth / 2 - fontShift, fontBig, CENTER);
     drawString(secondName, cWhite, x + width / 2, y + heigth / 2 + fontShift, fontSmall, CENTER);
@@ -90,8 +90,8 @@ void Side_PanelBox::Draw() {
     }
 }
 
-void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID, uint16_t width, uint16_t height,
-                     uint16_t x, uint16_t y) {
+void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID, uint32_t width, uint32_t height,
+                     uint32_t x, uint32_t y) {
     panelCount = 4;
     panelWidth = width / 4;
     panelHeight = height;
@@ -126,7 +126,7 @@ void GUIHeader::Draw() {
     }
 }
 
-void GUIFooter::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIFooter::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     panelWidth = width / panelCount;
     panelHeight = height;
     panelAbsX = x;
@@ -154,7 +154,7 @@ void GUIFooter::Draw() {
     }
 }
 
-void GUISide::init(uint16_t width, uint16_t height, uint16_t y, uint16_t x) {
+void GUISide::init(uint32_t width, uint32_t height, uint32_t y, uint32_t x) {
     panelWidth = width;
     panelHeight = height / panelCount;
     panelAbsY = y;

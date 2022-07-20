@@ -45,27 +45,28 @@ extern const GUI_FONTINFO *fontBig;
 
 
 */
-void drawDeviceManager(std::string *string, uint16_t rows, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+void drawDeviceManager(std::string *string, uint16_t rows, uint32_t x, uint32_t y, uint16_t w, uint16_t h);
 
-void drawConsole(CircularBuffer<char, 1024>, uint16_t rows, uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+void drawConsole(const CircularBuffer<char, 1024> &consoleBuffer, uint16_t rows, uint32_t x, uint32_t y, uint16_t w,
+                 uint16_t h);
 
-void drawPresetElemet(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+void drawPresetElemet(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawModuleElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+void drawModuleElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawPatchInOutElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawDigitalElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawAnalogElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t h, uint16_t w, uint8_t select);
+void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
-void drawSettingElement(entryStruct *entry, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                         uint8_t hugeFont = 0);
 
-void drawSmallAnalogElement(Analog *data, uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t select,
+void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                             uint8_t modulename = false);
 
-void drawWaveFromModule(BaseModule *module, uint16_t x, uint16_t y);
+void drawWaveFromModule(BaseModule *module, uint32_t x, uint32_t y);
 
 void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
 void drawFrame(uint16_t color);
@@ -92,7 +93,7 @@ const char *tuningToChar(const byte &tuning);
 // GUIHeader Box for Panel Selection
 class Data_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -264,7 +265,7 @@ class Data_PanelElement {
 // GUIHeader Box for Panel Selection
 class Live_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -311,7 +312,7 @@ class Live_PanelElement {
 // GUIHeader Box for Panel Selection
 class EffectAmount_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -351,7 +352,7 @@ class EffectAmount_PanelElement {
 // GUIHeader Box for Panel Selection
 class Effect_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -388,7 +389,7 @@ class Effect_PanelElement {
 // GUIHeader Box for Panel Selection
 class Patch_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
@@ -422,7 +423,7 @@ class Patch_PanelElement {
 
 class Module_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
@@ -452,7 +453,7 @@ class Module_PanelElement {
 // PresetPanelElemnt for Presets
 class Preset_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->entryWidth = width;
@@ -480,7 +481,7 @@ class Preset_PanelElement {
 
 class MatrixPatch_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -506,7 +507,7 @@ class MatrixPatch_PanelElement {
 
 class MatrixIn_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -532,7 +533,7 @@ class MatrixIn_PanelElement {
 
 class MatrixOut_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;
@@ -558,7 +559,7 @@ class MatrixOut_PanelElement {
 
 class MatrixModule_PanelElement {
   public:
-    void init(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
         this->panelAbsX = x;
         this->panelAbsY = y;
         this->width = width;

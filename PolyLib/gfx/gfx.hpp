@@ -46,8 +46,8 @@ typedef struct {
 
 typedef struct {
     uint16_t buffer[WAVEFORMHEIGHT][LCDWIDTH - 60];
-    uint16_t width = LCDWIDTH - 60;
-    uint16_t height = WAVEFORMHEIGHT;
+    uint32_t width = LCDWIDTH - 60;
+    uint32_t height = WAVEFORMHEIGHT;
 } WaveBuffer;
 
 extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
@@ -76,45 +76,43 @@ void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc);
 void addToRenderQueue(renderTask &task);
 void callNextTask();
 
-void drawString(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
-void drawString(const char *text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawString(const char *text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
-void drawStringVertical(std::string &text, uint32_t color, uint16_t x, uint16_t y, const GUI_FONTINFO *activeFont,
+void drawStringVertical(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                         FONTALIGN alignment = CENTER);
 
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
-uint16_t getStringWidth(std::string &text, const GUI_FONTINFO *font);
+uint32_t getStringWidth(const std::string &text, const GUI_FONTINFO *font);
 
-void copyWaveBuffer(WaveBuffer &waveBuffer, uint16_t x, uint16_t y);
+void copyWaveBuffer(const WaveBuffer &waveBuffer, uint32_t x, uint32_t y);
 
 /////Software GFX Functions////////
-void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
-void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
-void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd, uint16_t &color);
+void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd, uint16_t color);
 
-void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t &color);
-void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t &color);
+void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
 
-void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[], uint16_t &color);
+void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[], uint16_t color);
 
-void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint16_t x, uint16_t y);
+void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y);
 
-void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t &color, float r);
+void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t color, float r);
 
-inline void drawPixelThick(WaveBuffer &waveBuffer, int16_t x0, int16_t y0, uint16_t &color) {
+inline void drawPixelThick(WaveBuffer &waveBuffer, uint32_t x0, uint32_t y0, uint16_t color) {
     // draw a circle
 
-    uint16_t x;
-    uint16_t y;
+    for (int32_t xOffset = -1; xOffset < 2; xOffset++) {
+        int32_t x = x0 + xOffset;
 
-    for (int16_t xOffset = -1; xOffset < 2; xOffset++) {
-        for (int16_t yOffset = -1; yOffset < 2; yOffset++) {
-            x = x0 + xOffset;
-            y = y0 + yOffset;
+        for (int32_t yOffset = -1; yOffset < 2; yOffset++) {
+            int32_t y = y0 + yOffset;
 
-            if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
-                waveBuffer.buffer[y][x] = color;               // simple "blend"
+            if (x < (int32_t)waveBuffer.width && y < (int32_t)waveBuffer.height) // check boundaries
+                waveBuffer.buffer[y][x] = color;
         }
     }
 }

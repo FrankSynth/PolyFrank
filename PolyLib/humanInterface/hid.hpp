@@ -43,7 +43,7 @@ void renderLED();
 
 void patchLEDMappingInit();
 void switchLEDMapping();
-void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness);
+void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint8_t brigthness);
 void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness);
 
 void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);

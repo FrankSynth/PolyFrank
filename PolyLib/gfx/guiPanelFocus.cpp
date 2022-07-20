@@ -2,7 +2,7 @@
 
 #include "guiPanelFocus.hpp"
 
-void GUIPanelFocus::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, uint8_t pathVisible) {
+void GUIPanelFocus::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -289,7 +289,7 @@ void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements)
 void GUIPanelFocus::registerModulePatchIn() {
 
     patchIndex = scroll->offset;
-    for (uint16_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
 
         PatchElement *p = getPatchEntry();
 
@@ -315,7 +315,7 @@ void GUIPanelFocus::registerModulePatchIn() {
 
 void GUIPanelFocus::registerModulePatchOut() {
     patchIndex = scroll->offset;
-    for (uint16_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < entrys; elementIndex++) {
 
         PatchElement *p = getPatchEntry();
 

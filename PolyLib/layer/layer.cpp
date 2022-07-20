@@ -181,19 +181,19 @@ void Layer::initLayer() {
 
     // set spread values dependend on chip ID
     float maxVal = chipID ? -1.0f : 1.0f;
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         spreadValues[i] = maxVal / ((float)i + 1.0f);
 
     // load imperfection buffers
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         lfoImperfection[i] = calcRandom() * LFOIMPERFECTIONWEIGHT;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++)
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT + 1;
 
-    for (uint16_t i = 0; i < VOICESPERCHIP; i++) {
-        for (uint16_t o = 0; o < OSCPERVOICE; o++) {
-            for (uint16_t x = 0; x < NOTEIMPERFECTIONBUFFERSIZE; x++) {
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        for (uint32_t o = 0; o < OSCPERVOICE; o++) {
+            for (uint32_t x = 0; x < NOTEIMPERFECTIONBUFFERSIZE; x++) {
                 noteImperfection[o][i][x] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
             }
         }

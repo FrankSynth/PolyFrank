@@ -2,7 +2,7 @@
 
 #include "guiPanelVoice.hpp"
 
-void drawVoiceStatus(voiceStateStruct *voiceState, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+void drawVoiceStatus(voiceStateStruct *voiceState, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
     std::string text;
 
     float amount = allLayers[voiceState->layerID]->out.vca.currentSample[voiceState->voiceID];
@@ -38,13 +38,13 @@ void GUIPanelVoice::Draw() {
     uint16_t relX = 0;
     // register Panel Seetings.settings.
 
-    for (uint16_t v = 0; v < NUMBERVOICES; v++) {
+    for (uint32_t v = 0; v < NUMBERVOICES; v++) {
         drawVoiceStatus(&liveData.voiceHandler.voices[layerID][v], panelAbsX + relX + 1, panelAbsY, elementWidth - 2,
                         elementHeigth);
         relX += panelWidth / NUMBERVOICES;
     }
 }
-void GUIPanelVoice::init(uint8_t layerID, uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIPanelVoice::init(uint8_t layerID, uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;

@@ -4,11 +4,11 @@
 
 void GUIPanelEffect::registerElements() {
 
-    uint16_t entryIndex = 0;
+    uint32_t entryIndex = 0;
 
-    for (uint16_t elementIndex = 0; elementIndex < LIVEPANELENTRYS; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < LIVEPANELENTRYS; elementIndex++) {
 
-        for (int x = 0; x < EntrysPerElement; x++) { // start new Element
+        for (uint32_t x = 0; x < EntrysPerElement; x++) { // start new Element
 
             if (entryIndex < entrys.size()) { // no more entry available
                 effectPanelElements[elementIndex].addEntry(entrys[entryIndex]);
@@ -237,7 +237,7 @@ void GUIPanelEffect::registerPanelSettings() {
     }
 }
 
-void GUIPanelEffect::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, uint8_t pathVisible) {
+void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;

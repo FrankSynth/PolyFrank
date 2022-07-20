@@ -120,9 +120,9 @@ void LiveData::receivedStart() {
 void LiveData::receivedContinue() {
 
     if (livemodeClockSource.value == 1) { // clock source == midi
-        clock.reset();
+        // clock.reset();
         for (byte i = 0; i < 2; i++) {
-            arps[i].restart();
+            arps[i].continueRestart();
         }
     }
 }
@@ -130,22 +130,23 @@ void LiveData::receivedStop() {
     if (livemodeClockSource.value == 1) { // clock source == midi
 
         for (byte i = 0; i < 2; i++) {
-            arps[i].midiUpdateDelayTimer = 0;
+            arps[i].reset();
         }
     }
 }
 
 void LiveData::receivedReset() {
-    // TODO send all notes off, etc
+    for (byte i = 0; i < 2; i++) {
+        arps[i].reset();
+        voiceHandler.reset(i);
+    }
 }
 
 void LiveData::receivedMidiSongPosition(unsigned int spp) {
     if (livemodeClockSource.value == 1) { // clock source == midi
-        clock.receivedNewSPP = 1;
-        for (byte i = 0; i < 2; i++) {
-            arps[i].restart();
-        }
-        clock.counter = (spp * 6);
+                                          // clock.receivedNewSPP = 1;
+        clock.reset();
+        clock.counter = (spp * 6) % MAXCLOCKTICKS;
     }
 }
 
@@ -165,7 +166,7 @@ void LiveData::internalClockTick() {
 
 void LiveData::externalClockTick() {
     if (livemodeClockSource.value == 0) { // clock source == external Sync
-        for (uint16_t i = 0; i < extClockMultiply[livemodeExternalClockMultiply.value]; i++) {
+        for (uint32_t i = 0; i < extClockMultiply[livemodeExternalClockMultiply.value]; i++) {
             clock.tick();
         }
     }

@@ -93,15 +93,16 @@ typedef struct {
 
 } patchEntryStruct;
 
-uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
-                         uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer = 0,
+uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer = 0,
                          FONTALIGN alignment = CENTER);
 
-uint16_t drawBoxWithTextFixWidth(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
-                                 uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t space,
-                                 uint16_t champfer, FONTALIGN alignment);
-void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
-                   uint16_t viewable);
+uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
+                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
+                                 uint32_t space, uint32_t champfer, FONTALIGN alignment);
+
+void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
+                   uint32_t viewable);
 
 class GUIPanelBase {
   public:
@@ -122,11 +123,11 @@ class GUIPanelBase {
 
 class Scroller {
   public:
-    Scroller(uint16_t maxEntrysVisible = 0) { this->maxEntrysVisible = maxEntrysVisible; }
+    Scroller(uint32_t maxEntrysVisible = 0) { this->maxEntrysVisible = maxEntrysVisible; }
 
-    void scroll(int16_t change);
+    void scroll(int32_t change);
 
-    void setScroll(int16_t scrollPosition);
+    void setScroll(int32_t scrollPosition);
 
     void checkScroll() { scroll(0); }
     void resetScroll() {
@@ -135,11 +136,11 @@ class Scroller {
     };
 
     // TODO these give comparison warnings, can they ever be negative? Should be uint maybe
-    int16_t position = 0;
-    int16_t offset = 0;
-    uint16_t entrys = 0;
-    uint16_t maxEntrysVisible = 0;
-    int16_t relPosition = 0;
+    int32_t position = 0;
+    int32_t offset = 0;
+    uint32_t entrys = 0;
+    uint32_t maxEntrysVisible = 0;
+    int32_t relPosition = 0;
 };
 
 // PanelSelect
