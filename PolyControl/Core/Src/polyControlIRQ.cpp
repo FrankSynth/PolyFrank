@@ -9,8 +9,10 @@
 #include "midiInterface/MIDIInterface.h"
 #include "usbd_midi_if.hpp"
 
-// GUI
-extern midi::MidiInterface<midiUSB::COMusb> mididevice;
+// USB
+extern midi::MidiInterface<midiUSB::COMusb> midiDeviceUSB;
+extern midi::MidiInterface<COMdin> midiDeviceDIN;
+
 extern GUI ui;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
@@ -26,9 +28,6 @@ extern spiBus spiBusPanel;
 extern volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 extern volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 
-// USB
-extern midi::MidiInterface<midiUSB::COMusb> mididevice;
-
 // Layer
 extern Layer layerA;
 extern Layer layerB;
@@ -39,6 +38,9 @@ void checkLayerRequests();
 
 // InterChip Com
 extern COMinterChip layerCom;
+extern COMdin MIDIDinRead;
+extern UART_HandleTypeDef huart5;
+uint8_t midiDataInBuffer;
 
 void temperature();
 
@@ -49,6 +51,14 @@ void polyControlLoop() { // Here the party starts
 
     bool enableWFI = false;
 
+    HAL_UART_Receive_Stream(&huart5);
+
+    // println("CR1  :", huart5.Instance->CR1);
+    // println("CR2  :", huart5.Instance->CR2);
+    // println("CR3  :", huart5.Instance->CR3);
+    // println("ISR  :", huart5.Instance->ISR);
+    // println("ryxdmaState  :", huart5.hdmarx->State);
+
     while (1) {
 
         // checkLayerRequests();
@@ -57,8 +67,14 @@ void polyControlLoop() { // Here the party starts
             // timer = 0;
             ui.Draw();
             // println(timer);
-            renderLED();
+            // renderLED();
             sendRequestAllUIData();
+
+            // println("CR1  :", huart5.Instance->CR1);
+            // println("CR2  :", huart5.Instance->CR2);
+            // println("CR3  :", huart5.Instance->CR3);
+            // println("ISR  :", huart5.Instance->ISR);
+            // println("ryxdmaState  :", huart5.hdmarx->State);
         }
         // __enable_irq();
         if (enableWFI) {
@@ -196,19 +212,30 @@ void sendRequestAllUIData() {
 void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
     if (layer) {
         if (chip)
-            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, state);
+            HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, state);
         else
-            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, state);
+            HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, state);
     }
     else {
         if (chip)
-            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, state);
+            HAL_GPIO_WritePin(SPI_CS_Layer_1B_GPIO_Port, SPI_CS_Layer_1B_Pin, state);
         else
-            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, state);
+            HAL_GPIO_WritePin(SPI_CS_Layer_1A_GPIO_Port, SPI_CS_Layer_1A_Pin, state);
     }
 }
 
 //////////////Callback////////////
+
+void UART_RxISR_8BIT_FIFOEN_Stream(UART_HandleTypeDef *huart) {
+    uint16_t uhMask = huart->Mask;
+    uint16_t uhdata;
+
+    uhdata = (uint16_t)READ_REG(huart->Instance->RDR);
+    midiDataInBuffer = (uint8_t)(uhdata & (uint8_t)uhMask);
+
+    MIDIDinRead.push(&midiDataInBuffer, 1);
+}
+
 // SPI Callback
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
@@ -218,12 +245,12 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         // close ChipSelectLine
 
         if (layerA.layerState.value) {
-            HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SPI_CS_Layer_1A_GPIO_Port, SPI_CS_Layer_1A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SPI_CS_Layer_1B_GPIO_Port, SPI_CS_Layer_1B_Pin, GPIO_PIN_SET);
         }
         if (layerB.layerState.value) {
-            HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_SET);
-            HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, GPIO_PIN_SET);
         }
     }
     else if (hspi == spiBusEEPROM.hspi) {
@@ -288,23 +315,25 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         FlagHandler::Control_Encoder_Interrupt = true;
         FlagHandler::Control_Encoder_Interrupt_Timer = 0;
     }
-    if (pin & GPIO_PIN_11) { // EOC
-        if (!HAL_GPIO_ReadPin(Panel_1_EOC_GPIO_Port, Panel_1_EOC_Pin)) {
-            FlagHandler::Panel_0_EOC_Interrupt = true;
-            FlagHandler::Panel_1_EOC_Interrupt = true;
-        }
-    }
-    if (pin & GPIO_PIN_14) { // Control Touch
-        FlagHandler::Control_Touch_Interrupt = true;
-    }
-    if (pin & GPIO_PIN_2) { //  Touch
-        FlagHandler::Panel_0_Touch_Interrupt = true;
-    }
-    if (pin & GPIO_PIN_5) { //  Touch
-        FlagHandler::Panel_1_Touch_Interrupt = true;
+    if (pin & GPIO_PIN_13) { // EOC
+                             // if (!HAL_GPIO_ReadPin(Panel_2_EOC_GPIO_Port, Panel_2_EOC_Pin)) {
+        FlagHandler::Panel_0_EOC_Interrupt = true;
+        FlagHandler::Panel_1_EOC_Interrupt = true;
+        // }
     }
 
-    if (pin & GPIO_PIN_3) { // Layer B Chip 0
+    // TODO ASSIGN to new EXTI pins rev2
+    if (pin & Control_INT_Pin) { // Control Touch
+        FlagHandler::Control_Touch_Interrupt = true;
+    }
+    //  if (pin & GPIO_PIN_2) { //  Touch
+    //      FlagHandler::Panel_0_Touch_Interrupt = true;
+    //  }
+    //  if (pin & GPIO_PIN_5) { //  Touch
+    //      FlagHandler::Panel_1_Touch_Interrupt = true;
+    //  }
+
+    if (pin & SPI_READY_LAYER_2A_Pin) { // Layer B Chip 0
         if (layerCom.chipState[1][0] == CHIP_DATASENT) {
             layerCom.chipState[1][0] = CHIP_READY;
             layerCom.chipStateTimeout[1][0] = 0;
@@ -318,7 +347,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
     }
 
-    if (pin & GPIO_PIN_4) { // Layer B Chip 1
+    if (pin & SPI_READY_LAYER_2B_Pin) { // Layer B Chip 1
         if (layerCom.chipState[1][1] == CHIP_DATASENT) {
             layerCom.chipState[1][1] = CHIP_READY;
             layerCom.chipStateTimeout[1][1] = 0;
@@ -332,7 +361,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
     }
 
-    if (pin & GPIO_PIN_7) { // Layer A Chip 1
+    if (pin & SPI_READY_LAYER_1B_Pin) { // Layer A Chip 1
         if (layerCom.chipState[0][1] == CHIP_DATASENT) {
             layerCom.chipState[0][1] = CHIP_READY;
             layerCom.chipStateTimeout[0][1] = 0;
@@ -346,7 +375,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         }
     }
 
-    if (pin & GPIO_PIN_6) { // Layer A Chip 0
+    if (pin & SPI_READY_LAYER_1A_Pin) { // Layer A Chip 0
         if (layerCom.chipState[0][0] == CHIP_DATASENT) {
             layerCom.chipState[0][0] = CHIP_READY;
             layerCom.chipStateTimeout[0][0] = 0;
@@ -392,7 +421,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
 
         elapsedMicros timTimer;
 
-        mididevice.read();
+        if (globalSettings.midiSource.getValue() == 0) { // if midi USB
+            midiDeviceUSB.read();
+        }
+        else { // DIN MIDI
+            midiDeviceDIN.read();
+        }
+
+        // midiDeviceUSB.read();
         liveData.serviceRoutine();
         checkLayerRequests();
         layerCom.beginSendTransmission();
@@ -400,11 +436,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
         uint32_t timerVal = timTimer;
 
         // if (getRenderState() == RENDER_DONE) {
-        //     // timer = 0;
-        //     ui.Draw();
-        //     // println("ui draw:", timer);
-        //     renderLED();
-        //     sendRequestAllUIData();
+        // timer = 0;
+        // ui.Draw();
+        // println("ui draw:", timer);
+        // renderLED();
+        // sendRequestAllUIData();
         // }
 
         // software IRQ

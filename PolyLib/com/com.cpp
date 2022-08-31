@@ -335,6 +335,7 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
         receiveSize = *(uint16_t *)dmaInBufferPointer[!currentInBufferSelect];
 
         if (receiveSize > INTERCHIPBUFFERSIZE) {
+            println(receiveSize);
             PolyError_Handler("ERROR | FATAL | com buffer too big");
             chipState[receiveLayer][receiveChip] = CHIP_ERROR;
             return BUS_ERROR;
@@ -438,7 +439,7 @@ uint8_t COMinterChip::sendAudioBuffer(int8_t *audioData) {
 busState COMinterChip::beginReceiveTransmission() {
     busState ret = spi->receive(dmaInBufferPointer[!currentInBufferSelect], INTERCHIPBUFFERSIZE, true);
     if (ret == BUS_OK)
-        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(SPI_READY_GPIO_Port, SPI_READY_Pin, GPIO_PIN_SET);
     return ret;
 }
 
@@ -473,12 +474,12 @@ busState COMinterChip::beginSendTransmission() {
         }
     }
 
-    if (((!(HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_1_Pin) &&
-            HAL_GPIO_ReadPin(Layer_1_READY_1_GPIO_Port, Layer_1_READY_2_Pin))) &&
+    if (((!(HAL_GPIO_ReadPin(SPI_READY_LAYER_1A_GPIO_Port, SPI_READY_LAYER_1A_Pin) &&
+            HAL_GPIO_ReadPin(SPI_READY_LAYER_1B_GPIO_Port, SPI_READY_LAYER_1B_Pin))) &&
          layerA.layerState.value) ||
 
-        ((!(HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_1_Pin) &&
-            HAL_GPIO_ReadPin(Layer_2_READY_1_GPIO_Port, Layer_2_READY_2_Pin))) &&
+        ((!(HAL_GPIO_ReadPin(SPI_READY_LAYER_2A_GPIO_Port, SPI_READY_LAYER_2A_Pin) &&
+            HAL_GPIO_ReadPin(SPI_READY_LAYER_2B_GPIO_Port, SPI_READY_LAYER_2B_Pin))) &&
          layerB.layerState.value)) {
         println("blocked send");
         return BUS_BUSY;
@@ -495,7 +496,7 @@ busState COMinterChip::beginSendTransmission() {
 
 #ifdef POLYRENDER
     if (ret == BUS_OK) {
-        HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(SPI_READY_GPIO_Port, SPI_READY_Pin, GPIO_PIN_SET);
     }
 #endif
 
@@ -529,12 +530,12 @@ busState COMinterChip::startSendDMA() {
     }
 
     if (layerA.layerState.value) {
-        HAL_GPIO_WritePin(Layer_1_CS_1_GPIO_Port, Layer_1_CS_1_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(Layer_1_CS_2_GPIO_Port, Layer_1_CS_2_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(SPI_CS_Layer_1A_GPIO_Port, SPI_CS_Layer_1A_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(SPI_CS_Layer_1B_GPIO_Port, SPI_CS_Layer_1B_Pin, GPIO_PIN_RESET);
     }
     if (layerB.layerState.value) {
-        HAL_GPIO_WritePin(Layer_2_CS_1_GPIO_Port, Layer_2_CS_1_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(Layer_2_CS_2_GPIO_Port, Layer_2_CS_2_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, GPIO_PIN_RESET);
     }
 #endif
 
@@ -939,6 +940,7 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t data) {
 
 // add byte buffer to out buffer
 uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
+
     if (dmaOutCurrentBufferSize[currentOutBufferSelect] + length >= INTERCHIPBUFFERSIZE - LASTBYTECMDSIZE) {
         uint8_t ret = invokeBufferFullSend();
         if (ret) {

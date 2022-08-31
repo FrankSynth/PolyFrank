@@ -52,10 +52,15 @@ void setModuleCallbacks() {
 #ifdef POLYCONTROL
 
 #include "livedata/liveData.hpp"
+#include "midiInterface/MIDIInterface.h"
 
 extern std::vector<Layer *> allLayers;
+extern GlobalSettings globalSettings;
 extern LiveData liveData;
 extern COMinterChip layerCom;
+
+extern midi::MidiInterface<midiUSB::COMusb> midiDeviceUSB;
+extern midi::MidiInterface<COMdin> midiDeviceDIN;
 
 void lfoFreqSnap(LFO *lfo) {
     if (lfo->dFreqSnap) {
@@ -73,6 +78,11 @@ void retriggerLFOforAlign(LFO *lfo) {
         layerCom.sendRetrigger(lfo->layerId, lfo->id, 0);
         layerCom.sendRetrigger(lfo->layerId, lfo->id, 4);
     }
+}
+
+void clearComBufferForMidi() {
+    midiDeviceDIN.mTransport.clear();
+    midiDeviceUSB.mTransport.clear();
 }
 
 void layer0WaveShaperX1(Waveshaper *waveshaper) {
@@ -161,6 +171,8 @@ void setModuleCallbacks() {
 
     liveData.arps[0].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[0]));
     liveData.arps[1].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[1]));
+
+    globalSettings.midiSource.setValueChangedCallback(clearComBufferForMidi);
 }
 
 #endif

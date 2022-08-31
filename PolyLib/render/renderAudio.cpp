@@ -464,15 +464,15 @@ void renderAudio(volatile int32_t *renderDest) {
         vec<VOICESPERCHIP, int32_t> intSampleSteiner = sampleSteiner;
         vec<VOICESPERCHIP, int32_t> intSampleLadder = sampleLadder;
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
-        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
-        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
-        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
+        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleLadder[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleLadder[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleLadder[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleLadder[3];
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
-        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
-        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];
-        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleLadder[3];
+        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleSteiner[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleSteiner[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleSteiner[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleSteiner[3];
     }
 
     layerA.noise.out = noiseSample;

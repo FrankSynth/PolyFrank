@@ -102,7 +102,11 @@ SECTIONS
     *com* (.text .text*) 
     *stm32h7xx_it.o (.text .text*)
     *stm32h7xx_hal_sai.o (.text .text*)
+    *DUALBU22210.o (.text .text*)
+    *moduleCallbacks.o (.text .text*)
+
     
+    *moduleCallbacks.o (.rodata .rodata*)
     *render* (.rodata .rodata*) 
     *spline.o (.rodata .rodata*) 
     *polyMath.o (.rodata .rodata*) 
@@ -114,6 +118,7 @@ SECTIONS
     *device.o (.rodata .rodata*) 
     *stm32h7xx_it.o (.rodata .rodata*) 
     *flagHandler.o (.rodata .rodata*) 
+    *DUALBU22210.o (.rodata .rodata*) 
     . = ALIGN(4); 
     _eITCM = .;        
    

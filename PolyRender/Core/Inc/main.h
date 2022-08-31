@@ -58,35 +58,39 @@ void PolyError_Handler(const char *errorMessage);
 
 /* USER CODE END EFP */
 
+void Error_Handler(void);
+
+/* USER CODE BEGIN EFP */
+
+/* USER CODE END EFP */
+
 /* Private defines -----------------------------------------------------------*/
-#define Layer_Ready_Pin GPIO_PIN_5
-#define Layer_Ready_GPIO_Port GPIOF
+#define SPI_READY_Pin GPIO_PIN_5
+#define SPI_READY_GPIO_Port GPIOF
+#define SPI_CS_SOFT_Pin GPIO_PIN_10
+#define SPI_CS_SOFT_GPIO_Port GPIOF
+#define SPI_CS_SOFT_EXTI_IRQn EXTI15_10_IRQn
 #define CHIP_ID_A_Pin GPIO_PIN_0
 #define CHIP_ID_A_GPIO_Port GPIOA
 #define CHIP_ID_B_Pin GPIO_PIN_1
 #define CHIP_ID_B_GPIO_Port GPIOA
 #define STATUS_LED_Pin GPIO_PIN_2
 #define STATUS_LED_GPIO_Port GPIOA
-#define SPI_CS_fromControl_Pin GPIO_PIN_3
-#define SPI_CS_fromControl_GPIO_Port GPIOA
-#define LDAC_1_Pin GPIO_PIN_4
-#define LDAC_1_GPIO_Port GPIOG
-#define LDAC_2_Pin GPIO_PIN_5
-#define LDAC_2_GPIO_Port GPIOG
-#define LDAC_3_Pin GPIO_PIN_6
-#define LDAC_3_GPIO_Port GPIOG
-#define LDAC_4_Pin GPIO_PIN_7
-#define LDAC_4_GPIO_Port GPIOG
-#define switch_1_B_Pin GPIO_PIN_9
-#define switch_1_B_GPIO_Port GPIOA
-#define switch_1_A_Pin GPIO_PIN_10
-#define switch_1_A_GPIO_Port GPIOA
-#define switch_2_A_Pin GPIO_PIN_11
-#define switch_2_A_GPIO_Port GPIOA
-#define switch_2_B_Pin GPIO_PIN_12
-#define switch_2_B_GPIO_Port GPIOA
-#define Audio_Reset_Pin GPIO_PIN_10
-#define Audio_Reset_GPIO_Port GPIOG
+#define AUDIO_RST_Pin GPIO_PIN_11
+#define AUDIO_RST_GPIO_Port GPIOH
+#define SWITCH_1_A_Pin GPIO_PIN_10
+#define SWITCH_1_A_GPIO_Port GPIOD
+#define SWITCH_1_B_Pin GPIO_PIN_11
+#define SWITCH_1_B_GPIO_Port GPIOD
+#define SWITCH_2_A_Pin GPIO_PIN_12
+#define SWITCH_2_A_GPIO_Port GPIOD
+#define SWITCH_2_B_Pin GPIO_PIN_13
+#define SWITCH_2_B_GPIO_Port GPIOD
+#define INTERCHIP_SCL_Pin GPIO_PIN_6
+#define INTERCHIP_SCL_GPIO_Port GPIOB
+#define INTERCHIP_SDA_Pin GPIO_PIN_7
+#define INTERCHIP_SDA_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

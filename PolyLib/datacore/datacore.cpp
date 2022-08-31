@@ -61,6 +61,10 @@ void Analog::setValue(int32_t newValue) {
 #endif
 }
 
+// function for inversed fader
+void Analog::setValueInversePoti(int32_t newValue) {
+    setValue(4096 - newValue);
+}
 int32_t Analog::reverseMapping(float newValue) {
 
     newValue = std::clamp(newValue, min, max);

@@ -109,7 +109,7 @@ midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
  */
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
-// extern midi::MidiInterface<midiUSB::COMusb> mididevice;
+// extern midi::MidiInterface<midiUSB::COMusb> midiDeviceUSB;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
 

@@ -233,9 +233,9 @@ template <class Transport, class _Settings = DefaultSettings, class _Platform = 
   public:
     Transport *getTransport() { return &mTransport; };
 
-  private:
     Transport &mTransport;
 
+  private:
     // -------------------------------------------------------------------------
     // Internal variables
 

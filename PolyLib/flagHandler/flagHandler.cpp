@@ -115,7 +115,7 @@ void handleFlags() {
                 }
 
                 // interrupt cleared?
-                if (HAL_GPIO_ReadPin(Encoder_Interrupt_GPIO_Port, Encoder_Interrupt_Pin) == 1) {
+                if (HAL_GPIO_ReadPin(Control_Enc_INT_GPIO_Port, Control_Enc_INT_Pin) == 1) {
                     Control_Encoder_Interrupt = false;
                 }
             }

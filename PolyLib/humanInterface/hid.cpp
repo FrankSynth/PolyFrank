@@ -97,8 +97,8 @@ void processPanelTouch(uint8_t layerID) {
             uint16_t touchState = touchPanelA[x].readTouchStatus();
 
             touch.eventLayer(layerID, touchState, x);
-            if (HAL_GPIO_ReadPin(Panel_1_Change_GPIO_Port,
-                                 Panel_1_Change_Pin)) { // interrupt cleared?
+            if (HAL_GPIO_ReadPin(Panel_1_INT_GPIO_Port,
+                                 Panel_1_INT_Pin)) { // interrupt cleared?
                 FlagHandler::Panel_0_Touch_Interrupt = false;
                 return;
             }
@@ -110,8 +110,8 @@ void processPanelTouch(uint8_t layerID) {
             uint16_t touchState = touchPanelB[x].readTouchStatus();
 
             touch.eventLayer(layerID, touchState, x);
-            if (HAL_GPIO_ReadPin(Panel_2_Change_GPIO_Port,
-                                 Panel_2_Change_Pin)) { // interrupt cleared?
+            if (HAL_GPIO_ReadPin(Panel_2_INT_GPIO_Port,
+                                 Panel_2_INT_Pin)) { // interrupt cleared?
                 FlagHandler::Panel_1_Touch_Interrupt = false;
                 return;
             }
@@ -126,8 +126,8 @@ void processControlTouch() {
 
         touch.eventControl(touchState, x);
 
-        if (HAL_GPIO_ReadPin(Control_Touch_Change_GPIO_Port,
-                             Control_Touch_Change_Pin)) { // interrupt cleared?
+        if (HAL_GPIO_ReadPin(Control_INT_GPIO_Port,
+                             Control_INT_Pin)) { // interrupt cleared?
             FlagHandler::Control_Touch_Interrupt = false;
 
             return;
@@ -138,7 +138,7 @@ void processControlTouch() {
 //////////// POTIS ///////////
 void processPanelPotis() {
 
-    static int16_t treshold = 3; // threshold for jitter reduction
+    static int16_t treshold = 2; // threshold for jitter reduction
 
     // store for current sample data for the 4x16 Multiplexed ADC Values
 
@@ -153,9 +153,7 @@ void processPanelPotis() {
             if (std::abs((panelADCStates[0][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
                 treshold) {
                 panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
-                if (channel == 0 && multiplex == 0) {
-                    // println((int16_t)((adcA.adcData[channel] >> 1) & 0xFFF));
-                }
+
                 if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[0][multiplex][channel](panelADCStates[0][multiplex][channel]);
                 }
@@ -186,70 +184,106 @@ void potiMapping() {
         if (allLayers[i]->layerState.value == 1) {
 
             potiFunctionPointer[i][0][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->envA.aDecay), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aParSer), std::placeholders::_1);
             potiFunctionPointer[i][1][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->envA.aSustain), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->feel.aSpread), std::placeholders::_1);
             potiFunctionPointer[i][2][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->envA.aRelease), std::placeholders::_1);
-
-            potiFunctionPointer[i][0][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
-
-            potiFunctionPointer[i][1][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
-
-            potiFunctionPointer[i][2][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
-
-            // potiFunctionPointer[i][3][0] =
-            // std::bind(&Analog::setValue, &(allLayers[i]->envA.aShape), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->feel.aDetune), std::placeholders::_1);
             potiFunctionPointer[i][3][0] =
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aMaster), std::placeholders::_1);
-
-            potiFunctionPointer[i][0][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCBLevel), std::placeholders::_1);
-
-            potiFunctionPointer[i][1][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCALevel), std::placeholders::_1);
-
-            // potiFunctionPointer[i][2][1] =
-            // std::bind(&Analog::setValue, &(allLayers[i]->envA.aDelay), std::placeholders::_1);
-
-            potiFunctionPointer[i][2][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->feel.aGlide), std::placeholders::_1);
 
-            // potiFunctionPointer[i][3][1] =
-            //     std::bind(&Analog::setValue, &(allLayers[i]->envA.aAttack), std::placeholders::_1);
-
+            potiFunctionPointer[i][0][1] =
+                std::bind(&Digital::setValue, &(allLayers[i]->oscA.dOctave), std::placeholders::_1);
+            potiFunctionPointer[i][1][1] =
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aBitcrusher), std::placeholders::_1);
+            potiFunctionPointer[i][2][1] =
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
             potiFunctionPointer[i][3][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMasterTune), std::placeholders::_1);
 
             potiFunctionPointer[i][0][2] =
-                std::bind(&Digital::setValue, &(allLayers[i]->oscA.dOctave), std::placeholders::_1);
-
+                std::bind(&Digital::setValue, &(allLayers[i]->oscB.dOctave), std::placeholders::_1);
             potiFunctionPointer[i][1][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->feel.aSpread), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aBitcrusher), std::placeholders::_1);
             potiFunctionPointer[i][2][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
             potiFunctionPointer[i][3][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aTuning), std::placeholders::_1);
 
             potiFunctionPointer[i][0][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aDistort), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aNOISELevel), std::placeholders::_1);
             potiFunctionPointer[i][1][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aSUBLevel), std::placeholders::_1);
             potiFunctionPointer[i][2][3] =
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
-
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCBLevel), std::placeholders::_1);
             potiFunctionPointer[i][3][3] =
-                std::bind(&Digital::setValue, &(allLayers[i]->oscB.dOctave), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCALevel), std::placeholders::_1);
+
+            potiFunctionPointer[i][1][4] =
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1);
+            potiFunctionPointer[i][2][4] =
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1);
+            potiFunctionPointer[i][3][4] =
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1);
+
+            potiFunctionPointer[i][1][5] =
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1);
+            potiFunctionPointer[i][2][5] =
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1);
+            potiFunctionPointer[i][3][5] =
+                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1);
+
+            potiFunctionPointer[i][1][6] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aAmount), std::placeholders::_1);
+            potiFunctionPointer[i][2][6] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aShape), std::placeholders::_1);
+            potiFunctionPointer[i][3][6] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aFreq), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][7] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDelay), std::placeholders::_1);
+            potiFunctionPointer[i][1][7] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aAmount), std::placeholders::_1);
+            potiFunctionPointer[i][2][7] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aShape), std::placeholders::_1);
+            potiFunctionPointer[i][3][7] =
+                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aFreq), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][8] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAttack), std::placeholders::_1);
+            potiFunctionPointer[i][1][8] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDecay), std::placeholders::_1);
+            potiFunctionPointer[i][2][8] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aSustain), std::placeholders::_1);
+            potiFunctionPointer[i][3][8] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aRelease), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][9] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aSustain), std::placeholders::_1);
+            potiFunctionPointer[i][1][9] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aRelease), std::placeholders::_1);
+            potiFunctionPointer[i][2][9] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAmount), std::placeholders::_1);
+            potiFunctionPointer[i][3][9] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAmount), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][10] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDelay), std::placeholders::_1);
+            potiFunctionPointer[i][1][10] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAttack), std::placeholders::_1);
+            potiFunctionPointer[i][2][10] =
+                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDecay), std::placeholders::_1);
+            potiFunctionPointer[i][3][10] =
+                std::bind(&Analog::setValue, &(allLayers[i]->out.aMaster), std::placeholders::_1);
+
+            potiFunctionPointer[i][0][11] =
+                std::bind(&Analog::setValue, &(allLayers[i]->out.aDistort), std::placeholders::_1);
+            potiFunctionPointer[i][1][11] =
+                std::bind(&Analog::setValue, &(allLayers[i]->out.aPanSpread), std::placeholders::_1);
+            potiFunctionPointer[i][2][11] =
+                std::bind(&Analog::setValue, &(allLayers[i]->out.aPan), std::placeholders::_1);
+            potiFunctionPointer[i][3][11] =
+                std::bind(&Analog::setValue, &(allLayers[i]->out.aVCA), std::placeholders::_1);
         }
     }
 }

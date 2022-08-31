@@ -101,9 +101,9 @@ SECTIONS
     *flagHandler.o (.text .text*) 
     *com* (.text .text*) 
     *stm32h7xx_it.o (.text .text*)
-    *arp.o (.text .text*)
-    *clock.o (.text .text*)
-    *liveData.o (.text .text*)
+    /* *arp.o (.text .text*) */
+    /* *clock.o (.text .text*) */
+    /* *liveData.o (.text .text*) */
     *voiceHandler.o (.text .text*)
     *IS31FL3216.o (.text .text*)
     *MAX11128.o (.text .text*)
@@ -113,6 +113,7 @@ SECTIONS
     *gfx.o (.text .text*)
     *polyControlIRQ.o (.text .text*)
     *usbd_midi_if.o (.text .text*)
+    *moduleCallbacks.o (.text .text*)
 
 
     /* *gfx* (.rodata .rodata*)  */

@@ -378,7 +378,7 @@ class Mixer : public BaseModule {
     Analog aSUBLevel = Analog("SUB", 0, 1, 0, true, linMap, &iSUBLevel);
     Analog aNOISELevel = Analog("NOISE", 0, 1, 0, true, linMap, &iNOISELevel);
 
-    Digital dOSCADestSwitch = Digital("OSC A", 0, 3, 1, true, &nlVCFDest);
+    Digital dOSCADestSwitch = Digital("OSC A", 0, 3, 0, true, &nlVCFDest);
     Digital dOSCBDestSwitch = Digital("OSC B", 0, 3, 1, true, &nlVCFDest);
     Digital dSUBDestSwitch = Digital("SUB", 0, 3, 1, true, &nlVCFDest);
     Digital dNOISEDestSwitch = Digital("NOISE", 0, 3, 1, true, &nlVCFDest);
@@ -522,7 +522,7 @@ class LFO : public BaseModule {
     Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
     Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
-    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 0, true, &nlOnOff);
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff);
 
     RenderBuffer speed;
     RenderBuffer speedRAW;
@@ -536,6 +536,8 @@ class LFO : public BaseModule {
 
     bool alignedRandom = false;
     uint32_t randSeed = 1;
+
+    float alignFloatBuffer = 0;
 
     inline void resetPhase(uint32_t voice) {
         currentTime[voice] = 1;
@@ -600,7 +602,7 @@ class ADSR : public BaseModule {
     Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0.5, true, linMap);
 
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
@@ -759,11 +761,11 @@ class Out : public BaseModule {
     Input iVCA = Input("VCA", "VCA", &vca);
     Input iPan = Input("PAN", "PAN", &pan);
 
-    Analog aDistort = Analog("DRIVE", 0, 1, 0, true, linMap, &iDistort);
+    Analog aDistort = Analog("DRIVE", 0, 1, 1, true, linMap, &iDistort);
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true);
-    Analog aMaster = Analog("MASTER", 0, 1, 0.8, true, linMap);
+    Analog aMaster = Analog("MASTER", 0, 1, 1, true, linMap);
 
     RenderBuffer left = RenderBuffer(false);
     RenderBuffer right = RenderBuffer(false);

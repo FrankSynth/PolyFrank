@@ -57,7 +57,9 @@
         "ranges": "cpp",
         "i2c.h": "c",
         "bitset": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "iostream": "cpp",
+        "stm32h7xx_hal.h": "c"
     },
     "todo-tree.tree.showBadges": true,
     "cortex-debug.openocdPath": "C:\\PROGRAM FILES\\OPENOCD\\BIN\\OPENOCD.EXE",

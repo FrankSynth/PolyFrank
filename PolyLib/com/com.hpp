@@ -139,6 +139,12 @@ class COMusb {
         return dataByte;
     };
 
+    void clear() {
+        rBuffer.clear();
+        // wBuffer[0].clear();
+        // wBuffer[1].clear();
+    }
+
     midiEventPacket_t readPacket() {
 
         midiEventPacket_t data;
@@ -239,6 +245,12 @@ class COMdin {
 
     // push single byte in Input Buffer
     uint8_t push(uint8_t data);
+
+    void clear() {
+        rBuffer.clear();
+        // wBuffer[0].clear();
+        // wBuffer[1].clear();
+    }
 
   private:
     CircularBuffer<uint8_t, INPUTBUFFERSIZE> rBuffer; // read buffer

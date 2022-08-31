@@ -137,6 +137,13 @@ void renderLFO(LFO &lfo) {
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         newPhase[voice] = false;
 
+    if (layerA.chipID == 0) { // chip A
+        lfo.alignFloatBuffer = sample[0];
+    }
+    else if (alignLFOs) { // chip B
+        sample[0] = lfo.alignFloatBuffer;
+    }
+
     // check if all voices should output the same LFO
     for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         sample[otherVoice] = sample[0] * alignLFOs + sample[otherVoice] * !alignLFOs;

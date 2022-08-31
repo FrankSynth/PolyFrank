@@ -5,6 +5,7 @@ RAM2_DMA ALIGN_32BYTES(volatile uint32_t maxBufferIn[16]);
 RAM2_DMA ALIGN_32BYTES(volatile uint32_t maxBufferOut[16]);
 
 void MAX11128::fetchNewData() {
+    HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
 
     // reset sampleCommand.. SPI TransmitReceive will corrupt the transmit buffer!
     static uint32_t zero = 0;
@@ -26,6 +27,7 @@ void MAX11128::fetchNewData() {
     // }
 
     busInterface->transmitReceive((uint8_t *)command, (uint8_t *)adcData, nChannels, false);
+    HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
 
     // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     // }

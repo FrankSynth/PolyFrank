@@ -89,6 +89,9 @@ class spiBus : public busInterface {
                     return state;
                 }
             }
+            else {
+                return BUS_ERROR;
+            }
         }
         else {
             __disable_irq();
@@ -118,13 +121,16 @@ class spiBus : public busInterface {
         state = BUS_SEND;
 
         if (enableDMA) {
-            if (hspi->hdmarx != nullptr) {
+            if (hspi->hdmatx != nullptr) {
 
                 HAL_StatusTypeDef ret = HAL_SPI_Transmit_DMA(hspi, data, size);
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
                     return state;
                 }
+            }
+            else {
+                return BUS_ERROR;
             }
         }
         else {
@@ -155,12 +161,15 @@ class spiBus : public busInterface {
         state = BUS_RECEIVE;
 
         if (enableDMA) {
-            if (hspi->hdmatx != nullptr) {
+            if (hspi->hdmarx != nullptr) {
                 HAL_StatusTypeDef ret = HAL_SPI_Receive_DMA(hspi, data, size);
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
                     return state;
                 }
+            }
+            else {
+                return BUS_ERROR;
             }
         }
         else {
@@ -267,13 +276,16 @@ class i2cBus : public busInterface {
         state = BUS_SEND;
 
         if (enableDMA) {
-            if (hi2c->hdmarx != nullptr) {
+            if (hi2c->hdmatx != nullptr) {
 
                 HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(hi2c, address, data, size);
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
                     return state;
                 }
+            }
+            else {
+                return BUS_ERROR;
             }
         }
         else {
@@ -303,12 +315,15 @@ class i2cBus : public busInterface {
         state = BUS_RECEIVE;
 
         if (enableDMA) {
-            if (hi2c->hdmatx != nullptr) {
+            if (hi2c->hdmarx != nullptr) {
                 HAL_StatusTypeDef ret = HAL_I2C_Master_Receive_DMA(hi2c, address, data, size);
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
                     return state;
                 }
+            }
+            else {
+                return BUS_ERROR;
             }
         }
         else {

@@ -69,7 +69,7 @@ void GUI::Init() { // add settings pointer
 
     Clear();
     checkFocusChange();
-    setPanelActive(3);
+    setPanelActive(1);
 
     // Set Focus for test
 }

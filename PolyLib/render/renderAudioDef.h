@@ -2,7 +2,6 @@
 
 #define SAIDMABUFFERSIZE 24 // 32bit buffer - was 8
 #define AUDIOCHANNELS 8
-#define ALLDACS 10
 #define OSCPERVOICE 2
 
 #define MAXVOLUMEPERMODULE 0.5f
