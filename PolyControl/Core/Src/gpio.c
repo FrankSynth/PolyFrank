@@ -141,9 +141,13 @@ void MX_GPIO_Init(void) {
 
     /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                              PDPin PDPin */
-    GPIO_InitStruct.Pin =
-        Panel_1_EOC_Pin | Control_Enc_INT_Pin | Panel_2_EOC_Pin | ENC_6_SW_Pin | ENC_6_A_Pin | ENC_6_B_Pin;
+    GPIO_InitStruct.Pin = Panel_1_EOC_Pin | Control_Enc_INT_Pin | Panel_2_EOC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = ENC_6_SW_Pin | ENC_6_A_Pin | ENC_6_B_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
@@ -203,12 +207,13 @@ void MX_GPIO_Init(void) {
     HAL_NVIC_SetPriority(EXTI2_IRQn, 4, 0);
     HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
-    // TODO check EXTI
-    //  HAL_NVIC_SetPriority(EXTI3_IRQn, 3, 0);
-    //  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+    // ENCODER
+    HAL_NVIC_SetPriority(EXTI3_IRQn, 3, 0);
+    HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-    // HAL_NVIC_SetPriority(EXTI4_IRQn, 3, 0);
-    // HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+    // ENCODER
+    HAL_NVIC_SetPriority(EXTI4_IRQn, 3, 0);
+    HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
     HAL_NVIC_SetPriority(EXTI9_5_IRQn, 3, 0);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);

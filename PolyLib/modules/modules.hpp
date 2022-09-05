@@ -173,7 +173,7 @@ class OSC_A : public BaseModule {
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable);
 
-    Digital dOctave = Digital("OCTAVE", -4, 4, 0, true, nullptr);
+    Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -243,7 +243,7 @@ class OSC_B : public BaseModule {
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
 
-    Digital dOctave = Digital("OCT", -4, 4, 0, true, nullptr, &iOctave);
+    Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave);
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable);

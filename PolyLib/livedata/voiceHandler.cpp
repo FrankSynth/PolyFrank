@@ -25,26 +25,49 @@ void VoiceHandler::playNote(const Key &key) {
 
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
-    }
-    else {
-        getNextVoices(numberVoices, key.layerID);
-    }
 
-    for (voiceStateStruct *v : foundVoices) {
-        playIDCounter++; // increase playID
+        for (voiceStateStruct *v : foundVoices) {
+            playIDCounter++; // increase playID
 
-        v->status = PLAY;
-        v->note = key.note;
-        v->velocity = key.velocity;
-        v->playID = playIDCounter;
+            v->status = PLAY;
+            v->note = key.note;
+            v->velocity = key.velocity;
+            v->playID = playIDCounter;
 
-        layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
+            layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
-        if (allLayers[v->layerID]->lfoA.dAlignLFOs == 1 && allLayers[v->layerID]->lfoA.dGateTrigger == 1) {
-            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoA.id, VOICEALL);
+            if (allLayers[v->layerID]->lfoA.dAlignLFOs == 1 && allLayers[v->layerID]->lfoA.dGateTrigger == 1) {
+                layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoA.id, VOICEALL);
+            }
+            if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
+                layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
+            }
         }
-        if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
-            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
+    }
+    else { // parallel Mode   //TODO COMMAND ALL LAYER 1 VOICE
+        getNextVoices(numberVoices, key.layerID);
+
+        for (voiceStateStruct *v : foundVoices) {
+            playIDCounter++; // increase playID
+
+            v->status = PLAY;
+            v->note = key.note;
+            v->velocity = key.velocity;
+            v->playID = playIDCounter;
+
+            for (uint32_t layerID = 0; layerID < 2; layerID++) {
+
+                if (allLayers[layerID]->layerState.value == 1) {
+                    layerCom.sendNewNote(layerID, v->voiceID, v->note, v->velocity);
+
+                    if (allLayers[layerID]->lfoA.dAlignLFOs == 1 && allLayers[layerID]->lfoA.dGateTrigger == 1) {
+                        layerCom.sendRetrigger(layerID, allLayers[layerID]->lfoA.id, VOICEALL);
+                    }
+                    if (allLayers[layerID]->lfoB.dAlignLFOs == 1 && allLayers[layerID]->lfoB.dGateTrigger == 1) {
+                        layerCom.sendRetrigger(layerID, allLayers[layerID]->lfoB.id, VOICEALL);
+                    }
+                }
+            }
         }
     }
 }
@@ -109,9 +132,17 @@ void VoiceHandler::setSustain(uint8_t value, uint8_t layer) {
 
 void VoiceHandler::sendGateOff(voiceStateStruct *v) {
 
-    v->status = FREE;
+    if (livemodeMergeLayer.value == 1) {
+        v->status = FREE;
 
-    layerCom.sendCloseGate(v->layerID, v->voiceID);
+        layerCom.sendCloseGate(v->layerID, v->voiceID);
+    }
+    else {
+        v->status = FREE;
+
+        layerCom.sendCloseGate(0, v->voiceID);
+        layerCom.sendCloseGate(1, v->voiceID);
+    }
 }
 
 void VoiceHandler::sustainOff(uint8_t layer) {

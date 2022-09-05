@@ -49,28 +49,32 @@ void HIDConfig() {
     FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
 
     // register encoder
-    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 4),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 4));
 
-    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 3),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 3));
+    // MENU
+    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 0),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 0));
+
+    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 1),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 1));
 
     encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 2),
                                        std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 2));
 
-    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 1),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 1));
+    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 3),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 3));
+    // SCROLL
+    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 4),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 4));
+    // AMOUNT
+    encoders[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 5),
+                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 5));
 
-    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 0),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 0));
-
-    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 4), nullptr);
-    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 3), nullptr);
-
+    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 0), nullptr);
+    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 1), nullptr);
     switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 2), nullptr);
-
-    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 1), nullptr);
-    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 0), nullptr);
+    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 3), nullptr);
+    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 4), nullptr);
+    switches[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 5), nullptr);
 
     potiMapping();
     patchLEDMappingInit();
@@ -81,7 +85,10 @@ void HIDConfig() {
 
 //////////// ENCODER ///////////
 void processEncoder() {
-    uint16_t state = ioExpander.getPinChangeRAW();
+    uint32_t state = (GPIOD->IDR & 0x0038) << 13;
+    state |= (uint32_t)ioExpander.getPinChangeRAW() & 0xFFFF;
+
+    // println(state);
 
     for (int x = 0; x < NUMBERENCODERS; x++) {
 
@@ -138,8 +145,9 @@ void processControlTouch() {
 //////////// POTIS ///////////
 void processPanelPotis() {
 
-    static int16_t treshold = 2; // threshold for jitter reduction
-
+    static int16_t treshold = 2;                                  // threshold for jitter reduction
+    static int16_t octaveSwitchLastScan[2][2] = {{0, 0}, {0, 0}}; // threshold for jitter reduction  [layer][switch]
+    static int x = 0;
     // store for current sample data for the 4x16 Multiplexed ADC Values
 
     uint16_t multiplex = multiplexer.currentChannel;
@@ -150,8 +158,43 @@ void processPanelPotis() {
         adcA.fetchNewData();                                  // fetch ADC data
         for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if (std::abs((panelADCStates[0][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
-                treshold) {
+            if ((multiplex == 0 & channel == 1) || (multiplex == 0 & channel == 2)) { // octave switches
+
+                // this filters out the switching artefact of the octave switches
+                //  check data stability
+                if (std::abs(octaveSwitchLastScan[0][channel - 1] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF)) <
+                    2) { // test difference
+
+                    if (x != 40)
+                        x++;
+                }
+                else {
+                    x = 0;
+                }
+
+                // value stable -> apply new octave switch value
+                if (x == 40) {
+
+                    if (std::abs((panelADCStates[0][multiplex][channel] -
+                                  (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >= 50) {
+
+                        panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
+
+                        // println("setValue : ", panelADCStates[0][multiplex][channel]);
+
+                        if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
+                            potiFunctionPointer[0][multiplex][channel](panelADCStates[0][multiplex][channel]);
+                        }
+                    }
+                }
+
+                octaveSwitchLastScan[0][channel - 1] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF); // store new
+                                                                                                        // data
+            }
+
+            else if (std::abs((panelADCStates[0][multiplex][channel] -
+                               (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >= treshold) {
+
                 panelADCStates[0][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
 
                 if (potiFunctionPointer[0][multiplex][channel] != nullptr) { // call function
@@ -161,12 +204,47 @@ void processPanelPotis() {
         }
     }
     if (allLayers[1]->layerState.value == 1) {                // check layer active state
-        adcA.fetchNewData();                                  // fetch ADC data
+        adcB.fetchNewData();                                  // fetch ADC data
         for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if (std::abs((panelADCStates[1][multiplex][channel] - (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF))) >=
-                treshold) {
-                panelADCStates[1][multiplex][channel] = (int16_t)((adcA.adcData[channel] >> 1) & 0xFFF);
+            if ((multiplex == 0 & channel == 1) || (multiplex == 0 & channel == 2)) { // octave switches
+
+                // this filters out the switching artefact of the octave switches
+                //  check data stability
+                if (std::abs(octaveSwitchLastScan[1][channel - 1] - (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF)) <
+                    2) { // test difference
+
+                    if (x != 40)
+                        x++;
+                }
+                else {
+                    x = 0;
+                }
+
+                // value stable -> apply new octave switch value
+                if (x == 40) {
+
+                    if (std::abs((panelADCStates[1][multiplex][channel] -
+                                  (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF))) >= 50) {
+
+                        panelADCStates[1][multiplex][channel] = (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF);
+
+                        // println("setValue : ", panelADCStates[1][multiplex][channel]);
+
+                        if (potiFunctionPointer[1][multiplex][channel] != nullptr) { // call function
+                            potiFunctionPointer[1][multiplex][channel](panelADCStates[1][multiplex][channel]);
+                        }
+                    }
+                }
+
+                octaveSwitchLastScan[1][channel - 1] = (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF); // store new
+                                                                                                        // data
+            }
+
+            else if (std::abs((panelADCStates[1][multiplex][channel] -
+                               (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF))) >= treshold) {
+
+                panelADCStates[1][multiplex][channel] = (int16_t)((adcB.adcData[channel] >> 1) & 0xFFF);
 
                 if (potiFunctionPointer[1][multiplex][channel] != nullptr) { // call function
                     potiFunctionPointer[1][multiplex][channel](panelADCStates[1][multiplex][channel]);
@@ -192,8 +270,8 @@ void potiMapping() {
             potiFunctionPointer[i][3][0] =
                 std::bind(&Analog::setValue, &(allLayers[i]->feel.aGlide), std::placeholders::_1);
 
-            potiFunctionPointer[i][0][1] =
-                std::bind(&Digital::setValue, &(allLayers[i]->oscA.dOctave), std::placeholders::_1);
+            potiFunctionPointer[i][0][1] = std::bind(&Digital::setValueRange, &(allLayers[i]->oscA.dOctave),
+                                                     std::placeholders::_1, 585, 4083); // octave switch input range
             potiFunctionPointer[i][1][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscA.aBitcrusher), std::placeholders::_1);
             potiFunctionPointer[i][2][1] =
@@ -201,8 +279,8 @@ void potiMapping() {
             potiFunctionPointer[i][3][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMasterTune), std::placeholders::_1);
 
-            potiFunctionPointer[i][0][2] =
-                std::bind(&Digital::setValue, &(allLayers[i]->oscB.dOctave), std::placeholders::_1);
+            potiFunctionPointer[i][0][2] = std::bind(&Digital::setValueRange, &(allLayers[i]->oscB.dOctave),
+                                                     std::placeholders::_1, 585, 4083); // octave switch input range
             potiFunctionPointer[i][1][2] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscB.aBitcrusher), std::placeholders::_1);
             potiFunctionPointer[i][2][2] =

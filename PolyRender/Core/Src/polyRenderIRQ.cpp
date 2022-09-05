@@ -160,10 +160,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         FlagHandler::renderNewCV = true;
 
         EXTI->SWIER1 |= 0x01;
-
-        if (layerA.chipID == 0) {
-            HAL_UART_Transmit_IT(&huart1, (uint8_t *)interchipLFOBuffer, 8);
-        }
     }
 }
 

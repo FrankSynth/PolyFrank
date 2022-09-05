@@ -55,6 +55,7 @@ void PolyRenderInit() {
     layerA.chipID = !HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin);
 
     layerA.id = !HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin);
+    // layerA.id = 0;+++++
 
     // init pseudo rand so all chips follow different patterns.
     std::srand(layerA.chipID + layerA.id + 1);
@@ -102,7 +103,14 @@ void PolyRenderRun() {
     println("Chip ID is: ", layerA.chipID);
 
     if (layerA.chipID == 1) {
-        HAL_UART_Receive_Stream_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8); // check datasize equal fifo thresholds
+        HAL_UART_Receive_DMA(
+            &huart1, (uint8_t *)interchipLFOBuffer,
+            8); // irgendein interrupt ist nicht an deswegen läuft das jetzt unedlich, da müsste mal einer schauen
+    }
+    else if (layerA.chipID == 0) {
+        HAL_UART_Transmit_DMA(
+            &huart1, (uint8_t *)interchipLFOBuffer,
+            8); // irgendein interrupt ist nicht an deswegen läuft das jetzt unedlich, da müsste mal einer schauen
     }
 
     // start cv rendering

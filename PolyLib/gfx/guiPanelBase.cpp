@@ -724,7 +724,7 @@ void Patch_PanelElement::Draw() {
 
                 if (select) {
                     actionHandler.registerActionEncoder(
-                        3, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
+                        5, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
                         {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
                         {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
                 }

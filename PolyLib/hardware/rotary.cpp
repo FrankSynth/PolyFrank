@@ -30,7 +30,7 @@ const unsigned char ttable[7][4] = {
     {R_CCW_NEXT, R_CCW_FINAL, R_CCW_BEGIN, R_START},
 };
 
-void rotary::process(uint16_t pinState) {
+void rotary::process(uint32_t pinState) {
 
     uint8_t pin1State = 0;
     uint8_t pin2State = 0;
@@ -45,8 +45,8 @@ void rotary::process(uint16_t pinState) {
         pin2State = 1;
     }
 
-    //  println(pin1State);
-    //  println(pin2State);
+    // println(pin1State);
+    // println(pin2State);
 
     // Grab state of input pins.
     unsigned char pinstate = (pin2State << 1) | pin1State;

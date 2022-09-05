@@ -63,10 +63,11 @@ std::vector<IS31FL3216> ledDriverB;
 
 M95M01 eeprom;
 
-// Encoder
-rotary encoders[NUMBERENCODERS] = {rotary(1, 0), rotary(3, 4), rotary(13, 14), rotary(6, 7), rotary(11, 12)};
-tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(2), tactileSwitch(5), tactileSwitch(9), tactileSwitch(8),
-                                          tactileSwitch(10)};
+// Encoder    // 16,17,18 sind EXTI rest IO Expander
+rotary encoders[NUMBERENCODERS] = {rotary(4, 3), rotary(12, 11), rotary(14, 13),
+                                   rotary(7, 6), rotary(18, 17), rotary(0, 1)};
+tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(5), tactileSwitch(10), tactileSwitch(9),
+                                          tactileSwitch(8), tactileSwitch(16), tactileSwitch(2)};
 
 // ADC
 
@@ -274,7 +275,7 @@ void deviceConfig() {
     // ledDriverB[0].configurate(&i2cBusPanel1H, 0);
 
     adcA.configurate(&spiBusPanel, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-    // adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin);
+    adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin);
 
     eeprom.configurate(&spiBusEEPROM, Control_EEPROM_CS_GPIO_Port, Control_EEPROM_CS_Pin);
 
@@ -305,7 +306,7 @@ void deviceConfig() {
     deviceManager.addDevice(&ioExpander);
 
     deviceManager.addDevice(&adcA);
-    // deviceManager.addDevice(&adcB);
+    deviceManager.addDevice(&adcB);
 
     // deviceManager.addDevice(&ledDriverA[0]);
 

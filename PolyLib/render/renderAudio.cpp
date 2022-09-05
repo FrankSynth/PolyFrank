@@ -301,7 +301,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     // const vec<VOICESPERCHIP> &morph = layerA.oscB.morph;
     const vec<VOICESPERCHIP> &noteStep = layerA.oscB.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscB.bitcrusher;
-    const vec<VOICESPERCHIP> &bitcrusherInv = layerA.oscA.bitcrusherInv;
+    const vec<VOICESPERCHIP> &bitcrusherInv = layerA.oscB.bitcrusherInv;
     const vec<VOICESPERCHIP> &samplecrusher = layerA.oscB.samplecrusher;
     const vec<VOICESPERCHIP> &phaseoffset = layerA.oscB.phaseoffset;
     const vec<VOICESPERCHIP> &morphFract = layerA.oscB.morphFract;

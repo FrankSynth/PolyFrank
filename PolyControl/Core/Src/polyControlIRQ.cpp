@@ -53,11 +53,9 @@ void polyControlLoop() { // Here the party starts
 
     HAL_UART_Receive_Stream(&huart5);
 
-    // println("CR1  :", huart5.Instance->CR1);
-    // println("CR2  :", huart5.Instance->CR2);
-    // println("CR3  :", huart5.Instance->CR3);
-    // println("ISR  :", huart5.Instance->ISR);
-    // println("ryxdmaState  :", huart5.hdmarx->State);
+    println("CR1  :", huart5.Instance->CR1);
+    println("CR2  :", huart5.Instance->CR2);
+    println("CR3  :", huart5.Instance->CR3);
 
     while (1) {
 
@@ -69,12 +67,6 @@ void polyControlLoop() { // Here the party starts
             // println(timer);
             // renderLED();
             sendRequestAllUIData();
-
-            // println("CR1  :", huart5.Instance->CR1);
-            // println("CR2  :", huart5.Instance->CR2);
-            // println("CR3  :", huart5.Instance->CR3);
-            // println("ISR  :", huart5.Instance->ISR);
-            // println("ryxdmaState  :", huart5.hdmarx->State);
         }
         // __enable_irq();
         if (enableWFI) {
@@ -230,10 +222,14 @@ void UART_RxISR_8BIT_FIFOEN_Stream(UART_HandleTypeDef *huart) {
     uint16_t uhMask = huart->Mask;
     uint16_t uhdata;
 
-    uhdata = (uint16_t)READ_REG(huart->Instance->RDR);
-    midiDataInBuffer = (uint8_t)(uhdata & (uint8_t)uhMask);
+    huart->Instance->ICR = 0b1000; // clear overrung error -> missing data is handled in midi
 
-    MIDIDinRead.push(&midiDataInBuffer, 1);
+    while (huart->Instance->ISR & (0x01 << 5)) { // empty fifo
+
+        uhdata = (uint16_t)READ_REG(huart->Instance->RDR);
+        midiDataInBuffer = (uint8_t)(uhdata & (uint8_t)uhMask);
+        MIDIDinRead.push(&midiDataInBuffer, 1);
+    }
 }
 
 // SPI Callback
@@ -311,7 +307,7 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
-    if (pin & GPIO_PIN_12) { // ioExpander -> encoder
+    if (pin & GPIO_PIN_12 || pin & GPIO_PIN_3 || pin & GPIO_PIN_4 || pin & GPIO_PIN_5) { // ioExpander -> encoder
         FlagHandler::Control_Encoder_Interrupt = true;
         FlagHandler::Control_Encoder_Interrupt_Timer = 0;
     }

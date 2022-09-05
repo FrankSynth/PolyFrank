@@ -129,6 +129,21 @@ void Digital::setValue(int32_t newValue) {
 #endif
 }
 
+void Digital::setValueRange(int32_t newValue, int32_t inputMin, int32_t inputMax) {
+    this->value = newValue;
+    valueMapped = std::round(fast_lerp_f32(min, max, (float)(newValue - inputMin) / (float)(inputMax - inputMin)));
+
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+
+#ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
 void Digital::nextValue() {
     valueMapped = changeInt(valueMapped, 1, min, max);
 

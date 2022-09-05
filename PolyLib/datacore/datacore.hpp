@@ -333,6 +333,8 @@ class Digital : public DataElement {
 
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
+
+    void setValueRange(int32_t newValue, int32_t min, int32_t max);
     void nextValue();
     void nextValueLoop();
 

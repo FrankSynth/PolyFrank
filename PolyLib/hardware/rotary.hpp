@@ -28,7 +28,7 @@ class rotary {
         this->functionCW = functionCW;
         this->functionCCW = functionCCW;
     }
-    void process(uint16_t pinState);
+    void process(uint32_t pinState);
 
     void acellaration();
     uint32_t lastStepTime;

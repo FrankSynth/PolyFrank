@@ -1104,6 +1104,7 @@ __weak void UART_RxISR_8BIT_FIFOEN_Stream(UART_HandleTypeDef *huart) {
 
 HAL_StatusTypeDef HAL_UART_Receive_Stream(UART_HandleTypeDef *huart) {
     /* Check that a Rx process is not already ongoing */
+
     if (huart->RxState == HAL_UART_STATE_READY) {
 
         __HAL_LOCK(huart);
@@ -1126,10 +1127,10 @@ HAL_StatusTypeDef HAL_UART_Receive_Stream(UART_HandleTypeDef *huart) {
 
         huart->RxISR = UART_RxISR_8BIT_FIFOEN_Stream;
 
-        __HAL_UNLOCK(huart);
-
         /* Enable the UART Parity Error interrupt and RX FIFO Threshold interrupt */
         SET_BIT(huart->Instance->CR1, USART_CR1_PEIE);
+
+        __HAL_UNLOCK(huart);
         SET_BIT(huart->Instance->CR3, USART_CR3_RXFTIE);
 
         return HAL_OK;

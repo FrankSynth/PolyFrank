@@ -301,7 +301,7 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         if (panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry != nullptr) {
 
             actionHandler.registerActionEncoder(
-                4,
+                5,
                 {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 1),
                  "AMOUNT"},
@@ -315,7 +315,7 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         }
         else {
             actionHandler.registerActionEncoder(
-                4,
+                5,
                 {std::bind(&Layer::addPatchInOutById, allLayers[currentFocus.layer],
                            panelElementsOut[scrollOut.relPosition].entry->idGlobal,
                            panelElementsIn[scrollIn.relPosition].entry->input->idGlobal, 0),
@@ -328,7 +328,7 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         }
     }
     else {
-        actionHandler.registerActionEncoder(4);
+        actionHandler.registerActionEncoder(5);
     }
 }
 
