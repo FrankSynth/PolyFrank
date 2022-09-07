@@ -102,15 +102,10 @@ void PolyRenderRun() {
     println("Layer ID is: ", layerA.id);
     println("Chip ID is: ", layerA.chipID);
 
+    // start Receive
     if (layerA.chipID == 1) {
-        HAL_UART_Receive_DMA(
-            &huart1, (uint8_t *)interchipLFOBuffer,
-            8); // irgendein interrupt ist nicht an deswegen läuft das jetzt unedlich, da müsste mal einer schauen
-    }
-    else if (layerA.chipID == 0) {
-        HAL_UART_Transmit_DMA(
-            &huart1, (uint8_t *)interchipLFOBuffer,
-            8); // irgendein interrupt ist nicht an deswegen läuft das jetzt unedlich, da müsste mal einer schauen
+        HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+        huart1.Instance->ICR = 0b1100;
     }
 
     // start cv rendering
@@ -121,6 +116,11 @@ void PolyRenderRun() {
     renderAudio((int32_t *)saiBuffer);
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
+
+    // start Transmit
+    if (layerA.chipID == 0) {
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+    }
 
     HAL_TIM_Base_Start_IT(&htim15);
 

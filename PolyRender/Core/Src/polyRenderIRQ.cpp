@@ -46,11 +46,12 @@ void polyRenderLoop() {
     }
 }
 
-// void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-//     // println("nope to far");
-
-//     HAL_UART_Receive_IT(&huart1, (uint8_t *)interchipLFOBuffer, 8);
-// }
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    huart->Instance->ICR = 0b1100;
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    huart->Instance->CR3 &= ~USART_CR3_DMAT; // clear dma register
+}
 
 elapsedMicros audiorendertimer = 0;
 uint32_t audiorendercounter = 0;
@@ -116,6 +117,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         EXTI->PR1 |= 0x01;
         cvrendertimer = 0;
         renderCVs();
+
+        // start uart
+        huart1.Instance->CR3 |= USART_CR3_DMAT; // set dma register
 
         cvrendercache += cvrendertimer;
         cvrendercounter++;

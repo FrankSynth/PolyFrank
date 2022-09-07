@@ -53,14 +53,16 @@ void MX_USART1_UART_Init(void) {
     if (HAL_HalfDuplex_Init(&huart1) != HAL_OK) {
         Error_Handler();
     }
-    if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_8_8) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_2) != HAL_OK) {
-        Error_Handler();
-    }
-    if (HAL_UARTEx_EnableFifoMode(&huart1) != HAL_OK) {
-        Error_Handler();
+    // if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
+    //     Error_Handler();
+    // }
+    if (!HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin)) {
+        if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_4) != HAL_OK) {
+            Error_Handler();
+        }
+        if (HAL_UARTEx_EnableFifoMode(&huart1) != HAL_OK) {
+            Error_Handler();
+        }
     }
     /* USER CODE BEGIN USART1_Init 2 */
 
@@ -100,7 +102,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle) {
         hdma_usart1_rx.Init.Mode = DMA_CIRCULAR;
         hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
         hdma_usart1_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-        hdma_usart1_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+        hdma_usart1_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_1QUARTERFULL; // 2 words
         hdma_usart1_rx.Init.MemBurst = DMA_MBURST_SINGLE;
         hdma_usart1_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
         if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK) {
@@ -120,9 +122,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle) {
         hdma_usart1_tx.Init.Mode = DMA_CIRCULAR;
         hdma_usart1_tx.Init.Priority = DMA_PRIORITY_LOW;
         hdma_usart1_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-        hdma_usart1_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+        hdma_usart1_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_1QUARTERFULL;
         hdma_usart1_tx.Init.MemBurst = DMA_MBURST_SINGLE;
-        hdma_usart1_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
+        hdma_usart1_tx.Init.PeriphBurst = DMA_MBURST_SINGLE;
         if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK) {
             Error_Handler();
         }

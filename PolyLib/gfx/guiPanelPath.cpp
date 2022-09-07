@@ -19,13 +19,16 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
     uint8_t layerID = allLayers[currentFocus.layer]->id; // get ID
     std::string text;
     if (layerID == 0) {
-        text = "LAYER A"; // Layer name
+        text = "A"; // Layer name
+        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cHighlight, cBlack, relX + panelAbsX,
+                                relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     }
     else if (layerID == 1) {
-        text = "LAYER B"; // Layer name
+        text = "B"; // Layer name
+        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cHighlight, cBlack, relX + panelAbsX,
+                                relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     }
-    relX +=
-        drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1, CENTER);
+
     relX += 1;
 
     // Only Layer mode?

@@ -82,8 +82,8 @@ void GUIPanelLive::Draw() {
         panelElements[i].Draw();
     }
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
-                  entrys, CONFIGPANELENTRYS);
+    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
+    //               entrys, CONFIGPANELENTRYS);
 }
 
 void GUIPanelLive::registerPanelSettings() {
@@ -104,12 +104,7 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 1);
     actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 1);
 
-    if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
-    }
-    else {
-        actionHandler.registerActionLeft(2);
-    }
+    actionHandler.registerActionLeft(2);
 }
 
 void GUIPanelLive::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t id,

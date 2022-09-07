@@ -158,7 +158,7 @@ void processPanelPotis() {
         adcA.fetchNewData();                                  // fetch ADC data
         for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if ((multiplex == 0 & channel == 1) || (multiplex == 0 & channel == 2)) { // octave switches
+            if (((multiplex == 0) & (channel == 1)) || ((multiplex == 0) & (channel == 2))) { // octave switches
 
                 // this filters out the switching artefact of the octave switches
                 //  check data stability
@@ -207,7 +207,7 @@ void processPanelPotis() {
         adcB.fetchNewData();                                  // fetch ADC data
         for (uint32_t channel = 0; channel < 16; channel++) { // for all Channels
 
-            if ((multiplex == 0 & channel == 1) || (multiplex == 0 & channel == 2)) { // octave switches
+            if (((multiplex == 0) & (channel == 1)) || ((multiplex == 0) & (channel == 2))) { // octave switches
 
                 // this filters out the switching artefact of the octave switches
                 //  check data stability
@@ -273,7 +273,7 @@ void potiMapping() {
             potiFunctionPointer[i][0][1] = std::bind(&Digital::setValueRange, &(allLayers[i]->oscA.dOctave),
                                                      std::placeholders::_1, 585, 4083); // octave switch input range
             potiFunctionPointer[i][1][1] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aBitcrusher), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aEffect), std::placeholders::_1);
             potiFunctionPointer[i][2][1] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1);
             potiFunctionPointer[i][3][1] =
@@ -282,7 +282,7 @@ void potiMapping() {
             potiFunctionPointer[i][0][2] = std::bind(&Digital::setValueRange, &(allLayers[i]->oscB.dOctave),
                                                      std::placeholders::_1, 585, 4083); // octave switch input range
             potiFunctionPointer[i][1][2] =
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aBitcrusher), std::placeholders::_1);
+                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aEffect), std::placeholders::_1);
             potiFunctionPointer[i][2][2] =
                 std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1);
             potiFunctionPointer[i][3][2] =
@@ -703,14 +703,17 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
         switch (pin) {
             case 0: globalSettings.setShift(event);
             case 1: break;
-            case 2: break;
+            case 2: evaluateModul(&allLayers[currentFocus.layer]->oscA, event); break;
             case 3: break;
-            case 4: break;
-            case 6: evaluateOutput((Output *)&(allLayers[currentFocus.layer]->midi.oAftertouch), event); break;
+            case 4: evaluateModul(&allLayers[currentFocus.layer]->oscB, event); break;
+            case 6: evaluateModul(&allLayers[currentFocus.layer]->mixer, event); break;
             case 7: break;
-            case 8: evaluateOutput((Output *)&(allLayers[currentFocus.layer]->midi.oPitchbend), event); break;
+            case 8: evaluateModul(&allLayers[currentFocus.layer]->envA, event); break;
             case 9: break;
-            case 10: evaluateOutput((Output *)&(allLayers[currentFocus.layer]->midi.oMod), event); break;
+            case 10:
+                if (event)
+                    nextLayer();
+                break;
             case 11: break;
         }
 

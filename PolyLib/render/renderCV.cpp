@@ -182,11 +182,11 @@ inline void setSwitches() {
     const int32_t &steinerMode = layerA.steiner.dMode.valueMapped;
     const int32_t &ladderMode = layerA.ladder.dSlope.valueMapped;
 
-    HAL_GPIO_WritePin(SWITCH_2_A_GPIO_Port, SWITCH_2_A_Pin, (GPIO_PinState)(steinerMode < 2));
-    HAL_GPIO_WritePin(SWITCH_2_B_GPIO_Port, SWITCH_2_B_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
+    HAL_GPIO_WritePin(SWITCH_2_B_GPIO_Port, SWITCH_2_B_Pin, (GPIO_PinState)(steinerMode < 2));
+    HAL_GPIO_WritePin(SWITCH_2_A_GPIO_Port, SWITCH_2_A_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
 
-    HAL_GPIO_WritePin(SWITCH_1_A_GPIO_Port, SWITCH_1_A_Pin, (GPIO_PinState)(ladderMode < 2));
-    HAL_GPIO_WritePin(SWITCH_1_B_GPIO_Port, SWITCH_1_B_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
+    HAL_GPIO_WritePin(SWITCH_1_B_GPIO_Port, SWITCH_1_B_Pin, (GPIO_PinState)(ladderMode < 2));
+    HAL_GPIO_WritePin(SWITCH_1_A_GPIO_Port, SWITCH_1_A_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
 }
 
 void renderCVs() {
@@ -210,10 +210,10 @@ void renderCVs() {
     renderADSR(layerA.envF);
     renderOut(layerA.out);
     renderFeel(layerA.feel);
-    renderWaveshaper(layerA.waveshaperA, voice);
-    renderWaveshaper(layerA.waveshaperB, voice);
-    renderPhaseshaper(layerA.phaseshaperA);
-    renderPhaseshaper(layerA.phaseshaperB);
+    renderWaveshaper(layerA.waveshaperA, layerA.oscA.effect, voice);
+    renderWaveshaper(layerA.waveshaperB, layerA.oscB.effect, voice);
+    renderPhaseshaper(layerA.phaseshaperA, layerA.oscA.effect);
+    renderPhaseshaper(layerA.phaseshaperB, layerA.oscB.effect);
 
     // updateAllOutputSamples();
     writeDataToDACBuffer();

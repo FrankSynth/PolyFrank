@@ -59,10 +59,8 @@ void SysTick_Handler(void);
 
 void DMA1_Stream1_IRQHandler(void); // SAI TX
 
-
-
-void DMA1_Stream3_IRQHandler(void);
-void DMA1_Stream4_IRQHandler(void);
+void DMA1_Stream2_IRQHandler(void); // UART RX
+void DMA1_Stream3_IRQHandler(void); // UART TX
 void DMA2_Stream1_IRQHandler(void); // SPI 1 TX
 void DMA2_Stream2_IRQHandler(void); // SPI 2 TX
 void DMA2_Stream5_IRQHandler(void); // SPI 4 RX

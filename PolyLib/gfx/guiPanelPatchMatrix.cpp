@@ -132,7 +132,8 @@ void GUIPanelPatchMatrix::collectOutputs() {
     else if (viewMode == AUDIOVIEW) {
         for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
             ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
-            if ((moduleType == MODULE_OSC) | (moduleType == MODULE_SUB) | (moduleType == MODULE_NOISE)) {
+            if ((moduleType == MODULE_OSC_A) | (moduleType == MODULE_OSC_B) | (moduleType == MODULE_SUB) |
+                (moduleType == MODULE_NOISE)) {
                 if (output->visible) {
                     if (filteredView) {
                         if (output->patchesInOut.size())
@@ -268,13 +269,6 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
 
     actionHandler.registerActionEncoder(3);
 
-    // if (globalSettings.multiLayer.value == 1) {
-    //     actionHandler.registerActionLeftData(2, {std::bind(nextLayer), "LAYER"});
-    // }
-    // else {
-    //     actionHandler.registerActionLeft(2);
-    // }
-
     actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::setEnvView, this), "ENV"}, &(this->isEnv));
     actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::setMidiView, this), "MIDI"},
                                          &(this->isMidi));
@@ -343,10 +337,10 @@ void GUIPanelPatchMatrix::init(uint32_t width, uint32_t height, uint32_t x, uint
     this->pathVisible = pathVisible;
 
     uint16_t moduleWidth = 100;
-    uint16_t inElementWidth = 120;
+    uint16_t inElementWidth = 117;
     uint16_t outElementHeight = 50;
 
-    uint16_t patchElementWidth = (width - inElementWidth - moduleWidth) / MATRIXCOLUMN;
+    uint16_t patchElementWidth = (width + 1 - inElementWidth - moduleWidth) / MATRIXCOLUMN;
     uint16_t rowHeigth = (height - outElementHeight) / MATRIXROWS;
 
     for (int i = 0; i < MATRIXCOLUMN; i++) {

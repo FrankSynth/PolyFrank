@@ -17,5 +17,5 @@ class GUIPanelVoice : public GUIPanelBase {
     uint16_t panelAbsY = 0;
     uint16_t elementWidth;
     uint16_t elementHeigth;
-    uint8_t layerID = 0;
+    uint8_t layerID = 255;
 };

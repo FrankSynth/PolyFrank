@@ -51,6 +51,7 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;
     uint16_t panelAbsY = 0;
+    uint16_t elementHeight = 0;
     location oldFocus;
 
     Scroller scrollModule = Scroller(FOCUSPANELENTRYS);
@@ -61,4 +62,5 @@ class GUIPanelFocus : public GUIPanelBase {
 
     Data_PanelElement panelElements[FOCUSPANELENTRYS];
     Data_PanelElement panelElementsWave[FOCUSPANELENTRYSWAVE];
+    Data_PanelElement panelElementsWaveCustom[FOCUSPANELENTRYSWAVE - 2];
 };

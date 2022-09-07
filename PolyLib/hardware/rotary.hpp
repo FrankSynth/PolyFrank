@@ -44,11 +44,11 @@ class rotary {
 
 class tactileSwitch {
   public:
-    tactileSwitch(uint16_t pin) { this->pin = pin; }
+    tactileSwitch(uint32_t pin) { this->pin = pin; }
 
-    void process(uint16_t pinStatus) {
+    void process(uint32_t pinStatus) {
 
-        uint16_t newState = pinStatus & (1 << pin);
+        uint32_t newState = pinStatus & (1 << pin);
         if (newState != state && (lastTimePressed - millis()) > 100) { // switch state changed check debounce
             if (!newState) {                                           // push
                 if (functionPush != nullptr) {
@@ -72,10 +72,10 @@ class tactileSwitch {
         this->functionRelease = functionRelease;
     }
 
-    uint16_t state;
+    uint32_t state;
     uint32_t lastTimePressed = 0; // debounce
 
-    uint16_t pin;
+    uint32_t pin;
 
   private:
     std::function<void()> functionPush = nullptr;

@@ -27,7 +27,7 @@ typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444 } 
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
-#define WAVEFORMHEIGHT 150
+#define WAVEFORMHEIGHT 120
 
 extern uint8_t *pFrameBuffer;
 // rendertask struct
@@ -45,8 +45,8 @@ typedef struct {
 } renderTask;
 
 typedef struct {
-    uint16_t buffer[WAVEFORMHEIGHT][LCDWIDTH - 60];
-    uint32_t width = LCDWIDTH - 60;
+    uint16_t buffer[WAVEFORMHEIGHT][LCDWIDTH - 50];
+    uint32_t width = LCDWIDTH - 50;
     uint32_t height = WAVEFORMHEIGHT;
 } WaveBuffer;
 

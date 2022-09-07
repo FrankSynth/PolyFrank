@@ -65,7 +65,7 @@ M95M01 eeprom;
 
 // Encoder    // 16,17,18 sind EXTI rest IO Expander
 rotary encoders[NUMBERENCODERS] = {rotary(4, 3), rotary(12, 11), rotary(14, 13),
-                                   rotary(7, 6), rotary(18, 17), rotary(0, 1)};
+                                   rotary(6, 7), rotary(18, 17), rotary(0, 1)};
 tactileSwitch switches[NUMBERENCODERS] = {tactileSwitch(5), tactileSwitch(10), tactileSwitch(9),
                                           tactileSwitch(8), tactileSwitch(16), tactileSwitch(2)};
 
@@ -109,6 +109,8 @@ void deviceConfig();
 
 void PolyControlInit() {
 
+    HAL_Delay(200); // wait 200ms for system stabilisation
+
     // Enable Layer Board
     HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
     // Enable Panel Board
@@ -130,7 +132,7 @@ void PolyControlInit() {
     initPoly();
 
     // let the layer start
-    HAL_Delay(100);
+    HAL_Delay(200);
 
     // Device Configuration
     deviceConfig();

@@ -12,7 +12,7 @@ void GUIPanelFocus::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
     uint16_t elementSpace = 1;
-    uint16_t elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace) / FOCUSPANELENTRYS;
+    elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace) / FOCUSPANELENTRYS;
 
     // init Elements
     for (int i = 0; i < FOCUSPANELENTRYS; i++) {
@@ -23,6 +23,12 @@ void GUIPanelFocus::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y
     for (int i = 0; i < FOCUSPANELENTRYSWAVE; i++) {
         panelElementsWave[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + waveBuffer.height,
                                   elementWidth, elementHeight);
+    }
+
+    for (int i = 0; i < 4; i++) {
+        panelElementsWaveCustom[i].init(
+            panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + waveBuffer.height + elementHeight * 2,
+            elementWidth, elementHeight);
     }
 
     name = "FOCUS";
@@ -44,18 +50,24 @@ void GUIPanelFocus::registerPanelSettings() {
 
     actionHandler.registerActionLeft(0);
     actionHandler.registerActionLeft(1, {std::bind(focusUp), "UP"});
-    // register Panel Settings Left
-    if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
-    }
-    else {
-        actionHandler.registerActionLeft(2);
-    }
+    actionHandler.registerActionLeft(2);
 
     // register Panel Settings Right
     actionHandler.registerActionRight(0);
     actionHandler.registerActionRight(1);
     actionHandler.registerActionRight(2);
+
+    actionHandler.registerActionFooter(0);
+    actionHandler.registerActionFooter(1);
+    actionHandler.registerActionFooter(2);
+    actionHandler.registerActionFooter(2);
+
+    actionHandler.registerActionEncoder(0);
+    actionHandler.registerActionEncoder(1);
+    actionHandler.registerActionEncoder(2);
+    actionHandler.registerActionEncoder(3);
+    // actionHandler.registerActionEncoder(4);
+    actionHandler.registerActionEncoder(5);
 }
 
 void GUIPanelFocus::Draw() {
@@ -71,20 +83,41 @@ void GUIPanelFocus::Draw() {
     if (currentFocus.type == FOCUSMODULE) {
         ModuleType type = allLayers[currentFocus.layer]->modules[currentFocus.modul]->moduleType;
 
-        if (type == MODULE_OSC || type == MODULE_SUB || type == MODULE_LFO || type == MODULE_ADSR ||
-            type == MODULE_PHASE || type == MODULE_WAVESHAPER) {
-            entrys = FOCUSPANELENTRYSWAVE;
+        if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
+            type == MODULE_ADSR || type == MODULE_PHASE || type == MODULE_WAVESHAPER) {
             scroll->maxEntrysVisible = entrys;
 
-            registerModuleSettings(panelElementsWave);
+            if (type == MODULE_OSC_A || type == MODULE_OSC_B) { // extra custom Controls
+                entrys = FOCUSPANELENTRYSWAVE - 2;
 
-            for (int i = 0; i < FOCUSPANELENTRYSWAVE; i++) {
-                panelElementsWave[i].Draw();
+                drawCustomControls(allLayers[currentFocus.layer]->modules[currentFocus.modul], panelAbsX,
+                                   panelAbsY + waveBuffer.height, panelWidth, elementHeight * 2 - 2);
+
+                registerModuleSettings(panelElementsWaveCustom);
+
+                for (int i = 0; i < entrys; i++) {
+                    panelElementsWaveCustom[i].Draw();
+                }
+
+                drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH,
+                              panelAbsY + waveBuffer.height + 2 * elementHeight, SCROLLBARWIDTH,
+                              panelHeight - waveBuffer.height - 2 * elementHeight, scroll->offset, scroll->entrys,
+                              entrys);
+            }
+            else { // standard with wave
+                entrys = FOCUSPANELENTRYSWAVE;
+
+                registerModuleSettings(panelElementsWave);
+
+                for (int i = 0; i < entrys; i++) {
+                    panelElementsWave[i].Draw();
+                }
+
+                drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
+                              panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, entrys);
             }
             drawWaveFromModule(allLayers[currentFocus.layer]->modules[currentFocus.modul],
                                LCDWIDTH / 2 - waveBuffer.width / 2, HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
-            drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
-                          panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, FOCUSPANELENTRYSWAVE);
         }
         else { // module without wave
             entrys = FOCUSPANELENTRYS;
@@ -116,6 +149,7 @@ void GUIPanelFocus::Draw() {
             }
         }
         else if (currentFocus.type == FOCUSLAYER) {
+
             registerLayerModules();
             for (int i = 0; i < FOCUSPANELENTRYS; i++) {
                 panelElements[i].Draw();
@@ -258,23 +292,14 @@ void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements)
         }
     }
 
-    Digital *d = nullptr;
-    d = getDigitalEntry();
     for (; elementIndex < entrys; elementIndex++) {
+        Digital *d = getDigitalEntry();
 
         if (d == nullptr) // more digitalEntry available?
             break;
 
-        for (int x = 0; x < SwitchEntrysPerElement; x++) { // start new Element
-
-            if (d == nullptr) {                                  // no more entry available
-                dataPanelElements[elementIndex].addEmptyEntry(); // empty entry
-            }
-            else {
-                dataPanelElements[elementIndex].addDigitalEntry(d);
-            }
-
-            d = getDigitalEntry();
+        else {
+            dataPanelElements[elementIndex].addDigitalEntry(d);
         }
     }
 

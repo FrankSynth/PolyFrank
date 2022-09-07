@@ -4,7 +4,7 @@
 
 #ifdef POLYRENDER
 
-void renderPhaseshaper(Phaseshaper &phaseshaper);
+void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt);
 
 /**
  * @brief calculates vec<VOICESPERCHIP> at once

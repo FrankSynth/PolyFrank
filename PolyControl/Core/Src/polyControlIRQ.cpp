@@ -311,11 +311,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         FlagHandler::Control_Encoder_Interrupt = true;
         FlagHandler::Control_Encoder_Interrupt_Timer = 0;
     }
-    if (pin & GPIO_PIN_13) { // EOC
-                             // if (!HAL_GPIO_ReadPin(Panel_2_EOC_GPIO_Port, Panel_2_EOC_Pin)) {
+    if (pin & Panel_1_EOC_Pin) { // EOC
         FlagHandler::Panel_0_EOC_Interrupt = true;
+    }
+
+    if (pin & Panel_2_EOC_Pin) { // EOC
         FlagHandler::Panel_1_EOC_Interrupt = true;
-        // }
     }
 
     // TODO ASSIGN to new EXTI pins rev2

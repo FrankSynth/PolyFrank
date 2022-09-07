@@ -4,7 +4,7 @@
 
 #ifdef POLYRENDER
 
-void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice);
+void renderWaveshaper(Waveshaper &waveshaper, RenderBuffer &effectAmt, uint8_t voice);
 
 /**
  * @brief calculates vec<VOICESPERCHIP> at once

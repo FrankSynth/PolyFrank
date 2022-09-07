@@ -28,7 +28,7 @@ void GUIPanelState::Draw() {
 
     // Draw Temperature //
     if (globalSettings.dispTemperature.value == 1) {
-        relX -= 5; // some extra space between the boxes
+        relX -= 2; // some extra space between the boxes
         text = "T:" + std::to_string((uint16_t)globalSettings.temperature) + " C";
 
         BoxWidth = 70;

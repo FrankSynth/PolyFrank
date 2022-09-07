@@ -77,12 +77,7 @@ void GUIPanelPreset::registerPanelSettings() {
         actionHandler.registerActionLeft(1);
     }
 
-    if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
-    }
-    else {
-        actionHandler.registerActionLeft(2);
-    }
+    actionHandler.registerActionLeft(2);
 }
 
 void GUIPanelPreset::updateEntrys() {

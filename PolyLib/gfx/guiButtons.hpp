@@ -49,7 +49,7 @@ class Footer_PanelBox {
     uint32_t y;
     uint32_t width;
     uint32_t heigth;
-    uint32_t fontShift = 0;
+    uint32_t fontShift = 2;
 };
 
 class Side_PanelBox {

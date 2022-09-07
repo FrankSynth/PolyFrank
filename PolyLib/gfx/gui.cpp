@@ -23,17 +23,18 @@ void GUI::Init() { // add settings pointer
 
     // multiLayer detected
     if (globalSettings.multiLayer.value == 1) {
-        guiPanelVoice.init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
-                           HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
+        guiPanelVoice[0].init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
+                              HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
 
-        guiPanelVoice.init(1, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
-                           HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT + VOICEHEIGHT / 2);
+        guiPanelVoice[1].init(1, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
+                              HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT +
+                                  VOICEHEIGHT / 2);
     }
     else {
         for (uint8_t i = 0; i < 2; i++) {
             if (allLayers[i]->layerState.value == 1) {
-                guiPanelVoice.init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
-                                   HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
+                guiPanelVoice[i].init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
+                                      HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
             }
         }
 
@@ -53,7 +54,7 @@ void GUI::Init() { // add settings pointer
     guiFooter.init(LCDWIDTH - 2 * BOARDERWIDTH, FOOTERHEIGHT, BOARDERWIDTH);
 
     // init side
-    guiSide.init(BOARDERWIDTH, LCDHEIGHT);
+    guiSide.init(BOARDERWIDTH - 2, LCDHEIGHT);
 
     // init Path
     guiPath.init(CENTERWIDTH, FOCUSHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER);
@@ -104,7 +105,7 @@ void GUI::Draw() {
     }
 
     // clear
-    drawRectangleFill(cClear, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(cGreyDark, 0, 0, LCDWIDTH, LCDHEIGHT);
 
     // Error Occurred?
     if (globalSettings.error.errorActive) {
@@ -130,7 +131,9 @@ void GUI::Draw() {
 
             else if (activePanel == &guiPanelLive) { // liveMode Panel draw short Path and VoiceState
 
-                guiPanelVoice.Draw();
+                guiPanelVoice[0].Draw();
+                guiPanelVoice[1].Draw();
+
                 guiPath.Draw(1);
             }
             else {

@@ -247,13 +247,13 @@ void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
 
     // clear
 
-    drawRectangleChampfered(cGrey, x + 2, y, w - 4, h, 1);
+    drawRectangleChampfered(cGrey, x, y, w, h, 1);
 
     // get text
     std::string text = data->getName();
 
     if (data->disable) {
-        drawRectangleChampfered(cGreyLight, x + 2, y, w - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cGreyLight, x, y, w, dataHeight / 2, 1);
         drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
         text = "Disable";
@@ -263,12 +263,12 @@ void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
     }
 
     if (select) {
-        drawRectangleChampfered(cHighlight, x + 2, y, w - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, dataHeight / 2, 1);
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
                    selectedFont, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteMedium, x + 2, y, w - 4, dataHeight / 2, 1);
+        drawRectangleChampfered(cWhiteDark, x, y, w, dataHeight / 2, 1);
         drawString(text, cFont_Deselect, x + nameWidth / 2,
                    y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight, selectedFont, CENTER);
     }
@@ -280,21 +280,46 @@ void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
                CENTER); // center Text
 
     if (hugeFont) {
-        drawRectangleFill(cWhiteMedium, x + 1, y + 3, 1, h - 3);
-        drawRectangleFill(cWhiteMedium, x + w - 2, y + 3, 1, h - 3);
+        drawRectangleFill(cWhiteDark, x, y + 3, 1, h - 3);
+        drawRectangleFill(cWhiteDark, x + w, y + 3, 1, h - 3);
     }
 
     // valueBar
     // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 
     uint16_t relY = h - valueBarHeigth;
-    uint16_t valueBarWidth = w - 8;
+    uint16_t valueBarWidth = w - 4;
 
     valueBarWidth = (float)valueBarWidth * ((float)data->value - data->min) / (float)(data->max - data->min);
-    drawRectangleChampfered(cWhite, x + 4, relY + y, valueBarWidth, valueBarHeigth, 1);
+    drawRectangleChampfered(cWhite, x + 2, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
-void drawNameElement(std::string *name, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawCustomDigitalElement(Digital *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+    uint32_t nameWidth = w;
+    uint32_t valueBarHeigth = 6;
+    uint32_t dataHeight = h - valueBarHeigth;
+    uint32_t fontShiftHeight = h / 4;
+
+    // get text
+    std::string text = data->getName();
+
+    drawRectangleChampfered(cHighlight, x, y, w, dataHeight / 2, 1);
+    drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + dataHeight) / 2 - fontShiftHeight,
+               fontMedium, CENTER);
+
+    text = data->getValueAsString();
+
+    drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + dataHeight) / 2 + fontShiftHeight, fontMedium,
+               CENTER); // center Text
+
+    uint32_t relY = h - valueBarHeigth;
+    uint32_t valueBarWidth = 0;
+
+    valueBarWidth = (float)w * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
+    drawRectangleChampfered(cWhite, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+}
+
+void drawNameElement(std::string *name, uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint8_t select) {
 
     // clear
     if (name != nullptr) {
@@ -455,7 +480,7 @@ void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
         drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteMedium, x, y, nameWidth, h, 1);
+        drawRectangleChampfered(cWhiteDark, x, y, nameWidth, h, 1);
         drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
         drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
@@ -482,10 +507,10 @@ void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
 void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     Analog *data = entry->analog;
-    uint16_t nameWidth = 200;
+    uint16_t nameWidth = w / 2;
 
     uint16_t spaceLeftRightBar = 15;
-    uint16_t spaceTopBottomBar = 4;
+    uint16_t spaceTopBottomBar = 8;
 
     // clear
 
@@ -511,40 +536,67 @@ void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, u
     uint16_t relY = spaceTopBottomBar;
 
     // valueBar
-    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
     if (data->min < 0) { // Centered ValueBar -> expect symmetric range
 
         uint16_t centerX = relX + x + valueBarWidth / 2;
-        drawRectangleChampfered(cWhite, centerX, relY + y + 1, 1, valueBarHeigth - 2, 1); // center
+        drawRectangleFill(cWhite, centerX, relY + y, 1, valueBarHeigth); // center
 
         if (data->value >= ((int32_t)(data->inputRange / 2) + data->minInputValue)) { // positive value
             valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue - data->inputRange / 2) /
                             (float)(data->inputRange);
 
-            drawRectangleChampfered(cWhite, centerX, relY + y, valueBarWidth, valueBarHeigth, 1);
+            drawRectangleFill(cWhite, centerX, relY + y, valueBarWidth, valueBarHeigth);
         }
         else { // negative value
 
             valueBarWidth = (float)valueBarWidth * ((data->inputRange / 2) - (data->value - data->minInputValue)) /
                             (float)(data->inputRange);
 
-            drawRectangleChampfered(cWhite, centerX - valueBarWidth, relY + y, valueBarWidth, valueBarHeigth, 1);
+            drawRectangleFill(cWhite, centerX - valueBarWidth, relY + y, valueBarWidth, valueBarHeigth);
         }
     }
     else {
         valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue) /
                         (float)(data->maxInputValue - data->minInputValue);
 
-        drawRectangleChampfered(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
+        drawRectangleFill(cWhite, relX + x, relY + y, valueBarWidth, valueBarHeigth);
     }
 
     if (data->input != nullptr) {               // patchable?
         if (data->input->patchesInOut.size()) { // patched?
-            drawRectangleChampfered(cWhite, x, y, 13, h, 1);
+            drawRectangleFill(cWhite, x, y, 13, h);
         }
         else {
-            drawRectangleChampfered(cWhiteMedium, x, y, 13, h, 1);
+            drawRectangleFill(cWhiteDark, x, y, 13, h);
         }
+    }
+
+    if (data->input != nullptr && data->input->renderBuffer != nullptr) { // draw real value
+
+        uint32_t marker = 2;
+
+        valueBarWidth = w - nameWidth - 2 * spaceLeftRightBar;
+        uint32_t valuePos = 0;
+        float value = data->input->renderBuffer->currentSample[0];
+
+        if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+            uint16_t centerX = relX + x + valueBarWidth / 2;
+
+            if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
+                                      (float)((data->max - data->min)));
+            }
+            else { // negative value
+
+                valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
+                                      (float)((data->max - data->min)));
+            }
+        }
+        else {
+            valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
+        }
+        drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
     }
 }
 
@@ -570,7 +622,7 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
         drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteMedium, x, y, w, h - heightBar - 2, 1);
+        drawRectangleChampfered(cWhiteDark, x, y, w, h - heightBar - 2, 1);
         drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
 
@@ -649,14 +701,17 @@ void Data_PanelElement::Draw() {
         return;
     }
 
-    if (select) {
-        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
-    }
     // wir nehmen an das wenn das erste element ein Setting ist, alle elemente Settings sind
     if (entrys[0].type == SETTING) {
+
+        if (select) {
+            actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+            actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+            actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+            actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
+            actionHandler.registerActionEncoder(5);
+        }
+
         entryWidth = width / (numberEntrys + 1);
 
         // Feld mit GruppenNamen
@@ -678,7 +733,10 @@ void Data_PanelElement::Draw() {
     }
 
     else {
-
+        if (select) {
+            actionHandler.registerActionEncoder(5, entrys[0].functionCW, entrys[0].functionCCW,
+                                                entrys[0].functionPush); // amount
+        }
         entryWidth = width / numberEntrys;
         for (int x = 0; x < numberEntrys; x++) {
             if (entrys[x].type == EMPTY) {
@@ -798,11 +856,12 @@ void Live_PanelElement::Draw() {
         actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
         actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
     }
-    entryWidth = width / (numberEntrys);
+    entryWidth = (width + 2) / (numberEntrys);
 
     for (int x = 0; x < numberEntrys; x++) {
         if (entrys[x].type != EMPTY) {
-            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, false);
+            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select,
+                               false);
         }
 
         relX += entryWidth;
@@ -1083,6 +1142,52 @@ void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
 
     this->entry = entry;
     visible = 1;
+}
+
+void registerDigitalElement(uint32_t index, Digital *data) {
+
+    actionHandler.registerActionEncoder(index, {std::bind(&Digital::nextValue, data), data->getName()},
+                                        {std::bind(&Digital::previousValue, data), ""},
+                                        {std::bind(&Digital::resetValue, data), "RESET"});
+}
+
+void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
+
+    uint32_t elementWidth = (w + 2) / 4;
+
+    switch (module->moduleType) {
+        case MODULE_OSC_A: {
+            // register
+            registerDigitalElement(0, &((OSC_A *)module)->dSample0);
+            registerDigitalElement(1, &((OSC_A *)module)->dSample1);
+            registerDigitalElement(2, &((OSC_A *)module)->dSample2);
+            registerDigitalElement(3, &((OSC_A *)module)->dSample3);
+
+            // draw
+            drawCustomDigitalElement(&((OSC_A *)module)->dSample0, x, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_A *)module)->dSample1, x + elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_A *)module)->dSample2, x + 2 * elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_A *)module)->dSample3, x + 3 * elementWidth, y, elementWidth - 2, h);
+            break;
+        }
+
+        case MODULE_OSC_B: {
+            // register
+            registerDigitalElement(0, &((OSC_B *)module)->dSample0);
+            registerDigitalElement(1, &((OSC_B *)module)->dSample1);
+            registerDigitalElement(2, &((OSC_B *)module)->dSample2);
+            registerDigitalElement(3, &((OSC_B *)module)->dSample3);
+
+            // draw
+            drawCustomDigitalElement(&((OSC_B *)module)->dSample0, x, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_B *)module)->dSample1, x + elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_B *)module)->dSample2, x + 2 * elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((OSC_B *)module)->dSample3, x + 3 * elementWidth, y, elementWidth - 2, h);
+            break;
+        }
+
+        default: break;
+    }
 }
 
 void drawWaveFromModule(BaseModule *module, uint32_t x, uint32_t y) {

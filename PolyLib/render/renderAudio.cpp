@@ -352,14 +352,7 @@ vec<VOICESPERCHIP> getOscBSample() {
 
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
 
-    // static vec<VOICESPERCHIP> prevNewSample = 0;
 
-    // vec<VOICESPERCHIP> derivCorrection =
-    //     1.0f / max(phaseStep, 0.0000000000000000000000000000000000000000001f); // TODO !! FAIL bei 0
-
-    // vec<VOICESPERCHIP> derivSample1 = (newSample - prevNewSample) * derivCorrection;
-
-    // prevNewSample = newSample;
 
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB); // TODO WAVETABLES: values>1 not allowed!!
 

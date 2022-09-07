@@ -14,7 +14,7 @@
 #include <functional>
 #include <string>
 
-#define FOCUSPANELENTRYS 9
+#define FOCUSPANELENTRYS 8
 #define FOCUSPANELENTRYSWAVE 6
 
 #define CONFIGPANELENTRYS 5
@@ -45,6 +45,9 @@ extern const GUI_FONTINFO *fontBig;
 
 
 */
+
+void drawCustomDigitalElement(Digital *entry, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
 void drawDeviceManager(std::string *string, uint16_t rows, uint32_t x, uint32_t y, uint16_t w, uint16_t h);
 
 void drawConsole(const CircularBuffer<char, 1024> &consoleBuffer, uint16_t rows, uint32_t x, uint32_t y, uint16_t w,
@@ -81,6 +84,8 @@ void drawADSR(WaveBuffer &wavebuffer, ADSR *module);
 
 void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module);
 void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module);
+
+void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
 const char *valueToNote(const byte &noteIn);
 

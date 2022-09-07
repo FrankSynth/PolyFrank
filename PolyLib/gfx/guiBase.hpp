@@ -11,15 +11,14 @@ extern uint32_t cSelect;
 extern uint32_t cDeselect;
 extern uint32_t cFont_Select;
 extern uint32_t cFont_Deselect;
-extern uint32_t cClear;
+extern uint32_t cGreyDark;
 extern uint32_t cBlack;
 extern uint32_t cGrey;
 
 extern uint32_t cGreyLight;
-extern uint32_t cGreyDark;
 
 extern uint32_t cWhite;
-extern uint32_t cWhiteMedium;
+extern uint32_t cWhiteDark;
 extern uint32_t cHighlight;
 
 extern uint32_t cWarning;
@@ -32,13 +31,13 @@ extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
 
 // responsive sizes
-#define HEADERHEIGHT 36
-#define FOOTERHEIGHT 44
+#define HEADERHEIGHT 34
+#define FOOTERHEIGHT 38
 #define FOCUSHEIGHT 30
-#define SPACER 8
+#define SPACER 2
 #define SCROLLBARWIDTH 4
 
-#define BOARDERWIDTH 30
+#define BOARDERWIDTH 25
 #define VOICEHEIGHT 100
 
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2

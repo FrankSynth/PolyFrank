@@ -314,16 +314,11 @@ void GUIPanelPatch::registerPanelSettings() {
     }
     // register Panel Seetings Left
 
-    if (globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
-    }
-    else {
-        actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"},
-                                             &(this->flipView));
-        actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"},
-                                             &(this->filteredView));
-        actionHandler.registerActionLeft(2);
-    }
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatch::toggleFlipView, this), "FLIP"},
+                                         &(this->flipView));
+    actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatch::toggleFilterdView, this), "FILTER"},
+                                         &(this->filteredView));
+    actionHandler.registerActionLeft(2);
 
     // register Panel Seetings Right
     actionHandler.registerActionRight(0, {std::bind(&GUIPanelPatch::addCurrentPatch, this), "ADD"});

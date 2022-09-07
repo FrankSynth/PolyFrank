@@ -19,7 +19,6 @@
 #include "guiPanelVoice.hpp"
 #include "layer/layer.hpp"
 
-
 /// GUI///
 class GUI {
   public:
@@ -41,7 +40,7 @@ class GUI {
     GUIPanelPreset guiPanelPreset;
     GUIPanelConfig guiPanelConfig;
 
-    GUIPanelVoice guiPanelVoice;
+    GUIPanelVoice guiPanelVoice[2];
     GUIPanelFocus guiPanelFocus;
 
     GUIPanelPath guiPath;
