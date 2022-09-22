@@ -7,11 +7,15 @@
 
 class MAX11128 : public baseDevice {
   public:
-    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin) {
+    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin,
+                     uint32_t *command, uint32_t *adcData) {
         this->busInterface = busInterface;
         this->gpioPin = gpioPin;
         this->gpioPort = gpioPort;
         this->nChannels = nChannels;
+
+        this->command = command;
+        this->adcData = adcData;
 
         setup();
 
@@ -74,10 +78,8 @@ class MAX11128 : public baseDevice {
 
     void fetchNewData();
 
-    uint32_t command[16];
-    uint32_t data[16];
-
-    uint32_t adcData[16];
+    uint32_t *command;
+    uint32_t *adcData;
 
   private:
     spiBus *busInterface;

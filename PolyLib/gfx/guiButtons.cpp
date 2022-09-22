@@ -49,8 +49,8 @@ void Side_PanelBox::Draw() {
                 drawStringVertical(mainName, cFont_Select, x + width / 2, y + heigth / 2, fontSmall);
             }
             else {
-                drawRectangleFill(cGreyLight, x, y, width, heigth);
-                drawStringVertical(mainName, cFont_Deselect, x + width / 2, y + heigth / 2, fontSmall);
+                // drawRectangleFill(cGreyLight, x, y, width, heigth);
+                drawStringVertical(mainName, cWhiteDark, x + width / 2, y + heigth / 2, fontSmall);
             }
         }
         else if (actionHandle->state == PRESSED) {
@@ -60,9 +60,9 @@ void Side_PanelBox::Draw() {
         }
 
         else {
-            drawRectangleFill(cGreyLight, x, y, width, heigth);
+            // drawRectangleFill(cGreyLight, x, y, width, heigth);
 
-            drawStringVertical(mainName, cFont_Deselect, x + width / 2, y + heigth / 2, fontSmall);
+            drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
         }
     }
     else {
@@ -72,8 +72,8 @@ void Side_PanelBox::Draw() {
                 drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
             }
             else {
-                drawRectangleFill(cGreyLight, x, y, width, heigth);
-                drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+                // drawRectangleFill(cGreyLight, x, y, width, heigth);
+                drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
             }
         }
         else if (actionHandle->state == PRESSED) {
@@ -83,9 +83,9 @@ void Side_PanelBox::Draw() {
         }
 
         else {
-            drawRectangleFill(cGreyLight, x, y, width, heigth);
+            // drawRectangleFill(cGreyLight, x, y, width, heigth);
 
-            drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
+            drawStringVertical(mainName, cWhiteDark, x + width / 2, y + heigth / 2, fontSmall);
         }
     }
 }
@@ -108,8 +108,8 @@ void GUIHeader::init(std::vector<GUIPanelBase *> *panels, uint8_t *activePanelID
 void GUIHeader::Draw() {
 
     GUIPanelBase *entry;
-    for (int i = 0; i < panelCount; i++) {
-        if ((i + globalSettings.shift * panelCount) < (int)(panels->size())) {
+    for (unsigned int i = 0; i < panelCount; i++) {
+        if ((i + globalSettings.shift * panelCount) < (panels->size())) {
             entry = (*panels)[i + globalSettings.shift * panelCount];
             actionHandler.registerActionHeader(i,
                                                {std::bind(setPanelActive, i + globalSettings.shift * panelCount), ""});

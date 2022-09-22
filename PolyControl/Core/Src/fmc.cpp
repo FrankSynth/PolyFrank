@@ -50,7 +50,7 @@ void MX_FMC_Init(void) {
     SdramTiming.ExitSelfRefreshDelay = 8; // 9  TXSR
     SdramTiming.SelfRefreshTime = 5;      // 5  TRAS
     SdramTiming.RowCycleDelay = 7;        // 8  TRC
-    SdramTiming.WriteRecoveryTime = 3;    // 2  > TRAS - RCDelay
+    SdramTiming.WriteRecoveryTime = 2;    // 2  > TRAS - RCDelay
     SdramTiming.RPDelay = 2;              // 3  TRPD
     SdramTiming.RCDDelay = 3;             // 3  TRCD
 

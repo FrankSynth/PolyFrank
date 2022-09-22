@@ -19,7 +19,7 @@
 
 #define CONFIGPANELENTRYS 5
 #define PATCHPANELENTRYS 7
-#define PRESETPANELENTRYS 9
+#define PRESETPANELENTRYS 8
 #define LIVEPANELENTRYS 3
 
 extern const GUI_FONTINFO *fontSmall;
@@ -69,23 +69,27 @@ void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
 void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                             uint8_t modulename = false);
 
-void drawWaveFromModule(BaseModule *module, uint32_t x, uint32_t y);
+void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint32_t y);
 
-void drawWave(int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
-void drawFrame(uint16_t color);
-void drawGrid(uint16_t color);
+void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
+void drawFrame(WaveBuffer &buffer, uint16_t color);
+void drawGrid(WaveBuffer &buffer, uint16_t color);
 
-void drawVecWave(vec<2> *renderedWave, uint16_t samples);
+void drawVecWave(WaveBuffer &buffer, vec<2> *renderedWave, uint16_t samples);
 
-void calculateLFOWave(LFO *module, int8_t *waveBuffer, uint16_t samples);
+void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples);
 void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples);
 
-void drawADSR(WaveBuffer &wavebuffer, ADSR *module);
+void drawADSR(WaveBuffer &buffer, ADSR *module);
 
-void drawPhaseshaper(WaveBuffer &wavebuffer, Phaseshaper *module);
-void drawWaveshaper(WaveBuffer &wavebuffer, Waveshaper *module);
+void drawPhaseshaper(WaveBuffer &buffer, Phaseshaper *module);
+void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module);
 
 void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
+void drawQuickViewAnalog(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h);
+
+void drawQuickViewDigital(Digital *entry, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
 const char *valueToNote(const byte &noteIn);
 

@@ -23,11 +23,12 @@
 #define BLUE 0x000000FF
 
 typedef enum { LEFT, CENTER, RIGHT, TOP, BOTTOM } FONTALIGN;
-typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444 } DRAWTYPE;
+typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444, UNDEFINDDRAWTYPE } DRAWTYPE;
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
 #define WAVEFORMHEIGHT 120
+#define WAVEFORMQUICKHEIGHT 180
 
 extern uint8_t *pFrameBuffer;
 // rendertask struct
@@ -42,16 +43,21 @@ typedef struct {
 
     uint32_t color; // for Alpha Modes
     DRAWTYPE mode;
+
 } renderTask;
 
+extern uint16_t waveformBuffer[][LCDWIDTH - 50];
+extern uint16_t waveformQuickBuffer[][LCDWIDTH - 50];
+
 typedef struct {
-    uint16_t buffer[WAVEFORMHEIGHT][LCDWIDTH - 50];
     uint32_t width = LCDWIDTH - 50;
-    uint32_t height = WAVEFORMHEIGHT;
+    uint32_t height = 0;
+    uint16_t (*buffer)[][LCDWIDTH - 50]; // extra heigth for quickview
 } WaveBuffer;
 
 extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 extern WaveBuffer waveBuffer;
+extern WaveBuffer waveQuickBuffer;
 
 // extern uint8_t FrameBuffer[BUFFERSIZE];
 
@@ -86,24 +92,23 @@ void drawStringVertical(const std::string &text, uint32_t color, uint32_t x, uin
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
 uint32_t getStringWidth(const std::string &text, const GUI_FONTINFO *font);
 
-void copyWaveBuffer(const WaveBuffer &waveBuffer, uint32_t x, uint32_t y);
+void copyWaveBuffer(WaveBuffer &buffer, uint32_t x, uint32_t y);
 
 /////Software GFX Functions////////
-void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
-void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
-void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd, uint16_t color);
+void drawLine(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawLineThick(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawLineWidth(WaveBuffer &buffer, int x0, int y0, int x1, int y1, float wd, uint16_t color);
 
-void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color);
-void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
+void drawLineAA(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
+void drawQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
 
-void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[], uint16_t color);
+void drawCubicSpline(WaveBuffer &buffer, int n, int x[], int y[], uint16_t color);
 
 void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y);
 
-void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t color, float r);
+void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float r);
 
-inline void drawPixelThick(WaveBuffer &waveBuffer, uint32_t x0, uint32_t y0, uint16_t color) {
-    // draw a circle
+inline void drawPixelThick(WaveBuffer &buffer, int32_t x0, int32_t y0, uint16_t color) {
 
     for (int32_t xOffset = -1; xOffset < 2; xOffset++) {
         int32_t x = x0 + xOffset;
@@ -111,8 +116,10 @@ inline void drawPixelThick(WaveBuffer &waveBuffer, uint32_t x0, uint32_t y0, uin
         for (int32_t yOffset = -1; yOffset < 2; yOffset++) {
             int32_t y = y0 + yOffset;
 
-            if (x < (int32_t)waveBuffer.width && y < (int32_t)waveBuffer.height) // check boundaries
-                waveBuffer.buffer[y][x] = color;
+            if (x >= 0 && x < (int32_t)buffer.width && y >= 0 && y < (int32_t)buffer.height) // check boundaries
+                (*buffer.buffer)[y][x] = color;
         }
     }
 }
+
+void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur);

@@ -192,7 +192,7 @@ inline void setSwitches() {
 void renderCVs() {
     static uint32_t voice = 0;
 
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     collectAllCurrentInputs();
 

@@ -18,8 +18,7 @@ inline vec<VOICESPERCHIP> accumulateSamplecrusher() {
 }
 
 inline vec<VOICESPERCHIP> accumulateEffect() {
-    return clamp(layerA.oscA.iEffect + layerA.oscA.aEffect, layerA.oscA.aEffect.min,
-                 layerA.oscA.aEffect.max);
+    return clamp(layerA.oscA.iEffect + layerA.oscA.aEffect, layerA.oscA.aEffect.min, layerA.oscA.aEffect.max);
 }
 
 inline vec<VOICESPERCHIP> accumulateMorph() {
@@ -103,11 +102,11 @@ void renderOSC_A() {
 ///////////////////////////// OSC B /////////////////////////////////
 
 inline vec<VOICESPERCHIP> accumulateBitcrusherOscB() {
-    return clamp(layerA.oscA.effect * layerA.oscB.aBitcrusher, layerA.oscB.aBitcrusher.min,
+    return clamp(layerA.oscB.effect * layerA.oscB.aBitcrusher, layerA.oscB.aBitcrusher.min,
                  layerA.oscB.aBitcrusher.max);
 }
 inline vec<VOICESPERCHIP> accumulateSamplecrusherOscB() {
-    return clamp(layerA.oscA.effect * layerA.oscB.aSamplecrusher, layerA.oscB.aSamplecrusher.min,
+    return clamp(layerA.oscB.effect * layerA.oscB.aSamplecrusher, layerA.oscB.aSamplecrusher.min,
                  layerA.oscB.aSamplecrusher.max);
 }
 inline vec<VOICESPERCHIP> accumulateMorphOscB() {
@@ -164,7 +163,7 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
     return logNote;
 }
 
-void renderOSC_B() {
+void  renderOSC_B() {
     layerA.oscB.morphRAW = accumulateMorphOscB();
     layerA.oscB.effect = accumulateEffectOscB();
     layerA.oscB.morph = layerA.oscB.morphRAW * (float)(WAVETABLESPERVOICE - 1);

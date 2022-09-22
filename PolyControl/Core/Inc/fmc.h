@@ -37,7 +37,7 @@ extern SDRAM_HandleTypeDef hsdram1;
 // 32ms / 2048 = 15,62uS -> 15,62uS* 200MHz - 20
 // 32ms / 2048 = 15,62uS -> 15,62uS* 120MHz - 20
 
-#define REFRESH_COUNT ((uint32_t)0x073E) /* SDRAM refresh counter (100Mhz SD clock) */
+#define REFRESH_COUNT ((uint32_t)0x0752) /* SDRAM refresh counter (100Mhz SD clock) */
 
 #define SDRAM_TIMEOUT ((uint32_t)0xFFFF)
 

@@ -37,7 +37,7 @@ void renderWaveshaper(Waveshaper &waveshaper, RenderBuffer &effectAmt, uint8_t v
     waveshaper.splineX[voice][1] = waveshaper.Point1X[voice];
     waveshaper.splineX[voice][2] = waveshaper.Point2X[voice];
     waveshaper.splineX[voice][3] = waveshaper.Point3X[voice];
-    // waveshaper.splineX[voice][4] = 1.0f;
+    // waveshaper.splineX[voice][4] = 1.0f;                                                                                                                                                                                             
 
     // waveshaper.splineY[voice][0] = 0.0f;
     waveshaper.splineY[voice][1] = waveshaper.Point1Y[voice];

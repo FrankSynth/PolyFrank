@@ -14,7 +14,7 @@ void GUIPanelPreset::init(uint32_t width, uint32_t height, uint32_t x, uint32_t 
 
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
-    uint16_t elementSpace = 3;
+    uint16_t elementSpace = 2;
     uint16_t elementHeight = (height - (maxEntrys - 2) * elementSpace) / PRESETPANELENTRYS;
     // init Elements
     for (int i = 0; i < maxEntrys; i++) {

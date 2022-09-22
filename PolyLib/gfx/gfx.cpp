@@ -23,7 +23,13 @@ RENDERSTATE renderState = RENDER_DONE;
 // std::list<renderTask> renderQueueList;
 
 RAM1 CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
-RAM1 ALIGN_32BYTES(WaveBuffer waveBuffer);
+RAM1 ALIGN_32BYTES(uint16_t waveformBuffer[WAVEFORMHEIGHT][LCDWIDTH - 50]);
+RAM2 ALIGN_32BYTES(uint16_t waveformQuickBuffer[WAVEFORMQUICKHEIGHT][LCDWIDTH - 50]);
+
+WaveBuffer waveBuffer;
+WaveBuffer waveQuickBuffer;
+
+elapsedMicros timerFramedraw;
 
 void GFX_Init() {
     // IRQHandler();
@@ -281,7 +287,7 @@ void drawString(const std::string &text, uint32_t color, uint32_t x, uint32_t y,
     }
 }
 
-void copyWaveBuffer(const WaveBuffer &waveBuffer, uint32_t x, uint32_t y) {
+void copyWaveBuffer(WaveBuffer &buffer, uint32_t x, uint32_t y) {
     renderTask task;
 
     task.mode = M2MARGB4444; // Set DMA2D To copy M2M with Blending
@@ -289,10 +295,10 @@ void copyWaveBuffer(const WaveBuffer &waveBuffer, uint32_t x, uint32_t y) {
     task.x = x;
     task.y = y;
 
-    task.width = waveBuffer.width;   // Character Width
-    task.height = waveBuffer.height; // Character Width
+    task.width = buffer.width;   // Character Width
+    task.height = buffer.height; // Character Width
 
-    task.pSource = (uint32_t)(uint8_t **)waveBuffer.buffer; // Pointer to Character
+    task.pSource = (uint32_t)(uint8_t **)(*buffer.buffer); // Pointer to Character
 
     addToRenderQueue(task); // Add Task to RenderQue
 }
@@ -434,6 +440,7 @@ void callNextTask() {
     if (renderQueue.empty()) {
         if (renderState == RENDER_WAIT) { // last render task done -> switch Buffer
             HAL_LTDC_ProgramLineEvent(&hltdc, 0);
+            println("FramDrawTime: ", timerFramedraw);
         }
         // println("max calls: ", maxCalls);
         // maxCalls = 0;
@@ -443,8 +450,8 @@ void callNextTask() {
     renderTask task = renderQueue.front(); // get next render task
     renderQueue.pop_front();               // remove from renderQueue
 
-    // DMA2D//
-    HAL_DMA2D_DeInit(&hdma2d); // de init dma2d
+    // // DMA2D//
+    // HAL_DMA2D_DeInit(&hdma2d); // de init dma2d
 
     hdma2d.Init.OutputOffset = task.outputOffset; // DMA2D OutputBuffer Offset
 
@@ -488,14 +495,14 @@ void callNextTask() {
         /* Background layer Configuration */
         hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
-        /* Init DMA2D */
-        HAL_DMA2D_Init(&hdma2d);
-
         /* Apply DMA2D Foreground configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 1);
 
         /* Apply DMA2D Background configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+
+        /* Init DMA2D */
+        HAL_DMA2D_Init(&hdma2d);
 
         /* Start DMA2D Task */
         HAL_DMA2D_BlendingStart_IT(&hdma2d, task.pSource, /* Color value in Register to Memory DMA2D mode */
@@ -516,14 +523,14 @@ void callNextTask() {
         /* Background layer Configuration */
         hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
-        /* Init DMA2D */
-        HAL_DMA2D_Init(&hdma2d);
-
         /* Apply DMA2D Foreground configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 1);
 
         /* Apply DMA2D Background configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+
+        /* Init DMA2D */
+        HAL_DMA2D_Init(&hdma2d);
 
         /* Start DMA2D Task */
         HAL_DMA2D_BlendingStart_IT(&hdma2d, task.pSource, /* Color value in Register to Memory DMA2D mode */
@@ -533,21 +540,21 @@ void callNextTask() {
                                    task.height);
     }
 
-    else if (task.mode == R2M) { // Register to Memory
+    else if (task.mode == R2M) { // Register to Memoryif (lastDrawType != task.mode) {
         hdma2d.Init.Mode = DMA2D_M2M_BLEND_FG;
 
         hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
 
         hdma2d.LayerCfg[0].InputOffset = task.outputOffset; /* Background input offset*/
 
-        /* Init DMA2D */
-        HAL_DMA2D_Init(&hdma2d);
-
         /* Apply DMA2D Background configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 0);
 
         /* Apply DMA2D Foreground configuration */
         HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+        /* Init DMA2D */
+        HAL_DMA2D_Init(&hdma2d);
 
         hdma2d.Instance->FGPFCCR = (task.color & 0xFF000000) | (hdma2d.Instance->FGPFCCR & 0x00FFFFFF);
         hdma2d.Instance->FGPFCCR = 0x10000 | (hdma2d.Instance->FGPFCCR & 0xFFFCFFFF);
@@ -561,28 +568,28 @@ void callNextTask() {
     }
 }
 
-inline void drawPixel(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
-    if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
-        waveBuffer.buffer[y][x] = color;               // simple "blend"
+inline void drawPixel(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color) {
+    if (x < buffer.width && y < buffer.height) // check boundaries
+        (*buffer.buffer)[y][x] = color;        // simple "blend"
 }
 
-inline void drawPixelAlpha(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color, uint32_t alpha) {
-    if (x < waveBuffer.width && y < waveBuffer.height)                       // check boundaries
-        waveBuffer.buffer[y][x] = (color & 0x0FFF) | ((alpha & 0x0F) << 12); // simple "blend"
+inline void drawPixelAlpha(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color, uint32_t alpha) {
+    if (x < buffer.width && y < buffer.height)                              // check boundaries
+        (*buffer.buffer)[y][x] = (color & 0x0FFF) | ((alpha & 0x0F) << 12); // simple "blend"
 }
 
-inline void drawPixelBlend(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
-    if (x < waveBuffer.width && y < waveBuffer.height) { // check boundaries
+inline void drawPixelBlend(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color) {
+    if (x < buffer.width && y < buffer.height) { // check boundaries
 
         uint8_t newA = (color >> 12) & 0x000F;
         uint8_t newR = (color >> 8) & 0x000F;
         uint8_t newG = (color >> 4) & 0x000F;
         uint8_t newB = color & 0x000F;
 
-        uint8_t oldA = (waveBuffer.buffer[y][x] >> 12) & 0x000F;
-        uint8_t oldR = (waveBuffer.buffer[y][x] >> 8) & 0x000F;
-        uint8_t oldG = (waveBuffer.buffer[y][x] >> 4) & 0x000F;
-        uint8_t oldB = waveBuffer.buffer[y][x] & 0x000F;
+        uint8_t oldA = ((*buffer.buffer)[y][x] >> 12) & 0x000F;
+        uint8_t oldR = ((*buffer.buffer)[y][x] >> 8) & 0x000F;
+        uint8_t oldG = ((*buffer.buffer)[y][x] >> 4) & 0x000F;
+        uint8_t oldB = (*buffer.buffer)[y][x] & 0x000F;
 
         uint8_t rOut = (newR * newA / 16) + (oldR * (16 - newA) / 16);
         uint8_t gOut = (newG * newA / 16) + (oldG * (16 - newA) / 16);
@@ -590,23 +597,23 @@ inline void drawPixelBlend(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint1
         uint8_t aOut = newA + (oldA * (16 - newA) / 16);
         uint16_t mixedColor = (aOut & 0x000F) << 12 | (rOut & 0x000F) << 8 | (gOut & 0x000F) << 4 | (bOut & 0x000F);
 
-        waveBuffer.buffer[y][x] = mixedColor;
+        (*buffer.buffer)[y][x] = mixedColor;
     }
 }
 
-inline void drawPixelBlendFast(WaveBuffer &waveBuffer, uint32_t x, uint32_t y, uint16_t color) {
+inline void drawPixelBlendFast(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color) {
 
-    if (x < waveBuffer.width && y < waveBuffer.height) // check boundaries
-        waveBuffer.buffer[y][x] |= color;              // simple "blend"
+    if (x < buffer.width && y < buffer.height) // check boundaries
+        (*buffer.buffer)[y][x] |= color;       // simple "blend"
 }
 
-void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
+void drawLine(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color) {
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = dx + dy, e2; /* error value e_xy */
 
     for (;;) { /* loop */
-        drawPixel(waveBuffer, x0, y0, color);
+        drawPixel(buffer, x0, y0, color);
         if (x0 == x1 && y0 == y1)
             break;
         e2 = 2 * err;
@@ -621,7 +628,7 @@ void drawLine(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t c
     }
 }
 
-void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
+void drawLineAA(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color) {
 
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -629,14 +636,14 @@ void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t
     int ed = dx + dy == 0 ? 1 : sqrt((float)dx * dx + (float)dy * dy);
 
     for (;;) { /* pixel loop */
-        drawPixelAlpha(waveBuffer, x0, y0, color, 15 - 15 * abs(err - dx + dy) / ed);
+        drawPixelAlpha(buffer, x0, y0, color, 15 - 15 * abs(err - dx + dy) / ed);
         e2 = err;
         x2 = x0;
         if (2 * e2 >= -dx) { /* x step */
             if (x0 == x1)
                 break;
             if (e2 + dy < ed)
-                drawPixelAlpha(waveBuffer, x0, y0 + sy, color, 15 - 15 * (e2 + dy) / ed);
+                drawPixelAlpha(buffer, x0, y0 + sy, color, 15 - 15 * (e2 + dy) / ed);
             err -= dy;
             x0 += sx;
         }
@@ -644,7 +651,7 @@ void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t
             if (y0 == y1)
                 break;
             if (dx - e2 < ed)
-                drawPixelAlpha(waveBuffer, x2 + sx, y0, color, 15 - 15 * (dx - e2) / ed);
+                drawPixelAlpha(buffer, x2 + sx, y0, color, 15 - 15 * (dx - e2) / ed);
             err += dx;
             y0 += sy;
         }
@@ -652,7 +659,7 @@ void drawLineAA(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t
 }
 
 // Bresenham's line algorithm
-void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint16_t color) {
+void drawLineThick(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color) {
 
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -660,7 +667,7 @@ void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint1
 
     for (;;) { /* loop */
 
-        drawPixelThick(waveBuffer, x0, y0, color);
+        drawPixelThick(buffer, x0, y0, color);
 
         if (x0 == x1 && y0 == y1)
             break;
@@ -676,7 +683,7 @@ void drawLineThick(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, uint1
     }
 }
 
-void plotQuadBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
+void plotQuadBezierSeg(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2,
                        uint16_t color) { /* plot a limited quadratic Bezier segment */
     int sx = x2 - x1, sy = y2 - y1;
     long xx = x0 - x1, yy = y0 - y1, xy;         /* relative values for checks */
@@ -709,7 +716,7 @@ void plotQuadBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, i
         yy += yy;
         err = dx + dy + xy; /* error 1st step */
         do {
-            drawPixelThick(waveBuffer, x0, y0, color); /* plot curve */
+            drawPixelThick(buffer, x0, y0, color); /* plot curve */
             if (x0 == x2 && y0 == y2)
                 return;        /* last pixel -> curve finished */
             y1 = 2 * err < dx; /* save value for test of y step */
@@ -725,10 +732,10 @@ void plotQuadBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, i
             }                       /* y step */
         } while (dy < 0 && dx > 0); /* gradient negates -> algorithm fails */
     }
-    drawLineThick(waveBuffer, x0, y0, x2, y2, color); /* plot remaining part to end */
+    drawLineThick(buffer, x0, y0, x2, y2, color); /* plot remaining part to end */
 }
 
-void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
+void drawQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2,
                     uint16_t color) { /* plot any quadratic Bezier curve */
     int x = x0 - x1, y = y0 - y1;
     double t = x0 - 2 * x1 + x2, r;
@@ -747,7 +754,7 @@ void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
         x = floor(t + 0.5);
         y = floor(r + 0.5);
         r = (y1 - y0) * (t - x0) / (x1 - x0) + y0; /* intersect P3 | P0 P1 */
-        plotQuadBezierSeg(waveBuffer, x0, y0, x, floor(r + 0.5), x, y, color);
+        plotQuadBezierSeg(buffer, x0, y0, x, floor(r + 0.5), x, y, color);
         r = (y1 - y2) * (t - x2) / (x1 - x2) + y2; /* intersect P4 | P1 P2 */
         x0 = x1 = x;
         y0 = y;
@@ -761,17 +768,17 @@ void drawQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
         x = floor(r + 0.5);
         y = floor(t + 0.5);
         r = (x1 - x0) * (t - y0) / (y1 - y0) + x0; /* intersect P6 | P0 P1 */
-        plotQuadBezierSeg(waveBuffer, x0, y0, floor(r + 0.5), y, x, y, color);
+        plotQuadBezierSeg(buffer, x0, y0, floor(r + 0.5), y, x, y, color);
         r = (x1 - x2) * (t - y2) / (y1 - y2) + x2; /* intersect P7 | P1 P2 */
         x0 = x;
         x1 = floor(r + 0.5);
         y0 = y1 = y; /* P0 = P6, P1 = P7 */
     }
-    plotQuadBezierSeg(waveBuffer, x0, y0, x1, y1, x2, y2, color); /* remaining part */
+    plotQuadBezierSeg(buffer, x0, y0, x1, y1, x2, y2, color); /* remaining part */
 }
 
 // irgendwas stimmt da nicht...
-void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float wd,
+void drawLineWidth(WaveBuffer &buffer, int x0, int y0, int x1, int y1, float wd,
                    uint16_t color) { /* plot an anti-aliased line of width wd */
     int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
@@ -779,13 +786,13 @@ void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float
     float ed = dx + dy == 0 ? 1 : sqrt((float)dx * dx + (float)dy * dy);
 
     for (wd = (wd + 1) / 2;;) { /* pixel loop */
-        drawPixelAlpha(waveBuffer, x0, y0, color, 15 - std::max(0.f, 15 * (abs(err - dx + dy) / ed - wd + 1)));
+        drawPixelAlpha(buffer, x0, y0, color, 15 - std::max(0.f, 15 * (abs(err - dx + dy) / ed - wd + 1)));
 
         e2 = err;
         x2 = x0;
         if (2 * e2 >= -dx) { /* x step */
             for (e2 += dy, y2 = y0; e2 < ed * wd && (y1 != y2 || dx > dy); e2 += dx)
-                drawPixelAlpha(waveBuffer, x0, y2 += sy, color, 15 - std::max(0.f, 15 * (abs(e2) / ed - wd + 1)));
+                drawPixelAlpha(buffer, x0, y2 += sy, color, 15 - std::max(0.f, 15 * (abs(e2) / ed - wd + 1)));
 
             if (x0 == x1)
                 break;
@@ -795,7 +802,7 @@ void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float
         }
         if (2 * e2 <= dy) { /* y step */
             for (e2 = dx - e2; e2 < ed * wd && (x1 != x2 || dx < dy); e2 += dy)
-                drawPixelAlpha(waveBuffer, x2 += sx, y0, color, 15 - std::max(0.f, 15 * (abs(e2) / ed - wd + 1)));
+                drawPixelAlpha(buffer, x2 += sx, y0, color, 15 - std::max(0.f, 15 * (abs(e2) / ed - wd + 1)));
 
             if (y0 == y1)
                 break;
@@ -805,7 +812,7 @@ void drawLineWidth(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, float
     }
 }
 
-void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t color, float r) {
+void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float r) {
     uint16_t colorAA;
     for (float y = 0; y < 2.0 * r; y++) {
         for (float x = 0; x < 2 * r; x++) {
@@ -815,12 +822,12 @@ void drawFilledCircle(WaveBuffer &waveBuffer, int x0, int y0, uint16_t color, fl
             distance = std::clamp(r - distance, 0.f, 1.f);
             colorAA = (uint16_t((color >> 12) * distance) << 12) | (color & 0x0FFF);
 
-            drawPixelBlend(waveBuffer, x + x0 - r, y + y0 - r, colorAA);
+            drawPixelBlend(buffer, x + x0 - r, y + y0 - r, colorAA);
         }
     }
 }
 
-void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float y1, float x2, float y2, int x3, int y3,
+void plotCubicBezierSeg(WaveBuffer &buffer, int x0, int y0, float x1, float y1, float x2, float y2, int x3, int y3,
                         uint16_t color) { /* plot limited cubic Bezier segment */
     int f, fx, fy, leg = 1;
     int sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1; /* step direction */
@@ -831,7 +838,7 @@ void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float 
     if (xa == 0 && ya == 0) { /* quadratic Bezier */
         sx = floor((3 * x1 - x0 + 1) / 2);
         sy = floor((3 * y1 - y0 + 1) / 2); /* new midpoint */
-        return plotQuadBezierSeg(waveBuffer, x0, y0, sx, sy, x3, y3, color);
+        return plotQuadBezierSeg(buffer, x0, y0, sx, sy, x3, y3, color);
     }
     x1 = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + 1; /* line lengths */
     x2 = (x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3) + 1;
@@ -875,8 +882,8 @@ void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float 
         dy += xy; /* error of 1st step */
 
         for (pxy = &xy, fx = fy = f; x0 != x3 && y0 != y3;) {
-            drawPixelThick(waveBuffer, x0, y0, color); /* plot curve */
-            do {                                       /* move sub-steps of one pixel */
+            drawPixelThick(buffer, x0, y0, color); /* plot curve */
+            do {                                   /* move sub-steps of one pixel */
                 if (dx > *pxy || dy < *pxy)
                     goto exit;      /* confusing values */
                 y1 = 2 * ex - dy;   /* save value for test of y step */
@@ -918,11 +925,11 @@ void plotCubicBezierSeg(WaveBuffer &waveBuffer, int x0, int y0, float x1, float 
         sy = -sy;
         yb = -yb;
         x1 = x2;
-    } while (leg--);                                  /* try other end */
-    drawLineThick(waveBuffer, x0, y0, x3, y3, color); /* remaining part in case of cusp or crunode */
+    } while (leg--);                              /* try other end */
+    drawLineThick(buffer, x0, y0, x3, y3, color); /* remaining part in case of cusp or crunode */
 }
 
-void plotCubicBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3,
+void plotCubicBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3,
                      uint16_t color) { /* plot any cubic Bezier curve */
     int n = 0, i = 0;
     long xc = x0 + x1 - x2 - x3, xa = xc - 4 * (x1 - x2);
@@ -987,7 +994,7 @@ void plotCubicBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int
             fy2 *= fy0;
         }
         if (x0 != x3 || y0 != y3) /* segment t1 - t2 */
-            plotCubicBezierSeg(waveBuffer, x0, y0, x0 + fx1, y0 + fy1, x0 + fx2, y0 + fy2, x3, y3, color);
+            plotCubicBezierSeg(buffer, x0, y0, x0 + fx1, y0 + fy1, x0 + fx2, y0 + fy2, x3, y3, color);
         x0 = x3;
         y0 = y3;
         fx0 = fx3;
@@ -996,7 +1003,7 @@ void plotCubicBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int
     }
 }
 
-void plotQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int x2, int y2,
+void plotQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2,
                     uint16_t color) { /* plot any quadratic Bezier curve */
     int x = x0 - x1, y = y0 - y1;
     double t = x0 - 2 * x1 + x2, r;
@@ -1015,7 +1022,7 @@ void plotQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
         x = floor(t + 0.5);
         y = floor(r + 0.5);
         r = (y1 - y0) * (t - x0) / (x1 - x0) + y0; /* intersect P3 | P0 P1 */
-        plotQuadBezierSeg(waveBuffer, x0, y0, x, floor(r + 0.5), x, y, color);
+        plotQuadBezierSeg(buffer, x0, y0, x, floor(r + 0.5), x, y, color);
         r = (y1 - y2) * (t - x2) / (x1 - x2) + y2; /* intersect P4 | P1 P2 */
         x0 = x1 = x;
         y0 = y;
@@ -1029,16 +1036,16 @@ void plotQuadBezier(WaveBuffer &waveBuffer, int x0, int y0, int x1, int y1, int 
         x = floor(r + 0.5);
         y = floor(t + 0.5);
         r = (x1 - x0) * (t - y0) / (y1 - y0) + x0; /* intersect P6 | P0 P1 */
-        plotQuadBezierSeg(waveBuffer, x0, y0, floor(r + 0.5), y, x, y, color);
+        plotQuadBezierSeg(buffer, x0, y0, floor(r + 0.5), y, x, y, color);
         r = (x1 - x2) * (t - y2) / (y1 - y2) + x2; /* intersect P7 | P1 P2 */
         x0 = x;
         x1 = floor(r + 0.5);
         y0 = y1 = y; /* P0 = P6, P1 = P7 */
     }
-    plotQuadBezierSeg(waveBuffer, x0, y0, x1, y1, x2, y2, color); /* remaining part */
+    plotQuadBezierSeg(buffer, x0, y0, x1, y1, x2, y2, color); /* remaining part */
 }
 
-void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[],
+void drawCubicSpline(WaveBuffer &buffer, int n, int x[], int y[],
                      uint16_t color) { /* plot cubic spline, destroys input arrays x,y */
 #define M_MAX 6
     float mi = 0.25, m[M_MAX]; /* diagonal constants of matrix */
@@ -1056,7 +1063,7 @@ void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[],
     }
     x2 = floor((x0 - 3 * x4) / (7 - 4 * mi) + 0.5); /* correct last row */
     y2 = floor((y0 - 3 * y4) / (7 - 4 * mi) + 0.5);
-    plotCubicBezier(waveBuffer, x3, y3, (x2 + x4) / 2, (y2 + y4) / 2, x4, y4, x4, y4, color);
+    plotCubicBezier(buffer, x3, y3, (x2 + x4) / 2, (y2 + y4) / 2, x4, y4, x4, y4, color);
 
     if (n - 3 < M_MAX)
         mi = m[n - 3];
@@ -1069,7 +1076,7 @@ void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[],
         y0 = floor((y[i] - 2 * y1) * mi + 0.5);
         x4 = floor((x0 + 4 * x1 + x2 + 3) / 6.0); /* reconstruct P[i] */
         y4 = floor((y0 + 4 * y1 + y2 + 3) / 6.0);
-        plotCubicBezier(waveBuffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
+        plotCubicBezier(buffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
                         floor((x1 + 2 * x2) / 3 + 0.5), floor((y1 + 2 * y2) / 3 + 0.5), x3, y3, color);
         x3 = x4;
         y3 = y4;
@@ -1082,9 +1089,34 @@ void drawCubicSpline(WaveBuffer &waveBuffer, int n, int x[], int y[],
     x4 = floor((3 * x0 + 7 * x1 + 2 * x2 + 6) / 12.0); /* reconstruct P[1] */
     y0 = y[0];
     y4 = floor((3 * y0 + 7 * y1 + 2 * y2 + 6) / 12.0);
-    plotCubicBezier(waveBuffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
+    plotCubicBezier(buffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
                     floor((x1 + 2 * x2) / 3 + 0.5), floor((y1 + 2 * y2) / 3 + 0.5), x3, y3, color);
-    plotCubicBezier(waveBuffer, x0, y0, x0, y0, (x0 + x1) / 2, (y0 + y1) / 2, x4, y4, color);
+    plotCubicBezier(buffer, x0, y0, x0, y0, (x0 + x1) / 2, (y0 + y1) / 2, x4, y4, color);
+}
+
+// post effects
+
+void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur) { // blurwidth=  2^blur
+    uint16_t *kernel = (uint16_t *)pFrameBuffer;
+    uint32_t colorSum[3];
+    uint32_t colorValue[3];
+    for (uint32_t i = 0; i < 100; i++) {
+
+        // println(index);
+        // colorSum[0] = kernel[index] >> 11;                     // Red
+        // colorSum[1] = kernel[index] & 0b0000011111100000 >> 5; // Green
+        // colorSum[2] = kernel[index] & 0b0000000000011111;      // Blur
+
+        // colorValue[0] = colorSum[0] >> blur;
+        // colorValue[1] = colorSum[1] >> blur;
+        // colorValue[2] = colorSum[2] >> blur;
+
+        // kernel[index] = colorValue[0] << 11 & colorValue[1] << 8 & colorValue[2]; // back to rgb565 format
+
+        // println((uint32_t)&pFrameBuffer[index]);
+
+        pFrameBuffer[i] = kernel[i]; // back to rgb565 format
+    }
 }
 
 #endif // ifdef POLYCONTROL

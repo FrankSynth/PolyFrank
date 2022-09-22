@@ -182,23 +182,23 @@ void GUIPanelEffect::Draw() {
 }
 
 void GUIPanelEffect::drawWaveShaperPanel(int8_t *renderedWave, Waveshaper *module) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 2, c4444wavecolorTrans);
+    drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolorTrans);
     drawWaveshaper(waveBuffer, module);
-    drawFrame(c4444framecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawPhaseShaperPanel(int8_t *renderedWave, Phaseshaper *module) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 1, c4444wavecolorTrans);
+    drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 1, c4444wavecolorTrans);
     drawPhaseshaper(waveBuffer, module);
-    drawFrame(c4444framecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawCrushPanel(int8_t *renderedWave) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 2, c4444wavecolor);
-    drawFrame(c4444framecolor);
+    drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::registerPanelSettings() {

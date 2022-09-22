@@ -84,23 +84,30 @@ void renderADSR(ADSR &adsr) {
 
         const float &imperfection = layerA.adsrImperfection[voice];
 
+        // extra if to reduce the input delay 0.5ms
+
+        if (adsr.currentState[voice] == adsr.OFF) {
+
+            if (gate == 1 || loop == 1) {
+                adsr.setStatusDelay(voice);
+            }
+        }
+
+        if (adsr.currentState[voice] == adsr.DELAY) {
+
+            if (gate == 0 && loop == 0 && retriggered == 0) {
+                adsr.setStatusOff(voice);
+            }
+
+            float delay = adsr.aDelay;
+            currentTime += SECONDSPERCVRENDER * imperfection;
+            if (currentTime >= delay)
+                adsr.setStatusAttack(voice);
+        }
+
         switch (adsr.currentState[voice]) {
             case adsr.OFF:
-                if (gate == 1 || loop == 1) {
-                    adsr.setStatusDelay(voice);
-                }
-                break;
-
-            case adsr.DELAY: {
-                if (gate == 0 && loop == 0 && retriggered == 0) {
-                    adsr.setStatusOff(voice);
-                }
-                float delay = adsr.aDelay;
-                currentTime += SECONDSPERCVRENDER * imperfection;
-                if (currentTime >= delay)
-                    adsr.setStatusAttack(voice);
-                break;
-            }
+            case adsr.DELAY: break;
 
             case adsr.ATTACK: {
                 float attack = adsr.aAttack * imperfection;

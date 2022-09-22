@@ -92,7 +92,7 @@ SECTIONS
     . = ALIGN(4);
     _sITCM = .;      
 
-    /* *gfx* (.text .text*) */
+    *gfx* (.text .text*)
     *guiBase* (.text .text*)
     *datacore* (.text .text*)
     *polyMath.o (.text .text*)

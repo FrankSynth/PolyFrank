@@ -28,7 +28,15 @@ extern std::function<void()> Panel_1_Touch_ISR;
 
 extern volatile bool Panel_0_EOC_Interrupt;
 extern volatile bool Panel_1_EOC_Interrupt;
-extern std::function<void()> Panel_EOC_ISR;
+extern std::function<void()> Panel_0_EOC_ISR;
+extern std::function<void()> Panel_1_EOC_ISR;
+
+extern std::function<void()> Panel_nextChannel_ISR;
+
+extern volatile bool Panel_0_RXTX_Interrupt;
+extern volatile bool Panel_1_RXTX_Interrupt;
+extern std::function<void()> Panel_0_RXTX_ISR;
+extern std::function<void()> Panel_1_RXTX_ISR;
 
 extern volatile bool USB_HS_CONNECTED;
 extern volatile bool USB_FS_CONNECTED;

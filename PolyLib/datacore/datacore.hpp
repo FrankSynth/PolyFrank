@@ -37,6 +37,8 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
+    bool presetLock = 0;
+
     void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
 
   protected:
@@ -247,6 +249,8 @@ class Analog : public DataElement {
     void resetValue() {
         defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
         setValue(defaultValue);
+
+        presetLock = 0;
     }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;

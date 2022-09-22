@@ -5,6 +5,10 @@
 location currentFocus;
 location newFocus;
 
+quickViewStruct quickView;
+elapsedMillis quickViewTimer;
+uint32_t quickViewTimeout = 1000;
+
 // dont allow full color -> FF not allowed -> use F1 --> this reduce the display burning
 //  DMA2D Colors
 uint32_t cSelect = 0xFFF1F1F1;
@@ -19,13 +23,22 @@ uint32_t cGrey = 0xFF101010;
 uint32_t cGreyDark = 0xFF080808;
 uint32_t cBlack = 0xFF000000;
 
-uint32_t cHighlight = 0xFFF1da47;
+uint32_t cBlackTransparent = 0xCF000000;
+
+uint32_t cBackground = 0xFF0f161a;
+
+uint32_t cHighlight = 0xFFf8ca50;
 uint32_t cWarning = 0xFFF10000;
 
-// Wavedraw
-uint16_t c4444dot = 0xFfd4;
+uint32_t cLayerA = 0xFFe80052;
+uint32_t cLayerB = 0xFF0093e8;
 
-uint16_t c4444wavecolor = 0xFFFF;
+uint32_t cLayer = 0xFF000000;
+
+// Wavedraw
+uint16_t c4444dot = 0xFfc5;
+
+uint16_t c4444wavecolor = 0xFEEE;
 uint16_t c4444wavecolorTrans = 0x8FFF;
 
 uint16_t c4444gridcolor = 0x3FFF;

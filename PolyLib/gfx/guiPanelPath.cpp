@@ -20,12 +20,12 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
     std::string text;
     if (layerID == 0) {
         text = "A"; // Layer name
-        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cHighlight, cBlack, relX + panelAbsX,
+        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cLayerA, cBlack, relX + panelAbsX,
                                 relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     }
     else if (layerID == 1) {
         text = "B"; // Layer name
-        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cHighlight, cBlack, relX + panelAbsX,
+        relX += drawBoxWithText(text, &GUI_FontBahnschriftSemiBold28_FontInfo, cLayerB, cBlack, relX + panelAbsX,
                                 relY + panelAbsY, panelHeight, spacer, 1, CENTER);
     }
 

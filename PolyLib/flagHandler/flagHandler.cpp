@@ -11,7 +11,6 @@ void initFlagHandler() {
     HID_Initialized = false;
     Panel_0_EOC_Interrupt = false;
     Panel_1_EOC_Interrupt = false;
-    Panel_EOC_ISR = nullptr;
 
     Control_Touch_Interrupt = false;
     Control_Touch_ISR = nullptr;
@@ -55,7 +54,14 @@ volatile bool HID_Initialized = false;
 
 volatile bool Panel_0_EOC_Interrupt = false;
 volatile bool Panel_1_EOC_Interrupt = false;
-std::function<void()> Panel_EOC_ISR = nullptr;
+std::function<void()> Panel_0_EOC_ISR = nullptr;
+std::function<void()> Panel_1_EOC_ISR = nullptr;
+std::function<void()> Panel_nextChannel_ISR = nullptr;
+
+volatile bool Panel_0_RXTX_Interrupt = false;
+volatile bool Panel_1_RXTX_Interrupt = false;
+std::function<void()> Panel_0_RXTX_ISR = nullptr;
+std::function<void()> Panel_1_RXTX_ISR = nullptr;
 
 volatile bool Control_Touch_Interrupt = false;
 std::function<void()> Control_Touch_ISR = nullptr;
@@ -143,13 +149,39 @@ void handleFlags() {
         }
 
         // Panel ADC
-        if (Panel_0_EOC_Interrupt && Panel_1_EOC_Interrupt) {
+        if (Panel_0_EOC_Interrupt && Panel_1_EOC_Interrupt && !Panel_0_RXTX_Interrupt && !Panel_1_RXTX_Interrupt) {
             Panel_0_EOC_Interrupt = 0;
             Panel_1_EOC_Interrupt = 0;
 
-            if (Panel_EOC_ISR != nullptr) {
-                Panel_EOC_ISR();
+            if (Panel_nextChannel_ISR != nullptr) {
+                Panel_nextChannel_ISR();
             }
+
+            if (Panel_0_EOC_ISR != nullptr) {
+                Panel_0_EOC_ISR();
+            }
+
+            if (Panel_1_EOC_ISR != nullptr) {
+                Panel_1_EOC_ISR();
+            }
+        }
+
+        // Panel ADC
+        if (Panel_0_RXTX_Interrupt) {
+
+            if (Panel_0_RXTX_ISR != nullptr) {
+                Panel_0_RXTX_ISR();
+            }
+            Panel_0_RXTX_Interrupt = 0;
+        }
+
+        // Panel ADC
+        if (Panel_1_RXTX_Interrupt) {
+
+            if (Panel_1_RXTX_ISR != nullptr) {
+                Panel_1_RXTX_ISR();
+            }
+            Panel_1_RXTX_Interrupt = 0;
         }
     }
     if (readTemperature) {
@@ -178,5 +210,4 @@ void handleFlags() {
 
 #endif
 }
-
 }; // namespace FlagHandler

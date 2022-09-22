@@ -7,6 +7,9 @@ void drawVoiceStatus(voiceStateStruct *voiceState, uint32_t x, uint32_t y, uint1
 
     float amount = allLayers[voiceState->layerID]->out.vca.currentSample[voiceState->voiceID];
 
+    if (voiceState->status == FREE && amount < 0.001f) {
+        return;
+    }
     uint8_t color[4];
     *(uint32_t *)color = cWhite;
 

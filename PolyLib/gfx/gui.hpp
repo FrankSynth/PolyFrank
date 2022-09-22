@@ -13,6 +13,7 @@
 #include "guiPanelPatchMatrix.hpp"
 #include "guiPanelPath.hpp"
 #include "guiPanelPreset.hpp"
+#include "guiPanelQuickView.hpp"
 #include "guiPanelStart.hpp"
 #include "guiPanelState.hpp"
 #include "guiPanelString.hpp"
@@ -35,7 +36,9 @@ class GUI {
   private:
     std::vector<GUIPanelBase *> panels;
 
-    GUIPanelLive guiPanelLive;
+    GUIPanelLive guiPanelLiveData;
+    GUIPanelLive guiPanelArp;
+
     GUIPanelPatchMatrix guiPanelPatch;
     GUIPanelPreset guiPanelPreset;
     GUIPanelConfig guiPanelConfig;
@@ -49,6 +52,8 @@ class GUI {
     GUIPanelEffect guiPanelEffect;
 
     GUIPanelString guiPanelDebug;
+
+    GUIPanelQuickView guiPanelQuickView;
 
     GUISide guiSide;
     GUIFooter guiFooter;

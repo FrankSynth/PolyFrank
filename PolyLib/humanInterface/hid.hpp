@@ -36,7 +36,7 @@ void processControlTouch();
 void processPanelTouch(uint8_t layerID);
 
 void potiMapping();
-void processPanelPotis();
+void processPanelPotis(uint32_t *adcData, uint32_t layer);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
 void renderLED();

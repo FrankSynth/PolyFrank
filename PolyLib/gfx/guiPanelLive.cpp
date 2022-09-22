@@ -90,32 +90,24 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
-    actionHandler.registerActionRightData(
-        0, {std::bind(&GUIPanelLive::selectSubPanel, this, 0), liveData.__liveSettingsLivemode.category},
-        &(subPanelSelection[0]));
-    actionHandler.registerActionRightData(1,
-                                          {std::bind(&GUIPanelLive::selectSubPanel, this, 1),
-                                           liveData.arps[currentFocus.layer].__liveSettingsArp.category},
-                                          &(subPanelSelection[1]));
-    actionHandler.registerActionRightData(
-        2, {std::bind(&GUIPanelLive::selectSubPanel, this, 2), globalSettings.__globSettingsDisplay.category},
-        &(subPanelSelection[2]));
+    actionHandler.registerActionRightData(0);
+    actionHandler.registerActionRightData(1);
+    actionHandler.registerActionRightData(2);
 
     actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 1);
     actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 1);
-
     actionHandler.registerActionLeft(2);
 }
 
-void GUIPanelLive::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t id,
-                        uint8_t pathVisible) {
+void GUIPanelLive::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t pathVisible,
+                        uint8_t subPanel) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
     this->name = name;
-    this->id = id;
     this->pathVisible = pathVisible;
+    subPanelSelect = subPanel;
 
     // elements Sizes
     uint16_t elementWidth = width;

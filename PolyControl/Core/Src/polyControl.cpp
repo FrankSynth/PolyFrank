@@ -53,6 +53,12 @@ PCA9548 busMultiplexerPanelA;
 PCA9555 ioExpander;
 
 //  ADC
+
+RAM2_DMA ALIGN_32BYTES(uint32_t commandA[12]);
+RAM2 ALIGN_32BYTES(uint32_t adcDataA[12]);
+RAM2_DMA ALIGN_32BYTES(uint32_t commandB[12]);
+RAM2 ALIGN_32BYTES(uint32_t adcDataB[12]);
+
 MAX11128 adcA;
 MAX11128 adcB;
 TS3A5017D multiplexer(4, ADC_Mult_A_GPIO_Port, ADC_Mult_A_Pin, ADC_Mult_B_GPIO_Port, ADC_Mult_B_Pin);
@@ -132,7 +138,7 @@ void PolyControlInit() {
     initPoly();
 
     // let the layer start
-    HAL_Delay(200);
+    HAL_Delay(1000);
 
     // Device Configuration
     deviceConfig();
@@ -276,8 +282,8 @@ void deviceConfig() {
     // ledDriverA[0].configurate(&i2cBusPanel1H, 0);
     // ledDriverB[0].configurate(&i2cBusPanel1H, 0);
 
-    adcA.configurate(&spiBusPanel, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin);
-    adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin);
+    adcA.configurate(&spiBusPanel, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin, commandA, adcDataA);
+    adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin, commandB, adcDataB);
 
     eeprom.configurate(&spiBusEEPROM, Control_EEPROM_CS_GPIO_Port, Control_EEPROM_CS_Pin);
 

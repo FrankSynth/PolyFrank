@@ -182,7 +182,7 @@ void Layer::initLayer() {
     // set spread values dependend on chip ID
     float maxVal = chipID ? -1.0f : 1.0f;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        spreadValues[i] = maxVal / ((float)i + 1.0f);
+        spreadValues[i] = maxVal / ((float)i + 1.0f); // TODO shuffle spread values
 
     // load imperfection buffers
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -267,6 +267,7 @@ void Layer::loadLayerFromPreset(presetStruct *preset) {
 
         for (Analog *i : m->getPotis()) {
             i->setValue(buffer[index]);
+            i->presetLock = true;
 
             index++;
         }

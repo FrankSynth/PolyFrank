@@ -1900,9 +1900,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA_Loop(I2C_HandleTypeDef *hi2c, uint
     xfermode = I2C_AUTOEND_MODE;
 
     /* Set the I2C DMA transfer complete callback */
-    hi2c->hdmatx->XferCpltCallback = I2C_DMAMasterTransmitCplt_Loop; // TODO
-
-    /* Set the DMA error callback */
+    hi2c->hdmatx->XferCpltCallback = I2C_DMAMasterTransmitCplt_Loop;
     hi2c->hdmatx->XferErrorCallback = I2C_DMAError;
 
     /* Set the unused DMA callbacks to NULL */

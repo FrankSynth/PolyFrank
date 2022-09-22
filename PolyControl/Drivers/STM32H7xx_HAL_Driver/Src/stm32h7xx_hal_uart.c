@@ -1131,7 +1131,7 @@ HAL_StatusTypeDef HAL_UART_Receive_Stream(UART_HandleTypeDef *huart) {
         SET_BIT(huart->Instance->CR1, USART_CR1_PEIE);
 
         __HAL_UNLOCK(huart);
-        SET_BIT(huart->Instance->CR3, USART_CR3_RXFTIE);
+        SET_BIT(huart->Instance->CR1, USART_CR1_RXNEIE_RXFNEIE);
 
         return HAL_OK;
     }

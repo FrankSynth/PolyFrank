@@ -88,6 +88,7 @@ class spiBus : public busInterface {
                     state = BUS_ERROR;
                     return state;
                 }
+                // println("dma started");
             }
             else {
                 return BUS_ERROR;

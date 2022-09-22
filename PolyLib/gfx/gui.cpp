@@ -5,11 +5,25 @@ GUI ui;
 
 void GUI::Init() { // add settings pointer
     // init Display
+
+    waveBuffer.height = WAVEFORMHEIGHT;
+    waveQuickBuffer.height = WAVEFORMQUICKHEIGHT;
+
+    waveBuffer.buffer = &waveformBuffer;
+    waveQuickBuffer.buffer = &waveformQuickBuffer;
+
     GFX_Init();
 
-    guiPanelFocus.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
-    guiPanelLive.init(CENTERWIDTH, CENTERHEIGHT - VOICEHEIGHT - SPACER, BOARDERWIDTH,
-                      HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 0);
+    guiPanelQuickView.init(LCDWIDTH, LCDHEIGHT, 0, 0);
+
+    guiPanelFocus.init(CENTERWIDTH, CENTERHEIGHT + FOOTERHEIGHT + SPACER, BOARDERWIDTH,
+                       HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
+
+    guiPanelLiveData.init(CENTERWIDTH, CENTERHEIGHT - VOICEHEIGHT - SPACER, BOARDERWIDTH,
+                          HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "LIVE", 1, 0);
+    guiPanelArp.init(CENTERWIDTH, CENTERHEIGHT - VOICEHEIGHT - SPACER, BOARDERWIDTH,
+                     HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "ARP", 1, 1);
+
     guiPanelPatch.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PATCH",
                        1);
     guiPanelPreset.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "PRESET",
@@ -39,11 +53,12 @@ void GUI::Init() { // add settings pointer
         }
 
     } // add Panels to vector
-    panels.push_back(&guiPanelLive);
+    panels.push_back(&guiPanelLiveData);
+    panels.push_back(&guiPanelArp);
     panels.push_back(&guiPanelPatch);
-    panels.push_back(&guiPanelPreset);
     panels.push_back(&guiPanelEffect);
     panels.push_back(&guiPanelConfig);
+    panels.push_back(&guiPanelPreset);
     panels.push_back(&guiPanelFocus);
     panels.push_back(&guiPanelDebug);
 
@@ -105,12 +120,13 @@ void GUI::Draw() {
     }
 
     // clear
-    drawRectangleFill(cGreyDark, 0, 0, LCDWIDTH, LCDHEIGHT);
+    drawRectangleFill(cBackground, 0, 0, LCDWIDTH, LCDHEIGHT);
 
     // Error Occurred?
     if (globalSettings.error.errorActive) {
         guiError.Draw();
     }
+
     else {
         checkFocusChange();
 
@@ -129,7 +145,8 @@ void GUI::Draw() {
                 guiPath.Draw();
             }
 
-            else if (activePanel == &guiPanelLive) { // liveMode Panel draw short Path and VoiceState
+            else if (activePanel == &guiPanelLiveData ||
+                     activePanel == &guiPanelArp) { // liveMode Panel draw short Path and VoiceState
 
                 guiPanelVoice[0].Draw();
                 guiPanelVoice[1].Draw();
@@ -151,27 +168,49 @@ void GUI::Draw() {
         guiState.Draw();
 
         // Draw Footer
-        guiFooter.Draw();
+        if (activePanel != &guiPanelFocus) {
+            guiFooter.Draw();
+        }
     }
-
     // Draw Side
     guiSide.Draw();
+
+    if (quickViewTimer < quickViewTimeout &&
+        !(currentFocus.type == FOCUSMODULE && currentFocus.modul == quickView.modul &&
+          currentFocus.layer == quickView.layer && ui.activePanel == &ui.guiPanelFocus)) {
+
+        // println(quickViewTimer);
+        guiPanelQuickView.Draw();
+    }
 
     setRenderState(RENDER_WAIT);
 }
 void GUI::checkFocusChange() {
 
+    if (currentFocus.layer == 0) {
+        cLayer = cLayerA;
+        c4444dot = ((uint16_t(((uint8_t *)&cLayerA)[3] & 0xF0)) << 8) |
+                   ((uint16_t(((uint8_t *)&cLayerA)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerA)[1] & 0xF0)) |
+                   ((uint16_t(((uint8_t *)&cLayerA)[0] & 0xF0)) >> 4);
+    }
+    else {
+        cLayer = cLayerB;
+        c4444dot = ((uint16_t(((uint8_t *)&cLayerB)[3] & 0xF0)) << 8) |
+                   ((uint16_t(((uint8_t *)&cLayerB)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerB)[1] & 0xF0)) |
+                   ((uint16_t(((uint8_t *)&cLayerB)[0] & 0xF0)) >> 4);
+    }
+
     if (newFocus.type != NOFOCUS) { // check new focus set and activate Focus Panel
         if (currentFocus.id != newFocus.id || currentFocus.modul != newFocus.modul ||
             currentFocus.layer != newFocus.layer || currentFocus.type != newFocus.type) { // something changed?
             oldActivePanelID = activePanelID;
-            activePanel = panels[5];
-            activePanelID = 5;
+            activePanel = panels[6];
+            activePanelID = 6;
             currentFocus = newFocus;
             newFocus.type = NOFOCUS;
         }
         else { // nothing change -> same button pressed twice ->back to last Panel
-            setPanelActive(5);
+            setPanelActive(6);
             newFocus.type = NOFOCUS;
         }
     }

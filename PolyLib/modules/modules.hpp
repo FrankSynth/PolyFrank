@@ -545,11 +545,11 @@ class LFO : public BaseModule {
 
     // TODO Switch  ywischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 0, false, &nlClockSteps);
-    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff);
-    Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff);
-    Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff);
-    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
-    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff);
+    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff, nullptr, false);
+    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr, false);
 
     RenderBuffer speed;
     RenderBuffer speedRAW;
@@ -621,24 +621,24 @@ class ADSR : public BaseModule {
 
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
-    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap);
-    Analog aAttack = Analog("ATTACK", 0.0005, 20, 0.5, true, logMap);
-    Analog aDecay = Analog("DECAY", 0.0005, 30, 0.5, true, logMap);
-    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.6, true, linMap);
-    Analog aRelease = Analog("RELEASE", 0.0005, 30, 0.5, true, logMap);
-    Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount);
+    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap, nullptr, false);
+    Analog aAttack = Analog("ATTACK", 0.0005, 20, 0.5, true, logMap, nullptr, false);
+    Analog aDecay = Analog("DECAY", 0.0005, 30, 0.5, true, logMap, nullptr, false);
+    Analog aSustain = Analog("SUSTAIN", 0, 1, 0.6, true, linMap, nullptr, false);
+    Analog aRelease = Analog("RELEASE", 0.0005, 30, 0.5, true, logMap, nullptr, false);
+    Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, false);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0.5, true, linMap);
 
     // TODO Hide controls on front
-    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr);
-    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps);
+    Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr, false);
+    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
 
     RenderBuffer amount;
 

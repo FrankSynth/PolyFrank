@@ -62,7 +62,7 @@ uint32_t cvrendercache = 0;
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiorendertimer = 0;
     renderAudio(&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 
@@ -71,18 +71,18 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiorendertimer = 0;
     renderAudio(saiBuffer);
 
-    audiorendercache += audiorendertimer;
-    audiorendercounter++;
+    // audiorendercache += audiorendertimer;
+    // audiorendercounter++;
 
-    if (audiorendercounter > 10000) {
-        println(std::to_string((float)audiorendercache / (float)audiorendercounter));
-        audiorendercounter = 0;
-        audiorendercache = 0;
-    }
+    // if (audiorendercounter > 10000) {
+    //     println(std::to_string((float)audiorendercache / (float)audiorendercounter));
+    //     audiorendercounter = 0;
+    //     audiorendercache = 0;
+    // }
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
@@ -91,9 +91,9 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
     if (pin == SPI_CS_SOFT_Pin) {
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
         if (layerCom.spi->state == BUS_SEND) {
             HAL_GPIO_WritePin(SPI_READY_GPIO_Port, SPI_READY_Pin, GPIO_PIN_RESET);
@@ -121,14 +121,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         // start uart
         huart1.Instance->CR3 |= USART_CR3_DMAT; // set dma register
 
-        cvrendercache += cvrendertimer;
-        cvrendercounter++;
+        // cvrendercache += cvrendertimer;
+        // cvrendercounter++;
 
-        if (cvrendercounter > 10000) {
-            sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
-            cvrendercounter = 0;
-            cvrendercache = 0;
-        }
+        // if (cvrendercounter > 10000) {
+        //     sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
+        //     cvrendercounter = 0;
+        //     cvrendercache = 0;
+        // }
 
         FlagHandler::renderNewCV = false;
     }

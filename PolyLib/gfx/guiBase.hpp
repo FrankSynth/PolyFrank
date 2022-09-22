@@ -30,6 +30,13 @@ extern uint16_t c4444wavecolorTrans;
 extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
 
+extern uint32_t cLayerA;
+extern uint32_t cLayerB;
+extern uint32_t cLayer;
+
+extern uint32_t cBackground;
+extern uint32_t cBlackTransparent;
+
 // responsive sizes
 #define HEADERHEIGHT 34
 #define FOOTERHEIGHT 38
@@ -71,6 +78,11 @@ typedef struct {
     FOCUSMODE type;
 
 } location;
+
+typedef struct {
+    uint8_t layer = 0xff;
+    uint8_t modul = 0xff;
+} quickViewStruct;
 
 typedef struct {
 
@@ -158,3 +170,8 @@ extern uint8_t panelChanged;
 
 extern location currentFocus;
 extern location newFocus;
+
+extern quickViewStruct quickView;
+extern elapsedMillis quickViewTimer;
+
+extern uint32_t quickViewTimeout;

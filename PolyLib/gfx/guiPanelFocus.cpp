@@ -4,31 +4,29 @@
 
 void GUIPanelFocus::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
     panelWidth = width;
-    panelHeight = height;
     panelAbsX = x;
     panelAbsY = y;
     this->pathVisible = pathVisible;
 
+    customControlsHeight = 66;
+    this->customControlsY = y + height - customControlsHeight;
+
+    panelHeight = height - customControlsHeight;
+
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
     uint16_t elementSpace = 1;
-    elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace) / FOCUSPANELENTRYS;
+    uint16_t elementHeight;
 
-    // init Elements
+    elementHeight = (panelHeight - (FOCUSPANELENTRYS - 2) * elementSpace) / FOCUSPANELENTRYS;
     for (int i = 0; i < FOCUSPANELENTRYS; i++) {
         panelElements[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i, elementWidth, elementHeight);
     }
 
-    elementHeight = (height - (FOCUSPANELENTRYS - 2) * elementSpace - waveBuffer.height) / FOCUSPANELENTRYSWAVE;
+    elementHeight = (panelHeight - (FOCUSPANELENTRYS - 2) * elementSpace - waveBuffer.height) / FOCUSPANELENTRYSWAVE;
     for (int i = 0; i < FOCUSPANELENTRYSWAVE; i++) {
         panelElementsWave[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + waveBuffer.height,
                                   elementWidth, elementHeight);
-    }
-
-    for (int i = 0; i < 4; i++) {
-        panelElementsWaveCustom[i].init(
-            panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + waveBuffer.height + elementHeight * 2,
-            elementWidth, elementHeight);
     }
 
     name = "FOCUS";
@@ -84,45 +82,24 @@ void GUIPanelFocus::Draw() {
         ModuleType type = allLayers[currentFocus.layer]->modules[currentFocus.modul]->moduleType;
 
         if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
-            type == MODULE_ADSR || type == MODULE_PHASE || type == MODULE_WAVESHAPER) {
-            scroll->maxEntrysVisible = entrys;
+            type == MODULE_ADSR) {
+            entrys = FOCUSPANELENTRYSWAVE;
 
-            if (type == MODULE_OSC_A || type == MODULE_OSC_B) { // extra custom Controls
-                entrys = FOCUSPANELENTRYSWAVE - 2;
+            registerModuleSettings(panelElementsWave);
 
-                drawCustomControls(allLayers[currentFocus.layer]->modules[currentFocus.modul], panelAbsX,
-                                   panelAbsY + waveBuffer.height, panelWidth, elementHeight * 2 - 2);
-
-                registerModuleSettings(panelElementsWaveCustom);
-
-                for (int i = 0; i < entrys; i++) {
-                    panelElementsWaveCustom[i].Draw();
-                }
-
-                drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH,
-                              panelAbsY + waveBuffer.height + 2 * elementHeight, SCROLLBARWIDTH,
-                              panelHeight - waveBuffer.height - 2 * elementHeight, scroll->offset, scroll->entrys,
-                              entrys);
+            for (int i = 0; i < entrys; i++) {
+                panelElementsWave[i].Draw();
             }
-            else { // standard with wave
-                entrys = FOCUSPANELENTRYSWAVE;
 
-                registerModuleSettings(panelElementsWave);
+            drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
+                          panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, entrys);
 
-                for (int i = 0; i < entrys; i++) {
-                    panelElementsWave[i].Draw();
-                }
-
-                drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
-                              panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, entrys);
-            }
-            drawWaveFromModule(allLayers[currentFocus.layer]->modules[currentFocus.modul],
+            drawWaveFromModule(waveBuffer, allLayers[currentFocus.layer]->modules[currentFocus.modul],
                                LCDWIDTH / 2 - waveBuffer.width / 2, HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
         }
         else { // module without wave
-            entrys = FOCUSPANELENTRYS;
-            scroll->maxEntrysVisible = entrys;
 
+            entrys = FOCUSPANELENTRYS;
             registerModuleSettings(panelElements);
             for (int i = 0; i < FOCUSPANELENTRYS; i++) {
                 panelElements[i].Draw();
@@ -131,7 +108,13 @@ void GUIPanelFocus::Draw() {
             drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight,
                           scroll->offset, scroll->entrys, FOCUSPANELENTRYS);
         }
+
+        drawCustomControls(allLayers[currentFocus.layer]->modules[currentFocus.modul], panelAbsX, customControlsY,
+                           panelWidth, customControlsHeight);
+
+        scroll->maxEntrysVisible = entrys;
     }
+
     else {
         entrys = FOCUSPANELENTRYS;
         scroll->maxEntrysVisible = entrys;
@@ -212,8 +195,7 @@ void GUIPanelFocus::collectEntrys() {
             }
         }
 
-        scroll->entrys =
-            analog.size() + digital.size() / SwitchEntrysPerElement + (digital.size() % SwitchEntrysPerElement != 0);
+        scroll->entrys = analog.size() + digital.size();
     }
     else if (currentFocus.type == FOCUSLAYER) {
         module.clear();

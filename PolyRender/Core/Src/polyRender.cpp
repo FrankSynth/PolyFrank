@@ -88,7 +88,7 @@ void PolyRenderInit() {
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
     HAL_GPIO_WritePin(AUDIO_RST_GPIO_Port, AUDIO_RST_Pin, GPIO_PIN_SET);
-    HAL_Delay(1);
+    HAL_Delay(200);
     audioDacA.init();
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
@@ -106,6 +106,7 @@ void PolyRenderRun() {
     if (layerA.chipID == 1) {
         HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
         huart1.Instance->ICR = 0b1100;
+        huart1.Instance->RQR = UART_RXDATA_FLUSH_REQUEST; // clear rx Register
     }
 
     // start cv rendering
@@ -117,8 +118,11 @@ void PolyRenderRun() {
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
 
+    HAL_Delay(20); // wait for receiver started uart ->
+
     // start Transmit
     if (layerA.chipID == 0) {
+        huart1.Instance->RQR = UART_TXDATA_FLUSH_REQUEST; // clear tx Register
         HAL_UART_Transmit_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
     }
 

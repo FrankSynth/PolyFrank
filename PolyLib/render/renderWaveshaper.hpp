@@ -23,7 +23,7 @@ inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input
     }
     sample *= getSign(input);
 
-    return (sample * waveshaper.aDryWet) + (input * (1.0f - waveshaper.aDryWet));
+    return (sample * waveshaper.DryWet) + (input * (waveshaper.DryWet * (-1) + 1.0f));
 }
 
 #endif

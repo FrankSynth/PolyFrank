@@ -24,6 +24,9 @@ extern devManager deviceManager;
 extern spiBus spiBusEEPROM;
 extern spiBus spiBusPanel;
 
+extern MAX11128 adcA;
+extern MAX11128 adcB;
+
 // Buffer for InterChip Com
 extern volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 extern volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
@@ -42,33 +45,36 @@ extern COMdin MIDIDinRead;
 extern UART_HandleTypeDef huart5;
 uint8_t midiDataInBuffer;
 
+extern elapsedMicros timerFramedraw;
+
 void temperature();
 
 void polyControlLoop() { // Here the party starts
-
-    elapsedMicros timer;
+    // WFI
+    bool enableWFI = false;
     elapsedMillis timerWFI;
 
-    bool enableWFI = false;
+    // Framecounter
+    elapsedMillis timer = 0;
+    uint32_t framerate = 0;
 
     HAL_UART_Receive_Stream(&huart5);
 
-    println("CR1  :", huart5.Instance->CR1);
-    println("CR2  :", huart5.Instance->CR2);
-    println("CR3  :", huart5.Instance->CR3);
-
     while (1) {
 
-        // checkLayerRequests();
-        // __disable_irq();
+        if (timer > 1000) {
+            println("Framrate: ", framerate);
+            timer = 0;
+            framerate = 0;
+        }
+
         if (getRenderState() == RENDER_DONE) {
-            // timer = 0;
+            timerFramedraw = 0;
             ui.Draw();
-            // println(timer);
             // renderLED();
             sendRequestAllUIData();
+            framerate++;
         }
-        // __enable_irq();
         if (enableWFI) {
             __disable_irq();
             __DSB();
@@ -76,7 +82,7 @@ void polyControlLoop() { // Here the party starts
             __enable_irq();
         }
         else {
-            if (timerWFI > 60000)
+            if (timerWFI > 300000)
                 enableWFI = true;
         }
     }
@@ -248,11 +254,15 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
             HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, GPIO_PIN_SET);
         }
+        return;
     }
     else if (hspi == spiBusEEPROM.hspi) {
         spiBusEEPROM.callTxComplete();
     }
     else if (hspi == spiBusPanel.hspi) {
+
+        // reset both ADC
+
         spiBusPanel.callTxComplete();
     }
 }
@@ -285,6 +295,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
         spiBusEEPROM.callRxComplete();
     }
     else if (hspi == spiBusPanel.hspi) {
+
         spiBusPanel.callRxComplete();
     }
 }
@@ -292,6 +303,25 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
 
     if (hspi == spiBusPanel.hspi) {
+
+        if (adcA.state == DEVICE_BUSY) {
+            adcA.state = DEVICE_READY;
+            HAL_GPIO_WritePin(Panel_1_CS_GPIO_Port, Panel_1_CS_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Panel_2_CS_GPIO_Port, Panel_2_CS_Pin, GPIO_PIN_SET);
+
+            FlagHandler::Panel_0_RXTX_Interrupt = true;
+        }
+
+        else if (adcB.state == DEVICE_BUSY) {
+            adcB.state = DEVICE_READY;
+            HAL_GPIO_WritePin(Panel_1_CS_GPIO_Port, Panel_1_CS_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(Panel_2_CS_GPIO_Port, Panel_2_CS_Pin, GPIO_PIN_SET);
+            FlagHandler::Panel_1_RXTX_Interrupt = true;
+        }
+        else {
+            println("ERROR Communcation ADC TxRx");
+        }
+
         spiBusPanel.callRxComplete();
     }
 }
@@ -425,20 +455,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
             midiDeviceDIN.read();
         }
 
-        // midiDeviceUSB.read();
         liveData.serviceRoutine();
         checkLayerRequests();
         layerCom.beginSendTransmission();
 
         uint32_t timerVal = timTimer;
-
-        // if (getRenderState() == RENDER_DONE) {
-        // timer = 0;
-        // ui.Draw();
-        // println("ui draw:", timer);
-        // renderLED();
-        // sendRequestAllUIData();
-        // }
 
         // software IRQ
         EXTI->SWIER1 |= 0x01;

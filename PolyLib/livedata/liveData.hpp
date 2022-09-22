@@ -17,7 +17,8 @@ class LiveData {
   public:
     LiveData() {
         __liveSettingsLivemode.category = "MODE";
-        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceMode);
+        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeA);
+        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeB);
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeMergeLayer);
         __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
         __liveSettingsLivemode.settings.push_back(&livemodeClockSource);

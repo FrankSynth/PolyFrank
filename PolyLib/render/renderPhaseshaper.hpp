@@ -39,7 +39,7 @@ inline vec<VOICESPERCHIP> renderPhaseshaperSample(const vec<VOICESPERCHIP> &inpu
 
     vec<VOICESPERCHIP> sample = fast_lerp_f32(lowerBoundY, upperBoundY, lerpAmount);
 
-    return (sample * phaseshaper.aDryWet) + (input * (1.0f - phaseshaper.aDryWet));
+    return (sample * phaseshaper.DryWet) + (input * (phaseshaper.DryWet * (-1) + 1.0f));
 }
 
 #endif

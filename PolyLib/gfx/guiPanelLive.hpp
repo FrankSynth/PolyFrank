@@ -5,8 +5,8 @@
 
 class GUIPanelLive : public GUIPanelBase {
   public:
-    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, std::string name = "", uint8_t id = 0,
-              uint8_t pathVisible = 1);
+    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, std::string name = "",
+              uint8_t pathVisible = 1, uint8_t subPanel = 0);
     void Draw();
 
     void updateEntrys();

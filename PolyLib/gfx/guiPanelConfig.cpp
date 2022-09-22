@@ -72,8 +72,8 @@ void GUIPanelConfig::Draw() {
         panelElements[i].Draw();
     }
 
-    drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
-                  entrys, CONFIGPANELENTRYS);
+    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
+    //               entrys, CONFIGPANELENTRYS);
 }
 
 void GUIPanelConfig::registerPanelSettings() {
@@ -101,7 +101,7 @@ void GUIPanelConfig::init(uint32_t width, uint32_t height, uint32_t x, uint32_t 
 
     this->pathVisible = pathVisible;
     // elements Sizes
-    uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
+    uint16_t elementWidth = width;
     uint16_t elementSpace = 3;
     uint16_t elementHeight = (height - (CONFIGPANELENTRYS - 2) * elementSpace) / CONFIGPANELENTRYS;
 

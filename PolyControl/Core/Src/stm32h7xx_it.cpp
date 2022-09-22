@@ -358,18 +358,18 @@ void DMA1_Stream1_IRQHandler(void) {
 
     /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
-/**
- * @brief This function handles DMA2 stream2 global interrupt.
- */
-void DMA2_Stream2_IRQHandler(void) {
-    /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+// /**
+//  * @brief This function handles DMA2 stream2 global interrupt.
+//  */
+// void DMA2_Stream2_IRQHandler(void) {
+//     /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
 
-    /* USER CODE END DMA2_Stream2_IRQn 0 */
-    HAL_DMA_IRQHandler(&hdma_uart5_rx);
-    /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+//     /* USER CODE END DMA2_Stream2_IRQn 0 */
+//     HAL_DMA_IRQHandler(&hdma_uart5_rx);
+//     /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
-    /* USER CODE END DMA2_Stream2_IRQn 1 */
-}
+//     /* USER CODE END DMA2_Stream2_IRQn 1 */
+// }
 /**
  * @brief This function handles DMA2 stream2 global interrupt.
  */
@@ -471,18 +471,18 @@ void OTG_FS_IRQHandler(void) {
     /* USER CODE END OTG_FS_IRQn 1 */
 }
 
-/**
- * @brief This function handles DMAMUX1 overrun interrupt.
- */
-void DMAMUX1_OVR_IRQHandler(void) {
-    /* USER CODE BEGIN DMAMUX1_OVR_IRQn 0 */
+// /**
+//  * @brief This function handles DMAMUX1 overrun interrupt.
+//  */
+// void DMAMUX1_OVR_IRQHandler(void) {
+//     /* USER CODE BEGIN DMAMUX1_OVR_IRQn 0 */
 
-    /* USER CODE END DMAMUX1_OVR_IRQn 0 */
+//     /* USER CODE END DMAMUX1_OVR_IRQn 0 */
 
-    /* USER CODE BEGIN DMAMUX1_OVR_IRQn 1 */
+//     /* USER CODE BEGIN DMAMUX1_OVR_IRQn 1 */
 
-    /* USER CODE END DMAMUX1_OVR_IRQn 1 */
-}
+//     /* USER CODE END DMAMUX1_OVR_IRQn 1 */
+// }
 
 /**
  * @brief This function handles MDMA global interrupt.

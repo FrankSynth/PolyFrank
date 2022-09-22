@@ -6,6 +6,7 @@ LogCurve antiLogMapping(64, 0.9);
 
 void Setting::setValue(int32_t newValue) {
     value = std::clamp(newValue, min, max);
+    presetLock = 0;
 
     if (valueChangedCallback != nullptr)
         valueChangedCallback();

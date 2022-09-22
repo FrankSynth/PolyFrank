@@ -10,23 +10,33 @@ void VoiceHandler::playNote(const Key &key) {
 
     uint8_t numberVoices = 0;
 
-    if (livemodeVoiceMode.value == 0) { // 1Voice
-        numberVoices = 1;
+    if (key.layerID == 0) {
+
+        switch (livemodeVoiceModeA.value) {
+            case 0: numberVoices = 1; break;
+            case 1: numberVoices = 2; break;
+            case 2: numberVoices = 4; break;
+            case 3: numberVoices = 8; break;
+            default: break;
+        }
     }
-    else if (livemodeVoiceMode.value == 1) { // 2Voices
-        numberVoices = 2;
+    else {
+
+        switch (livemodeVoiceModeB.value) {
+            case 0: numberVoices = 1; break;
+            case 1: numberVoices = 2; break;
+            case 2: numberVoices = 4; break;
+            case 3: numberVoices = 8; break;
+            default: break;
+        }
     }
-    else if (livemodeVoiceMode.value == 2) { // 4Voices
-        numberVoices = 4;
-    }
-    else if (livemodeVoiceMode.value == 3) { // 8Voices
-        numberVoices = 8;
-    }
+
+    println("play Note");
 
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
     }
-    else { // parallel Mode  -> send both layers same notes
+    else { // normal mode, each layer sperate
         getNextVoices(numberVoices, key.layerID);
     }
 
@@ -52,6 +62,7 @@ void VoiceHandler::playNote(const Key &key) {
 void VoiceHandler::freeNote(const Key &key) {
 
     findVoices(key.note, voices[key.layerID]);
+
     for (voiceStateStruct *v : foundVoices) {
         if (sustain[key.layerID]) {
             v->status = SUSTAIN;
