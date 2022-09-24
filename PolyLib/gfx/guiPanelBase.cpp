@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "guiPanelBase.hpp"
+#include "datacore/dataHelperFunctions.hpp"
 
 const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
 
@@ -1358,7 +1359,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
 
     float shape = testFloat(module->shapeRAW[0], module->aShape.min, module->aShape.max - 0.001);
 
-    shape *= 6;
+    shape *= 7;
 
     float index;
 
@@ -1384,8 +1385,36 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
         else if (shape < 5)
             index = calcSquare(phase, shape);
 
+        else if (shape < 6) {
+
+            float randPhasef = phase * 3.999f;
+            uint16_t randPhase = randPhasef;
+            float randPhaseFrac = randPhasef - std::floor(randPhasef);
+
+            index = fast_lerp_f32(-1.0f,
+
+                                  fast_lerp_f32(
+
+                                      random[changeIntLoop(randPhase, -1, 0, 3)],
+
+                                      random[randPhase],
+
+                                      randPhaseFrac),
+                                  fract);
+        }
+
+        else if (shape < 7) {
+            float randPhasef = phase * 3.999f;
+            uint16_t randPhase = randPhasef;
+            float randPhaseFrac = std::clamp((randPhasef - std::floor(randPhasef)) * 1.0f / (1.0f - fract), 0.0f, 1.0f);
+
+            index = fast_lerp_f32(random[changeIntLoop(randPhase, -1, 0, 3)], random[randPhase], randPhaseFrac);
+        }
+
         else {
-            index = fast_lerp_f32(-1.0f, random[(uint16_t)((4.f / samples) * i)], fract);
+            float randPhasef = phase * 3.999f;
+            uint16_t randPhase = randPhasef;
+            index = random[randPhase];
         }
 
         renderedWave[i] = index * 127;

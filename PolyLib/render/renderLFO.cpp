@@ -78,7 +78,7 @@ void renderLFO(LFO &lfo) {
     speed = linlogMapping.mapValue(speedRAW) * 100.0f;
     amount = accumulateAmount(lfo);
 
-    shape = shapeRAW * 6;
+    shape = shapeRAW * 7;
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
@@ -109,9 +109,9 @@ void renderLFO(LFO &lfo) {
                 fast_lerp_f32(calcInvRamp(phase[voice]), calcSquare(phase[voice], shape[voice]), fract[voice]);
         }
 
-        // else if (shape[voice] < 5) {
-        //     sample[voice] = calcSquare(phase[voice], shape[voice]);
-        // }
+        else if (shape[voice] < 5) {
+            sample[voice] = calcSquare(phase[voice], shape[voice]);
+        }
 
         else {
             if (newPhase[voice]) {
@@ -119,19 +119,18 @@ void renderLFO(LFO &lfo) {
                 currentRandom[voice] = calcRandom();
             }
 
-            if (shape[voice] < 5.0f) {
-                sample[voice] =
-                    fast_lerp_f32(calcSquare(phase[voice], shape[voice]), currentRandom[voice], fract[voice]);
+            if (shape[voice] < 6.0f) {
+                sample[voice] = fast_lerp_f32(
+                    -1.0f, fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
             }
 
-            else if (shape[voice] < 6.0f) {
-                sample[voice] =
-                    fast_lerp_f32(currentRandom[voice],
-                                  fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
+            else if (shape[voice] < 7.0f) {
+                float rndLerp = std::clamp(phase[voice] / (1.0f - fract[voice]), 0.0f, 1.0f);
+                sample[voice] = fast_lerp_f32(prevRandom[voice], currentRandom[voice], rndLerp);
             }
 
             else {
-                sample[voice] = fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]);
+                sample[voice] = currentRandom[voice];
             }
         }
 
