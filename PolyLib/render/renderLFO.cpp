@@ -59,6 +59,7 @@ inline vec<VOICESPERCHIP> accumulateAmount(const LFO &lfo) {
 void renderLFO(LFO &lfo) {
     int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
     vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
+    vec<VOICESPERCHIP> &prevRandom = lfo.prevRandom;
     vec<VOICESPERCHIP> &phase = lfo.currentTime;
     bool *newPhase = lfo.newPhase;
     vec<VOICESPERCHIP> &shape = lfo.shape;
@@ -84,6 +85,8 @@ void renderLFO(LFO &lfo) {
             phase[voice] += speed[voice] * SECONDSPERCVRENDER;
             newPhase[voice] = phase[voice] > 1.0f;
             phase[voice] -= std::floor(phase[voice]);
+            if (alignLFOs)
+                break;
         }
 
     fract = shape - floor(shape);
@@ -92,42 +95,44 @@ void renderLFO(LFO &lfo) {
         if (shape[voice] < 1) {
             sample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
         }
+
         else if (shape[voice] < 2) {
             sample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
         }
+
         else if (shape[voice] < 3) {
             sample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
+
         else if (shape[voice] < 4) {
             sample[voice] =
                 fast_lerp_f32(calcInvRamp(phase[voice]), calcSquare(phase[voice], shape[voice]), fract[voice]);
         }
-        else if (shape[voice] < 5) {
-            sample[voice] = calcSquare(phase[voice], shape[voice]);
-        }
+
+        // else if (shape[voice] < 5) {
+        //     sample[voice] = calcSquare(phase[voice], shape[voice]);
+        // }
+
         else {
-            float random;
             if (newPhase[voice]) {
-                if (voice == 0) {
-                    lfo.alignedRandom = false;
-                    // re-seed once when they should be aligned
-                    if (alignLFOs && lfo.alignedRandom == false) {
-                        std::srand(lfo.randSeed++);
-                        lfo.alignedRandom = true;
-                    }
-                    else {
-                        lfo.alignedRandom = false;
-                    }
-                }
-                random = calcRandom();
-                currentRandom[voice] = random;
+                prevRandom[voice] = currentRandom[voice];
+                currentRandom[voice] = calcRandom();
             }
-            else
-                random = currentRandom[voice];
-            if (shape[voice] == 6.0f)
-                sample[voice] = random;
-            else
-                sample[voice] = fast_lerp_f32(-1.0f, random, fract[voice]);
+
+            if (shape[voice] < 5.0f) {
+                sample[voice] =
+                    fast_lerp_f32(calcSquare(phase[voice], shape[voice]), currentRandom[voice], fract[voice]);
+            }
+
+            else if (shape[voice] < 6.0f) {
+                sample[voice] =
+                    fast_lerp_f32(currentRandom[voice],
+                                  fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
+            }
+
+            else {
+                sample[voice] = fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]);
+            }
         }
 
         if (alignLFOs)

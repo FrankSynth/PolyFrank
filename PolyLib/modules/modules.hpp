@@ -566,9 +566,9 @@ class LFO : public BaseModule {
     vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> currentRandom;
+    vec<VOICESPERCHIP> prevRandom;
 
     bool alignedRandom = false;
-    uint32_t randSeed = 1;
 
     float alignFloatBuffer = 0;
 

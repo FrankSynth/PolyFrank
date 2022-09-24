@@ -180,9 +180,20 @@ void Layer::clearPatches() {
 void Layer::initLayer() {
 
     // set spread values dependend on chip ID
-    float maxVal = chipID ? -1.0f : 1.0f;
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        spreadValues[i] = maxVal / ((float)i + 1.0f); // TODO shuffle spread values
+    float voicespread[4] = {0.16, 0.44, 0.72, 1.0};
+
+    if (chipID == 0) {
+        spreadValues[0] = voicespread[0];
+        spreadValues[1] = -voicespread[0];
+        spreadValues[2] = voicespread[2];
+        spreadValues[3] = -voicespread[2];
+    }
+    else {
+        spreadValues[0] = voicespread[1];
+        spreadValues[1] = -voicespread[1];
+        spreadValues[2] = voicespread[3];
+        spreadValues[3] = -voicespread[3];
+    }
 
     // load imperfection buffers
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
