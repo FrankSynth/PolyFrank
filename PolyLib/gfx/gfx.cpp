@@ -29,8 +29,6 @@ RAM2 ALIGN_32BYTES(uint16_t waveformQuickBuffer[WAVEFORMQUICKHEIGHT][LCDWIDTH - 
 WaveBuffer waveBuffer;
 WaveBuffer waveQuickBuffer;
 
-elapsedMicros timerFramedraw;
-
 void GFX_Init() {
     // IRQHandler();
     // set handles
@@ -155,6 +153,16 @@ void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int he
     }
 
     addToRenderQueue(task);
+}
+
+void drawRectangleCentered(uint32_t color, uint32_t radius, uint32_t x, uint32_t y) {
+    if (radius == 0)
+        return;
+
+    uint32_t xpos = x - radius;
+    uint32_t ypos = y - radius;
+
+    drawRectangleFill(color, xpos, ypos, radius * 2, radius * 2);
 }
 
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius) {
@@ -440,10 +448,8 @@ void callNextTask() {
     if (renderQueue.empty()) {
         if (renderState == RENDER_WAIT) { // last render task done -> switch Buffer
             HAL_LTDC_ProgramLineEvent(&hltdc, 0);
-            println("FramDrawTime: ", timerFramedraw);
         }
-        // println("max calls: ", maxCalls);
-        // maxCalls = 0;
+
         return;
     }
 
@@ -1096,27 +1102,27 @@ void drawCubicSpline(WaveBuffer &buffer, int n, int x[], int y[],
 
 // post effects
 
-void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur) { // blurwidth=  2^blur
-    uint16_t *kernel = (uint16_t *)pFrameBuffer;
-    uint32_t colorSum[3];
-    uint32_t colorValue[3];
-    for (uint32_t i = 0; i < 100; i++) {
+// void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur) { // blurwidth=  2^blur
+//     uint16_t *kernel = (uint16_t *)pFrameBuffer;
+//     uint32_t colorSum[3];
+//     uint32_t colorValue[3];
+//     for (uint32_t i = 0; i < 100; i++) {
 
-        // println(index);
-        // colorSum[0] = kernel[index] >> 11;                     // Red
-        // colorSum[1] = kernel[index] & 0b0000011111100000 >> 5; // Green
-        // colorSum[2] = kernel[index] & 0b0000000000011111;      // Blur
+//         // println(index);
+//         // colorSum[0] = kernel[index] >> 11;                     // Red
+//         // colorSum[1] = kernel[index] & 0b0000011111100000 >> 5; // Green
+//         // colorSum[2] = kernel[index] & 0b0000000000011111;      // Blur
 
-        // colorValue[0] = colorSum[0] >> blur;
-        // colorValue[1] = colorSum[1] >> blur;
-        // colorValue[2] = colorSum[2] >> blur;
+//         // colorValue[0] = colorSum[0] >> blur;
+//         // colorValue[1] = colorSum[1] >> blur;
+//         // colorValue[2] = colorSum[2] >> blur;
 
-        // kernel[index] = colorValue[0] << 11 & colorValue[1] << 8 & colorValue[2]; // back to rgb565 format
+//         // kernel[index] = colorValue[0] << 11 & colorValue[1] << 8 & colorValue[2]; // back to rgb565 format
 
-        // println((uint32_t)&pFrameBuffer[index]);
+//         // println((uint32_t)&pFrameBuffer[index]);
 
-        pFrameBuffer[i] = kernel[i]; // back to rgb565 format
-    }
-}
+//         pFrameBuffer[i] = kernel[i]; // back to rgb565 format
+//     }
+// }
 
 #endif // ifdef POLYCONTROL

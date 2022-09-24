@@ -13,23 +13,22 @@ void GUIPanelQuickView::Draw() {
     if (quickView.modul >= allLayers[0]->getModules().size() || quickView.layer == 0xff) {
         return;
     }
+    if (millis() < 5000) // skip on boot
+        return;
 
     uint32_t elementWidth = (width + 2) / 4;
-    uint32_t elementHeight = elementWidth / 2;
+    // uint32_t elementHeight = elementWidth / 2;
 
     BaseModule *module = allLayers[quickView.layer]->modules[quickView.modul];
 
     ModuleType type = module->moduleType;
     if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
         type == MODULE_ADSR) {
-        // HAL_Delay(2);
-
-        // calculate blur
-        // elapsedMicros timer = 0;
-        // directionalBlur(pFrameBuffer, 1);
-        // println("timer : ", timer);
 
         drawRectangleFill(cBlackTransparent, x, y, width, height); // hide background
+
+        drawRectangleFill(cHighlight, x, y, width, 50);
+        drawString(module->getShortName(), cFont_Select, width / 2, 25 - fontBig->size / 2, fontBig, CENTER);
 
         drawWaveFromModule(waveQuickBuffer, allLayers[quickView.layer]->modules[quickView.modul],
                            LCDWIDTH / 2 - waveQuickBuffer.width / 2, height / 2 - waveQuickBuffer.height / 2);

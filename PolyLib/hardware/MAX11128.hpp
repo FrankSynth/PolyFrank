@@ -30,7 +30,7 @@ class MAX11128 : public baseDevice {
         uint16_t crConfigRegAdr = 0b10000 << 11;
         uint16_t crRefSel = 0b0 << 10;
         uint16_t crAvgOn = 0b1 << 9;      // enable avg
-        uint16_t crAvgAmount = 0b11 << 7; // avg  32 times
+        uint16_t crAvgAmount = 0b11 << 7; // avg  32 samples   -> 1Mhz / 12 ch. / 32 avg.
         uint16_t crAvgScans = 0b00 << 3;  // not used, only for repeat mode
         uint16_t crEcho = 0b0 << 2;       // echo commands
 

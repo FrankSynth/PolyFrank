@@ -50,7 +50,7 @@ void Side_PanelBox::Draw() {
             }
             else {
                 // drawRectangleFill(cGreyLight, x, y, width, heigth);
-                drawStringVertical(mainName, cWhiteDark, x + width / 2, y + heigth / 2, fontSmall);
+                drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
             }
         }
         else if (actionHandle->state == PRESSED) {
@@ -60,8 +60,6 @@ void Side_PanelBox::Draw() {
         }
 
         else {
-            // drawRectangleFill(cGreyLight, x, y, width, heigth);
-
             drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
         }
     }
@@ -83,9 +81,8 @@ void Side_PanelBox::Draw() {
         }
 
         else {
-            // drawRectangleFill(cGreyLight, x, y, width, heigth);
 
-            drawStringVertical(mainName, cWhiteDark, x + width / 2, y + heigth / 2, fontSmall);
+            drawStringVertical(mainName, cWhiteLight, x + width / 2, y + heigth / 2, fontSmall);
         }
     }
 }

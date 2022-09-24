@@ -161,6 +161,8 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&effect);
 
         moduleType = MODULE_OSC_A;
+
+        aMorph.quickview = 1;
     }
 
     Output out = Output("OUT");
@@ -245,6 +247,8 @@ class OSC_B : public BaseModule {
         renderBuffer.push_back(&effect);
 
         moduleType = MODULE_OSC_B;
+
+        aMorph.quickview = 1;
     }
 
     Output out = Output("OUT");
@@ -532,6 +536,8 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&amount);
 
         moduleType = MODULE_LFO;
+
+        aShape.quickview = 1;
     }
     Output out = Output("OUT");
 

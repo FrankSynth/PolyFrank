@@ -31,28 +31,15 @@ void GUI::Init() { // add settings pointer
     guiPanelConfig.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER, "CONFIG",
                         3);
 
-    guiPanelStart.init(0, 0, LCDHEIGHT, LCDHEIGHT);
-
     guiPanelEffect.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
 
     // multiLayer detected
-    if (globalSettings.multiLayer.value == 1) {
-        guiPanelVoice[0].init(0, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
-                              HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
+    guiPanelVoice[0].init(0, CENTERWIDTH, VOICEHEIGHT / 2 - 1, BOARDERWIDTH,
+                          HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
 
-        guiPanelVoice[1].init(1, CENTERWIDTH, VOICEHEIGHT / 2, BOARDERWIDTH,
-                              HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT +
-                                  VOICEHEIGHT / 2);
-    }
-    else {
-        for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->layerState.value == 1) {
-                guiPanelVoice[i].init(i, CENTERWIDTH, VOICEHEIGHT, BOARDERWIDTH,
-                                      HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT);
-            }
-        }
+    guiPanelVoice[1].init(1, CENTERWIDTH, VOICEHEIGHT / 2 - 1, BOARDERWIDTH,
+                          HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT + VOICEHEIGHT / 2);
 
-    } // add Panels to vector
     panels.push_back(&guiPanelLiveData);
     panels.push_back(&guiPanelArp);
     panels.push_back(&guiPanelPatch);
@@ -83,6 +70,8 @@ void GUI::Init() { // add settings pointer
     // init Error
     guiPanelDebug.init(CENTERWIDTH, CENTERHEIGHT, BOARDERWIDTH, HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER);
 
+    guiPanelStart.init(LCDWIDTH, LCDHEIGHT, 0, 0);
+
     Clear();
     checkFocusChange();
     setPanelActive(1);
@@ -106,18 +95,6 @@ void GUI::Draw() {
 
     static bool introFrame = true;
     static elapsedMillis timerIntroScreen;
-
-    if (introFrame) {
-        if (timerIntroScreen < 500) {
-            guiPanelStart.Draw();
-            setRenderState(RENDER_WAIT);
-
-            return;
-        }
-        else {
-            introFrame = false;
-        }
-    }
 
     // clear
     drawRectangleFill(cBackground, 0, 0, LCDWIDTH, LCDHEIGHT);
@@ -181,6 +158,15 @@ void GUI::Draw() {
 
         // println(quickViewTimer);
         guiPanelQuickView.Draw();
+    }
+
+    if (introFrame) {
+        if (timerIntroScreen < 2750) {
+            guiPanelStart.Draw();
+        }
+        else {
+            introFrame = false;
+        }
     }
 
     setRenderState(RENDER_WAIT);

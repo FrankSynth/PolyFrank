@@ -54,26 +54,14 @@ void polyControlLoop() { // Here the party starts
     bool enableWFI = false;
     elapsedMillis timerWFI;
 
-    // Framecounter
-    elapsedMillis timer = 0;
-    uint32_t framerate = 0;
-
     HAL_UART_Receive_Stream(&huart5);
 
     while (1) {
 
-        if (timer > 1000) {
-            println("Framrate: ", framerate);
-            timer = 0;
-            framerate = 0;
-        }
-
         if (getRenderState() == RENDER_DONE) {
-            timerFramedraw = 0;
             ui.Draw();
             // renderLED();
             sendRequestAllUIData();
-            framerate++;
         }
         if (enableWFI) {
             __disable_irq();

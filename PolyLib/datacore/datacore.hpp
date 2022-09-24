@@ -37,6 +37,7 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
+    uint8_t quickview = 0;
     bool presetLock = 0;
 
     void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }

@@ -10,8 +10,8 @@ class GUIPanelStart : public GUIPanelBase {
   private:
     // Boxes
 
-    uint16_t panelWidth = 0;
-    uint16_t panelHeight = 0;
-    uint16_t panelAbsX = 0;
-    uint16_t panelAbsY = 0;
+    uint32_t panelWidth = 0;
+    uint32_t panelHeight = 0;
+    uint32_t panelAbsX = 0;
+    uint32_t panelAbsY = 0;
 };

@@ -64,7 +64,7 @@ void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, 
 void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t h, uint16_t w, uint8_t select);
 
 void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
-                        uint8_t hugeFont = 0);
+                        uint32_t keyColor = cWhite);
 
 void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                             uint8_t modulename = false);
@@ -305,6 +305,8 @@ class Live_PanelElement {
     uint8_t visible = 0;
     uint16_t numberEntrys = 0;
 
+    uint32_t keyColor = 0;
+
   private:
     uint16_t panelAbsX;
     uint16_t panelAbsY;
@@ -339,6 +341,12 @@ class EffectAmount_PanelElement {
         visible = 1;
     }
 
+    void addEffectAmt(Analog *data = nullptr, uint16_t moduleName = true) {
+        effect = data;
+
+        visible = 1;
+    }
+
     uint8_t select = 0;
     uint8_t visible = 0;
     uint16_t numberEntrys = 0;
@@ -353,6 +361,8 @@ class EffectAmount_PanelElement {
 
     Analog *entrys[4];
     uint16_t moduleName[4];
+
+    Analog *effect;
 
     uint16_t width;
     uint16_t height;

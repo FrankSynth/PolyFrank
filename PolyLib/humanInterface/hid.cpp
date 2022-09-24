@@ -158,11 +158,10 @@ void processControlTouch() {
 
 //////////// POTIS ///////////
 void processPanelPotis(uint32_t *adcData, uint32_t layer) {
-    static int16_t treshold = 1;                                  // threshold for jitter reduction
     static int16_t octaveSwitchLastScan[2][2] = {{0, 0}, {0, 0}}; // threshold for jitter reduction  [layer][switch]
     static uint32_t x = 0;
 
-    SCB_InvalidateDCache_by_Addr(adcData, 48);
+    SCB_InvalidateDCache_by_Addr(adcData, 48); // clear dcache
 
     uint32_t multiplex = (multiplexer.currentChannel + 3) % 4;
 
@@ -187,12 +186,6 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                     if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) { // call function
                         potiFunctionPointer[layer][multiplex][channel].function(
                             panelADCStates[layer][multiplex][channel]);
-
-                        if (potiFunctionPointer[layer][multiplex][channel].data != nullptr) {
-                            quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
-                            quickView.layer = layer;
-                            quickViewTimer = 0;
-                        }
                     }
                 }
             }
@@ -212,17 +205,18 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                 shift = 3;
 
             if (difference >> shift) { // active quickview only on stronger value changes
-                if (difference >> 3 || (difference >> 1 && quickViewTimer < quickViewTimeout)) {
-                    if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) {
+                if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) {
 
-                        quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
-                        quickView.layer = layer;
-                        quickViewTimer = 0;
+                    if (potiFunctionPointer[layer][multiplex][channel].data->quickview) { // filter quickview potis
+                        if (difference >> 3 || (difference >> 1 && (quickViewTimer < quickViewTimeout))) {
+
+                            quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
+                            quickView.layer = layer;
+                            quickViewTimer = 0;
+                        }
                     }
-                }
-                panelADCStates[layer][multiplex][channel] = (uint16_t)panelADCInterpolate[layer][multiplex][channel];
-
-                if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) { // call function
+                    panelADCStates[layer][multiplex][channel] =
+                        (uint16_t)panelADCInterpolate[layer][multiplex][channel];
                     potiFunctionPointer[layer][multiplex][channel].function(panelADCStates[layer][multiplex][channel]);
                 }
             }

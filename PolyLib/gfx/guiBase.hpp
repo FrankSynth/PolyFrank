@@ -11,24 +11,19 @@ extern uint32_t cSelect;
 extern uint32_t cDeselect;
 extern uint32_t cFont_Select;
 extern uint32_t cFont_Deselect;
-extern uint32_t cGreyDark;
-extern uint32_t cBlack;
-extern uint32_t cGrey;
-
-extern uint32_t cGreyLight;
 
 extern uint32_t cWhite;
+extern uint32_t cWhiteLight;
 extern uint32_t cWhiteDark;
+
+extern uint32_t cGreyLight;
+extern uint32_t cGrey;
+extern uint32_t cGreyDark;
+
+extern uint32_t cBlack;
+
 extern uint32_t cHighlight;
-
 extern uint32_t cWarning;
-
-extern uint16_t c4444dot;
-extern uint16_t c4444wavecolor;
-extern uint16_t c4444wavecolorTrans;
-
-extern uint16_t c4444gridcolor;
-extern uint16_t c4444framecolor;
 
 extern uint32_t cLayerA;
 extern uint32_t cLayerB;
@@ -37,6 +32,12 @@ extern uint32_t cLayer;
 extern uint32_t cBackground;
 extern uint32_t cBlackTransparent;
 
+extern uint16_t c4444dot;
+extern uint16_t c4444wavecolor;
+extern uint16_t c4444wavecolorTrans;
+
+extern uint16_t c4444gridcolor;
+extern uint16_t c4444framecolor;
 // responsive sizes
 #define HEADERHEIGHT 34
 #define FOOTERHEIGHT 38

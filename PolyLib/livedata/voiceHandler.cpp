@@ -31,8 +31,6 @@ void VoiceHandler::playNote(const Key &key) {
         }
     }
 
-    println("play Note");
-
     if (livemodeMergeLayer.value == 1) {
         getNextVoicesAB(numberVoices);
     }

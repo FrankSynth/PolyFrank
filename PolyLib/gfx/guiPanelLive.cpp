@@ -79,6 +79,14 @@ void GUIPanelLive::Draw() {
     registerSettingsElements();
 
     for (int i = 0; i < LIVEPANELENTRYS; i++) {
+        if (subPanelSelect == 0) // live settings
+        {
+            panelElements[i].keyColor = cWhite;
+        }
+        else { // arp settings -> show layer color
+            panelElements[i].keyColor = cLayer;
+        }
+
         panelElements[i].Draw();
     }
 

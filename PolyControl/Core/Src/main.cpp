@@ -228,7 +228,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL3.PLL3N = 120;
     PeriphClkInitStruct.PLL3.PLL3P = 2;
     PeriphClkInitStruct.PLL3.PLL3Q = 10;
-    PeriphClkInitStruct.PLL3.PLL3R = 7; // reduces framerate
+    PeriphClkInitStruct.PLL3.PLL3R = 6; // reduces framerate
     PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_1;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
     PeriphClkInitStruct.PLL3.PLL3FRACN = 0;

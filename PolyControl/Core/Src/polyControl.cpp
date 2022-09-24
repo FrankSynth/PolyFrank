@@ -138,10 +138,13 @@ void PolyControlInit() {
     initPoly();
 
     // let the layer start
-    HAL_Delay(1000);
+    HAL_Delay(250);
 
     // Device Configuration
     deviceConfig();
+
+    adcA.setup();
+    adcB.setup();
 
     // Preset
     updatePresetList();                  // read preset List from EEPROM
@@ -211,7 +214,7 @@ void PolyControlInit() {
         println("Layer B active");
     }
 
-    HAL_Delay(100);
+    HAL_Delay(50);
     // And turn the Display on
     HAL_GPIO_WritePin(Display_EN_GPIO_Port, Display_EN_Pin, GPIO_PIN_SET);
     // turn sound on

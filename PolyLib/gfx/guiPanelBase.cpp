@@ -220,33 +220,20 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
 }
 
 void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
-                        uint8_t hugeFont) {
-    const GUI_FONTINFO *selectedFont;
-    if (hugeFont) {
-        selectedFont = fontBig;
-    }
-    else {
-        selectedFont = fontMedium;
-    }
+                        uint32_t keyColor) {
+    const GUI_FONTINFO *font = fontMedium;
 
     if (entry->setting == nullptr) {
         return;
     }
+
     Setting *data = entry->setting;
     uint16_t nameWidth = w;
-    uint16_t valueBarHeigth;
-    if (hugeFont) {
-        valueBarHeigth = 12;
-    }
-    else {
-        valueBarHeigth = 6;
-    }
+    uint16_t valueBarHeigth = 6;
     uint16_t dataHeight = h - valueBarHeigth;
-
     uint16_t fontShiftHeight = h / 4;
 
     // clear
-
     drawRectangleChampfered(cGrey, x, y, w, h, 1);
 
     // get text
@@ -254,44 +241,34 @@ void drawSettingElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
 
     if (data->disable) {
         drawRectangleChampfered(cGreyLight, x, y, w, dataHeight / 2, 1);
-        drawString(text, cBlack, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
-                   selectedFont, CENTER);
+        drawString(text, cBlack, x + nameWidth / 2, y + (-font->size + dataHeight) / 2 - fontShiftHeight, font, CENTER);
         text = "Disable";
-        drawString(text, cBlack, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight, selectedFont,
+        drawString(text, cBlack, x + w / 2, y + (-font->size + dataHeight) / 2 + fontShiftHeight, font,
                    CENTER); // center Text
         return;
     }
 
     if (select) {
         drawRectangleChampfered(cHighlight, x, y, w, dataHeight / 2, 1);
-        drawString(text, cFont_Select, x + nameWidth / 2, y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight,
-                   selectedFont, CENTER);
+        drawString(text, cFont_Select, x + nameWidth / 2, y + (-font->size + dataHeight) / 2 - fontShiftHeight, font,
+                   CENTER);
     }
     else {
         drawRectangleChampfered(cWhiteDark, x, y, w, dataHeight / 2, 1);
-        drawString(text, cFont_Deselect, x + nameWidth / 2,
-                   y + (-selectedFont->size + dataHeight) / 2 - fontShiftHeight, selectedFont, CENTER);
+        drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-font->size + dataHeight) / 2 - fontShiftHeight, font,
+                   CENTER);
     }
 
     text = data->getValueAsString();
 
-    drawString(text, cFont_Deselect, x + w / 2, y + (-selectedFont->size + dataHeight) / 2 + fontShiftHeight,
-               selectedFont,
+    drawString(text, cFont_Deselect, x + w / 2, y + (-font->size + dataHeight) / 2 + fontShiftHeight, font,
                CENTER); // center Text
-
-    if (hugeFont) {
-        drawRectangleFill(cWhiteDark, x, y + 3, 1, h - 3);
-        drawRectangleFill(cWhiteDark, x + w, y + 3, 1, h - 3);
-    }
-
-    // valueBar
-    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
 
     uint16_t relY = h - valueBarHeigth;
     uint16_t valueBarWidth = w - 4;
 
     valueBarWidth = (float)valueBarWidth * ((float)data->value - data->min) / (float)(data->max - data->min);
-    drawRectangleChampfered(cWhite, x + 2, relY + y, valueBarWidth, valueBarHeigth, 1);
+    drawRectangleChampfered(keyColor, x + 2, relY + y, valueBarWidth, valueBarHeigth, 1);
 }
 
 void drawCustomDigitalElement(Digital *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
@@ -348,7 +325,7 @@ void drawBasePatchElement(BasePatch *element, uint32_t x, uint32_t y, uint16_t w
         colorFont = cFont_Select;
     }
     else {
-        drawRectangleChampfered(cGrey, x, y, w, h, 1);
+        drawRectangleChampfered(cGreyDark, x, y, w, h, 1);
 
         colorFont = cFont_Deselect;
     }
@@ -492,7 +469,6 @@ void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
     uint16_t valueBarWidth = w / 2 - 2 * spaceLeftRightBar;
     uint16_t valueBarHeigth = h - 2 * spaceTopBottomBar;
 
-    uint16_t relX = nameWidth;
     uint16_t relY = (h - valueBarHeigth) / 2;
 
     text = data->getValueAsString();
@@ -606,10 +582,11 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
                             uint8_t modulename) {
 
     uint16_t heightBar = 10;
-    // clear
 
+    // clear
     drawRectangleChampfered(cGrey, x, y, w, h, 1);
     std::string text;
+
     // get text
     if (modulename == true) {
         text = allLayers[data->layerId]->modules[data->moduleId]->getShortName();
@@ -630,17 +607,7 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
 
     uint16_t valueBarWidth = w;
     uint16_t valueBarHeigth = heightBar;
-
     uint16_t relY = h - heightBar;
-
-    // text = data->getValueAsString();
-
-    // drawString(text, cFont_Deselect, x + relX + valueBarWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium,
-    //            CENTER); // center Text
-
-    // valueBar
-    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
-
     valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
 
     drawRectangleChampfered(cLayer, x, relY + y, valueBarWidth, valueBarHeigth, 1);
@@ -865,7 +832,7 @@ void Live_PanelElement::Draw() {
     for (int x = 0; x < numberEntrys; x++) {
         if (entrys[x].type != EMPTY) {
             drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select,
-                               false);
+                               keyColor);
         }
 
         relX += entryWidth;
@@ -961,47 +928,47 @@ void MatrixPatch_PanelElement::Draw() {
         return;
     }
 
-    // create empty patch
-    // uint32_t color = 0;
+    if (select) {
+        drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+    }
+    else {
+        drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+    }
 
     if (entry != nullptr) {
 
-        uint8_t barWidth = 3;
-        uint8_t barHeight = 4;
+        uint32_t blocksize = (width - 2) / 4;
 
-        if (select) {
-            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-        }
-        else {
-            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-        }
+        uint8_t barHeigth = 8;
+        // uint8_t barHeight = 4;
 
         uint8_t color[4];
         float patchAmount = entry->amount;
 
-        *(uint32_t *)color = cWhite;
-
-        color[3] *= abs(patchAmount);
-
-        drawRectangleFill(*(uint32_t *)color, panelAbsX + 2, panelAbsY + 2, width - 4 - barWidth * VOICESPERCHIP - 2,
-                          height - 4);
-
-        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
-            float amount = patchAmount * entry->sourceOut->currentSample[i];
-            amount = testFloat(amount, -1, 1);
-            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
-            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
-                              barWidth, barHeight);
-        }
-    }
-    else {
-
-        if (select) {
-            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawRectangleFill(cGreyLight, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+        if (patchAmount < 0) {
+            drawRectangleFill(cLayer, panelAbsX + width / 2 - (width / 2 - 3) * -patchAmount,
+                              panelAbsY + height - 3 - barHeigth, (width / 2 - 3) * -patchAmount, barHeigth);
         }
         else {
-            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+
+            drawRectangleFill(cLayer, panelAbsX + width / 2, panelAbsY + height - 3 - barHeigth,
+                              (width / 2 - 3) * patchAmount, barHeigth);
+        }
+
+        for (uint8_t y = 0; y < VOICESPERCHIP / 4; y++) {
+            for (uint8_t x = 0; x < VOICESPERCHIP / 2; x++) {
+
+                uint32_t index = x + y * 4;
+
+                float amount = patchAmount * entry->sourceOut->currentSample[index];
+                amount = abs(testFloat(amount, -1, 1));
+
+                drawRectangleCentered(cHighlight, (blocksize * amount) / 2,
+                                      blocksize / 2 + panelAbsX + x * blocksize + 2,
+                                      blocksize / 2 + panelAbsY + y * blocksize + 2);
+            }
         }
     }
 
@@ -1128,13 +1095,13 @@ void MatrixModule_PanelElement::Draw() {
 
         if (select) {
             drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Select, panelAbsX + width / 2, panelAbsY + (height - fontMedium->size) / 2,
-                       fontMedium, CENTER);
+            drawString(name, cFont_Select, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
         }
         else {
             drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Deselect, panelAbsX + width / 2, panelAbsY + (height - fontMedium->size) / 2,
-                       fontMedium, CENTER);
+            drawString(name, cFont_Deselect, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
         }
     }
     select = 0;
@@ -1693,8 +1660,12 @@ void EffectAmount_PanelElement::Draw() {
     entryWidth = width / (numberEntrys + 1);
 
     // Feld mit GruppenNamen
-    drawNameElement(&name, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+
+    drawSmallAnalogElement(effect, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, true);
     relX += entryWidth;
+
+    // drawNameElement(&name, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+    // relX += entryWidth;
 
     if (select) {
         for (uint8_t i = 0; i < 4; i++) {

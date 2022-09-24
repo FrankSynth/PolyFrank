@@ -17,13 +17,14 @@ uint32_t cFont_Select = 0xFF080808;
 uint32_t cFont_Deselect = 0xFFF1F1F1;
 
 uint32_t cWhite = 0xFFF1F1F1;
+uint32_t cWhiteLight = 0xFFB0B0B0;
 uint32_t cWhiteDark = 0xFF404040;
 uint32_t cGreyLight = 0xFF202020;
 uint32_t cGrey = 0xFF101010;
 uint32_t cGreyDark = 0xFF080808;
 uint32_t cBlack = 0xFF000000;
 
-uint32_t cBlackTransparent = 0xCF000000;
+uint32_t cBlackTransparent = 0xDF000000;
 
 uint32_t cBackground = 0xFF0f161a;
 

@@ -64,11 +64,7 @@ inline float getOscASample(float phase) {
     const uint32_t &waveTableSelectionLower = layerA.oscA.waveTableSelectionLower[0];
     const uint32_t &waveTableSelectionUpper = layerA.oscA.waveTableSelectionUpper[0];
 
-    // static float prevPhase = -UIAUDIOPHASESTEP;
-
     float shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
-    // float phaseStep = std::min(fabsf(shapedPhase - prevPhase), fabsf(shapedPhase - prevPhase - 1.0f));
-    // prevPhase = shapedPhase;
 
     uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
@@ -76,14 +72,6 @@ inline float getOscASample(float phase) {
     float sampleB = oscAwavetable[waveTableSelectionUpper].subData[0][positionA];
 
     float newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
-
-    // static float prevNewSample = 0;
-
-    // float derivCorrection = 1.0f / std::max(phaseStep, 0.0000000000000000000000000000000000000000001f);
-
-    // float derivSample1 = (newSample - prevNewSample) * derivCorrection;
-
-    // prevNewSample = newSample;
 
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperA);
     newSample = bitcrush(bitcrusher, bitcrusherInv, newSample);
@@ -122,31 +110,18 @@ float getOscBSample(float phase) {
     phaseOffsetted += (phaseOffsetted < 0.0f);
 
     float shapedPhase = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
-    // float phaseStep = std::min(fabsf(shapedPhase - prevPhase), fabsf(shapedPhase - prevPhase - 1.0f));
-    // prevPhase = shapedPhase;
 
     uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
     float sampleA = oscBwavetable[waveTableSelectionLower].subData[0][positionA];
     float sampleB = oscBwavetable[waveTableSelectionUpper].subData[0][positionA];
-
     float newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
-
-    // static float prevNewSample = 0;
-
-    // float derivCorrection = 1.0f / std::max(phaseStep, 0.0000000000000000000000000000000000000000001f);
-
-    // float derivSample1 = (newSample - prevNewSample) * derivCorrection;
-
-    // prevNewSample = newSample;
 
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB);
     newSample = bitcrush(bitcrusher, bitcrusherInv, newSample);
 
     sampleCrushCount = sampleCrushCount + 24;
-
     bool sampleCrushNow = sampleCrushCount > (samplecrusher * 960.f);
-
     sampleCrushCount *= !sampleCrushNow;
     sample = newSample * sampleCrushNow + sample * !sampleCrushNow;
 
@@ -157,9 +132,6 @@ inline float softLimit(float inputSample) {
 
     const float threshold = 0.8f;
     const float maxVal = 3.0f;
-
-    // const uint32_t n = -(maxVal - threshold) / (threshold - 1.0f); // careful, with lower threshold no int but float
-    // const float d = (threshold - 1.0f) / std::pow(maxVal - threshold, n);
 
     ///////////////////////////////
     // currently for threshold = 0.8, maxVal = 3.0
@@ -172,8 +144,6 @@ inline float softLimit(float inputSample) {
 
     if (absInput <= threshold)
         return inputSample;
-    // if (absInput >= maxVal)
-    //     return sign;
 
     float sub = maxVal - absInput;
 
@@ -184,11 +154,8 @@ inline float softLimit(float inputSample) {
 }
 
 void renderAudioUI(int8_t *renderDest) {
-
     float phase = 0;
-
     for (uint32_t sample = 0; sample < 100; sample++) {
-
         renderDest[sample] = (int8_t)(softLimit(getOscASample(phase)) * 127.0f);
         renderDest[sample + 100] = (int8_t)(softLimit(getOscBSample(phase)) * 127.0f);
         renderDest[sample + (100 * 2)] = (int8_t)(softLimit(getSubSample(phase)) * 127.0f);

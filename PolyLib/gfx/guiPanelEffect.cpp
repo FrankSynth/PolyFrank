@@ -83,6 +83,10 @@ void GUIPanelEffect::registerOverviewEntrys() {
     overviewPanelElements[2].addEntry(nullptr);
     overviewPanelElements[2].addEntry(nullptr);
 
+    overviewPanelElements[0].addEffectAmt(&allLayers[currentFocus.layer]->oscA.aEffect);
+    overviewPanelElements[1].addEffectAmt(&allLayers[currentFocus.layer]->oscB.aEffect);
+    overviewPanelElements[2].addEffectAmt(&allLayers[currentFocus.layer]->noise.aSamplecrusher);
+
     scroll.entrys = 3;
     scroll.checkScroll();
 

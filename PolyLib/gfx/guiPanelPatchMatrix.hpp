@@ -1,6 +1,8 @@
 #pragma once
 
-#define MATRIXROWS 6
+#define MATRIXROWS 12
+#define PATCHMATRIXROWS 6
+
 #define MATRIXCOLUMN 6
 
 #include "guiPanelBase.hpp"
@@ -90,7 +92,7 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
     uint16_t panelAbsY = 0;
 
     Scroller scrollModule = Scroller(MATRIXROWS);
-    Scroller scrollIn = Scroller(MATRIXROWS);
+    Scroller scrollIn = Scroller(PATCHMATRIXROWS);
     Scroller scrollOut = Scroller(MATRIXCOLUMN);
 
     int32_t filteredView = 0;
@@ -105,6 +107,6 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
 
     MatrixModule_PanelElement panelElementsModule[MATRIXROWS];
     MatrixIn_PanelElement panelElementsIn[MATRIXROWS];
-    MatrixPatch_PanelElement panelElementsPatch[MATRIXCOLUMN][MATRIXROWS];
+    MatrixPatch_PanelElement panelElementsPatch[MATRIXCOLUMN][PATCHMATRIXROWS];
     MatrixOut_PanelElement panelElementsOut[MATRIXCOLUMN];
 };

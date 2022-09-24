@@ -13,7 +13,7 @@ void GUIPanelPatchMatrix::registerElements() {
         }
     }
 
-    for (uint32_t y = 0; y < MATRIXROWS; y++) {
+    for (uint32_t y = 0; y < PATCHMATRIXROWS; y++) {
         if (((int32_t)y + scrollIn.offset) < (int32_t)allInputs.size()) {
             in = allInputs[y + scrollIn.offset];
             panelElementsIn[y].addEntry(in);
@@ -243,17 +243,18 @@ void GUIPanelPatchMatrix::Draw() {
         panelElementsOut[x].Draw();
     }
     for (int y = 0; y < MATRIXROWS; y++) {
-        panelElementsIn[y].Draw();
         panelElementsModule[y].Draw();
+    }
+
+    drawRectangleFill(cWhite, panelAbsX + 94, panelAbsY + 35, 2, panelHeight - 35);
+    for (int y = 0; y < PATCHMATRIXROWS; y++) {
+        panelElementsIn[y].Draw();
 
         for (int x = 0; x < MATRIXCOLUMN; x++) {
             panelElementsPatch[x][y].Draw();
         }
     }
 }
-// drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight,
-// scrollOffset, entrys,
-//               CONFIGPANELENTRYS);
 
 void GUIPanelPatchMatrix::registerPanelSettings() {
 
@@ -338,27 +339,32 @@ void GUIPanelPatchMatrix::init(uint32_t width, uint32_t height, uint32_t x, uint
 
     uint16_t moduleWidth = 100;
     uint16_t inElementWidth = 117;
-    uint16_t outElementHeight = 50;
+    uint16_t outElementHeight = 35;
 
     uint16_t patchElementWidth = (width + 1 - inElementWidth - moduleWidth) / MATRIXCOLUMN;
-    uint16_t rowHeigth = (height - outElementHeight) / MATRIXROWS;
+    uint16_t rowHeigth = (height - outElementHeight) / PATCHMATRIXROWS;
 
     for (int i = 0; i < MATRIXCOLUMN; i++) {
         panelElementsOut[i].init(inElementWidth + moduleWidth + panelAbsX + patchElementWidth * i, panelAbsY,
                                  patchElementWidth - 1, outElementHeight - 1);
     }
-    for (int j = 0; j < MATRIXROWS; j++) {
+    for (int j = 0; j < PATCHMATRIXROWS; j++) {
         panelElementsIn[j].init(panelAbsX + moduleWidth, outElementHeight + panelAbsY + rowHeigth * j,
                                 inElementWidth - 1, rowHeigth - 1);
-
-        panelElementsModule[j].init(panelAbsX, outElementHeight + panelAbsY + rowHeigth * j, moduleWidth - 1,
-                                    rowHeigth - 1);
 
         for (int k = 0; k < MATRIXCOLUMN; k++) {
             panelElementsPatch[k][j].init(inElementWidth + moduleWidth + panelAbsX + patchElementWidth * k,
                                           outElementHeight + panelAbsY + rowHeigth * j, patchElementWidth - 1,
                                           rowHeigth - 1);
         }
+    }
+
+    rowHeigth = (height - outElementHeight) / MATRIXROWS;
+
+    for (int j = 0; j < MATRIXROWS; j++) {
+
+        panelElementsModule[j].init(panelAbsX, outElementHeight + panelAbsY + rowHeigth * j, moduleWidth - 6,
+                                    rowHeigth - 1);
     }
 }
 
