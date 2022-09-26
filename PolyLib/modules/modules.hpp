@@ -132,11 +132,11 @@ class OSC_A : public BaseModule {
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
-        // inputs.push_back(&iOctave);
+        inputs.push_back(&iOctave);
         inputs.push_back(&iEffect);
 
-        // inputs.push_back(&iBitcrusher);
-        // inputs.push_back(&iSamplecrusher);
+        inputs.push_back(&iBitcrusher);
+        inputs.push_back(&iSamplecrusher);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
@@ -171,23 +171,24 @@ class OSC_A : public BaseModule {
     Input iMorph = Input("MORPH", "MORPH", &morphRAW); // TODO morph raw?
     Input iEffect = Input("EFFECT", "EFFECT", &effect);
 
-    // Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
-    // Input iOctave = Input("OCTAVE", "OCTAVE");
-    // Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    Input iOctave = Input("OCTAVE", "OCTAVE");
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aEffect = Analog("EFFECT ", 0, 1, 0, true, linMap, &iEffect);
 
-    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, nullptr, false);
-    Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, nullptr, false);
+    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
+    Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
 
-    Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
+    // Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
+    Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave);
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -214,9 +215,9 @@ class OSC_B : public BaseModule {
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
-        // inputs.push_back(&iOctave);
-        // inputs.push_back(&iBitcrusher);
-        // inputs.push_back(&iSamplecrusher);
+        inputs.push_back(&iOctave);
+        inputs.push_back(&iBitcrusher);
+        inputs.push_back(&iSamplecrusher);
         inputs.push_back(&iEffect);
 
         inputs.push_back(&iPhaseOffset);
@@ -255,23 +256,23 @@ class OSC_B : public BaseModule {
 
     Input iFM = Input("FM", "FM", &fm); // TODO ?? different to OSC A
     Input iMorph = Input("MORPH", "MORPH", &morphRAW);
-    // Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
+    Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iEffect = Input("EFFECT", "EFFECT", &effect);
-    // Input iOctave = Input("OCTAVE", "OCT");
+    Input iOctave = Input("OCTAVE", "OCT");
 
-    // Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
     Input iPhaseOffset = Input("PHASE", "PH OFF+", &phaseoffset);
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iFM);
     Analog aEffect = Analog("EFFECT ", 0, 1, 0, true, linMap, &iEffect);
 
-    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, nullptr, false);
-    Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, nullptr, false);
+    Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
+    Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
 
-    Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr);
-    // Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave);
+    // Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr);
+    Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave);
 
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 

@@ -1,5 +1,5 @@
+#include "renderPhaseshaper.hpp"
 #include "math/polyMath.hpp"
-#include "renderWaveshaper.hpp"
 
 #ifdef POLYRENDER
 inline vec<VOICESPERCHIP> accumulateValue(const Input &input, const Analog &knob) {

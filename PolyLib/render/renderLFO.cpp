@@ -28,12 +28,9 @@ inline float calcSquare(float phase, float shape) {
     if (shape < 6) {
         return phase < 0.5f ? 1.0f : -1.0f;
     }
-    else if (shape < 7) {
-        shape -= floor(shape);
-        return phase < (0.5f - shape / 2.0f) ? 1.0f : -1.0f;
-    }
     else {
-        return -1.0f;
+        shape = (shape - 6.0f) * 0.995f; // smallest possible square
+        return phase < (0.5f - shape / 2.0f) ? 1.0f : -1.0f;
     }
 }
 #ifdef POLYRENDER
