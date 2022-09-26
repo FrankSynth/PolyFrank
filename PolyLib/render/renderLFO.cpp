@@ -25,10 +25,10 @@ inline float calcTriangle(float phase) {
 }
 
 inline float calcSquare(float phase, float shape) {
-    if (shape < 4) {
+    if (shape < 6) {
         return phase < 0.5f ? 1.0f : -1.0f;
     }
-    else if (shape < 5) {
+    else if (shape < 7) {
         shape -= floor(shape);
         return phase < (0.5f - shape / 2.0f) ? 1.0f : -1.0f;
     }
@@ -104,33 +104,30 @@ void renderLFO(LFO &lfo) {
             sample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
 
-        else if (shape[voice] < 4) {
-            sample[voice] =
-                fast_lerp_f32(calcInvRamp(phase[voice]), calcSquare(phase[voice], shape[voice]), fract[voice]);
-        }
-
-        else if (shape[voice] < 5) {
-            sample[voice] = calcSquare(phase[voice], shape[voice]);
-        }
-
         else {
             if (newPhase[voice]) {
                 prevRandom[voice] = currentRandom[voice];
                 currentRandom[voice] = calcRandom();
             }
 
-            if (shape[voice] < 6.0f) {
-                sample[voice] = fast_lerp_f32(
-                    -1.0f, fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
+            if (shape[voice] < 4) {
+                sample[voice] =
+                    fast_lerp_f32(calcInvRamp(phase[voice]),
+                                  fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
             }
 
-            else if (shape[voice] < 7.0f) {
+            else if (shape[voice] < 5) {
                 float rndLerp = std::clamp(phase[voice] / (1.0f - fract[voice]), 0.0f, 1.0f);
                 sample[voice] = fast_lerp_f32(prevRandom[voice], currentRandom[voice], rndLerp);
             }
 
+            else if (shape[voice] < 6) {
+                sample[voice] =
+                    fast_lerp_f32(currentRandom[voice], calcSquare(phase[voice], shape[voice]), fract[voice]);
+            }
+
             else {
-                sample[voice] = currentRandom[voice];
+                sample[voice] = calcSquare(phase[voice], shape[voice]);
             }
         }
 

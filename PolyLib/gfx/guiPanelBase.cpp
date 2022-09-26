@@ -1380,18 +1380,12 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             index = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
         }
         else if (shape < 4) {
-            index = fast_lerp_f32(calcInvRamp(phase), calcSquare(phase, shape), fract);
-        }
-        else if (shape < 5)
-            index = calcSquare(phase, shape);
-
-        else if (shape < 6) {
 
             float randPhasef = phase * 3.999f;
             uint16_t randPhase = randPhasef;
             float randPhaseFrac = randPhasef - std::floor(randPhasef);
 
-            index = fast_lerp_f32(-1.0f,
+            index = fast_lerp_f32(calcInvRamp(phase),
 
                                   fast_lerp_f32(
 
@@ -1402,8 +1396,8 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
                                       randPhaseFrac),
                                   fract);
         }
+        else if (shape < 5) {
 
-        else if (shape < 7) {
             float randPhasef = phase * 3.999f;
             uint16_t randPhase = randPhasef;
             float randPhaseFrac = std::clamp((randPhasef - std::floor(randPhasef)) * 1.0f / (1.0f - fract), 0.0f, 1.0f);
@@ -1411,10 +1405,16 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             index = fast_lerp_f32(random[changeIntLoop(randPhase, -1, 0, 3)], random[randPhase], randPhaseFrac);
         }
 
-        else {
+        else if (shape < 6) {
+
             float randPhasef = phase * 3.999f;
             uint16_t randPhase = randPhasef;
-            index = random[randPhase];
+
+            index = fast_lerp_f32(random[randPhase], calcSquare(phase, shape), fract);
+        }
+
+        else {
+            index = calcSquare(phase, shape);
         }
 
         renderedWave[i] = index * 127;
