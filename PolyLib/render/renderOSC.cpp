@@ -86,15 +86,18 @@ void renderOSC_A() {
     layerA.oscA.note = accumulateNote();
     layerA.oscA.fm = layerA.oscA.iFM;
     layerA.oscA.morphRAW = accumulateMorph();
-    layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE - 1)) + 4.0f;
+    layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE)) + 4.0f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        layerA.oscA.morph[i] = std::fmod(layerA.oscA.morph[i], 4.0f);
+
     layerA.oscA.effect = accumulateEffect();
 
     layerA.oscA.bitcrusher = accumulateBitcrusher();
     layerA.oscA.bitcrusherInv = 1.0f / layerA.oscA.bitcrusher.currentSample;
     layerA.oscA.samplecrusher = accumulateSamplecrusher();
 
-    layerA.oscA.waveTableSelectionLower =
-        ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscA.morph)) & 0b11;
+    layerA.oscA.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscA.morph));
 
     layerA.oscA.waveTableSelectionUpper = (layerA.oscA.waveTableSelectionLower + 1u) & 0b11;
 
@@ -168,7 +171,11 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 void renderOSC_B() {
     layerA.oscB.morphRAW = accumulateMorphOscB();
     layerA.oscB.effect = accumulateEffectOscB();
-    layerA.oscB.morph = ((layerA.oscB.morphRAW) * (float)(WAVETABLESPERVOICE - 1)) + 4.0f;
+    layerA.oscB.morph = ((layerA.oscB.morphRAW) * (float)(WAVETABLESPERVOICE)) + 4.0f;
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        layerA.oscB.morph[i] = std::fmod(layerA.oscB.morph[i], 4.0f);
+
     layerA.oscB.fm = layerA.oscB.iFM + layerA.oscA.iFM;
     layerA.oscB.bitcrusher = accumulateBitcrusherOscB();
     layerA.oscB.bitcrusherInv = 1.0f / layerA.oscB.bitcrusher.currentSample;
@@ -176,8 +183,7 @@ void renderOSC_B() {
     layerA.oscB.phaseoffset = accumulatePhaseoffsetOscB();
     layerA.oscB.note = accumulateNoteOscB();
 
-    layerA.oscB.waveTableSelectionLower =
-        ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscB.morph)) & 0b11;
+    layerA.oscB.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscB.morph));
 
     layerA.oscB.waveTableSelectionUpper = (layerA.oscB.waveTableSelectionLower + 1u) & 0b11;
 
