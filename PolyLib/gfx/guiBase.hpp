@@ -32,6 +32,8 @@ extern uint32_t cLayer;
 extern uint32_t cBackground;
 extern uint32_t cBlackTransparent;
 
+extern uint32_t c4444LayerA;
+
 extern uint16_t c4444dot;
 extern uint16_t c4444wavecolor;
 extern uint16_t c4444wavecolorTrans;
@@ -40,7 +42,7 @@ extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
 // responsive sizes
 #define HEADERHEIGHT 34
-#define FOOTERHEIGHT 38
+#define FOOTERHEIGHT 34
 #define FOCUSHEIGHT 30
 #define SPACER 2
 #define SCROLLBARWIDTH 4

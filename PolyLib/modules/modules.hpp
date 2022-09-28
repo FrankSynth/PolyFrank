@@ -163,6 +163,7 @@ class OSC_A : public BaseModule {
         moduleType = MODULE_OSC_A;
 
         aMorph.quickview = 1;
+        aMasterTune.quickview = 1;
     }
 
     Output out = Output("OUT");
@@ -250,6 +251,7 @@ class OSC_B : public BaseModule {
         moduleType = MODULE_OSC_B;
 
         aMorph.quickview = 1;
+        aTuning.quickview = 1;
     }
 
     Output out = Output("OUT");

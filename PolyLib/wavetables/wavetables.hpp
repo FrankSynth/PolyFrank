@@ -14,9 +14,9 @@
 
 class WaveTable;
 
-#ifdef POLYRENDER
+// #ifdef POLYRENDER
 extern std::vector<const WaveTable *> wavetables;
-#endif
+// #endif
 extern std::vector<const char *> nlWavetable;
 
 class WaveTable {

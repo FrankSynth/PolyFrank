@@ -9,18 +9,16 @@ uint32_t WaveTable::size = MAXWAVETABLELENGTH;
 std::vector<const char *> nlWavetable;
 
 inline void pushWavetable(const WaveTable &wavetable) {
-#ifdef POLYRENDER
     wavetables.push_back(&wavetable);
-#endif
     nlWavetable.push_back(wavetable.name);
 }
 
 void initWavetables() {
 
     nlWavetable.reserve(WAVETABLESAMOUNT);
-#ifdef POLYRENDER
+    // #ifdef POLYRENDER
     wavetables.reserve(WAVETABLESAMOUNT);
-#endif
+    // #endif
 
     pushWavetable(wavetable_FeltPianoLow);
     pushWavetable(wavetable_GuitarHigh);

@@ -8,19 +8,11 @@
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
 
-// volatile RAM1 ALIGN_32BYTES(uint32_t color_1);
-// volatile RAM1 ALIGN_32BYTES(uint32_t color_2);
-// volatile RAM1 ALIGN_32BYTES(uint32_t color_3);
-// volatile RAM1 ALIGN_32BYTES(uint32_t color_4);
-
 volatile uint32_t dma2d_TransferComplete_Flag = 0;
 
 uint8_t *pFrameBuffer;
 
 RENDERSTATE renderState = RENDER_DONE;
-
-// renderQueue
-// std::list<renderTask> renderQueueList;
 
 RAM1 CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 RAM1 ALIGN_32BYTES(uint16_t waveformBuffer[WAVEFORMHEIGHT][LCDWIDTH - 50]);
@@ -30,13 +22,10 @@ WaveBuffer waveBuffer;
 WaveBuffer waveQuickBuffer;
 
 void GFX_Init() {
-    // IRQHandler();
     // set handles
-    // init LTDC //
     MX_LTDC_Init();
     SwitchFrameBuffer();
 
-    //__HAL_LTDC_RELOAD_CONFIG(&hltdc);
     HAL_LTDC_Init(&hltdc); // update config
 
     // init DMA2D //

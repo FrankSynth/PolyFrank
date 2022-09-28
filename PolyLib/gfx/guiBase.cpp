@@ -45,6 +45,8 @@ uint16_t c4444wavecolorTrans = 0x8FFF;
 uint16_t c4444gridcolor = 0x3FFF;
 uint16_t c4444framecolor = 0xAFFF;
 
+uint32_t c4444LayerA = 0xFE05;
+
 uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
                          uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer,
                          FONTALIGN alignment) {

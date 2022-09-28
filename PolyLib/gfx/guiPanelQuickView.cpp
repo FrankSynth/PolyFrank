@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "guiPanelQuickView.hpp"
+// #include "wavetables.hpp"
 
 void GUIPanelQuickView::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     this->width = width;
@@ -30,24 +31,26 @@ void GUIPanelQuickView::Draw() {
         drawRectangleFill(cHighlight, x, y, width, 50);
         drawString(module->getShortName(), cFont_Select, width / 2, 25 - fontBig->size / 2, fontBig, CENTER);
 
-        drawWaveFromModule(waveQuickBuffer, allLayers[quickView.layer]->modules[quickView.modul],
-                           LCDWIDTH / 2 - waveQuickBuffer.width / 2, height / 2 - waveQuickBuffer.height / 2);
+        drawWaveFromModule(waveQuickBuffer, module, LCDWIDTH / 2 - waveQuickBuffer.width / 2,
+                           height / 2 - waveQuickBuffer.height / 2);
 
-        // switch (type) {
-        //     case MODULE_OSC_A:
-        //     case MODULE_OSC_B: {
-        //         drawWaveFromModule(waveQuickBuffer, allLayers[quickView.layer]->modules[quickView.modul],
-        //                            LCDWIDTH / 2 - waveQuickBuffer.width / 2, height / 2 - waveQuickBuffer.height /
-        //                            2);
-        //         break;
-        //     }
+        uint32_t yControls = height / 2 + waveQuickBuffer.height / 2;
+        uint32_t xControls = LCDWIDTH / 2 - waveQuickBuffer.width / 2;
+        uint32_t wControls = waveQuickBuffer.width;
+        uint32_t hControls = 60;
 
-        //     case MODULE_LFO: {
+        switch (type) {
+            case MODULE_OSC_A: {
 
-        //         break;
-        //     }
-        //     default: break;
-        // }
+                drawQuickViewAnalog(&((OSC_A *)module)->aMasterTune, xControls, yControls, wControls, hControls);
+                break;
+            }
+            case MODULE_OSC_B: {
+                drawQuickViewAnalog(&((OSC_B *)module)->aTuning, xControls, yControls, wControls, hControls);
+                break;
+            }
+            default: break;
+        }
     }
 
     // drawQuickViewDigital(&((OSC_A *)module)->dSample0, x, y + WAVEFORMHEIGHT, elementWidth - 2,

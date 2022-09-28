@@ -70,8 +70,14 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
                             uint8_t modulename = false);
 
 void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint32_t y);
+void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t samples, uint32_t repeats, uint16_t color);
+void drawWaveQuickview(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint32_t y);
+void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color,
+              uint32_t halfHeight = false);
 
-void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color);
+void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t x_offset, uint16_t width, uint16_t y_offset,
+                   uint16_t heigth, uint16_t samples, uint32_t repeats, uint16_t color);
+
 void drawFrame(WaveBuffer &buffer, uint16_t color);
 void drawGrid(WaveBuffer &buffer, uint16_t color);
 

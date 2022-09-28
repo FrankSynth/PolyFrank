@@ -20,19 +20,7 @@ void Header_PanelBox::Draw(GUIPanelBase *panel, uint8_t active) {
 
 void Footer_PanelBox::Draw() {
     std::string mainName = main->name;
-    std::string secondName = secondary->name;
-
-    if (mainName.empty()) {
-        mainName = "-";
-    }
-    if (secondName.empty()) {
-        secondName = "-";
-    }
-
-    // drawRectangleFill(cClear, x, y, width, heigth);
-
-    drawString(mainName, cWhite, x + width / 2, y - fontBig->size + heigth / 2 + fontShift, fontBig, CENTER);
-    drawString(secondName, cWhite, x + width / 2, y + heigth / 2 + fontShift, fontSmall, CENTER);
+    drawString(mainName, cWhite, x + width / 2, y + (-fontBig->size + heigth) / 2, fontBig, CENTER);
 }
 
 void Side_PanelBox::Draw() {

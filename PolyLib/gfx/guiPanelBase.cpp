@@ -1219,17 +1219,63 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
 
     fastMemset(&data, (uint32_t *)*(buffer.buffer), (buffer.width * buffer.height) / 2);
 
+    // data = (c4444LayerA << 16) | c4444LayerA;
+
     // drwabuffer
 
     if (module->id == allLayers[module->layerId]->oscA.id) {
         // drawGrid(c4444gridcolor);
-        drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolor);
+        // fastMemset(&data, ((uint32_t *)*(buffer.buffer)) + (buffer.width * buffer.height) / 4,
+        //            (buffer.width * buffer.height) / 4);
+
+        drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolor, true);
+
+        drawWaveTable(buffer, wavetables[((OSC_A *)module)->dSample0.valueMapped]->data, 0, buffer.width / 4,
+                      (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_A *)module)->dSample1.valueMapped]->data, buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_A *)module)->dSample2.valueMapped]->data, 2 * buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_A *)module)->dSample3.valueMapped]->data, 3 * buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
         drawFrame(buffer, c4444framecolor);
+
+        drawLine(buffer, 0, (buffer.height / 3) * 2, buffer.width, (buffer.height / 3) * 2, c4444wavecolor);
+
+        drawLine(buffer, buffer.width / 4, (buffer.height / 3) * 2, buffer.width / 4, buffer.height, c4444wavecolor);
+        drawLine(buffer, 2 * buffer.width / 4, (buffer.height / 3) * 2, 2 * buffer.width / 4, buffer.height,
+                 c4444wavecolor);
+        drawLine(buffer, 3 * buffer.width / 4, (buffer.height / 3) * 2, 3 * buffer.width / 4, buffer.height,
+                 c4444wavecolor);
     }
     else if (module->id == allLayers[module->layerId]->oscB.id) {
         // drawGrid(c4444gridcolor);
-        drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscB, 100, 2, c4444wavecolor);
+        drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscB, 100, 2, c4444wavecolor, true);
+        drawWaveTable(buffer, wavetables[((OSC_B *)module)->dSample0.valueMapped]->data, 0, buffer.width / 4,
+                      (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_B *)module)->dSample1.valueMapped]->data, buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_B *)module)->dSample2.valueMapped]->data, 2 * buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
+        drawWaveTable(buffer, wavetables[((OSC_B *)module)->dSample3.valueMapped]->data, 3 * buffer.width / 4,
+                      buffer.width / 4, (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
+
         drawFrame(buffer, c4444framecolor);
+
+        drawLine(buffer, 0, (buffer.height / 3) * 2, buffer.width, (buffer.height / 3) * 2, c4444wavecolor);
+
+        drawLine(buffer, buffer.width / 4, (buffer.height / 3) * 2, buffer.width / 4, buffer.height, c4444wavecolor);
+        drawLine(buffer, 2 * buffer.width / 4, (buffer.height / 3) * 2, 2 * buffer.width / 4, buffer.height,
+                 c4444wavecolor);
+        drawLine(buffer, 3 * buffer.width / 4, (buffer.height / 3) * 2, 3 * buffer.width / 4, buffer.height,
+                 c4444wavecolor);
     }
     else if (module->id == allLayers[module->layerId]->sub.id) {
         // drawGrid(c4444gridcolor);
@@ -1284,7 +1330,14 @@ void drawFrame(WaveBuffer &buffer, uint16_t color) {
     drawLine(buffer, 0, 0, 0, buffer.height - 1, color);
     drawLine(buffer, buffer.width - 1, 0, buffer.width - 1, buffer.height - 1, color);
 }
-void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color) {
+void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32_t repeats, uint16_t color,
+              uint32_t reduceHeight) {
+
+    int16_t height = buffer.height;
+
+    if (reduceHeight) {
+        height = (buffer.height / 3) * 2;
+    }
 
     int16_t x1;
     int16_t y1;
@@ -1297,15 +1350,42 @@ void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32
         y1 = -renderedWave[i % 100];
         y2 = -renderedWave[(i + 1) % 100];
 
-        y1 = (float)(y1 + 128) * (buffer.height / 255.f);
-        y2 = (float)(y2 + 128) * (buffer.height / 255.f);
+        y1 = (float)(y1 + 128) * (height / 255.f);
+        y2 = (float)(y2 + 128) * (height / 255.f);
 
-        y1 = testInt(y1, 1, buffer.height - 2);
-        y2 = testInt(y2, 1, buffer.height - 2);
+        y1 = testInt(y1, 1, height - 2);
+        y2 = testInt(y2, 1, height - 2);
 
         x1 = testInt(x1, 1, buffer.width - 1);
         x2 = testInt(x2, 1, buffer.width - 1);
         drawLineThick(buffer, x1, y1, x2, y2, color);
+    }
+}
+
+void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t x_offset, uint16_t width, uint16_t y_offset,
+                   uint16_t heigth, uint16_t samples, uint32_t repeats, uint16_t color) {
+
+    int16_t x1;
+    int16_t y1;
+
+    int16_t x2;
+    int16_t y2;
+    uint32_t step = 4;
+
+    for (uint16_t i = 0; i < samples * repeats - step; i += step) {
+        x1 = ((float)width / ((float)samples * repeats - 1)) * i;
+        y1 = (float)(-wavetable[i % samples] + 1.f) / 2.f * (float)(heigth);
+
+        x2 = ((float)width / ((float)samples * repeats - 1)) * (i + step);
+        y2 = (float)(-wavetable[(i + step) % samples] + 1.f) / 2.f * (float)(heigth);
+
+        x1 = testInt(x1, 0, width - 1);
+        y1 = testInt(y1, 0, heigth - 2);
+
+        x2 = testInt(x2, 0, width - 1);
+        y2 = testInt(y2, 0, heigth - 2);
+
+        drawLineThick(buffer, x_offset + x1, y_offset + y1, x_offset + x2, y_offset + y2, color);
     }
 }
 
@@ -1726,26 +1806,81 @@ void EffectAmount_PanelElement::Draw() {
 }
 
 void drawQuickViewAnalog(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
+    uint16_t spaceLeftRightBar = 15;
+    uint16_t spaceTopBottomBar = 6;
 
-    uint16_t heightBar = 10;
+    // clear
+    drawRectangleChampfered(cGreyDark, x, y, w, h, 1);
+    drawRectangleChampfered(cGreyLight, x, y, w, h / 2, 1);
 
-    drawRectangleChampfered(cGrey, x, y, w, h, 1);
-    std::string text;
-
-    text = data->getName();
+    // get text
+    std::string text = data->getName();
 
     // Draw Name
-    drawRectangleChampfered(cLayer, x, y, w, h - heightBar - 2, 1);
-    drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
 
-    uint16_t valueBarWidth = w;
-    uint16_t valueBarHeigth = heightBar;
+    drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h / 2) / 2, fontMedium, CENTER);
 
-    uint16_t relY = h - heightBar;
+    uint16_t valueBarWidth = w - 2 * spaceLeftRightBar;
+    uint16_t valueBarHeigth = h / 2 - 2 * spaceTopBottomBar;
 
-    valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
+    uint16_t relX = spaceLeftRightBar;
+    uint16_t relY = h / 2 + spaceTopBottomBar;
 
-    drawRectangleChampfered(cWhite, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+    // valueBar
+    if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+
+        uint16_t centerX = relX + x + valueBarWidth / 2;
+        drawRectangleFill(cWhite, centerX, relY + y, 1, valueBarHeigth); // center
+
+        if (data->value >= ((int32_t)(data->inputRange / 2) + data->minInputValue)) { // positive value
+            valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue - data->inputRange / 2) /
+                            (float)(data->inputRange);
+
+            drawRectangleFill(cLayer, centerX, relY + y, valueBarWidth, valueBarHeigth);
+        }
+        else { // negative value
+
+            valueBarWidth = (float)valueBarWidth * ((data->inputRange / 2) - (data->value - data->minInputValue)) /
+                            (float)(data->inputRange);
+
+            drawRectangleFill(cLayer, centerX - valueBarWidth, relY + y, valueBarWidth, valueBarHeigth);
+        }
+    }
+    else {
+        valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue) /
+                        (float)(data->maxInputValue - data->minInputValue);
+
+        drawRectangleFill(cLayer, relX + x, relY + y, valueBarWidth, valueBarHeigth);
+    }
+
+    if (data->input != nullptr && data->input->renderBuffer != nullptr) { // draw real value
+
+        uint32_t marker = 2;
+
+        valueBarWidth = w - 2 * spaceLeftRightBar;
+        uint32_t valuePos = 0;
+        float value = data->input->renderBuffer->currentSample[0];
+
+        if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+            uint16_t centerX = relX + x + valueBarWidth / 2;
+
+            if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
+                                      (float)((data->max - data->min)));
+            }
+            else { // negative value
+
+                valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
+                                      (float)((data->max - data->min)));
+            }
+        }
+        else {
+            valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
+        }
+
+        drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+    }
 }
 
 void drawQuickViewDigital(Digital *data, uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
