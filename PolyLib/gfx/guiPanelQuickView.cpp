@@ -17,7 +17,7 @@ void GUIPanelQuickView::Draw() {
     if (millis() < 5000) // skip on boot
         return;
 
-    uint32_t elementWidth = (width + 2) / 4;
+    // uint32_t elementWidth = (width + 2) / 4;
     // uint32_t elementHeight = elementWidth / 2;
 
     BaseModule *module = allLayers[quickView.layer]->modules[quickView.modul];

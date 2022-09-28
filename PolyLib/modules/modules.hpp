@@ -183,10 +183,10 @@ class OSC_A : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 4, true, &nlWavetable, nullptr, false);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 5, true, &nlWavetable, nullptr, false);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 6, true, &nlWavetable, nullptr, false);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 7, true, &nlWavetable, nullptr, false);
 
     // Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
     Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave);
@@ -278,10 +278,10 @@ class OSC_B : public BaseModule {
 
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 8, true, &nlWavetable, nullptr, false);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 9, true, &nlWavetable, nullptr, false);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 10, true, &nlWavetable, nullptr, false);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 11, true, &nlWavetable, nullptr, false);
 
     RenderBuffer note;
     RenderBuffer fm;

@@ -23,7 +23,7 @@ void GUIPanelStart::Draw() {
 
     static float fade = 0;
 
-    static uint32_t color[3];
+    // static uint32_t color[3];
 
     static uint32_t backgroundColor = cBlack;
 

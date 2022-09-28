@@ -20,22 +20,23 @@ void initWavetables() {
     wavetables.reserve(WAVETABLESAMOUNT);
     // #endif
 
+    pushWavetable(wavetable_Sine);
+    pushWavetable(wavetable_Triangle);
+    pushWavetable(wavetable_Saw);
+    pushWavetable(wavetable_Square);
+    pushWavetable(wavetable_am1);
+    pushWavetable(wavetable_am2);
+    pushWavetable(wavetable_am3);
+    pushWavetable(wavetable_am4);
+    pushWavetable(wavetable_fm1);
+    pushWavetable(wavetable_fm2);
+    pushWavetable(wavetable_fm3);
+    pushWavetable(wavetable_fm4);
+    pushWavetable(wavetable_pm1);
+    pushWavetable(wavetable_pm2);
+    pushWavetable(wavetable_pm3);
+    pushWavetable(wavetable_pm4);
     pushWavetable(wavetable_FeltPianoLow);
     pushWavetable(wavetable_GuitarHigh);
     pushWavetable(wavetable_GuitarLow);
-    pushWavetable(wavetable_Saw);
-    pushWavetable(wavetable_Sine);
-    pushWavetable(wavetable_Square);
-    pushWavetable(wavetable_SSMMix01);
-    pushWavetable(wavetable_SSMMix02);
-    pushWavetable(wavetable_SSMMix03);
-    pushWavetable(wavetable_SSMMix04);
-    pushWavetable(wavetable_SSMMix05);
-    pushWavetable(wavetable_SSMMix06);
-    pushWavetable(wavetable_SSMMix07);
-    pushWavetable(wavetable_SSMMix08);
-    pushWavetable(wavetable_SSMSaw);
-    pushWavetable(wavetable_SSMSquare);
-    pushWavetable(wavetable_SSMTriangle);
-    pushWavetable(wavetable_Triangle);
 }

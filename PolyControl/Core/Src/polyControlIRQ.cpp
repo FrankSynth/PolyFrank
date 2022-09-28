@@ -447,8 +447,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
         checkLayerRequests();
         layerCom.beginSendTransmission();
 
-        uint32_t timerVal = timTimer;
-
         // software IRQ
         EXTI->SWIER1 |= 0x01;
     }

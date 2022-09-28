@@ -945,7 +945,7 @@ void MatrixPatch_PanelElement::Draw() {
         uint8_t barHeigth = 8;
         // uint8_t barHeight = 4;
 
-        uint8_t color[4];
+        // uint8_t color[4];
         float patchAmount = entry->amount;
 
         if (patchAmount < 0) {

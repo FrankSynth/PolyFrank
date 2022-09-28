@@ -1110,8 +1110,8 @@ HAL_StatusTypeDef HAL_UART_Receive_Stream(UART_HandleTypeDef *huart) {
         __HAL_LOCK(huart);
 
         huart->pRxBuffPtr = NULL;
-        huart->RxXferSize = NULL;
-        huart->RxXferCount = NULL;
+        huart->RxXferSize = 0;
+        huart->RxXferCount = 0;
         huart->RxISR = NULL;
 
         /* Computation of UART mask to apply to RDR register */
