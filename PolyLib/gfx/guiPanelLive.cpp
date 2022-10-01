@@ -9,7 +9,7 @@ void GUIPanelLive::registerSettingsElements() {
     uint16_t elementIndex = 0;
     uint8_t exit = false;
 
-    size = pCategory->settings.size();
+    size = entryPointer.size();
 
     while (true) {
         if (elementIndex >= LIVEPANELENTRYS) {
@@ -18,7 +18,7 @@ void GUIPanelLive::registerSettingsElements() {
         for (int x = 0; x < EntrysPerElement; x++) {
 
             if (dataIndex < size) {
-                Setting *settingsElement = (pCategory->settings)[dataIndex];
+                Setting *settingsElement = entryPointer[dataIndex];
                 if (settingsElement->disable == 1) {
                     panelElements[elementIndex].addSettingsEntry(settingsElement, {nullptr, ""}, {nullptr, ""},
                                                                  {nullptr, ""});
@@ -46,22 +46,25 @@ void GUIPanelLive::registerSettingsElements() {
 
 void GUIPanelLive::updateEntrys() {
 
+    entryPointer.clear();
+
     if (subPanelSelect == 0) {
         pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
         pCategory = &liveData.arps[currentFocus.layer].__liveSettingsArp;
     }
-    if (subPanelSelect == 2) {
-        pCategory = &liveData.__liveSettingsLivemode;
-    }
 
-    entrys = ceil((float)pCategory->settings.size() / EntrysPerElement);
+    for (Setting *s : pCategory->settings) {
+        if (s->displayVis == true) {
+            entryPointer.push_back(s);
+        }
+    }
+    entrys = ceil((float)entryPointer.size() / EntrysPerElement);
 
     scroll.entrys = entrys;
     scroll.checkScroll();
 }
-
 void GUIPanelLive::selectSubPanel(uint8_t subPanelSelect) {
     for (uint8_t i = 0; i < 6; i++) {
         subPanelSelection[i] = subPanelSelect == i;
@@ -89,9 +92,6 @@ void GUIPanelLive::Draw() {
 
         panelElements[i].Draw();
     }
-
-    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
-    //               entrys, CONFIGPANELENTRYS);
 }
 
 void GUIPanelLive::registerPanelSettings() {
@@ -102,9 +102,10 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionRightData(1);
     actionHandler.registerActionRightData(2);
 
-    actionHandler.registerActionLeft(0, {std::bind(&LiveData::saveLiveDataSettings, &liveData), "SAVE"}, 1);
-    actionHandler.registerActionLeft(1, {std::bind(&LiveData::loadLiveDataSettings, &liveData), "LOAD"}, 1);
-    actionHandler.registerActionLeft(2);
+    actionHandler.registerActionLeft(0, {std::bind(&Layer::clearPresetLocks, allLayers[currentFocus.layer]), "FRONT"},
+                                     true);
+    actionHandler.registerActionLeft(1);
+    actionHandler.registerActionLeft(2, {std::bind(&GUIPanelLive::resetSystem, this), "RST ALL"}, true);
 }
 
 void GUIPanelLive::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t pathVisible,

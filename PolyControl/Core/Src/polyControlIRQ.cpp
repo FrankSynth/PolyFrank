@@ -53,15 +53,18 @@ void polyControlLoop() { // Here the party starts
     // WFI
     bool enableWFI = false;
     elapsedMillis timerWFI;
+    elapsedMillis timerUIData;
 
     HAL_UART_Receive_Stream(&huart5);
 
     while (1) {
-
+        if (timerUIData > 8) { // 120Hz ui data test
+            timerUIData = 0;
+            sendRequestAllUIData();
+        }
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
             // renderLED();
-            sendRequestAllUIData();
         }
         if (enableWFI) {
             __disable_irq();
@@ -180,10 +183,21 @@ void receiveFromRenderChip(uint8_t layer, uint8_t chip) {
 }
 
 void sendRequestAllUIData() {
+
+    static bool ErrorMessageSend = false; // block spamming
+
     if (layerCom.sentRequestUICommand == true) {
-        println("not all data received yet");
+        if (ErrorMessageSend == false) {
+            println("INFO || COM: Not all data received yet...");
+            ErrorMessageSend = true;
+        }
         return;
     }
+    else if (ErrorMessageSend == true) {
+        println("INFO || COM: ...error cleared");
+        ErrorMessageSend = false;
+    }
+
     __disable_irq();
 
     for (int i = 0; i < 2; i++)
@@ -347,6 +361,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     //  if (pin & GPIO_PIN_5) { //  Touch
     //      FlagHandler::Panel_1_Touch_Interrupt = true;
     //  }
+
+    if (pin & GPIO_PIN_8) { //  Touch
+        liveData.externalClockTick();
+    }
 
     if (pin & SPI_READY_LAYER_2A_Pin) { // Layer B Chip 0
         if (layerCom.chipState[1][0] == CHIP_DATASENT) {

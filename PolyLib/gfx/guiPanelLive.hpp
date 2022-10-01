@@ -17,6 +17,12 @@ class GUIPanelLive : public GUIPanelBase {
 
     void selectSubPanel(uint8_t subPanelSelect);
 
+    void resetSystem() {
+        allLayers[0]->resetLayer();
+        allLayers[1]->resetLayer();
+        liveData.resetLiveConfig();
+    }
+
   private:
     // Boxes
 
@@ -37,6 +43,6 @@ class GUIPanelLive : public GUIPanelBase {
     Scroller scroll = Scroller(LIVEPANELENTRYS);
 
     categoryStruct *pCategory = nullptr;
-
+    std::vector<Setting *> entryPointer;
     Live_PanelElement panelElements[LIVEPANELENTRYS];
 };

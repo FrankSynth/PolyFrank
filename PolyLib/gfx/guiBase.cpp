@@ -9,43 +9,115 @@ quickViewStruct quickView;
 elapsedMillis quickViewTimer;
 uint32_t quickViewTimeout = 1000;
 
-// dont allow full color -> FF not allowed -> use F1 --> this reduce the display burning
-//  DMA2D Colors
-uint32_t cSelect = 0xFFF1F1F1;
-uint32_t cDeselect = 0xFF080808;
-uint32_t cFont_Select = 0xFF080808;
-uint32_t cFont_Deselect = 0xFFF1F1F1;
+///////////COLOR///////////
+//  DMA2D Colors  //RGB8888  // dont allow full color -> FF not allowed -> use F1 --> this reduce the display burning
 
-uint32_t cWhite = 0xFFF1F1F1;
-uint32_t cWhiteLight = 0xFFB0B0B0;
-uint32_t cWhiteDark = 0xFF404040;
-uint32_t cGreyLight = 0xFF202020;
-uint32_t cGrey = 0xFF101010;
-uint32_t cGreyDark = 0xFF080808;
-uint32_t cBlack = 0xFF000000;
+uint32_t cWhite = 0x0;
+uint32_t cWhiteLight = 0x0;
+uint32_t cWhiteDark = 0x0;
+uint32_t cGreyLight = 0x0;
+uint32_t cGrey = 0x0;
+uint32_t cGreyDark = 0x0;
+uint32_t cBlack = 0x0;
 
-uint32_t cBlackTransparent = 0xDF000000;
+uint32_t cBackground = 0x0;
 
-uint32_t cBackground = 0xFF0f161a;
+uint32_t cHighlight = 0x0;
+uint32_t cWarning = 0x0;
 
-uint32_t cHighlight = 0xFFf8ca50;
-uint32_t cWarning = 0xFFF10000;
+uint32_t cLayerA = 0x0;
+uint32_t cLayerB = 0x0;
+uint32_t cLayer = 0x0;
 
-uint32_t cLayerA = 0xFFe80052;
-uint32_t cLayerB = 0xFF0093e8;
+uint32_t cSelect = 0x0;
+uint32_t cDeselect = 0x0;
+uint32_t cFont_Select = 0x0;
+uint32_t cFont_Deselect = 0x0;
 
-uint32_t cLayer = 0xFF000000;
+///////WaveDraw//////// RGB4444
+uint16_t c4444dot;
 
-// Wavedraw
-uint16_t c4444dot = 0xFfc5;
+uint16_t c4444wavecolor;
+uint16_t c4444wavecolorTrans;
 
-uint16_t c4444wavecolor = 0xFEEE;
-uint16_t c4444wavecolorTrans = 0x8FFF;
+uint16_t c4444gridcolor;
+uint16_t c4444framecolor;
 
-uint16_t c4444gridcolor = 0x3FFF;
-uint16_t c4444framecolor = 0xAFFF;
+void setGUIColor(int32_t *colorSelection) {
 
-uint32_t c4444LayerA = 0xFE05;
+    switch (*colorSelection) {
+        case 0: // DEFAULT
+            cWhite = 0xFFF1F1F1;
+            cWhiteLight = 0xFFB0B0B0;
+            cWhiteDark = 0xFF404040;
+            cGreyLight = 0xFF202020;
+            cGrey = 0xFF101010;
+            cGreyDark = 0xFF080808;
+            cBlack = 0xFF000000;
+
+            cBackground = 0xFF0f161a;
+
+            cHighlight = 0xFFf8ca50;
+            cWarning = 0xFFF10000;
+
+            cLayerA = 0xFFe80052;
+            cLayerB = 0xFF0093e8;
+            cLayer = 0x00000000;
+
+            cSelect = cWhite;
+            cDeselect = cGreyDark;
+            cFont_Select = cGreyDark;
+            cFont_Deselect = cWhite;
+
+            c4444dot = 0xFfc5;
+
+            c4444wavecolor = 0xFEEE;
+            c4444wavecolorTrans = 0x8FFF;
+
+            c4444gridcolor = 0x3FFF;
+            c4444framecolor = 0xAFFF;
+
+            break;
+
+        case 1: // NICE
+            cWhite = 0xFF000000;
+            cWhiteLight = 0xFFB0B0B0;
+            cWhiteDark = 0xFFB0B0B0;
+            cGreyLight = 0xFFD8D8D8;
+            cGrey = 0xFFE8E8E8;
+            cGreyDark = 0xFFF1F1F1;
+            cBlack = 0xFFF1F1F1;
+
+            cBackground = 0xFFF1F1F1;
+
+            cHighlight = 0xFFd20023;
+            cWarning = 0xFFF10000;
+
+            cLayerA = 0xffB0B0B0;
+            cLayerB = 0xffB0B0B0;
+            cLayer = 0x00000000;
+
+            cSelect = cBlack;
+            cDeselect = cWhite;
+            cFont_Select = cBlack;
+            cFont_Deselect = cWhite;
+
+            c4444dot = 0Xfd02;
+
+            c4444wavecolor = 0xF000;
+            c4444wavecolorTrans = 0x8000;
+
+            c4444gridcolor = 0xE000;
+            c4444framecolor = 0xE000;
+
+            break;
+        default: PolyError_Handler("wrong color selection"); break;
+    }
+}
+
+///////////////////////////
+
+bool layerMergeMode = false;
 
 uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
                          uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer,
@@ -85,7 +157,13 @@ void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint
 void Todo(){};
 
 void nextLayer() {
-    currentFocus.layer = changeIntLoop(currentFocus.layer, 1, 0, 1); // anzahl der Layer festgelegt
+    if (layerMergeMode) {
+        currentFocus.layer = 0; // anzahl der Layer festgelegt
+    }
+    else {
+
+        currentFocus.layer = changeIntLoop(currentFocus.layer, 1, 0, 1); // anzahl der Layer festgelegt
+    }
 }
 
 void focusUp() {
@@ -125,7 +203,7 @@ void focusPatch(location focus) {
         currentFocus.id = focus.id;
     }
 
-    setPanelActive(1);
+    setPanelActive(2);
 }
 
 void Scroller::scroll(int32_t change) {

@@ -94,28 +94,51 @@ void GUIPanelEffect::registerOverviewEntrys() {
 }
 
 void GUIPanelEffect::selectModule(moduleSelect module) {
-    if (module == moduleType) {
+    newModuleType = module;
+    updateModule = true;
+}
+
+void GUIPanelEffect::selectEffect(effectSelect effect) {
+    newEffectType = effect;
+    updateEffect = true;
+}
+
+void GUIPanelEffect::updateModuleSelection() {
+
+    if (newModuleType == moduleType) {
         overview = true;
         moduleSelected[moduleType] = 0;
         moduleType = NOMODULE;
         return;
     }
     overview = false;
-    if (module == NOISE) {
+    if (newModuleType == NOISE) {
         selectEffect(CRUSH);
     }
     moduleSelected[moduleType] = 0;
-    moduleType = module;
+    moduleType = newModuleType;
     moduleSelected[moduleType] = 1;
+
+    updateEffectSelection();
 }
 
-void GUIPanelEffect::selectEffect(effectSelect effect) {
+void GUIPanelEffect::updateEffectSelection() {
     effectSelected[effectType] = 0;
-    effectType = effect;
+    effectType = newEffectType;
     effectSelected[effectType] = 1;
 }
 
 void GUIPanelEffect::Draw() {
+
+    if (updateModule) {
+        updateModuleSelection();
+        updateModule = false;
+    }
+    if (updateEffect) {
+        updateEffectSelection();
+        updateEffect = false;
+    }
+
     registerPanelSettings();
 
     if (overview) {
@@ -186,21 +209,21 @@ void GUIPanelEffect::Draw() {
 }
 
 void GUIPanelEffect::drawWaveShaperPanel(int8_t *renderedWave, Waveshaper *module) {
-    drawGrid(waveBuffer, c4444gridcolor);
+    // drawGrid(waveBuffer, c4444gridcolor);
     drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolorTrans);
     drawWaveshaper(waveBuffer, module);
     drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawPhaseShaperPanel(int8_t *renderedWave, Phaseshaper *module) {
-    drawGrid(waveBuffer, c4444gridcolor);
+    // drawGrid(waveBuffer, c4444gridcolor);
     drawWave(waveBuffer, renderedWave, 100, 1, c4444wavecolorTrans);
     drawPhaseshaper(waveBuffer, module);
     drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawCrushPanel(int8_t *renderedWave) {
-    drawGrid(waveBuffer, c4444gridcolor);
+    // drawGrid(waveBuffer, c4444gridcolor);
     drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolor);
     drawFrame(waveBuffer, c4444framecolor);
 }

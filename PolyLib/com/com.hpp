@@ -280,6 +280,14 @@ enum renderChipRequestState {
     RQ_DATAREQUESTED,
     RQ_DATARECEIVED,
 };
+
+typedef enum {
+    SINGLELAYER,
+    DUALLAYER,
+} SendMode;
+
+extern SendMode layerSendMode;
+
 #endif
 
 // class for interchip communication in both directions

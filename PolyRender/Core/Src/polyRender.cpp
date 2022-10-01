@@ -98,15 +98,20 @@ void PolyRenderInit() {
 
 void PolyRenderRun() {
 
-    println("////////// Hi, it's Render. PolyFrank Render. //////////");
-    println("Layer ID is: ", layerA.id);
-    println("Chip ID is: ", layerA.chipID);
+    std::string message =
+        "Hi, it's Render. PolyFrank Render...  ID: " + std::to_string(layerA.id) + std::to_string(layerA.chipID);
+    println(message);
 
     // start Receive
     if (layerA.chipID == 1) {
         HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
         huart1.Instance->ICR = 0b1100;
         huart1.Instance->RQR = UART_RXDATA_FLUSH_REQUEST; // clear rx Register
+
+        // // detect timeout for resyncing DMA
+        // HAL_UART_ReceiverTimeout_Config(&huart1, 16);
+        // HAL_UART_EnableReceiverTimeout(&huart1);
+        // huart1.Instance->CR1 |= USART_CR1_RTOIE_Msk;
     }
 
     // start cv rendering

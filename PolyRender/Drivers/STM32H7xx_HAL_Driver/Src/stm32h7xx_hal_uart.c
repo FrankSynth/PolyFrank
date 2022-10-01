@@ -221,8 +221,6 @@ static void UART_RxISR_16BIT(UART_HandleTypeDef *huart);
 static void UART_RxISR_8BIT_FIFOEN(UART_HandleTypeDef *huart);
 static void UART_RxISR_16BIT_FIFOEN(UART_HandleTypeDef *huart);
 
-static void UART_RxISR_8BIT_FIFOEN_FAST(UART_HandleTypeDef *huart);
-
 /**
  * @}
  */
@@ -2117,7 +2115,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart) {
     uint32_t errorcode;
 
     /* If no error occurs */
-    errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE | USART_ISR_RTOF));
+    errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
     if (errorflags == 0U) {
         /* UART in mode Receiver ---------------------------------------------------*/
         if (((isrflags & USART_ISR_RXNE_RXFNE) != 0U) &&
@@ -2129,9 +2127,18 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart) {
         }
     }
 
+    // EDIT FOR SYNCING COMMUNICATION
+    if (isrflags & USART_ISR_RTOF) {
+
+        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_RTOF);
+
+        huart->ErrorCode |= HAL_UART_ERROR_RTO;
+        HAL_UART_ReceiveRTOCallback(huart);
+    }
+
     /* If some errors occur */
     if ((errorflags != 0U) && ((((cr3its & (USART_CR3_RXFTIE | USART_CR3_EIE)) != 0U) ||
-                                ((cr1its & (USART_CR1_RXNEIE_RXFNEIE | USART_CR1_PEIE | USART_CR1_RTOIE)) != 0U)))) {
+                                ((cr1its & (USART_CR1_RXNEIE_RXFNEIE | USART_CR1_PEIE)) != 0U)))) {
         /* UART parity error interrupt occurred -------------------------------------*/
         if (((isrflags & USART_ISR_PE) != 0U) && ((cr1its & USART_CR1_PEIE) != 0U)) {
             __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_PEF);
@@ -2161,13 +2168,6 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart) {
             huart->ErrorCode |= HAL_UART_ERROR_ORE;
         }
 
-        /* UART Receiver Timeout interrupt occurred ---------------------------------*/
-        if (((isrflags & USART_ISR_RTOF) != 0U) && ((cr1its & USART_CR1_RTOIE) != 0U)) {
-            __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_RTOF);
-
-            huart->ErrorCode |= HAL_UART_ERROR_RTO;
-        }
-
         /* Call UART Error Call back function if need be ----------------------------*/
         if (huart->ErrorCode != HAL_UART_ERROR_NONE) {
             /* UART in mode Receiver --------------------------------------------------*/
@@ -2184,8 +2184,7 @@ void HAL_UART_IRQHandler(UART_HandleTypeDef *huart) {
                 - any error occurs in DMA mode reception
             */
             errorcode = huart->ErrorCode;
-            if ((HAL_IS_BIT_SET(huart->Instance->CR3, USART_CR3_DMAR)) ||
-                ((errorcode & (HAL_UART_ERROR_RTO | HAL_UART_ERROR_ORE)) != 0U)) {
+            if ((HAL_IS_BIT_SET(huart->Instance->CR3, USART_CR3_DMAR)) || ((errorcode & (HAL_UART_ERROR_ORE)) != 0U)) {
                 /* Blocking error : transfer is aborted
                    Set the UART state ready to be able to start again the process,
                    Disable Rx Interrupts, and disable Rx DMA request, if ongoing */
@@ -2506,6 +2505,15 @@ __weak void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     /* Prevent unused argument(s) compilation warning */
     UNUSED(huart);
     UNUSED(Size);
+
+    /* NOTE : This function should not be modified, when the callback is needed,
+              the HAL_UARTEx_RxEventCallback can be implemented in the user file.
+     */
+}
+
+__weak void HAL_UART_ReceiveRTOCallback(UART_HandleTypeDef *huart) {
+    /* Prevent unused argument(s) compilation warning */
+    UNUSED(huart);
 
     /* NOTE : This function should not be modified, when the callback is needed,
               the HAL_UARTEx_RxEventCallback can be implemented in the user file.

@@ -3,6 +3,8 @@
 #include "render/renderAudio.hpp"
 #include "render/renderAudioDef.h"
 
+extern void setGUIColor(int32_t *colorSelection);
+
 #ifdef POLYRENDER
 
 #include "wavetables/wavetables.hpp"
@@ -173,6 +175,14 @@ void setModuleCallbacks() {
     liveData.arps[1].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[1]));
 
     globalSettings.midiSource.setValueChangedCallback(clearComBufferForMidi);
+
+    liveData.voiceHandler.livemodeMergeLayer.setValueChangedCallback(
+        std::bind(switchLiveMode, &(liveData.voiceHandler.livemodeMergeLayer.value)));
+
+    globalSettings.dispColor.setValueChangedCallback(std::bind(setGUIColor, &globalSettings.dispColor.value));
+
+    liveData.livemodeClockSource.setValueChangedCallback(
+        std::bind(switchClockSourceCallback, &liveData.livemodeClockSource.value));
 }
 
 #endif

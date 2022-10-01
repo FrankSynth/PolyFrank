@@ -117,6 +117,9 @@ void PolyControlInit() {
 
     HAL_Delay(200); // wait 200ms for system stabilisation
 
+    // Say hello
+    println("\n\nINFO || Hi, Frank here! Lets get everything ready...");
+
     // Enable Layer Board
     HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
     // Enable Panel Board
@@ -142,6 +145,8 @@ void PolyControlInit() {
 
     // Device Configuration
     deviceConfig();
+
+    // clearEEPROM(); // ENABLE ONLY IF NEEDED!!!!
 
     adcA.setup();
     adcB.setup();
@@ -194,25 +199,27 @@ void PolyControlInit() {
         newFocus = {1, 0, 0, FOCUSMODULE};
     }
 
+    //Init Hardware User Interface 
     HIDConfig();
 
     for (Layer *l : allLayers) {
         l->resetLayer();
     }
 
+    //Graphical User Interface
     ui.Init();
 
     // Midi configuration
     midiConfig();
 
-    // Say hello
-    println("Hi, Frank here!");
     if (layerA.layerState.value) {
-        println("Layer A active");
+        println("INFO || Layer A active");
     }
     if (layerB.layerState.value) {
-        println("Layer B active");
+        println("INFO || Layer B active");
     }
+
+    println("INFO || ... everything looks fine! Let the party start");
 
     HAL_Delay(50);
     // And turn the Display on

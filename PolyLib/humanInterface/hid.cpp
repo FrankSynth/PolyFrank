@@ -209,10 +209,13 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
 
                     if (potiFunctionPointer[layer][multiplex][channel].data->quickview) { // filter quickview potis
                         if (difference >> 3 || (difference >> 1 && (quickViewTimer < quickViewTimeout))) {
+                            if ((layerSendMode == SINGLELAYER) ||
+                                (layer != 1)) { // only layer 0 when dual mode is active
 
-                            quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
-                            quickView.layer = layer;
-                            quickViewTimer = 0;
+                                quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
+                                quickView.layer = layer;
+                                quickViewTimer = 0;
+                            }
                         }
                     }
                     panelADCStates[layer][multiplex][channel] =

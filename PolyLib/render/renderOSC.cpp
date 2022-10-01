@@ -34,7 +34,7 @@ vec<VOICESPERCHIP, float> noteConverted;
 inline vec<VOICESPERCHIP> accumulateNote() {
 
     noteConverted = (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
-    noteConverted += layerA.oscA.aMasterTune;
+    noteConverted += layerA.oscA.fm;
 
     static vec<VOICESPERCHIP> currentNote;
     static vec<VOICESPERCHIP> desiredNote;
@@ -44,7 +44,6 @@ inline vec<VOICESPERCHIP> accumulateNote() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
-    desiredNote += layerA.feel.detune;
     desiredNote += accumulateOctave();
 
     // // TODO check glide, plus glide settings, i.e. CT & CR
@@ -54,23 +53,12 @@ inline vec<VOICESPERCHIP> accumulateNote() {
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
-    // currentNote = currentNote +
-    //               (1.0f / (layerA.feel.glide.currentSample * SECONDSPERCVRENDER * 10.0f)) * (desiredNote -
-    //               currentNote);
-
     vec<VOICESPERCHIP> note = currentNote + (layerA.oscA.iFM * 0.25f);
 
     note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
 
-    // static uint32_t cacheSubTable = 100;
-
     layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));
-
-    // if (cacheSubTable != layerA.oscA.subWavetable[0]) {
-    //     cacheSubTable = layerA.oscA.subWavetable[0];
-    //     println(layerA.oscA.subWavetable[0]);
-    // }
 
     layerA.sub.oscANote = note; // to calc subtable
 
@@ -83,13 +71,13 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 }
 
 void renderOSC_A() {
-    layerA.oscA.note = accumulateNote();
-    layerA.oscA.fm = layerA.oscA.iFM;
-    layerA.oscA.morphRAW = accumulateMorph();
-    layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE)) + 4.0f;
+    layerA.oscA.fm = layerA.oscA.iFM + layerA.feel.detune + layerA.oscA.aMasterTune;
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        layerA.oscA.morph[i] = std::fmod(layerA.oscA.morph[i], 4.0f);
+    layerA.oscA.note = accumulateNote();
+    layerA.oscA.morphRAW = accumulateMorph();
+    layerA.oscA.morphRAW = layerA.oscA.morphRAW - floor((vec<VOICESPERCHIP>)layerA.oscA.morphRAW);
+
+    layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE));
 
     layerA.oscA.effect = accumulateEffect();
 
@@ -140,8 +128,7 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
-    desiredNote += layerA.oscB.aTuning;
-    desiredNote += layerA.feel.detune;
+    desiredNote += layerA.oscA.fm;
     desiredNote += accumulateOctaveOscB();
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -149,11 +136,8 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
             currentNote[i] = std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
-    // currentNote = currentNote +
-    //               (1.0f / (layerA.feel.glide.currentSample * SECONDSPERCVRENDER * 10.0f)) * (desiredNote -
-    //               currentNote);
 
-    vec<VOICESPERCHIP> note = currentNote + (layerA.oscB.fm * 0.25f);
+    vec<VOICESPERCHIP> note = currentNote + layerA.oscB.fm;
 
     note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
 
@@ -171,12 +155,12 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 void renderOSC_B() {
     layerA.oscB.morphRAW = accumulateMorphOscB();
     layerA.oscB.effect = accumulateEffectOscB();
-    layerA.oscB.morph = ((layerA.oscB.morphRAW) * (float)(WAVETABLESPERVOICE)) + 4.0f;
+    layerA.oscB.morphRAW = accumulateMorphOscB();
+    layerA.oscB.morphRAW = layerA.oscB.morphRAW - floor((vec<VOICESPERCHIP>)layerA.oscB.morphRAW);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        layerA.oscB.morph[i] = std::fmod(layerA.oscB.morph[i], 4.0f);
+    layerA.oscB.morph = ((layerA.oscB.morphRAW) * (float)(WAVETABLESPERVOICE));
 
-    layerA.oscB.fm = layerA.oscB.iFM + layerA.oscA.iFM;
+    layerA.oscB.fm = layerA.oscB.iFM + layerA.oscB.aTuning;
     layerA.oscB.bitcrusher = accumulateBitcrusherOscB();
     layerA.oscB.bitcrusherInv = 1.0f / layerA.oscB.bitcrusher.currentSample;
     layerA.oscB.samplecrusher = accumulateSamplecrusherOscB();

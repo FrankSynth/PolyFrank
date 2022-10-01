@@ -43,6 +43,7 @@ class VoiceHandler {
 
     Setting livemodeMergeLayer = Setting("MERGE", 0, 0, 1, false, binary, &polyMergeNameList);
     const std::vector<const char *> polySplitNameList = {"1|8", "2|4", "4|2", "8|1"};
+    const std::vector<const char *> polySplitNameListDual = {"1|16", "2|8", "4|4", "8|2", "16|1"};
 
     const std::vector<const char *> polyMergeNameList = {"A | B", "A & B"};
 

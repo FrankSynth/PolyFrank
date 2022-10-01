@@ -4,7 +4,7 @@
 GUI ui;
 
 void GUI::Init() { // add settings pointer
-    // init Display
+                   // init Display
 
     waveBuffer.height = WAVEFORMHEIGHT;
     waveQuickBuffer.height = WAVEFORMQUICKHEIGHT;
@@ -74,7 +74,7 @@ void GUI::Init() { // add settings pointer
 
     Clear();
     checkFocusChange();
-    setPanelActive(1);
+    setPanelActive(0);
 
     // Set Focus for test
 }

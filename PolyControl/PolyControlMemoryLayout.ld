@@ -104,7 +104,7 @@ SECTIONS
     /* *arp.o (.text .text*) */
     /* *clock.o (.text .text*) */
     /* *liveData.o (.text .text*) */
-    *voiceHandler.o (.text .text*)
+    /* *voiceHandler.o (.text .text*) */
     *IS31FL3216.o (.text .text*)
     *MAX11128.o (.text .text*)
     *rotary.o (.text .text*)

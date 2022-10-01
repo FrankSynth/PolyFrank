@@ -13,7 +13,6 @@ void Header_PanelBox::Draw(GUIPanelBase *panel, uint8_t active) {
         drawString(panel->name, cFont_Select, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
     else {
-        // drawRectangleFill(cGreyLight, x, y, width, heigth);
         drawString(panel->name, cFont_Deselect, x + width / 2, y + (-font->size + heigth) / 2, font, CENTER);
     }
 }
@@ -37,7 +36,6 @@ void Side_PanelBox::Draw() {
                 drawStringVertical(mainName, cFont_Select, x + width / 2, y + heigth / 2, fontSmall);
             }
             else {
-                // drawRectangleFill(cGreyLight, x, y, width, heigth);
                 drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
             }
         }
@@ -58,7 +56,6 @@ void Side_PanelBox::Draw() {
                 drawStringVertical(mainName, cBlack, x + width / 2, y + heigth / 2, fontSmall);
             }
             else {
-                // drawRectangleFill(cGreyLight, x, y, width, heigth);
                 drawStringVertical(mainName, cWhite, x + width / 2, y + heigth / 2, fontSmall);
             }
         }

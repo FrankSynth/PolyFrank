@@ -46,9 +46,21 @@ void GUIPanelFocus::registerPanelSettings() {
                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"});
     }
 
+    if (currentFocus.type != FOCUSLAYER) {
+        actionHandler.registerActionLeft(1, {std::bind(focusUp), "UP"});
+    }
+    else {
+        actionHandler.registerActionLeft(1);
+    }
+
+    if (currentFocus.type != FOCUSINPUT || currentFocus.type != FOCUSOUTPUT) {
+        actionHandler.registerActionLeft(2, {std::bind(focusDown, this->newPanelFocus), "DOWN"});
+    }
+    else {
+        actionHandler.registerActionLeft(2);
+    }
+
     actionHandler.registerActionLeft(0);
-    actionHandler.registerActionLeft(1, {std::bind(focusUp), "UP"});
-    actionHandler.registerActionLeft(2);
 
     // register Panel Settings Right
     actionHandler.registerActionRight(0);

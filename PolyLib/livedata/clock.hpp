@@ -72,5 +72,5 @@ class ClockSource {
             lastBPM = clockBPM.value;
         }
     }
-    Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary);
+    Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary, nullptr, false);
 };

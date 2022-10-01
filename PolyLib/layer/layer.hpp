@@ -47,6 +47,15 @@ class Layer {
         adsrs.push_back(&envA);
         adsrs.push_back(&envF);
 
+        // for (size_t i = 0; i < VOICESPERCHIP; i++) {
+        //     std::string name = "L: VOICE " + std::to_string(i);
+        //     LadderTune.push_back(Analog(name.c_str(), 0.9, 1, 1, true));
+        // }
+        // for (size_t i = 0; i < VOICESPERCHIP; i++) {
+        //     std::string name = "S: VOICE " + std::to_string(i);
+        //     SteinerTune.push_back(Analog(name.c_str(), 0.9, 1, 1, true));
+        // }
+
         // skip layer settings?
 
         initID();
@@ -66,6 +75,7 @@ class Layer {
     void resetLayer();
 
     // patch stuff
+    void loadDefaultPatches();
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
@@ -76,15 +86,18 @@ class Layer {
     inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYCONTROL
-    void collectLayerConfiguration();
 
-    void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
-    void loadLayerFromPreset(presetStruct *preset);
+    void resendLayerConfig();
+
+    void collectLayerConfiguration(int32_t *buffer, bool noFilter);
+    void writeLayerConfiguration(int32_t *buffer, bool noFilter);
+    void clearPresetLocks();
 
     int8_t renderedAudioWaves[300];
     int8_t *renderedAudioWavesOscA; // size 100
     int8_t *renderedAudioWavesOscB; // size 100
     int8_t *renderedAudioWavesSub;  // size 100
+
 #endif
 
 #ifdef POLYRENDER
@@ -154,6 +167,9 @@ class Layer {
     std::vector<LFO *> lfos;
 
     std::list<PatchElement> patchesInOut;
+
+    // std::vector<Analog> LadderTune;
+    // std::vector<Analog> SteinerTune;
 
     Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
 

@@ -53,6 +53,15 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     huart->Instance->CR3 &= ~USART_CR3_DMAT; // clear dma register
 }
 
+void HAL_UART_ReceiveRTOCallback(UART_HandleTypeDef *huart) {
+
+    // uint32_t *address = (uint32_t *)huart->hdmarx->StreamBaseAddress + 0x1c + 0x18 * 1;
+
+    // if (*address != 0) {
+    //     sendString("ERROR | UART NOT IN SYNC!");
+    // }
+}
+
 elapsedMicros audiorendertimer = 0;
 uint32_t audiorendercounter = 0;
 uint32_t audiorendercache = 0;

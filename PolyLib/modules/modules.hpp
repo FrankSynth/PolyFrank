@@ -183,10 +183,10 @@ class OSC_A : public BaseModule {
     Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 4, true, &nlWavetable, nullptr, false);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 5, true, &nlWavetable, nullptr, false);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 6, true, &nlWavetable, nullptr, false);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 7, true, &nlWavetable, nullptr, false);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
 
     // Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
     Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave);
@@ -530,6 +530,7 @@ class LFO : public BaseModule {
         switches.push_back(&dGateTrigger);
         switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
+        switches.push_back(&dEXTDiv);
         switches.push_back(&dAlignLFOs);
 
         renderBuffer.push_back(&speed);
@@ -558,7 +559,9 @@ class LFO : public BaseModule {
     Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff, nullptr, false);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
-    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr, false);
+    Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false, false);
+
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr);
 
     RenderBuffer speed;
     RenderBuffer speedRAW;
@@ -620,6 +623,7 @@ class ADSR : public BaseModule {
         switches.push_back(&dGateTrigger);
         switches.push_back(&dClockTrigger);
         switches.push_back(&dClockStep);
+        switches.push_back(&dEXTDiv);
 
         renderBuffer.push_back(&amount);
 
@@ -647,7 +651,8 @@ class ADSR : public BaseModule {
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr, false);
     Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
+    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr);
+    Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false);
 
     RenderBuffer amount;
 
@@ -677,6 +682,12 @@ class ADSR : public BaseModule {
         retriggered[voice] = 0;
     }
 
+    inline void triggerGateOnADSR(uint32_t voice) { // triggered adsr wenn off und on im selben paket waren
+        currentTime[voice] = 0;
+        setStatusDelay(voice);
+        retriggered[voice] = 0;
+    }
+
     inline void resetAllADSRs() {
         for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             resetADSR(voice);
@@ -690,6 +701,9 @@ class ADSR : public BaseModule {
         gate[voice] = 1;
         if (dReset) {
             resetADSR(voice);
+        }
+        else {
+            triggerGateOnADSR(voice);
         }
     }
 
@@ -761,7 +775,7 @@ class Feel : public BaseModule {
 
     Output oSpread = Output("SPREAD");
 
-    Analog aGlide = Analog("GLIDE", 0.0001, 10, 0, true, linMap, &iGlide);
+    Analog aGlide = Analog("GLIDE", 0.0001, 2, 0, true, linMap, &iGlide);
     Analog aDetune = Analog("DETUNE", 0, 1, .03, true, linMap, &iDetune);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
     Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.1, true, linMap);
@@ -802,7 +816,7 @@ class Out : public BaseModule {
     Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true);
-    Analog aMaster = Analog("MASTER", 0, 1, 1, true, linMap);
+    Analog aMaster = Analog("MASTER", 0, 1, 1, true, linMap, nullptr, true, false); // not storeable
 
     RenderBuffer left = RenderBuffer(false);
     RenderBuffer right = RenderBuffer(false);

@@ -180,18 +180,10 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
     uint16_t relX = nameWidth + 15;
     uint16_t relY = spaceTopBottomBar;
 
-    // valueBar
-    // drawRectangleChampfered(cGreyLight, relX + x, relY + y, valueBarWidth, valueBarHeigth, 1);
-
     int16_t valueBaroffsetCenter = 0;
     float amount;
-    // if (entry->type == PATCHOUTOUT) {
 
-    //     amount = dataOutOut->getAmount();
-    // }
-    // else {
     amount = data->getAmount();
-    // }
 
     if (amount < 0) {
         valueBaroffsetCenter = (valueBarWidth + (float)valueBarWidth * amount) / 2;
@@ -462,8 +454,6 @@ void drawDigitalElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, 
         drawString(text, cFont_Select, x + nameWidth - 12, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
     else {
-        // drawRectangleChampfered(cWhiteDark, x, y, nameWidth, h, 1);
-        // drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
         drawString(text, cFont_Deselect, x + nameWidth - 12, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
     }
 
@@ -555,33 +545,39 @@ void drawAnalogElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, u
 
         valueBarWidth = w - nameWidth - 2 * spaceLeftRightBar;
         uint32_t valuePos = 0;
-        float value = data->input->renderBuffer->currentSample[0];
 
-        if (data->min < 0) { // Centered ValueBar -> expect symmetric range
-            uint16_t centerX = relX + x + valueBarWidth / 2;
+        for (uint32_t i = 0; i < NUMBERVOICES; i++) {
+            float value = data->input->renderBuffer->currentSample[i];
+            value = testFloat(value, data->min, data->max);
 
-            if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+            if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+                uint16_t centerX = relX + x + valueBarWidth / 2;
 
-                valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
-                                      (float)((data->max - data->min)));
+                if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                    valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
+                                          (float)((data->max - data->min)));
+                }
+                else { // negative value
+
+                    valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
+                                          (float)((data->max - data->min)));
+                }
             }
-            else { // negative value
-
-                valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
-                                      (float)((data->max - data->min)));
+            else {
+                valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
             }
-        }
-        else {
-            valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
-        }
 
-        drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+            drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+        }
     }
 }
 
 void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select,
                             uint8_t modulename) {
 
+    if (data == nullptr)
+        return;
     uint16_t heightBar = 10;
 
     // clear
@@ -1219,14 +1215,7 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
 
     fastMemset(&data, (uint32_t *)*(buffer.buffer), (buffer.width * buffer.height) / 2);
 
-    // data = (c4444LayerA << 16) | c4444LayerA;
-
-    // drwabuffer
-
     if (module->id == allLayers[module->layerId]->oscA.id) {
-        // drawGrid(c4444gridcolor);
-        // fastMemset(&data, ((uint32_t *)*(buffer.buffer)) + (buffer.width * buffer.height) / 4,
-        //            (buffer.width * buffer.height) / 4);
 
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolor, true);
 
@@ -1253,7 +1242,6 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
                  c4444wavecolor);
     }
     else if (module->id == allLayers[module->layerId]->oscB.id) {
-        // drawGrid(c4444gridcolor);
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscB, 100, 2, c4444wavecolor, true);
         drawWaveTable(buffer, wavetables[((OSC_B *)module)->dSample0.valueMapped]->data, 0, buffer.width / 4,
                       (buffer.height / 3) * 2, buffer.height / 3, 186, 1, c4444wavecolor);
@@ -1278,7 +1266,6 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
                  c4444wavecolor);
     }
     else if (module->id == allLayers[module->layerId]->sub.id) {
-        // drawGrid(c4444gridcolor);
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesSub, 100, 2, c4444wavecolor);
         drawFrame(buffer, c4444framecolor);
     }
@@ -1286,23 +1273,19 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
         int8_t wave[100];
         calculateLFOWave((LFO *)module, wave, 100);
 
-        // drawGrid(c4444gridcolor);
         drawWave(buffer, wave, 100, 2, c4444wavecolor);
         drawFrame(buffer, c4444framecolor);
     }
     else if (module->moduleType == MODULE_PHASE) {
-        // drawGrid(c4444gridcolor);
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 1, c4444wavecolorTrans);
         drawPhaseshaper(buffer, (Phaseshaper *)module);
         drawFrame(buffer, c4444framecolor);
     }
     else if (module->moduleType == MODULE_ADSR) {
-        // drawGrid(c4444gridcolor);
         drawADSR(buffer, (ADSR *)module);
         drawFrame(buffer, c4444framecolor);
     }
     else if (module->moduleType == MODULE_WAVESHAPER) {
-        // drawGrid(c4444gridcolor);
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolorTrans);
         drawWaveshaper(buffer, (Waveshaper *)module);
         drawFrame(buffer, c4444framecolor);
@@ -1719,36 +1702,35 @@ void Effect_PanelElement::Draw() {
 
     entryHeight = height;
 
-    if (!visible) {
-        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
-        return;
-    }
+    if (visible) {
 
-    if (select) {
-        for (uint8_t i = 0; i < 4; i++) {
-            if (entrys[i] != nullptr) {
-                actionHandler.registerActionEncoder(
-                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), "AMOUNT"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), "AMOUNT"},
-                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+        if (select) {
+            for (uint8_t i = 0; i < 4; i++) {
+                if (entrys[i] != nullptr) {
+                    actionHandler.registerActionEncoder(
+                        i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), "AMOUNT"},
+                        {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), "AMOUNT"},
+                        {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+                }
+                else {
+                    actionHandler.registerActionEncoder(i); // clear encoder
+                }
+            }
+        }
+
+        entryWidth = width / numberEntrys;
+
+        for (int i = 0; i < numberEntrys; i++) {
+            if (entrys[i] == nullptr) {
             }
             else {
-                actionHandler.registerActionEncoder(i); // clear encoder
+                drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                       select);
+                entrys[i] = nullptr;
             }
-        }
-    }
 
-    entryWidth = width / numberEntrys;
-    for (int i = 0; i < numberEntrys; i++) {
-        if (entrys[i] == nullptr) {
+            relX += entryWidth;
         }
-        else {
-            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
-                                   select);
-            entrys[i] = nullptr;
-        }
-
-        relX += entryWidth;
     }
 
     numberEntrys = 0;
@@ -1830,7 +1812,6 @@ void drawQuickViewAnalog(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint1
     if (data->min < 0) { // Centered ValueBar -> expect symmetric range
 
         uint16_t centerX = relX + x + valueBarWidth / 2;
-        drawRectangleFill(cWhite, centerX, relY + y, 1, valueBarHeigth); // center
 
         if (data->value >= ((int32_t)(data->inputRange / 2) + data->minInputValue)) { // positive value
             valueBarWidth = (float)valueBarWidth * (data->value - data->minInputValue - data->inputRange / 2) /
@@ -1859,27 +1840,31 @@ void drawQuickViewAnalog(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint1
 
         valueBarWidth = w - 2 * spaceLeftRightBar;
         uint32_t valuePos = 0;
-        float value = data->input->renderBuffer->currentSample[0];
 
-        if (data->min < 0) { // Centered ValueBar -> expect symmetric range
-            uint16_t centerX = relX + x + valueBarWidth / 2;
+        for (uint32_t i = 0; i < NUMBERVOICES; i++) {
+            float value = data->input->renderBuffer->currentSample[i];
+            value = testFloat(value, data->min, data->max);
 
-            if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+            if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+                uint16_t centerX = relX + x + valueBarWidth / 2;
 
-                valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
-                                      (float)((data->max - data->min)));
+                if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                    valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
+                                          (float)((data->max - data->min)));
+                }
+                else { // negative value
+
+                    valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
+                                          (float)((data->max - data->min)));
+                }
             }
-            else { // negative value
-
-                valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
-                                      (float)((data->max - data->min)));
+            else {
+                valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
             }
-        }
-        else {
-            valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + relX + x;
-        }
 
-        drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+            drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+        }
     }
 }
 

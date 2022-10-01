@@ -396,9 +396,9 @@ class Effect_PanelElement {
 
     uint8_t select = 0;
     uint8_t visible = 0;
-    uint16_t numberEntrys = 0;
 
   private:
+    uint16_t numberEntrys = 0;
     uint16_t panelAbsX;
     uint16_t panelAbsY;
 

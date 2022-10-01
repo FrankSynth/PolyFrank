@@ -73,6 +73,7 @@ void Layer::resetLayer() {
         // Layer specific settings, not part of modules
     }
     clearPatches();
+    loadDefaultPatches();
 
     envF.aShape.setValue(MAX_VALUE_12BIT);
 
@@ -160,15 +161,18 @@ void Layer::clearPatches() {
         }
     }
     patchesInOut.clear();
-
 #ifdef POLYCONTROL
-    sendDeleteAllPatches(id);
 
-    // TODO temp patches
+    sendDeleteAllPatches(id);
+#endif
+}
+
+void Layer::loadDefaultPatches() {
+    // default Patches
+
     addPatchInOut(envA.out, out.iVCA, 1.0f);
     addPatchInOut(envF.out, steiner.iCutoff, 1.0f);
     addPatchInOut(envF.out, ladder.iCutoff, 1.0f);
-#endif
 }
 
 #ifdef POLYRENDER
@@ -215,24 +219,18 @@ void Layer::initLayer() {
 
 #ifdef POLYCONTROL
 
-void Layer::saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName,
-                              std::string thirdName) {
-
-    collectLayerConfiguration();
-    writePresetBlock(preset, firstName + " " + secondName + " " + thirdName);
-}
-
-void Layer::collectLayerConfiguration() {
+void Layer::collectLayerConfiguration(int32_t *buffer, bool noFilter) {
 
     // println("collectConfiguration");
-    int32_t *buffer = (int32_t *)blockBuffer;
     uint32_t index = 0;
 
     for (BaseModule *m : modules) { //  all modules
 
         for (Analog *i : m->getPotis()) {
-            buffer[index] = i->value;
-            index++;
+            if (i->storeable || noFilter) {
+                buffer[index] = i->value;
+                index++;
+            }
             // println("value:  ", buffer[index]);
         }
         for (Digital *i : m->getSwitches()) {
@@ -261,26 +259,23 @@ void Layer::collectLayerConfiguration() {
         index++;
     }
 
-    if ((uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)blockBuffer) > (PRESET_BLOCKSIZE)) {
-        PolyError_Handler("ERROR | FATAL | LAYER -> SaveLayerToPreset -> BufferOverflow!");
+    if ((uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)buffer) > (PRESET_SIZE)) {
+        PolyError_Handler("ERROR | FATAL | LAYER -> SaveLayerToPreset -> Datasize to big!");
     }
+    println("INFO || Layer Datasize: ", (uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)buffer));
 }
-void Layer::loadLayerFromPreset(presetStruct *preset) {
-    if (preset->usageState != PRESET_USED) {
-        return;
-    }
-
-    int32_t *buffer = (int32_t *)readPreset(preset);
-
+void Layer::writeLayerConfiguration(int32_t *buffer, bool noFilter) {
     uint32_t index = 0;
 
     for (BaseModule *m : modules) { //  all modules
 
         for (Analog *i : m->getPotis()) {
-            i->setValue(buffer[index]);
-            i->presetLock = true;
+            if (i->storeable || noFilter) {
+                i->setValue(buffer[index]);
+                i->presetLock = true;
 
-            index++;
+                index++;
+            }
         }
 
         for (Digital *i : m->getSwitches()) {
@@ -291,11 +286,9 @@ void Layer::loadLayerFromPreset(presetStruct *preset) {
     }
 
     // clear existing patches
-
     clearPatches();
 
     // read number of patches
-
     int32_t numberPatchesInOut = buffer[index];
     index++;
 
@@ -311,13 +304,27 @@ void Layer::loadLayerFromPreset(presetStruct *preset) {
         addPatchInOutById(patch.sourceID, patch.targetID, patch.amount);
         index++;
     }
+}
 
-    // for (int i = 0; i < numberPatchesOutOut; i++) {
+void Layer::clearPresetLocks() {
+    for (BaseModule *m : modules) { //  all modules
 
-    //     patch = bufferPatch[index];
-    //     addPatchOutOutById(patch.sourceID, patch.targetID, patch.amount);
-    //     index++;
-    // }
+        for (Analog *i : m->getPotis()) {
+            i->presetLock = false;
+        }
+        for (Digital *i : m->getSwitches()) {
+            i->presetLock = false;
+        }
+    }
+}
+
+void Layer::resendLayerConfig() {
+
+    int32_t layerCache[PRESET_BLOCKSIZE];
+
+    // reuse the collect and write function for resending layer config
+    collectLayerConfiguration(layerCache, true);
+    writeLayerConfiguration(layerCache, true);
 }
 
 #endif

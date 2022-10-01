@@ -26,7 +26,7 @@ void GUIPanelQuickView::Draw() {
     if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
         type == MODULE_ADSR) {
 
-        drawRectangleFill(cBlackTransparent, x, y, width, height); // hide background
+        drawRectangleFill(cBackground & 0xEFFFFFFF, x, y, width, height); // hide background
 
         drawRectangleFill(cHighlight, x, y, width, 50);
         drawString(module->getShortName(), cFont_Select, width / 2, 25 - fontBig->size / 2, fontBig, CENTER);
@@ -37,7 +37,7 @@ void GUIPanelQuickView::Draw() {
         uint32_t yControls = height / 2 + waveQuickBuffer.height / 2;
         uint32_t xControls = LCDWIDTH / 2 - waveQuickBuffer.width / 2;
         uint32_t wControls = waveQuickBuffer.width;
-        uint32_t hControls = 60;
+        uint32_t hControls = 90;
 
         switch (type) {
             case MODULE_OSC_A: {

@@ -30,9 +30,6 @@ extern uint32_t cLayerB;
 extern uint32_t cLayer;
 
 extern uint32_t cBackground;
-extern uint32_t cBlackTransparent;
-
-extern uint32_t c4444LayerA;
 
 extern uint16_t c4444dot;
 extern uint16_t c4444wavecolor;
@@ -163,6 +160,8 @@ void nextLayer();
 void focusUp();
 void focusDown(location newFocus);
 void focusPatch(location focus);
+
+void setGUIColor(int32_t *colorSelection);
 
 void Todo();
 

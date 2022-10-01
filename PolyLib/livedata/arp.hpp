@@ -36,7 +36,9 @@ class Arpeggiator {
         __liveSettingsArp.settings.push_back(&arpRatched);
         __liveSettingsArp.settings.push_back(&arpPolyrythm);
         __liveSettingsArp.settings.push_back(&arpStepsA);
+        __liveSettingsArp.settings.push_back(&arpStepsAExt);
         __liveSettingsArp.settings.push_back(&arpStepsB);
+        __liveSettingsArp.settings.push_back(&arpStepsBExt);
 
         orderedKeys.reserve(30);
         retriggerKeys.reserve(10);
@@ -120,8 +122,11 @@ class Arpeggiator {
     Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, false, binary, &arpRatchedNameList);
     Setting arpPolyrythm = Setting("POLYRYTHM", 0, 0, 1, false, binary, &offOnNameList);
 
-    Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList);
-    Setting arpStepsB = Setting("STEPB", 9, 0, 22, false, binary, &arpStepNameList);
+    Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList, true, true);
+    Setting arpStepsB = Setting("STEPB", 9, 0, 22, false, binary, &arpStepNameList, true, true);
+
+    Setting arpStepsAExt = Setting("EXT. DIV A", 0, 0, 4, false, binary, &arpEXTDivNameList, true, false);
+    Setting arpStepsBExt = Setting("EXT. DIV B", 0, 0, 4, false, binary, &arpEXTDivNameList, true, false);
 
     Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
 
@@ -133,6 +138,8 @@ class Arpeggiator {
     const std::vector<const char *> arpStepNameList = {
         "1/64T", "1/32T", "1/32", "1/16T", "1/16", "1/8T", "1/16.", "1/8", "1/4T", "1/8.", "1/4", "1/2T",
         "1/4.",  "1/2",   "1/1T", "1/2.",  "1/1",  "2/1T", "1/1.",  "2/1", "4/1T", "2/1.", "4/1"};
+
+    const std::vector<const char *> arpEXTDivNameList = {"/1", "/2", "4", "/8", "/16"};
 
     const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
                                                        "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",

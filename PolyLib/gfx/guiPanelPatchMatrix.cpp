@@ -152,6 +152,20 @@ void GUIPanelPatchMatrix::collectOutputs() {
 }
 
 void GUIPanelPatchMatrix::activate() {
+    // find correc view
+    ModuleType type = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->moduleType;
+
+    if (currentFocus.type == FOCUSOUTPUT) {
+        if ((type == MODULE_ADSR) | (type == MODULE_LFO) | (type == MODULE_FEEL)) {
+            setEnvView();
+        }
+        else if ((type == MODULE_OSC_A) | (type == MODULE_OSC_B) | (type == MODULE_SUB) | (type == MODULE_NOISE)) {
+            setAudioView();
+        }
+        else if (type == MODULE_MIDI) {
+            setMidiView();
+        }
+    }
 
     collectModules();
 
@@ -231,7 +245,8 @@ void GUIPanelPatchMatrix::Draw() {
         }
         currentFocus.type = FOCUSINPUT;
 
-        // println("modul :", currentFocus.modul, "  type :", currentFocus.type, "  id :", currentFocus.id);
+        // println("modul :", currentFocus.modul, "  type :", currentFocus.type, "  id :",
+        // currentFocus.id);
     }
 
     registerElements();

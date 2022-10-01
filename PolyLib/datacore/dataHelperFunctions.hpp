@@ -200,6 +200,7 @@ class elapsedMillis {
     elapsedMillis(void) { ms = millis(); }
     elapsedMillis(uint32_t val) { ms = millis() - val; }
     elapsedMillis(const elapsedMillis &orig) { ms = orig.ms; }
+
     operator uint32_t() const { return millis() - ms; }
     elapsedMillis &operator=(const elapsedMillis &rhs) {
         ms = rhs.ms;

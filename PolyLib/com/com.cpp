@@ -105,6 +105,9 @@ uint8_t COMdin::push(uint8_t data) {
 
 #ifdef POLYCONTROL
 // Patch functions
+
+SendMode layerSendMode = SINGLELAYER;
+
 uint8_t COMinterChip::sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount) {
     uint8_t comCommand[CREATEINOUTPATCHCMDSIZE];
 
@@ -114,8 +117,17 @@ uint8_t COMinterChip::sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, ui
     comCommand[3] = inputId;
     *(float *)(&comCommand[4]) = amount;
 
-    pushOutBuffer(comCommand, CREATEINOUTPATCHCMDSIZE);
-    // pushOutBufferChipB(comCommand, CREATEINOUTPATCHCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, CREATEINOUTPATCHCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, CREATEINOUTPATCHCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, CREATEINOUTPATCHCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -128,8 +140,17 @@ uint8_t COMinterChip::sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, ui
     comCommand[3] = inputId;
     *(float *)(&comCommand[4]) = amount;
 
-    pushOutBuffer(comCommand, UPDATEINOUTPATCHCMDSIZE);
-    // pushOutBufferChipB(comCommand, UPDATEINOUTPATCHCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, UPDATEINOUTPATCHCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, UPDATEINOUTPATCHCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, UPDATEINOUTPATCHCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -141,8 +162,17 @@ uint8_t COMinterChip::sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, ui
     comCommand[2] = outputId;
     comCommand[3] = inputId;
 
-    pushOutBuffer(comCommand, DELETEPATCHCMDSIZE);
-    // pushOutBufferChipB(comCommand, DELETEPATCHCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, DELETEPATCHCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, DELETEPATCHCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, DELETEPATCHCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -152,8 +182,17 @@ uint8_t COMinterChip::sendDeleteAllPatches(uint8_t layerId) {
     comCommand[0] = DELETEALLPATCHES;
     comCommand[1] = layerId << 7;
 
-    pushOutBuffer(comCommand, DELETEALLPATCHESCMDSIZE);
-    // pushOutBufferChipB(comCommand[0]);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, DELETEALLPATCHESCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, DELETEALLPATCHESCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, DELETEALLPATCHESCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -250,8 +289,17 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
     comCommand[0] = RESETALL;
     comCommand[1] = layerId << 7;
 
-    pushOutBuffer(comCommand, RESETALLCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
 
+        pushOutBuffer(comCommand, RESETALLCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, RESETALLCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, RESETALLCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -280,7 +328,18 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
     comCommand[3] = settingID;
     *(int32_t *)(&comCommand[4]) = amount;
 
-    pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, SETTINGCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, SETTINGCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -292,7 +351,17 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
     comCommand[3] = settingID;
     *(float *)(&comCommand[4]) = amount;
 
-    pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    if (layerSendMode == SINGLELAYER) {
+
+        pushOutBuffer(comCommand, SETTINGCMDSIZE);
+    }
+    else if (layerSendMode == DUALLAYER) {
+        if (layerId == 0) { // send same setting to both layer
+            pushOutBuffer(comCommand, SETTINGCMDSIZE);
+            comCommand[1] = 1 << 7;
+            pushOutBuffer(comCommand, SETTINGCMDSIZE);
+        }
+    }
     return 0;
 }
 
@@ -450,6 +519,8 @@ busState COMinterChip::beginReceiveTransmission() {
 busState COMinterChip::beginSendTransmission() {
 
 #ifdef POLYCONTROL
+    static bool ErrorMessageSend = false; // block spamming
+
     // don't send buffer if there is nothing except the size
     if (dmaOutCurrentBufferSize[currentOutBufferSelect] < 3) {
         return BUS_OK;
@@ -481,8 +552,15 @@ busState COMinterChip::beginSendTransmission() {
         ((!(HAL_GPIO_ReadPin(SPI_READY_LAYER_2A_GPIO_Port, SPI_READY_LAYER_2A_Pin) &&
             HAL_GPIO_ReadPin(SPI_READY_LAYER_2B_GPIO_Port, SPI_READY_LAYER_2B_Pin))) &&
          layerB.layerState.value)) {
-        println("blocked send");
+        if (ErrorMessageSend == false) {
+            println("INFO || COM: blocked send...");
+            ErrorMessageSend = true;
+        }
         return BUS_BUSY;
+    }
+    else if (ErrorMessageSend == true) {
+        ErrorMessageSend = false; // clear
+        println("INFO || COM: ... error cleared");
     }
 #endif
 
@@ -572,6 +650,10 @@ inline void readLayerVoice(uint8_t &layerID, uint8_t &voice, const uint8_t curre
 uint8_t COMinterChip::decodeCurrentInBuffer() {
 
     state = COM_DECODE;
+
+#ifdef POLYRENDER
+    static bool ErrorMessageSend = false; // block spamming
+#endif
 
     switchInBuffer();
 
@@ -783,7 +865,15 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 if (layerID == layerA.id && chip == layerA.chipID) {
 
                     if (FlagHandler::outputReady == false) {
-                        sendString("out not collected");
+
+                        if (ErrorMessageSend == false) {
+                            sendString("COM: out not collected...");
+                            ErrorMessageSend = true;
+                        }
+                    }
+                    else if (ErrorMessageSend == true) {
+                        sendString("COM: ...error cleared");
+                        ErrorMessageSend = false;
                     }
 
                     if (beginSendTransmission() != BUS_OK)
@@ -817,8 +907,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     messagebuffer += (char)(dmaInBufferPointer[currentInBufferSelect])[++i];
                 }
 
-                print("layer ", receiveLayer);
-                print(", chip ", receiveChip, ": ");
+                print("INFO | ID ", receiveLayer, receiveChip, ": ");
                 println(messagebuffer);
 
                 break;

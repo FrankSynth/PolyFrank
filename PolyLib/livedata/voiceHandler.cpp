@@ -17,6 +17,8 @@ void VoiceHandler::playNote(const Key &key) {
             case 1: numberVoices = 2; break;
             case 2: numberVoices = 4; break;
             case 3: numberVoices = 8; break;
+            case 4: numberVoices = 16; break;
+
             default: break;
         }
     }
@@ -27,11 +29,14 @@ void VoiceHandler::playNote(const Key &key) {
             case 1: numberVoices = 2; break;
             case 2: numberVoices = 4; break;
             case 3: numberVoices = 8; break;
+
             default: break;
         }
     }
 
     if (livemodeMergeLayer.value == 1) {
+        if (key.layerID == 1) // skip data from layer 1
+            return;
         getNextVoicesAB(numberVoices);
     }
     else { // normal mode, each layer sperate
@@ -58,15 +63,30 @@ void VoiceHandler::playNote(const Key &key) {
 }
 
 void VoiceHandler::freeNote(const Key &key) {
+    foundVoices.clear();
 
-    findVoices(key.note, voices[key.layerID]);
+    if (livemodeMergeLayer.value == 1) {
 
-    for (voiceStateStruct *v : foundVoices) {
-        if (sustain[key.layerID]) {
-            v->status = SUSTAIN;
+        findVoices(key.note, voices[0]);
+        findVoices(key.note, voices[1]);
+        for (voiceStateStruct *v : foundVoices) {
+            if (sustain[0]) {
+                v->status = SUSTAIN;
+            }
+            else {
+                sendGateOff(v);
+            }
         }
-        else {
-            sendGateOff(v);
+    }
+    else {
+        findVoices(key.note, voices[key.layerID]);
+        for (voiceStateStruct *v : foundVoices) {
+            if (sustain[key.layerID]) {
+                v->status = SUSTAIN;
+            }
+            else {
+                sendGateOff(v);
+            }
         }
     }
 }
@@ -136,7 +156,6 @@ void VoiceHandler::sustainOn(uint8_t layer) {
 }
 
 void VoiceHandler::findVoices(uint8_t note, voiceStateStruct *voices) {
-    foundVoices.clear();
 
     for (uint8_t i = 0; i < NUMBERVOICES; i++) {
         if (voices[i].note == note && voices[i].status == PLAY) {
@@ -201,7 +220,9 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
         PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for too many voices?");
         return;
     }
-
+    if ((voiceLayer[oldestVoiceID].status == PLAY) || (voiceLayer[oldestVoiceID].status == SUSTAIN)) {
+        sendGateOff(&(voiceLayer[oldestVoiceID])); // send gate off to restart GATES
+    }
     voiceLayer[oldestVoiceID].status = SELECT;
     foundVoices.push_back(&voiceLayer[oldestVoiceID]);
 }
@@ -215,7 +236,12 @@ void VoiceHandler::searchNextVoiceAB() {
         if (allLayers[i]->layerState.value == 1) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
-                    if (voices[i][x].playID < nextVoice->playID) {
+                    if (nextVoice != nullptr) {
+                        if (voices[i][x].playID < nextVoice->playID) {
+                            nextVoice = &voices[i][x];
+                        }
+                    }
+                    else {
                         nextVoice = &voices[i][x];
                     }
                 }
@@ -230,8 +256,13 @@ void VoiceHandler::searchNextVoiceAB() {
             if (allLayers[i]->layerState.value == 1) { // check layerState
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
-                    if (voices[i][x].status == SELECT) { // not already selected
-                        if (voices[i][x].playID < nextVoice->playID) {
+                    if (voices[i][x].status != SELECT) { // not already selected
+                        if (nextVoice != nullptr) {
+                            if (voices[i][x].playID < nextVoice->playID) {
+                                nextVoice = &voices[i][x];
+                            }
+                        }
+                        else {
                             nextVoice = &voices[i][x];
                         }
                     }
@@ -240,10 +271,13 @@ void VoiceHandler::searchNextVoiceAB() {
         }
     }
     if (nextVoice == nullptr) {
-        PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for to many voices?");
+        PolyError_Handler("ERROR | LOGIC | VoiceHandler AB -> call for too many voices?");
         return;
     }
 
+    if ((nextVoice->status == PLAY) || (nextVoice->status == SUSTAIN)) {
+        sendGateOff(nextVoice); // send gate off to restart GATES
+    }
     nextVoice->status = SELECT;
     foundVoices.push_back(nextVoice);
 }

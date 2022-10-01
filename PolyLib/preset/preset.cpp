@@ -61,6 +61,7 @@ void updatePresetList() {
     for (size_t i = 0; i < PRESET_NUMBERBLOCKS; i++) {
         if (presets[i].usageState == PRESET_FREE) {
             freePreset = &presets[i];
+            break;
         }
     }
     if (freePreset == nullptr)
@@ -88,6 +89,7 @@ std::vector<presetStruct> *getPresetList() {
 }
 
 void writePresetBlock(presetStruct *preset, std::string name) {
+    println("INFO || write preset: ", name, " ID: ", preset->storageID);
 
     if (preset == nullptr) {
         updatePresetList();
@@ -140,14 +142,18 @@ uint8_t *readConfig() {
     return blockBuffer;
 }
 
-void writeLiveDataBlock() {
-    eeprom.SPI_WriteBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
-}
+void clearEEPROM() { // CLEAR EEPROM WHEN CORRUPTED
 
-uint8_t *readLiveData() {
+    println("INFO | CLEAR EEPROM .... START");
 
-    eeprom.SPI_ReadBuffer(blockBuffer, LIVEDATA_STARTADDRESS, LIVEDATA_BLOCKSIZE);
+    uint8_t buffer[2048];
+    uint32_t data = 0x00;
 
-    return blockBuffer;
+    fastMemset((uint32_t *)buffer, &data, 2048 / 4);
+
+    for (uint32_t i = 0; i < EEPROM_SIZE / 2048; i++) {
+        eeprom.SPI_WriteBuffer(buffer, 2048 * i, 2048);
+    }
+    println("   ... DONE");
 }
 #endif
