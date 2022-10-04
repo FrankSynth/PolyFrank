@@ -275,28 +275,28 @@ void MidiInterface<Transport, Settings, Platform>::sendControlChange(DataByte in
  default value for ArrayContainsBoundaries is set to 'false' for compatibility
  with previous versions of the library.
  */
-// template <class Transport, class Settings, class Platform>
-// void MidiInterface<Transport, Settings, Platform>::sendSysEx(unsigned inLength, const byte *inArray, bool
-// inArrayContainsBoundaries) {
-//     const bool writeBeginEndBytes = !inArrayContainsBoundaries;
+template <class Transport, class Settings, class Platform>
+void MidiInterface<Transport, Settings, Platform>::sendSysEx(unsigned inLength, const byte *inArray,
+                                                             bool inArrayContainsBoundaries) {
+    const bool writeBeginEndBytes = !inArrayContainsBoundaries;
 
-//     if (mTransport.beginTransmission(MidiType::SystemExclusiveStart)) {
-//         if (writeBeginEndBytes)
-//             mTransport.write(MidiType::SystemExclusiveStart);
+    if (mTransport.beginTransmission(MidiType::SystemExclusiveStart)) {
+        if (writeBeginEndBytes)
+            mTransport.write(MidiType::SystemExclusiveStart);
 
-//         for (unsigned i = 0; i < inLength; ++i)
-//             mTransport.write(inArray[i]);
+        for (unsigned i = 0; i < inLength; ++i)
+            mTransport.write(inArray[i]);
 
-//         if (writeBeginEndBytes)
-//             mTransport.write(MidiType::SystemExclusiveEnd);
+        if (writeBeginEndBytes)
+            mTransport.write(MidiType::SystemExclusiveEnd);
 
-//         mTransport.endTransmission();
-//         UpdateLastSentTime();
-//     }
+        mTransport.endTransmission();
+        UpdateLastSentTime();
+    }
 
-//     if (Settings::UseRunningStatus)
-//         mRunningStatus_TX = InvalidType;
-// }
+    if (Settings::UseRunningStatus)
+        mRunningStatus_TX = InvalidType;
+}
 
 /*! \brief Send a Tune Request message.
 

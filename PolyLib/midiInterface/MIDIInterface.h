@@ -83,7 +83,7 @@ template <class Transport, class _Settings = DefaultSettings, class _Platform = 
     // inline void sendAfterTouch(DataByte inPressure, Channel inChannel);
     // inline void sendAfterTouch(DataByte inNoteNumber, DataByte inPressure, Channel inChannel);
 
-    // inline void sendSysEx(unsigned inLength, const byte *inArray, bool inArrayContainsBoundaries = false);
+    inline void sendSysEx(unsigned inLength, const byte *inArray, bool inArrayContainsBoundaries = false);
 
     // inline void sendTimeCodeQuarterFrame(DataByte inTypeNibble, DataByte inValuesNibble);
     // inline void sendTimeCodeQuarterFrame(DataByte inData);
