@@ -6,6 +6,7 @@ LogCurve antiLogMapping(64, 0.9);
 
 void Setting::setValue(int32_t newValue) {
     value = std::clamp(newValue, min, max);
+    presetLock = 0;
 
     if (valueChangedCallback != nullptr)
         valueChangedCallback();
@@ -61,6 +62,10 @@ void Analog::setValue(int32_t newValue) {
 #endif
 }
 
+// function for inversed fader
+void Analog::setValueInversePoti(int32_t newValue) {
+    setValue(4096 - newValue);
+}
 int32_t Analog::reverseMapping(float newValue) {
 
     newValue = std::clamp(newValue, min, max);
@@ -113,6 +118,21 @@ const std::string &Digital::getValueAsString() {
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
     valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
+
+    if (valueChangedCallback != nullptr)
+        valueChangedCallback();
+
+#ifdef POLYCONTROL
+    valueName = std::to_string(valueMapped);
+    if (sendOutViaCom) {
+        sendSetting(layerId, moduleId, id, valueMapped);
+    }
+#endif
+}
+
+void Digital::setValueRange(int32_t newValue, int32_t inputMin, int32_t inputMax) {
+    this->value = newValue;
+    valueMapped = std::round(fast_lerp_f32(min, max, (float)(newValue - inputMin) / (float)(inputMax - inputMin)));
 
     if (valueChangedCallback != nullptr)
         valueChangedCallback();

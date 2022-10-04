@@ -20,11 +20,10 @@ TARGET = PolyRender
 # building variables
 ######################################
 # debug build?
-DEBUG = 0
+DEBUG = 1
 DISASSEMBLY = 0
 # optimization
 OPT = -Ofast
-
 
 #######################################
 # paths
@@ -60,7 +59,9 @@ PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sai_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c \
-PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c \
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c \
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c
 
 C_SOURCES += $(wildcard PolyRender/Core/**/*.c)
 C_SOURCES += $(wildcard PolyLib/**/*.c)

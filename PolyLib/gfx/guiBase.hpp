@@ -11,25 +11,25 @@ extern uint32_t cSelect;
 extern uint32_t cDeselect;
 extern uint32_t cFont_Select;
 extern uint32_t cFont_Deselect;
-extern uint32_t cClear;
-extern uint32_t cBlack;
-extern uint32_t cGrey;
-
-extern uint32_t cGreyLight2;
-extern uint32_t cGreyLight;
-extern uint32_t cGreyDark;
 
 extern uint32_t cWhite;
 extern uint32_t cWhiteLight;
-extern uint32_t cWhiteMedium;
+extern uint32_t cWhiteDark;
+
+extern uint32_t cGreyLight;
+extern uint32_t cGrey;
+extern uint32_t cGreyDark;
+
+extern uint32_t cBlack;
+
 extern uint32_t cHighlight;
-extern uint32_t cWhiteBright;
-
-extern uint32_t cHigh;
-extern uint32_t cLow;
-
-extern uint32_t cPatch;
 extern uint32_t cWarning;
+
+extern uint32_t cLayerA;
+extern uint32_t cLayerB;
+extern uint32_t cLayer;
+
+extern uint32_t cBackground;
 
 extern uint16_t c4444dot;
 extern uint16_t c4444wavecolor;
@@ -37,15 +37,14 @@ extern uint16_t c4444wavecolorTrans;
 
 extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
-
 // responsive sizes
-#define HEADERHEIGHT 36
-#define FOOTERHEIGHT 44
+#define HEADERHEIGHT 34
+#define FOOTERHEIGHT 34
 #define FOCUSHEIGHT 30
-#define SPACER 8
+#define SPACER 2
 #define SCROLLBARWIDTH 4
 
-#define BOARDERWIDTH 30
+#define BOARDERWIDTH 25
 #define VOICEHEIGHT 100
 
 #define CENTERWIDTH LCDWIDTH - BOARDERWIDTH * 2
@@ -81,6 +80,11 @@ typedef struct {
 } location;
 
 typedef struct {
+    uint8_t layer = 0xff;
+    uint8_t modul = 0xff;
+} quickViewStruct;
+
+typedef struct {
 
     DATAELEMENTTYPE type;
     Analog *analog = nullptr;
@@ -100,15 +104,16 @@ typedef struct {
 
 } patchEntryStruct;
 
-uint16_t drawBoxWithText(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText, uint16_t x,
-                         uint16_t y, uint16_t heigth, uint16_t space, uint16_t champfer = 0,
+uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer = 0,
                          FONTALIGN alignment = CENTER);
 
-uint16_t drawBoxWithTextFixWidth(std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
-                                 uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t space,
-                                 uint16_t champfer, FONTALIGN alignment);
-void drawScrollBar(uint16_t x, uint16_t y, uint16_t width, uint16_t heigth, uint16_t scroll, uint16_t entrys,
-                   uint16_t viewable);
+uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
+                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
+                                 uint32_t space, uint32_t champfer, FONTALIGN alignment);
+
+void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
+                   uint32_t viewable);
 
 class GUIPanelBase {
   public:
@@ -129,11 +134,11 @@ class GUIPanelBase {
 
 class Scroller {
   public:
-    Scroller(uint16_t maxEntrysVisible = 0) { this->maxEntrysVisible = maxEntrysVisible; }
+    Scroller(uint32_t maxEntrysVisible = 0) { this->maxEntrysVisible = maxEntrysVisible; }
 
-    void scroll(int16_t change);
+    void scroll(int32_t change);
 
-    void setScroll(int16_t scrollPosition);
+    void setScroll(int32_t scrollPosition);
 
     void checkScroll() { scroll(0); }
     void resetScroll() {
@@ -142,11 +147,11 @@ class Scroller {
     };
 
     // TODO these give comparison warnings, can they ever be negative? Should be uint maybe
-    int16_t position = 0;
-    int16_t offset = 0;
-    uint16_t entrys = 0;
-    uint16_t maxEntrysVisible = 0;
-    int16_t relPosition = 0;
+    int32_t position = 0;
+    int32_t offset = 0;
+    uint32_t entrys = 0;
+    uint32_t maxEntrysVisible = 0;
+    int32_t relPosition = 0;
 };
 
 // PanelSelect
@@ -155,6 +160,8 @@ void nextLayer();
 void focusUp();
 void focusDown(location newFocus);
 void focusPatch(location focus);
+
+void setGUIColor(int32_t *colorSelection);
 
 void Todo();
 
@@ -165,3 +172,8 @@ extern uint8_t panelChanged;
 
 extern location currentFocus;
 extern location newFocus;
+
+extern quickViewStruct quickView;
+extern elapsedMillis quickViewTimer;
+
+extern uint32_t quickViewTimeout;

@@ -9,7 +9,7 @@
 #define LEDBRIGHTNESS_LOW 10
 #define LEDBRIGHTNESS_MEDIUM 50
 #define LEDBRIGHTNESS_MAX 255
-#define NUMBERENCODERS 5
+#define NUMBERENCODERS 6
 
 typedef enum {
     TOUCH_IO_PIN_0,
@@ -36,14 +36,14 @@ void processControlTouch();
 void processPanelTouch(uint8_t layerID);
 
 void potiMapping();
-void processPanelPotis();
+void processPanelPotis(uint32_t *adcData, uint32_t layer);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
 void renderLED();
 
 void patchLEDMappingInit();
 void switchLEDMapping();
-void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint32_t brigthness);
+void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint8_t brigthness);
 void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness);
 
 void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);

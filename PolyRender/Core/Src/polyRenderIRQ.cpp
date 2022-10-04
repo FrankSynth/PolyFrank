@@ -9,125 +9,57 @@ extern devManager deviceManager;
 extern volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 extern volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 
+extern volatile float interchipLFOBuffer[2];
+
 // CV DACS
-extern volatile uint16_t cvDacDMABuffer[ALLDACS][4];
 
 extern int8_t audioSendBuffer[UPDATEAUDIOBUFFERSIZE - 1];
 
-extern COMinterChip layerCom;
+extern DUALBU22210 cvDac[2];
 
-extern MCP4728 cvDac[];
+extern COMinterChip layerCom;
 
 // AUDIO DAC
 extern volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS];
 extern PCM1690 audioDacA;
 
 void polyRenderLoop() {
+
+    elapsedMillis timerWFI;
+    bool enableWFI = false;
+
     while (true) {
+
         HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_RESET);
         FlagHandler::handleFlags();
+
+        if (enableWFI) {
+            __disable_irq();
+            __DSB();
+            __WFI();
+            __enable_irq();
+        }
+        else {
+            if (timerWFI > 60000)
+                enableWFI = true;
+        }
     }
 }
 
-void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    huart->Instance->ICR = 0b1100;
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    huart->Instance->CR3 &= ~USART_CR3_DMAT; // clear dma register
+}
 
-    if (hi2c->Instance == hi2c1.Instance) {
+void HAL_UART_ReceiveRTOCallback(UART_HandleTypeDef *huart) {
 
-        if (FlagHandler::cvDacStarted[0]) {
-            // microsecondsDelay(rand);
+    // uint32_t *address = (uint32_t *)huart->hdmarx->StreamBaseAddress + 0x1c + 0x18 * 1;
 
-            cvDac[1].setLatchPin();
-            FlagHandler::cvDacStarted[0] = false;
-            FlagHandler::cvDacFinished[0] = true;
-
-            FlagHandler::cvDacStarted[1] = true;
-            cvDac[1].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[1]) {
-            // microsecondsDelay(rand);
-
-            cvDac[2].setLatchPin();
-            FlagHandler::cvDacStarted[1] = false;
-            FlagHandler::cvDacFinished[1] = true;
-
-            FlagHandler::cvDacStarted[2] = true;
-            cvDac[2].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[2]) {
-            cvDac[3].setLatchPin();
-            FlagHandler::cvDacStarted[2] = false;
-            FlagHandler::cvDacFinished[2] = true;
-
-            FlagHandler::cvDacStarted[3] = true;
-            cvDac[3].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[3]) {
-            FlagHandler::cvDacFinished[3] = true;
-
-            FlagHandler::cvDacLastFinished[0] = true;
-        }
-    }
-
-    else if (hi2c->Instance == hi2c2.Instance) {
-        if (FlagHandler::cvDacStarted[4]) {
-            cvDac[5].setLatchPin();
-            FlagHandler::cvDacStarted[4] = false;
-            FlagHandler::cvDacFinished[4] = true;
-
-            FlagHandler::cvDacStarted[5] = true;
-            cvDac[5].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[5]) {
-            cvDac[6].setLatchPin();
-            FlagHandler::cvDacStarted[5] = false;
-            FlagHandler::cvDacFinished[5] = true;
-
-            FlagHandler::cvDacStarted[6] = true;
-            cvDac[6].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[6]) {
-            FlagHandler::cvDacLastFinished[1] = true;
-        }
-    }
-    else if (hi2c->Instance == hi2c3.Instance) {
-
-        if (FlagHandler::cvDacStarted[7]) {
-
-            cvDac[8].setLatchPin();
-            FlagHandler::cvDacStarted[7] = false;
-            FlagHandler::cvDacFinished[7] = true;
-
-            FlagHandler::cvDacStarted[8] = true;
-            cvDac[8].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[8]) {
-            // microsecondsDelay(rand);
-
-            cvDac[9].setLatchPin();
-            FlagHandler::cvDacStarted[8] = false;
-            FlagHandler::cvDacFinished[8] = true;
-
-            FlagHandler::cvDacStarted[9] = true;
-            cvDac[9].fastUpdate();
-        }
-        else if (FlagHandler::cvDacStarted[9]) {
-            FlagHandler::cvDacFinished[9] = true;
-
-            FlagHandler::cvDacLastFinished[2] = true;
-        }
-    }
-
-    if (FlagHandler::cvDacFinished[0] && FlagHandler::cvDacFinished[4] && FlagHandler::cvDacFinished[7])
-        cvDac[0].resetLatchPin();
-
-    if (FlagHandler::cvDacFinished[1] && FlagHandler::cvDacFinished[5] && FlagHandler::cvDacFinished[8])
-        cvDac[1].resetLatchPin();
-
-    if (FlagHandler::cvDacFinished[2] && FlagHandler::cvDacFinished[6] && FlagHandler::cvDacFinished[9])
-        cvDac[2].resetLatchPin();
-
-    if (FlagHandler::cvDacFinished[3])
-        cvDac[3].resetLatchPin();
+    // if (*address != 0) {
+    //     sendString("ERROR | UART NOT IN SYNC!");
+    // }
 }
 
 elapsedMicros audiorendertimer = 0;
@@ -139,7 +71,7 @@ uint32_t cvrendercache = 0;
 
 // Audio Render Callbacks
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiorendertimer = 0;
     renderAudio(&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
 
@@ -148,18 +80,18 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai) {
 }
 
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
     audiorendertimer = 0;
     renderAudio(saiBuffer);
 
-    audiorendercache += audiorendertimer;
-    audiorendercounter++;
+    // audiorendercache += audiorendertimer;
+    // audiorendercounter++;
 
-    if (audiorendercounter > 10000) {
-        println(std::to_string((float)audiorendercache / (float)audiorendercounter));
-        audiorendercounter = 0;
-        audiorendercache = 0;
-    }
+    // if (audiorendercounter > 10000) {
+    //     println(std::to_string((float)audiorendercache / (float)audiorendercounter));
+    //     audiorendercounter = 0;
+    //     audiorendercache = 0;
+    // }
 }
 
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
@@ -168,18 +100,18 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai) {
 
 // reception line callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-    HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
-    if (pin == SPI_CS_fromControl_Pin) {
+    if (pin == SPI_CS_SOFT_Pin) {
+        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
 
         if (layerCom.spi->state == BUS_SEND) {
-            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(SPI_READY_GPIO_Port, SPI_READY_Pin, GPIO_PIN_RESET);
             layerCom.spi->callTxComplete();
         }
 
         if (layerCom.spi->state == BUS_RECEIVE) {
             // disable reception line
-            HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(SPI_READY_GPIO_Port, SPI_READY_Pin, GPIO_PIN_RESET);
             layerCom.spi->stopDMA();
             layerCom.spi->callRxComplete();
             layerCom.decodeCurrentInBuffer();
@@ -194,53 +126,46 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         EXTI->PR1 |= 0x01;
         cvrendertimer = 0;
         renderCVs();
-        cvrendercache += cvrendertimer;
-        cvrendercounter++;
 
-        if (cvrendercounter > 10000) {
-            sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
-            cvrendercounter = 0;
-            cvrendercache = 0;
-        }
+        // start uart
+        huart1.Instance->CR3 |= USART_CR3_DMAT; // set dma register
+
+        // cvrendercache += cvrendertimer;
+        // cvrendercounter++;
+
+        // if (cvrendercounter > 10000) {
+        //     sendString(std::to_string((float)cvrendercache / (float)cvrendercounter));
+        //     cvrendercounter = 0;
+        //     cvrendercache = 0;
+        // }
+
         FlagHandler::renderNewCV = false;
     }
 }
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {}
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+    // if (hspi == &hspi1) {
+    //     cvDac[0].busInterface->callTxComplete();
+    // }
+    // if (hspi == &hspi2) {
+    //     cvDac[1].busInterface->callTxComplete();
+    // }
+}
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
     PolyError_Handler("ERROR | FATAL | SPI Error");
 }
 
 void sendDACs() {
-    FlagHandler::cvDacLastFinished[0] = false;
-    FlagHandler::cvDacLastFinished[1] = false;
-    FlagHandler::cvDacLastFinished[2] = false;
-
-    for (int i = 0; i < 10; i++)
-        FlagHandler::cvDacFinished[0] = false;
-
-    // just those 4 will set all as they are shared
-    cvDac[0].setLatchPin();
-
-    // out DacB and DacC gets automatially triggered by flags when transmission is done
-    FlagHandler::cvDacStarted[0] = true;
-    cvDac[0].fastUpdate();
-    FlagHandler::cvDacStarted[4] = true;
-    cvDac[4].fastUpdate();
-    FlagHandler::cvDacStarted[7] = true;
-    cvDac[7].fastUpdate();
+    cvDac[0].send();
+    cvDac[1].send();
 }
 
 // cv rendering timer IRQ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
     if (htim == &htim15) {
-        HAL_GPIO_WritePin(STATUS_LED_GPIO_Port, STATUS_LED_Pin, GPIO_PIN_SET);
-        if (FlagHandler::cvDacLastFinished[2] == false) {
-            PolyError_Handler("polyRender | timerCallback | cvDacLastFinished[3] false");
-            println("CV send not done");
-        }
+        sendDACs();
 
         if (FlagHandler::renderNewCV == true) {
             println("CV rendering not done");
@@ -248,8 +173,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         FlagHandler::renderNewCV = true;
 
         EXTI->SWIER1 |= 0x01;
-
-        sendDACs();
     }
 }
 

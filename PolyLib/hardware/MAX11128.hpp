@@ -7,11 +7,15 @@
 
 class MAX11128 : public baseDevice {
   public:
-    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin) {
+    void configurate(spiBus *busInterface, uint8_t nChannels, GPIO_TypeDef *gpioPort, uint16_t gpioPin,
+                     uint32_t *command, uint32_t *adcData) {
         this->busInterface = busInterface;
         this->gpioPin = gpioPin;
         this->gpioPort = gpioPort;
         this->nChannels = nChannels;
+
+        this->command = command;
+        this->adcData = adcData;
 
         setup();
 
@@ -26,7 +30,7 @@ class MAX11128 : public baseDevice {
         uint16_t crConfigRegAdr = 0b10000 << 11;
         uint16_t crRefSel = 0b0 << 10;
         uint16_t crAvgOn = 0b1 << 9;      // enable avg
-        uint16_t crAvgAmount = 0b11 << 7; // avg  32 times
+        uint16_t crAvgAmount = 0b11 << 7; // avg  32 samples   -> 1Mhz / 12 ch. / 32 avg.
         uint16_t crAvgScans = 0b00 << 3;  // not used, only for repeat mode
         uint16_t crEcho = 0b0 << 2;       // echo commands
 
@@ -49,7 +53,7 @@ class MAX11128 : public baseDevice {
         command[nChannels - 1] = standardSampleCommand;
 
         uint32_t resetCommand = ((uint32_t)0x840) << 1; // reset command
-
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         // Reset the ADC for a clean start!
         // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&resetCommand, 1);
@@ -68,14 +72,14 @@ class MAX11128 : public baseDevice {
         // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_RESET);
         busInterface->transmit((uint8_t *)&standardSampleCommand, 1);
         // HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
+
+        HAL_GPIO_WritePin(gpioPort, gpioPin, GPIO_PIN_SET);
     }
 
     void fetchNewData();
 
-    uint32_t command[16];
-    uint32_t data[16];
-
-    uint32_t adcData[16];
+    uint32_t *command;
+    uint32_t *adcData;
 
   private:
     spiBus *busInterface;

@@ -33,19 +33,37 @@ class PCM1690 {
         // }
 
         // cs spi 4
-        HAL_Delay(10);
+        // HAL_Delay(10);
         // disable sleep
 
-        config[0] = 0x41;
-        config[1] = 0b00001000; // mode
-
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+        // reset pcm
+        config[0] = 0x40;
+        config[1] = 0b01000000; // mode
 
         if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
             PolyError_Handler("ERROR | FATAL | PCM 1690 transmit");
         }
+        HAL_Delay(10);
+        config[0] = 0x40;
+        config[1] = 0b10000000; // mode
 
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
+        if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | FATAL | PCM 1690 transmit");
+        }
+        HAL_Delay(10);
+
+        config[0] = 0x41;
+        config[1] = 0b00001000; // mode
+
+        // HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+        // HAL_Delay(10);
+
+        if (HAL_SPI_Transmit(spi, config, 2, 50) != HAL_OK) {
+            PolyError_Handler("ERROR | FATAL | PCM 1690 transmit");
+        }
+        // HAL_Delay(10);
+
+        // HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
 
         // HAL_Delay(10);
 

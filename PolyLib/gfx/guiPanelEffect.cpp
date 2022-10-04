@@ -4,11 +4,11 @@
 
 void GUIPanelEffect::registerElements() {
 
-    uint16_t entryIndex = 0;
+    uint32_t entryIndex = 0;
 
-    for (uint16_t elementIndex = 0; elementIndex < LIVEPANELENTRYS; elementIndex++) {
+    for (uint32_t elementIndex = 0; elementIndex < LIVEPANELENTRYS; elementIndex++) {
 
-        for (int x = 0; x < EntrysPerElement; x++) { // start new Element
+        for (uint32_t x = 0; x < EntrysPerElement; x++) { // start new Element
 
             if (entryIndex < entrys.size()) { // no more entry available
                 effectPanelElements[elementIndex].addEntry(entrys[entryIndex]);
@@ -83,6 +83,10 @@ void GUIPanelEffect::registerOverviewEntrys() {
     overviewPanelElements[2].addEntry(nullptr);
     overviewPanelElements[2].addEntry(nullptr);
 
+    overviewPanelElements[0].addEffectAmt(&allLayers[currentFocus.layer]->oscA.aEffect);
+    overviewPanelElements[1].addEffectAmt(&allLayers[currentFocus.layer]->oscB.aEffect);
+    overviewPanelElements[2].addEffectAmt(&allLayers[currentFocus.layer]->noise.aSamplecrusher);
+
     scroll.entrys = 3;
     scroll.checkScroll();
 
@@ -90,28 +94,51 @@ void GUIPanelEffect::registerOverviewEntrys() {
 }
 
 void GUIPanelEffect::selectModule(moduleSelect module) {
-    if (module == moduleType) {
+    newModuleType = module;
+    updateModule = true;
+}
+
+void GUIPanelEffect::selectEffect(effectSelect effect) {
+    newEffectType = effect;
+    updateEffect = true;
+}
+
+void GUIPanelEffect::updateModuleSelection() {
+
+    if (newModuleType == moduleType) {
         overview = true;
         moduleSelected[moduleType] = 0;
         moduleType = NOMODULE;
         return;
     }
     overview = false;
-    if (module == NOISE) {
+    if (newModuleType == NOISE) {
         selectEffect(CRUSH);
     }
     moduleSelected[moduleType] = 0;
-    moduleType = module;
+    moduleType = newModuleType;
     moduleSelected[moduleType] = 1;
+
+    updateEffectSelection();
 }
 
-void GUIPanelEffect::selectEffect(effectSelect effect) {
+void GUIPanelEffect::updateEffectSelection() {
     effectSelected[effectType] = 0;
-    effectType = effect;
+    effectType = newEffectType;
     effectSelected[effectType] = 1;
 }
 
 void GUIPanelEffect::Draw() {
+
+    if (updateModule) {
+        updateModuleSelection();
+        updateModule = false;
+    }
+    if (updateEffect) {
+        updateEffectSelection();
+        updateEffect = false;
+    }
+
     registerPanelSettings();
 
     if (overview) {
@@ -182,23 +209,23 @@ void GUIPanelEffect::Draw() {
 }
 
 void GUIPanelEffect::drawWaveShaperPanel(int8_t *renderedWave, Waveshaper *module) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 2, c4444wavecolorTrans);
+    // drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolorTrans);
     drawWaveshaper(waveBuffer, module);
-    drawFrame(c4444framecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawPhaseShaperPanel(int8_t *renderedWave, Phaseshaper *module) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 1, c4444wavecolorTrans);
+    // drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 1, c4444wavecolorTrans);
     drawPhaseshaper(waveBuffer, module);
-    drawFrame(c4444framecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawCrushPanel(int8_t *renderedWave) {
-    drawGrid(c4444gridcolor);
-    drawWave(renderedWave, 100, 2, c4444wavecolor);
-    drawFrame(c4444framecolor);
+    // drawGrid(waveBuffer, c4444gridcolor);
+    drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolor);
+    drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::registerPanelSettings() {
@@ -237,7 +264,7 @@ void GUIPanelEffect::registerPanelSettings() {
     }
 }
 
-void GUIPanelEffect::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, uint8_t pathVisible) {
+void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;

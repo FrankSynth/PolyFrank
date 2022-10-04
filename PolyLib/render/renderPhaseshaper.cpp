@@ -1,5 +1,5 @@
+#include "renderPhaseshaper.hpp"
 #include "math/polyMath.hpp"
-#include "renderWaveshaper.hpp"
 
 #ifdef POLYRENDER
 inline vec<VOICESPERCHIP> accumulateValue(const Input &input, const Analog &knob) {
@@ -12,7 +12,7 @@ inline vec<VOICESPERCHIP> accumulateX3(const Phaseshaper &phaseshaper) {
     return clamp(phaseshaper.iPoint3X + phaseshaper.aPoint3X, phaseshaper.aPoint2X, phaseshaper.aPoint3X.max);
 }
 
-void renderPhaseshaper(Phaseshaper &phaseshaper) {
+void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt) {
 
     phaseshaper.Point1Y = accumulateValue(phaseshaper.iPoint1Y, phaseshaper.aPoint1Y);
     phaseshaper.Point2X = accumulateX2(phaseshaper);
@@ -21,7 +21,8 @@ void renderPhaseshaper(Phaseshaper &phaseshaper) {
     phaseshaper.Point3Y = accumulateValue(phaseshaper.iPoint3Y, phaseshaper.aPoint3Y);
     phaseshaper.Point4Y = accumulateValue(phaseshaper.iPoint4Y, phaseshaper.aPoint4Y);
 
-    phaseshaper.DryWet = accumulateValue(phaseshaper.iDryWet, phaseshaper.aDryWet);
+    phaseshaper.DryWet = clamp((phaseshaper.iDryWet + phaseshaper.aDryWet) * effectAmt, phaseshaper.aDryWet.min,
+                               phaseshaper.aDryWet.max);
 }
 
 #endif

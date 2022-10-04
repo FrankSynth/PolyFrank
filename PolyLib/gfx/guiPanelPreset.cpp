@@ -2,7 +2,7 @@
 
 #include "guiPanelPreset.hpp"
 
-void GUIPanelPreset::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y, std::string name, uint8_t id,
+void GUIPanelPreset::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t id,
                           uint8_t pathVisible) {
     panelWidth = width;
     panelHeight = height;
@@ -14,7 +14,7 @@ void GUIPanelPreset::init(uint16_t width, uint16_t height, uint16_t x, uint16_t 
 
     // elements Sizes
     uint16_t elementWidth = width - SCROLLBARWIDTH - 2;
-    uint16_t elementSpace = 3;
+    uint16_t elementSpace = 2;
     uint16_t elementHeight = (height - (maxEntrys - 2) * elementSpace) / PRESETPANELENTRYS;
     // init Elements
     for (int i = 0; i < maxEntrys; i++) {
@@ -46,43 +46,51 @@ void GUIPanelPreset::registerPanelSettings() {
         {std::bind(&Scroller::scroll, &(this->scrollThirdName), -1), ""}, {nullptr, "SCROLL"});
 
     actionHandler.registerActionLeft(
-        0, {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer], freePreset,
-                      firstName[scrollFirstName.position], secondName[scrollSecondName.position],
-                      thirdName[scrollThirdName.position]),
+        0, {std::bind(&GUIPanelPreset::saveLayerToPreset, this, freePreset, firstName[scrollFirstName.position],
+                      secondName[scrollSecondName.position], thirdName[scrollThirdName.position]),
             "NEW"});
 
-    actionHandler.registerActionRight(1);
-
     if (presetsSorted.size()) {
-        actionHandler.registerActionRight(0,
-                                          {std::bind(&Layer::loadLayerFromPreset, allLayers[currentFocus.layer],
-                                                     presetsSorted[scrollPreset.position]),
-                                           "LOAD"},
-                                          1);
+        actionHandler.registerActionRight(
+            0,
+            {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_AB),
+             "LOAD AB"},
+            1);
+
+        if (currentFocus.layer == 0) {
+            actionHandler.registerActionRight(
+                1,
+                {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_A),
+                 "LOAD A"},
+                1);
+        }
+        else if (currentFocus.layer == 1) {
+            actionHandler.registerActionRight(
+                1,
+                {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_B),
+                 "LOAD B"},
+                1);
+        }
+
         actionHandler.registerActionRight(2, {std::bind(&removePreset, presetsSorted[scrollPreset.position]), "REMOVE"},
                                           1);
 
         actionHandler.registerActionLeft(
             1,
-            {std::bind(&Layer::saveLayerToPreset, allLayers[currentFocus.layer], presetsSorted[scrollPreset.position],
+            {std::bind(&GUIPanelPreset::saveLayerToPreset, this, presetsSorted[scrollPreset.position],
                        firstName[scrollFirstName.position], secondName[scrollSecondName.position],
                        thirdName[scrollThirdName.position]),
              "SAVE"},
             1);
     }
     else {
-
         actionHandler.registerActionRight(0);
+        actionHandler.registerActionRight(1);
         actionHandler.registerActionRight(2);
         actionHandler.registerActionLeft(1);
     }
 
-    if (liveData.voiceHandler.livemodeMergeLayer.value == 0 && globalSettings.multiLayer.value == 1) {
-        actionHandler.registerActionLeft(2, {std::bind(nextLayer), "LAYER"});
-    }
-    else {
-        actionHandler.registerActionLeft(2);
-    }
+    actionHandler.registerActionLeft(2);
 }
 
 void GUIPanelPreset::updateEntrys() {
@@ -92,6 +100,33 @@ void GUIPanelPreset::updateEntrys() {
 
     // check Scroll position
     scrollPreset.checkScroll();
+}
+
+void GUIPanelPreset::saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName,
+                                       std::string thirdName) {
+
+    allLayers[0]->collectLayerConfiguration((int32_t *)blockBuffer, false);
+    allLayers[1]->collectLayerConfiguration((int32_t *)(blockBuffer + PRESET_SIZE), false);
+    liveData.collectLiveConfiguration((int32_t *)(blockBuffer + PRESET_SIZE + PRESET_SIZE));
+
+    writePresetBlock(preset, firstName + " " + secondName + " " + thirdName);
+}
+
+void GUIPanelPreset::loadPresetToLayer(presetStruct *preset, LayerSelect layer) {
+
+    readPreset(preset);
+
+    if (preset->usageState != PRESET_USED) {
+        return;
+    }
+
+    if (layer == LAYER_AB || layer == LAYER_A)
+        allLayers[0]->writeLayerConfiguration((int32_t *)blockBuffer, false);
+
+    if (layer == LAYER_AB || layer == LAYER_B)
+        allLayers[1]->writeLayerConfiguration((int32_t *)(blockBuffer + PRESET_SIZE), false);
+
+    liveData.writeLiveConfiguration((int32_t *)(blockBuffer + PRESET_SIZE + PRESET_SIZE), layer);
 }
 
 void GUIPanelPreset::registerElements() {

@@ -7,7 +7,7 @@
 extern devManager deviceManager;
 extern CircularBuffer<char, 1024> consoleBuffer;
 
-void GUIPanelString::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIPanelString::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -25,6 +25,18 @@ void GUIPanelString::registerPanelSettings() {
     actionHandler.registerActionLeft(0);
     actionHandler.registerActionLeft(1);
     actionHandler.registerActionLeft(2);
+
+    actionHandler.registerActionFooter(0);
+    actionHandler.registerActionFooter(1);
+    actionHandler.registerActionFooter(2);
+    actionHandler.registerActionFooter(3);
+
+    actionHandler.registerActionEncoder(0);
+    actionHandler.registerActionEncoder(1);
+    actionHandler.registerActionEncoder(2);
+    actionHandler.registerActionEncoder(3);
+    actionHandler.registerActionEncoder(4);
+    actionHandler.registerActionEncoder(5);
 }
 void GUIPanelString::Draw() {
 

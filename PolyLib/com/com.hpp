@@ -139,6 +139,12 @@ class COMusb {
         return dataByte;
     };
 
+    void clear() {
+        rBuffer.clear();
+        // wBuffer[0].clear();
+        // wBuffer[1].clear();
+    }
+
     midiEventPacket_t readPacket() {
 
         midiEventPacket_t data;
@@ -240,6 +246,12 @@ class COMdin {
     // push single byte in Input Buffer
     uint8_t push(uint8_t data);
 
+    void clear() {
+        rBuffer.clear();
+        // wBuffer[0].clear();
+        // wBuffer[1].clear();
+    }
+
   private:
     CircularBuffer<uint8_t, INPUTBUFFERSIZE> rBuffer; // read buffer
     std::vector<uint8_t> wBuffer[2];                  // write buffer, size of BUFFERSIZE gets reserved in allocator
@@ -268,6 +280,14 @@ enum renderChipRequestState {
     RQ_DATAREQUESTED,
     RQ_DATARECEIVED,
 };
+
+typedef enum {
+    SINGLELAYER,
+    DUALLAYER,
+} SendMode;
+
+extern SendMode layerSendMode;
+
 #endif
 
 // class for interchip communication in both directions

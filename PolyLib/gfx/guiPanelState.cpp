@@ -3,7 +3,7 @@
 
 extern Clock clock;
 
-void GUIPanelState::init(uint16_t width, uint16_t height, uint16_t x, uint16_t y) {
+void GUIPanelState::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -19,7 +19,7 @@ void GUIPanelState::Draw() {
 
     // Draw BPM//
 
-    text = "BPM : " + std::to_string((uint16_t)clock.bpm);
+    text = "BPM : " + std::to_string((uint16_t)std::round(clock.bpm));
 
     int16_t BoxWidth = 105;
 
@@ -28,7 +28,7 @@ void GUIPanelState::Draw() {
 
     // Draw Temperature //
     if (globalSettings.dispTemperature.value == 1) {
-        relX -= 5; // some extra space between the boxes
+        relX -= 2; // some extra space between the boxes
         text = "T:" + std::to_string((uint16_t)globalSettings.temperature) + " C";
 
         BoxWidth = 70;

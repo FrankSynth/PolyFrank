@@ -200,6 +200,7 @@ class elapsedMillis {
     elapsedMillis(void) { ms = millis(); }
     elapsedMillis(uint32_t val) { ms = millis() - val; }
     elapsedMillis(const elapsedMillis &orig) { ms = orig.ms; }
+
     operator uint32_t() const { return millis() - ms; }
     elapsedMillis &operator=(const elapsedMillis &rhs) {
         ms = rhs.ms;
@@ -428,16 +429,4 @@ inline float calcRandom() {
 
     // map to -1, 1
     return ((float)randomNumber / 8388607.0f) - 1.0f;
-}
-
-inline void disableInterruptBelowLevel(uint32_t level) {
-    __disable_irq();
-    // __ASM volatile("MSR basepri, %0" : : "r"(level) : "memory");
-    // // __enable_irq();
-}
-
-inline void enableAllInterruptLevels() {
-    // __disable_irq();
-    // __ASM volatile("MSR basepri, %0" : : "r"(0U) : "memory");
-    __enable_irq();
 }

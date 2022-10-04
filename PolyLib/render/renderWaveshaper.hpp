@@ -4,7 +4,7 @@
 
 #ifdef POLYRENDER
 
-void renderWaveshaper(Waveshaper &waveshaper, uint8_t voice);
+void renderWaveshaper(Waveshaper &waveshaper, RenderBuffer &effectAmt, uint8_t voice);
 
 /**
  * @brief calculates vec<VOICESPERCHIP> at once
@@ -23,7 +23,7 @@ inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input
     }
     sample *= getSign(input);
 
-    return (sample * waveshaper.aDryWet) + (input * (1.0f - waveshaper.aDryWet));
+    return (sample * waveshaper.DryWet) + (input * (((vec<VOICESPERCHIP>)waveshaper.DryWet * (-1.0f)) + 1.0f));
 }
 
 #endif

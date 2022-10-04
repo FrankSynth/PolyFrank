@@ -45,6 +45,7 @@ class Clock {
 
     void reset() {
         ticked = 0;
+        receivedNewSPP = 1;
         counter = MAXCLOCKTICKS;
     }
 
@@ -71,5 +72,5 @@ class ClockSource {
             lastBPM = clockBPM.value;
         }
     }
-    Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary);
+    Setting clockBPM = Setting("BPM", 120, 20, 350, false, binary, nullptr, false);
 };

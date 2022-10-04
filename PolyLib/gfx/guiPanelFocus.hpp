@@ -4,7 +4,7 @@
 
 class GUIPanelFocus : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, uint8_t pathVisible = 1);
+    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, uint8_t pathVisible = 1);
     void Draw();
 
     void collectEntrys();
@@ -26,6 +26,9 @@ class GUIPanelFocus : public GUIPanelBase {
   private:
     // Boxes
     uint16_t focusChanged;
+
+    uint16_t customControlsY;
+    uint16_t customControlsHeight;
 
     uint16_t analogIndex;
     uint16_t digitalIndex;

@@ -6,7 +6,7 @@
 #define NUMBUTTONSIDE 3
 #define NUMBUTTONTOP 4
 #define NUMBUTTONBOTTOM 4
-#define NUMENCODER 5
+#define NUMENCODER 6
 
 typedef struct {
     std::function<void()> functionPointer = nullptr;

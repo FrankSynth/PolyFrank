@@ -37,6 +37,11 @@ class DataElement {
     uint8_t layerId;
     uint8_t moduleId;
 
+    uint8_t quickview = 0;
+    bool presetLock = 0;
+    bool storeable = false;
+    bool displayVis;
+
     void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
 
   protected:
@@ -86,7 +91,8 @@ class Error {
 class Setting : public DataElement {
   public:
     Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
-            typeDisplayValue type = continuous, const std::vector<const char *> *valueNameList = nullptr) {
+            typeDisplayValue type = continuous, const std::vector<const char *> *valueNameList = nullptr,
+            bool storeable = true, bool displayVis = true) {
 
         this->value = value;
         this->defaultValue = value;
@@ -98,6 +104,10 @@ class Setting : public DataElement {
 
         this->name = name;
         this->valueNameList = valueNameList;
+
+        this->storeable = storeable;
+
+        this->displayVis = displayVis;
 
 #ifdef POLYCONTROL
         if (valueNameList == nullptr)
@@ -193,7 +203,7 @@ class Input;
 class Analog : public DataElement {
   public:
     Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
-           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
 
         this->min = min;
         this->max = max;
@@ -214,12 +224,13 @@ class Analog : public DataElement {
 
         this->value = reverseMapping(defaultValue);
         this->valueMapped = defaultValue;
+        this->storeable = storeable;
     }
 
     Analog(const char *name, float min = 0, float max = 1,
            int32_t minInputValue = MIN_VALUE_12BIT, // contructor for MIDI
            int32_t maxInputValue = MAX_VALUE_12BIT, float defaultValue = 0, bool sendOutViaCom = true,
-           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true) {
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
 
         this->min = min;
         this->max = max;
@@ -240,12 +251,16 @@ class Analog : public DataElement {
 
         this->value = reverseMapping(defaultValue);
         this->valueMapped = defaultValue;
+        this->storeable = storeable;
     }
 
     void setValue(int32_t newValue);
+    void setValueInversePoti(int32_t newValue);
     void resetValue() {
         defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
         setValue(defaultValue);
+
+        presetLock = 0;
     }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
@@ -292,7 +307,6 @@ class Analog : public DataElement {
     float min;
     float max;
     float minMaxDifference;
-    bool displayVis;
     Input *input = nullptr;
 
     int32_t minInputValue;
@@ -310,7 +324,8 @@ class Analog : public DataElement {
 class Digital : public DataElement {
   public:
     Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
-            const std::vector<const char *> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true) {
+            const std::vector<const char *> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true,
+            bool storeable = true) {
 
         this->value = MIN_VALUE_12BIT;
 
@@ -328,10 +343,13 @@ class Digital : public DataElement {
         this->valueNameList = valueNameList;
 
         this->input = input;
+        this->storeable = storeable;
     }
 
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
+
+    void setValueRange(int32_t newValue, int32_t min, int32_t max);
     void nextValue();
     void nextValueLoop();
 
@@ -371,8 +389,6 @@ class Digital : public DataElement {
     int32_t min;
     int32_t max;
     int32_t minMaxDifference;
-
-    bool displayVis;
 
     Input *input;
 

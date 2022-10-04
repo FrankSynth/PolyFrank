@@ -4,7 +4,7 @@
 
 #ifdef POLYRENDER
 
-void renderPhaseshaper(Phaseshaper &phaseshaper);
+void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt);
 
 /**
  * @brief calculates vec<VOICESPERCHIP> at once
@@ -39,7 +39,7 @@ inline vec<VOICESPERCHIP> renderPhaseshaperSample(const vec<VOICESPERCHIP> &inpu
 
     vec<VOICESPERCHIP> sample = fast_lerp_f32(lowerBoundY, upperBoundY, lerpAmount);
 
-    return (sample * phaseshaper.aDryWet) + (input * (1.0f - phaseshaper.aDryWet));
+    return (sample * phaseshaper.DryWet) + (input * (((vec<VOICESPERCHIP>)phaseshaper.DryWet * (-1.0f)) + 1.0f));
 }
 
 #endif

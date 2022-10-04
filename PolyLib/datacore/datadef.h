@@ -1,7 +1,7 @@
 #pragma once
 
-#define MAX_VALUE_12BIT 4071
-#define MIN_VALUE_12BIT 19
+#define MAX_VALUE_12BIT 4084 // nice range!
+#define MIN_VALUE_12BIT 8
 
 #define VECTORDEFAULTINITSIZE 20
 #ifdef POLYRENDER

@@ -55,7 +55,7 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = 0x20020000;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200;      /* required amount of heap  */
+_Min_Heap_Size = 0x800;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Specify the memory areas */
@@ -92,54 +92,31 @@ SECTIONS
     . = ALIGN(4);
     _sITCM = .;      
 
-    /* *gfx* (.text .text*) */
+    *gfx* (.text .text*)
     *guiBase* (.text .text*)
     *datacore* (.text .text*)
     *polyMath.o (.text .text*)
-    *module* (.text .text*)
     *layer* (.text .text*)
     *hid* (.text .text*)
     *flagHandler.o (.text .text*) 
     *com* (.text .text*) 
     *stm32h7xx_it.o (.text .text*)
-    *arp.o (.text .text*)
-    *clock.o (.text .text*)
-    *liveData.o (.text .text*)
-    *liveDataBase.o (.text .text*)
-    *voiceHandler.o (.text .text*)
+    /* *arp.o (.text .text*) */
+    /* *clock.o (.text .text*) */
+    /* *liveData.o (.text .text*) */
+    /* *voiceHandler.o (.text .text*) */
     *IS31FL3216.o (.text .text*)
     *MAX11128.o (.text .text*)
     *rotary.o (.text .text*)
     *bus.o (.text .text*)
     *busInterface.o (.text .text*)
-    *device.o (.text .text*)
+    *gfx.o (.text .text*)
+    *polyControlIRQ.o (.text .text*)
+    *usbd_midi_if.o (.text .text*)
+    *moduleCallbacks.o (.text .text*)
 
 
     /* *gfx* (.rodata .rodata*)  */
-    *datacore* (.rodata .rodata*) 
-    *polyMath.o (.rodata .rodata*) 
-    *module* (.rodata .rodata*) 
-    *layer* (.rodata .rodata*) 
-    *hid* (.rodata .rodata*) 
-    *flagHandler.o (.rodata .rodata*) 
-    *com* (.rodata .rodata*) 
-    *stm32h7xx_it.o (.rodata .rodata*) 
-    *arp.o (.rodata .rodata*)
-    *clock.o (.rodata .rodata*)
-    *liveData.o (.rodata .rodata*)
-    *liveDataBase.o (.rodata .rodata*)
-    *voiceHandler.o (.rodata .rodata*)
-    *IS31FL3216.o (.rodata .rodata*)
-    *MAX11128.o (.rodata .rodata*)
-    *rotary.o (.rodata .rodata*)
-    *bus.o (.rodata .rodata*)
-    *busInterface.o (.rodata .rodata*)
-    *device.o (.rodata .rodata*)
-
-
-
-
-
 
 
     . = ALIGN(4); 

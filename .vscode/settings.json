@@ -57,7 +57,9 @@
         "ranges": "cpp",
         "i2c.h": "c",
         "bitset": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "iostream": "cpp",
+        "stm32h7xx_hal.h": "c"
     },
     "todo-tree.tree.showBadges": true,
     "cortex-debug.openocdPath": "C:\\PROGRAM FILES\\OPENOCD\\BIN\\OPENOCD.EXE",
@@ -67,5 +69,5 @@
         "**/*.c": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s",
         "**/*.cpp": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s"
     },
-    "cortex-debug.registerUseNaturalFormat": true
+    "cortex-debug.registerUseNaturalFormat": false
 }

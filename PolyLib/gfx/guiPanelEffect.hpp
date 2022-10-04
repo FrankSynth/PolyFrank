@@ -4,17 +4,20 @@
 #include "livedata/liveData.hpp"
 
 typedef enum { OSCA, OSCB, NOISE, NOMODULE } moduleSelect;
-typedef enum { WAVE, PHASE, CRUSH } effectSelect;
+typedef enum { WAVE, PHASE, CRUSH, NOEFFECT } effectSelect;
 
 class GUIPanelEffect : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, uint8_t pathVisible = 1);
+    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, uint8_t pathVisible = 1);
     void Draw();
 
     void updateEntrys(BaseModule *module);
     void drawWaveShaperPanel(int8_t *renderedWave, Waveshaper *module);
     void drawPhaseShaperPanel(int8_t *renderedWave, Phaseshaper *module);
     void drawCrushPanel(int8_t *renderedWave);
+
+    void updateModuleSelection();
+    void updateEffectSelection();
 
     void registerElements();
 
@@ -27,13 +30,19 @@ class GUIPanelEffect : public GUIPanelBase {
   private:
     // Boxes
 
-    moduleSelect moduleType = (moduleSelect)0;
-    effectSelect effectType = (effectSelect)0;
+    moduleSelect moduleType = NOMODULE;
+    effectSelect effectType = NOEFFECT;
+
+    moduleSelect newModuleType = (moduleSelect)0;
+    effectSelect newEffectType = (effectSelect)0;
 
     int32_t moduleSelected[3];
     int32_t effectSelected[3];
 
     int32_t overview = false;
+
+    bool updateEffect = false;
+    bool updateModule = false;
 
     std::vector<Analog *> entrys;
 

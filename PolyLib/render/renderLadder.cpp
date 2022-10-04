@@ -3,7 +3,7 @@
 #include "renderLadder.hpp"
 
 extern Layer layerA;
-LogCurve LadderlinAntiLog(64, 0.99);
+LogCurve LadderlinAntiLog(64, 0.9);
 
 inline vec<VOICESPERCHIP> accumulateLevel(const Ladder &ladder) {
     return clamp(ladder.iLevel + ladder.aLevel, 0.0f, 1.0f);

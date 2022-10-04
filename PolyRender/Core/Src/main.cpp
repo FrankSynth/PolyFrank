@@ -19,16 +19,16 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "bdma.h"
+// #include "bdma.h"
 #include "dma.h"
 #include "gpio.h"
-#include "i2c.h"
 #include "mdma.h"
 #include "polyRender.hpp"
 #include "rng.h"
 #include "sai.h"
 #include "spi.h"
 #include "tim.h"
+#include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -106,21 +106,20 @@ int main(void) {
     // MX_BDMA_Init();
     MX_DMA_Init();
     MX_MDMA_Init();
-    MX_I2C1_Init();
-    MX_I2C2_Init();
-    MX_I2C3_Init();
-    // MX_I2C4_Init();
+
     MX_SAI1_Init();
+
     MX_SPI1_Init();
     MX_SPI2_Init();
-    MX_TIM3_Init();
-    MX_TIM4_Init();
-    MX_TIM8_Init();
+    MX_SPI4_Init();
+    MX_SPI6_Init();
+
     MX_RNG_Init();
+
     MX_TIM2_Init();
-    MX_TIM5_Init();
     MX_TIM15_Init();
     MX_TIM16_Init();
+    MX_USART1_UART_Init();
 
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
@@ -128,16 +127,6 @@ int main(void) {
 
     // timer micros()
     HAL_TIM_Base_Start(&htim2);
-
-    // timer LEDs
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 
     // HAL_Delay(200);
 
@@ -179,7 +168,7 @@ void SystemClock_Config(void) {
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 4;
+    RCC_OscInitStruct.PLL.PLLM = 8;
     RCC_OscInitStruct.PLL.PLLN = 480;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 24;
@@ -206,30 +195,31 @@ void SystemClock_Config(void) {
         Error_Handler();
     }
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
-                                               RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_I2C2 | RCC_PERIPHCLK_I2C3 |
-                                               RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_I2C4;
-    PeriphClkInitStruct.PLL2.PLL2M = 5;
+                                               RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_SPI6 |
+                                               RCC_PERIPHCLK_USART1;
+    PeriphClkInitStruct.PLL2.PLL2M = 10;
     PeriphClkInitStruct.PLL2.PLL2N = 384;
     PeriphClkInitStruct.PLL2.PLL2P = 25;
-    PeriphClkInitStruct.PLL2.PLL2Q = 25;
+    PeriphClkInitStruct.PLL2.PLL2Q = 75;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
-    PeriphClkInitStruct.PLL3.PLL3M = 4;
-    PeriphClkInitStruct.PLL3.PLL3N = 120;
-    PeriphClkInitStruct.PLL3.PLL3P = 2;
+    PeriphClkInitStruct.PLL3.PLL3M = 2;
+    PeriphClkInitStruct.PLL3.PLL3N = 24;
+    PeriphClkInitStruct.PLL3.PLL3P = 4;
     PeriphClkInitStruct.PLL3.PLL3Q = 2;
-    PeriphClkInitStruct.PLL3.PLL3R = 2;
-    PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_1;
+    PeriphClkInitStruct.PLL3.PLL3R = 24;
+    PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_3;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
     PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
     PeriphClkInitStruct.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL;
-    PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL2;
+    PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL2;
+    PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
     PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
-    PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_D2PCLK1;
-    PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_D3PCLK1;
+    // PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C1235CLKSOURCE_PLL3;
+    PeriphClkInitStruct.Usart16ClockSelection = RCC_USART16CLKSOURCE_PLL3;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
         Error_Handler();
     }

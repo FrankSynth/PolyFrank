@@ -1,6 +1,8 @@
 #pragma once
 
-#define MATRIXROWS 6
+#define MATRIXROWS 12
+#define PATCHMATRIXROWS 6
+
 #define MATRIXCOLUMN 6
 
 #include "guiPanelBase.hpp"
@@ -9,7 +11,7 @@ typedef enum { MIDIVIEW, AUDIOVIEW, ENVVIEW } ViewMode;
 
 class GUIPanelPatchMatrix : public GUIPanelBase {
   public:
-    void init(uint16_t width, uint16_t height, uint16_t x = 0, uint16_t y = 0, std::string name = "", uint8_t id = 0,
+    void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, std::string name = "", uint8_t id = 0,
               uint8_t pathVisible = 1);
     void Draw();
 
@@ -26,9 +28,9 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
 
     void activate();
 
-    void scrollModulePosition(int16_t scroll);
-    void scrollInPosition(int16_t scroll);
-    void scrollOutPosition(int16_t scroll);
+    void scrollModulePosition(int32_t scroll);
+    void scrollInPosition(int32_t scroll);
+    void scrollOutPosition(int32_t scroll);
 
     void setFocus(FOCUSMODE focusMode) {
 
@@ -90,7 +92,7 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
     uint16_t panelAbsY = 0;
 
     Scroller scrollModule = Scroller(MATRIXROWS);
-    Scroller scrollIn = Scroller(MATRIXROWS);
+    Scroller scrollIn = Scroller(PATCHMATRIXROWS);
     Scroller scrollOut = Scroller(MATRIXCOLUMN);
 
     int32_t filteredView = 0;
@@ -105,6 +107,6 @@ class GUIPanelPatchMatrix : public GUIPanelBase {
 
     MatrixModule_PanelElement panelElementsModule[MATRIXROWS];
     MatrixIn_PanelElement panelElementsIn[MATRIXROWS];
-    MatrixPatch_PanelElement panelElementsPatch[MATRIXCOLUMN][MATRIXROWS];
+    MatrixPatch_PanelElement panelElementsPatch[MATRIXCOLUMN][PATCHMATRIXROWS];
     MatrixOut_PanelElement panelElementsOut[MATRIXCOLUMN];
 };

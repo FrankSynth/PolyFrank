@@ -11,9 +11,41 @@ extern COMinterChip layerCom;
 
 const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 const std::vector<const char *> clockSourceList = {"EXTERN", "MIDI", "INTERN"};
-const std::vector<const char *> externalClockMultList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1"};
+const std::vector<const char *> extStepNameList = {"1/32", "1/16", "1/8", "1/4", "1/2", "1/1", "2/1", "4/1"};
+
+const uint32_t clockTicksPerExternalSyncOut[23] = {3, 6, 12, 24, 48, 96, 192, 384};
 
 uint16_t extClockMultiply[] = {3, 6, 12, 24, 48, 96};
+
+extern void nextLayer();
+extern bool layerMergeMode;
+
+void switchLiveMode(int32_t *setting) {
+    if (*setting == 0) {
+        println("INFO | PlayMode SINGLE");
+
+        layerSendMode = SINGLELAYER;
+        layerMergeMode = false;
+        allLayers[0]->resendLayerConfig();
+        allLayers[1]->resendLayerConfig();
+        liveData.voiceHandler.livemodeVoiceModeB.disable = false; // disable
+        liveData.voiceHandler.livemodeVoiceModeA.max = 3;
+        liveData.voiceHandler.livemodeVoiceModeA.valueNameList = &liveData.voiceHandler.polySplitNameList;
+    }
+    else if (*setting == 1) {
+
+        println("INFO | PlayMode DUAL");
+
+        layerSendMode = DUALLAYER;
+        layerMergeMode = true;
+        allLayers[0]->resendLayerConfig();
+        liveData.voiceHandler.livemodeVoiceModeB.disable = true; // enable
+        liveData.voiceHandler.livemodeVoiceModeA.max = 4;
+        liveData.voiceHandler.livemodeVoiceModeA.valueNameList = &liveData.voiceHandler.polySplitNameListDual;
+
+        nextLayer(); // jump layer to A
+    }
+}
 
 void LiveData::controlChange(uint8_t channel, uint8_t cc, int16_t value) {
 
@@ -70,15 +102,17 @@ void LiveData::keyPressed(uint8_t channel, uint8_t note, uint8_t velocity) {
             arps[0].keyPressed(key);
         }
     }
+    if (voiceHandler.livemodeMergeLayer.value != 1) { // we are in 16 voice mode-> skip
 
-    if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
+        if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
 
-        if ((livemodeKeysplit.value && key.note < 64) || !livemodeKeysplit.value) {
-            key.layerID = 1;
-            if (!arps[1].arpEnable.value) {
-                voiceHandler.playNote(key);
+            if ((livemodeKeysplit.value && key.note < 64) || !livemodeKeysplit.value) {
+                key.layerID = 1;
+                if (!arps[1].arpEnable.value) {
+                    voiceHandler.playNote(key);
+                }
+                arps[1].keyPressed(key);
             }
-            arps[1].keyPressed(key);
         }
     }
 }
@@ -96,14 +130,15 @@ void LiveData::keyReleased(uint8_t channel, uint8_t note) {
         }
         arps[0].keyReleased(key);
     }
+    if (voiceHandler.livemodeMergeLayer.value != 1) { // we are in 16 voice mode-> skip
+        if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
+            key.layerID = 1;
 
-    if (channel == globalSettings.midiLayerBChannel.value || globalSettings.midiLayerBChannel.value == 0) {
-        key.layerID = 1;
-
-        if (!arps[1].arpEnable.value) {
-            voiceHandler.freeNote(key);
+            if (!arps[1].arpEnable.value) {
+                voiceHandler.freeNote(key);
+            }
+            arps[1].keyReleased(key);
         }
-        arps[1].keyReleased(key);
     }
 }
 
@@ -120,9 +155,9 @@ void LiveData::receivedStart() {
 void LiveData::receivedContinue() {
 
     if (livemodeClockSource.value == 1) { // clock source == midi
-        clock.reset();
+        // clock.reset();
         for (byte i = 0; i < 2; i++) {
-            arps[i].restart();
+            arps[i].continueRestart();
         }
     }
 }
@@ -130,22 +165,23 @@ void LiveData::receivedStop() {
     if (livemodeClockSource.value == 1) { // clock source == midi
 
         for (byte i = 0; i < 2; i++) {
-            arps[i].midiUpdateDelayTimer = 0;
+            arps[i].reset();
         }
     }
 }
 
 void LiveData::receivedReset() {
-    // TODO send all notes off, etc
+    for (byte i = 0; i < 2; i++) {
+        arps[i].reset();
+        voiceHandler.reset(i);
+    }
 }
 
 void LiveData::receivedMidiSongPosition(unsigned int spp) {
     if (livemodeClockSource.value == 1) { // clock source == midi
-        clock.receivedNewSPP = 1;
-        for (byte i = 0; i < 2; i++) {
-            arps[i].restart();
-        }
-        clock.counter = (spp * 6);
+                                          // clock.receivedNewSPP = 1;
+        clock.reset();
+        clock.counter = (spp * 6) % MAXCLOCKTICKS;
     }
 }
 
@@ -164,26 +200,177 @@ void LiveData::internalClockTick() {
 }
 
 void LiveData::externalClockTick() {
-    if (livemodeClockSource.value == 0) { // clock source == external Sync
-        for (uint16_t i = 0; i < extClockMultiply[livemodeExternalClockMultiply.value]; i++) {
-            clock.tick();
-        }
-    }
+    if (liveData.livemodeClockSource.value != 0)
+        return;
+
+    extSync = true;
+    calcBPMfromExternalSource();
 }
+void LiveData::calcBPMfromExternalSource() {
+    clock.bpm = 60000000 / meassuredBPMTime;
+    meassuredBPMTime = 0;
+};
 
 void LiveData::serviceRoutine() {
 
     internalClock.serviceRoutine();
+
+    if (liveData.livemodeClockSource.value == 0) { // external clock mode
+        externalSyncHandling();
+    }
+
+    else {
+        clockHandling();
+    }
+
     arps[0].serviceRoutine();
     arps[1].serviceRoutine();
 
-    clockHandling();
+    // reset  External Clock Signal Out
+    if (extClockLengthTimer > (uint32_t)globalSettings.extClockOutLength.value) {
+        HAL_GPIO_WritePin(IO_Sync_OUT_GPIO_Port, IO_Sync_OUT_Pin, GPIO_PIN_SET);
+    }
+}
+
+void switchClockSourceCallback(int32_t *setting) {
+
+    switch (*setting) {
+        case 0: {
+            liveData.arps[0].arpStepsA.displayVis = false;
+            liveData.arps[0].arpStepsB.displayVis = false;
+            liveData.arps[1].arpStepsA.displayVis = false;
+            liveData.arps[1].arpStepsB.displayVis = false;
+
+            liveData.arps[0].arpStepsAExt.displayVis = true;
+            liveData.arps[0].arpStepsBExt.displayVis = true;
+            liveData.arps[1].arpStepsAExt.displayVis = true;
+            liveData.arps[1].arpStepsBExt.displayVis = true;
+
+            allLayers[0]->lfoA.dClockStep.displayVis = false;
+            allLayers[0]->lfoB.dClockStep.displayVis = false;
+            allLayers[0]->lfoA.dEXTDiv.displayVis = true;
+            allLayers[0]->lfoB.dEXTDiv.displayVis = true;
+
+            allLayers[0]->envA.dClockStep.displayVis = false;
+            allLayers[0]->envF.dClockStep.displayVis = false;
+            allLayers[0]->envA.dEXTDiv.displayVis = true;
+            allLayers[0]->envF.dEXTDiv.displayVis = true;
+
+            allLayers[1]->lfoA.dClockStep.displayVis = false;
+            allLayers[1]->lfoB.dClockStep.displayVis = false;
+            allLayers[1]->lfoA.dEXTDiv.displayVis = true;
+            allLayers[1]->lfoB.dEXTDiv.displayVis = true;
+
+            allLayers[1]->envA.dClockStep.displayVis = false;
+            allLayers[1]->envF.dClockStep.displayVis = false;
+            allLayers[1]->envA.dEXTDiv.displayVis = true;
+            allLayers[1]->envF.dEXTDiv.displayVis = true;
+
+            liveData.livemodeExternalClockMultiplyOut.disable = true;
+            break;
+        }
+        default: {
+            liveData.arps[0].arpStepsA.displayVis = true;
+            liveData.arps[0].arpStepsB.displayVis = true;
+            liveData.arps[1].arpStepsA.displayVis = true;
+            liveData.arps[1].arpStepsB.displayVis = true;
+
+            liveData.arps[0].arpStepsAExt.displayVis = false;
+            liveData.arps[0].arpStepsBExt.displayVis = false;
+            liveData.arps[1].arpStepsAExt.displayVis = false;
+            liveData.arps[1].arpStepsBExt.displayVis = false;
+
+            allLayers[0]->lfoA.dClockStep.displayVis = true;
+            allLayers[0]->lfoB.dClockStep.displayVis = true;
+            allLayers[0]->lfoA.dEXTDiv.displayVis = false;
+            allLayers[0]->lfoB.dEXTDiv.displayVis = false;
+
+            allLayers[0]->envA.dClockStep.displayVis = true;
+            allLayers[0]->envF.dClockStep.displayVis = true;
+            allLayers[0]->envA.dEXTDiv.displayVis = false;
+            allLayers[0]->envF.dEXTDiv.displayVis = false;
+
+            allLayers[1]->lfoA.dClockStep.displayVis = true;
+            allLayers[1]->lfoB.dClockStep.displayVis = true;
+            allLayers[1]->lfoA.dEXTDiv.displayVis = false;
+            allLayers[1]->lfoB.dEXTDiv.displayVis = false;
+
+            allLayers[1]->envA.dClockStep.displayVis = true;
+            allLayers[1]->envF.dClockStep.displayVis = true;
+            allLayers[1]->envA.dEXTDiv.displayVis = false;
+            allLayers[1]->envF.dEXTDiv.displayVis = false;
+
+            liveData.livemodeExternalClockMultiplyOut.disable = false;
+            break;
+        }
+    }
+}
+
+void LiveData::externalSyncHandling() {
+    static int32_t extSyncCounter = 0;
+
+    if (extSync == false) // no ext signal received
+        return;
+
+    extSync = false;
+
+    extSyncCounter++;
+
+    // Mirror Input sync to output
+    HAL_GPIO_WritePin(IO_Sync_OUT_GPIO_Port, IO_Sync_OUT_Pin, GPIO_PIN_RESET);
+    extClockLengthTimer = 0;
+
+    // Internal Clocking
+    for (uint8_t i = 0; i < 2; i++) {
+        if (allLayers[i]->layerState.value == 1) { // check layer state
+
+            // ARP Steps
+            if (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value]) ||
+                (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value]) && arps[i].arpPolyrythm.value)) {
+                arps[i].nextStep();
+            }
+
+            // LFO Sync
+
+            for (LFO *lfo : allLayers[i]->lfos) {
+
+                if (lfo->dClockTrigger == 0)
+                    continue;
+
+                uint32_t clockTicks = extSyncPerStep[lfo->dEXTDiv];
+
+                if (extSyncCounter % clockTicks == 0) {
+                    layerCom.sendRetrigger(i, lfo->id, VOICEALL); // all voices = 8
+                }
+            }
+
+            for (ADSR *adsr : allLayers[i]->adsrs) {
+                if (adsr->dClockTrigger == 0)
+                    continue;
+
+                uint32_t clockTicks = extSyncPerStep[adsr->dEXTDiv];
+                if (extSyncCounter % clockTicks == 0) {
+                    layerCom.sendRetrigger(i, adsr->id, VOICEALL);
+                }
+            }
+        }
+    }
+
+    calcAllLFOSnapFreq();
 }
 
 void LiveData::clockHandling() {
-    if (clock.ticked == 0)
+
+    if (clock.ticked == 0) // no tick received
         return;
 
+    // External Clock Signal Out
+    if (!(clock.counter % clockTicksPerExternalSyncOut[livemodeExternalClockMultiplyOut.value])) {
+        extClockLengthTimer = 0;
+        HAL_GPIO_WritePin(IO_Sync_OUT_GPIO_Port, IO_Sync_OUT_Pin, GPIO_PIN_RESET);
+    }
+
+    // Internal Clocking
     for (uint8_t i = 0; i < 2; i++) {
         if (allLayers[i]->layerState.value == 1) { // check layer state
 
@@ -239,13 +426,14 @@ void LiveData::calcAllLFOSnapFreq() {
     }
 }
 
-void LiveData::saveLiveDataSettings() {
+void LiveData::collectLiveConfiguration(int32_t *buffer) {
     uint32_t index = 0;
-    int32_t *buffer = (int32_t *)blockBuffer;
 
     for (Setting *s : __liveSettingsLivemode.settings) {
-        buffer[index] = s->value;
-        index++;
+        if (s->storeable == 1) {
+            buffer[index] = s->value;
+            index++;
+        }
     }
     for (Setting *s : arps[0].__liveSettingsArp.settings) {
         buffer[index] = s->value;
@@ -256,30 +444,46 @@ void LiveData::saveLiveDataSettings() {
         index++;
     }
 
-    writeLiveDataBlock();
-
-    if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)blockBuffer) > (LIVEDATA_BLOCKSIZE)) {
+    if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)buffer) > (LIVEDATA_BLOCKSIZE)) {
         PolyError_Handler("ERROR | FATAL | LiveDataSettings -> saveLiveDataSettings -> BufferOverflow!");
+    }
+    println("INFO || Live blocksize: ", (uint8_t *)&buffer[index] - (uint8_t *)buffer);
+}
+
+void LiveData::writeLiveConfiguration(int32_t *buffer, LayerSelect layer) {
+    uint32_t index = 0;
+
+    for (Setting *s : __liveSettingsLivemode.settings) {
+        if (s->storeable == 1) {
+            s->setValue(buffer[index]);
+            index++;
+        }
+    }
+
+    for (Setting *s : arps[0].__liveSettingsArp.settings) {
+        if (layer == LAYER_AB || layer == LAYER_A) {
+            s->setValue(buffer[index]);
+        }
+        index++;
+    }
+    for (Setting *s : arps[1].__liveSettingsArp.settings) {
+        if (layer == LAYER_AB || layer == LAYER_B) {
+            s->setValue(buffer[index]);
+        }
+        index++;
     }
 }
 
-void LiveData::loadLiveDataSettings() {
-    uint32_t index = 0;
-    int32_t *buffer = (int32_t *)blockBuffer;
-
-    readLiveData();
+void LiveData::resetLiveConfig() {
 
     for (Setting *s : __liveSettingsLivemode.settings) {
-        s->setValue(buffer[index]);
-        index++;
+        s->resetValue();
     }
     for (Setting *s : arps[0].__liveSettingsArp.settings) {
-        s->setValue(buffer[index]);
-        index++;
+        s->resetValue();
     }
     for (Setting *s : arps[1].__liveSettingsArp.settings) {
-        s->setValue(buffer[index]);
-        index++;
+        s->resetValue();
     }
 }
 

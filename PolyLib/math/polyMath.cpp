@@ -87,7 +87,7 @@ void LogCurve::precomputeTable() {
     float b = std::pow((1.0f / curve) - 1.0f, 2);
     float a = 1.0f / (b - 1.0f);
 
-    for (uint16_t i = 0; i < (size + 1); i++) {
+    for (uint32_t i = 0; i < (size + 1u); i++) {
         logTable[i] = a * std::pow(b, fastMap(i, 0, size, 0, 1)) - a;
     }
 }

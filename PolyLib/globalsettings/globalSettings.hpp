@@ -16,7 +16,7 @@ class GlobalSettings {
         // push all settings here
 
         __globSettingsSystem.category = "SYSTEM";
-        __globSettingsSystem.settings.push_back(&multiLayer);
+        __globSettingsSystem.settings.push_back(&extClockOutLength);
 
         __globSettingsMIDI.category = "MIDI";
         __globSettingsMIDI.settings.push_back(&midiSource);
@@ -27,6 +27,7 @@ class GlobalSettings {
         __globSettingsDisplay.category = "DISPLAY";
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
+        __globSettingsDisplay.settings.push_back(&dispLED);
         __globSettingsDisplay.settings.push_back(&dispTemperature);
 
         // init setting IDs
@@ -55,6 +56,7 @@ class GlobalSettings {
         if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)blockBuffer) > (CONFIG_BLOCKSIZE)) {
             PolyError_Handler("ERROR | FATAL | GlobalSettings -> saveGlobalSettings -> BufferOverflow!");
         }
+        println("INFO || Config Datasize: ", (uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)buffer));
     }
 
     void loadGlobalSettings() {
@@ -104,6 +106,8 @@ class GlobalSettings {
     // all Settings, don't forget to push to __globSettings vector of this class
     Setting multiLayer = Setting("LAYER", 0, 0, 1, false, binary, &amountLayerNameList);
 
+    Setting extClockOutLength = Setting("EXT CLK. ms.", 2, 1, 50, false, binary);
+
     Setting midiSource = Setting("MIDI", 0, 0, 1, false, binary, &midiTypeNameList);
     Setting midiSend = Setting("SEND", 0, 0, 1, false, binary, &offOnNameList);
     Setting midiLayerAChannel = Setting("Layer A Ch.", 0, 0, 10, false, binary);
@@ -111,6 +115,8 @@ class GlobalSettings {
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
+    Setting dispLED = Setting("LED", 10, 1, 10, false, binary);
+
     Setting dispTemperature = Setting("TEMPERATURE", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Error error;
@@ -123,7 +129,7 @@ class GlobalSettings {
     const std::vector<const char *> amountLayerNameList = {"OFF", "ON"};
     const std::vector<const char *> midiTypeNameList = {"USB", "DIN"};
     const std::vector<const char *> offOnNameList = {"OFF", "ON"};
-    const std::vector<const char *> colorThemeNameList = {"DEFAULT", "NICE"};
+    const std::vector<const char *> colorThemeNameList = {"DEFAULT", "INVERT"};
 
     const std::vector<const char *> polyMergeNameList = {"A | B", "A + B"};
     const std::vector<const char *> polySplitNameList = {"1|8", "2|4", "4|2", "8|1", "AUTO"};

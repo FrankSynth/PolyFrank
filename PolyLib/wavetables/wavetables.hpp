@@ -9,14 +9,14 @@
 #define MAXWAVETABLELENGTH 12760
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4
-#define WAVETABLESAMOUNT 18
+#define WAVETABLESAMOUNT 19
 #define SUBWAVETABLES 16
 
 class WaveTable;
 
-#ifdef POLYRENDER
+// #ifdef POLYRENDER
 extern std::vector<const WaveTable *> wavetables;
-#endif
+// #endif
 extern std::vector<const char *> nlWavetable;
 
 class WaveTable {
@@ -41,21 +41,22 @@ class WaveTable {
 
 void initWavetables();
 
+extern const WaveTable wavetable_Sine;
+extern const WaveTable wavetable_Triangle;
+extern const WaveTable wavetable_Saw;
+extern const WaveTable wavetable_Square;
+extern const WaveTable wavetable_am1;
+extern const WaveTable wavetable_am2;
+extern const WaveTable wavetable_am3;
+extern const WaveTable wavetable_am4;
+extern const WaveTable wavetable_fm1;
+extern const WaveTable wavetable_fm2;
+extern const WaveTable wavetable_fm3;
+extern const WaveTable wavetable_fm4;
+extern const WaveTable wavetable_pm1;
+extern const WaveTable wavetable_pm2;
+extern const WaveTable wavetable_pm3;
+extern const WaveTable wavetable_pm4;
 extern const WaveTable wavetable_FeltPianoLow;
 extern const WaveTable wavetable_GuitarHigh;
 extern const WaveTable wavetable_GuitarLow;
-extern const WaveTable wavetable_Saw;
-extern const WaveTable wavetable_Sine;
-extern const WaveTable wavetable_Square;
-extern const WaveTable wavetable_SSMMix01;
-extern const WaveTable wavetable_SSMMix02;
-extern const WaveTable wavetable_SSMMix03;
-extern const WaveTable wavetable_SSMMix04;
-extern const WaveTable wavetable_SSMMix05;
-extern const WaveTable wavetable_SSMMix06;
-extern const WaveTable wavetable_SSMMix07;
-extern const WaveTable wavetable_SSMMix08;
-extern const WaveTable wavetable_SSMSaw;
-extern const WaveTable wavetable_SSMSquare;
-extern const WaveTable wavetable_SSMTriangle;
-extern const WaveTable wavetable_Triangle;

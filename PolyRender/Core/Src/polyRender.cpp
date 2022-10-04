@@ -10,42 +10,31 @@ Layer layerA(layerId.getNewId());
 
 extern devManager deviceManager;
 spiBus spiBusLayer;
+spiBus spiBusCVDac[2];
 
 // InterChip Com
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
 RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)]);
 
 // CV DACS
-RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABuffer[ALLDACS][4]);
+RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferA[20]);
+RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferB[20]);
+
+RAM2_DMA ALIGN_32BYTES(volatile float interchipLFOBuffer[2]);
 
 int8_t audioSendBuffer[UPDATEAUDIOBUFFERSIZE - 1];
 
 COMinterChip layerCom(&spiBusLayer, (uint8_t *)interChipDMAInBuffer, (uint8_t *)interChipDMAOutBuffer);
 
-MCP4728 cvDac[] = {
-
-    MCP4728(&hi2c1, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)(&cvDacDMABuffer[0])),
-    MCP4728(&hi2c1, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)(&cvDacDMABuffer[1])),
-    MCP4728(&hi2c1, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)(&cvDacDMABuffer[2])),
-    MCP4728(&hi2c1, 0x04, LDAC_4_GPIO_Port, LDAC_4_Pin, (uint16_t *)(&cvDacDMABuffer[3])),
-
-    MCP4728(&hi2c2, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)(&cvDacDMABuffer[4])),
-    MCP4728(&hi2c2, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)(&cvDacDMABuffer[5])),
-    MCP4728(&hi2c2, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)(&cvDacDMABuffer[6])),
-
-    MCP4728(&hi2c3, 0x01, LDAC_1_GPIO_Port, LDAC_1_Pin, (uint16_t *)(&cvDacDMABuffer[7])),
-    MCP4728(&hi2c3, 0x02, LDAC_2_GPIO_Port, LDAC_2_Pin, (uint16_t *)(&cvDacDMABuffer[8])),
-    MCP4728(&hi2c3, 0x03, LDAC_3_GPIO_Port, LDAC_3_Pin, (uint16_t *)(&cvDacDMABuffer[9]))};
+DUALBU22210 cvDac[2];
 
 // Switch Ladder  //andere chip aber selbe logik
-TS3A5017D switchLadder = TS3A5017D(4, switch_1_A_GPIO_Port, switch_1_A_Pin, switch_1_B_GPIO_Port, switch_1_B_Pin);
+TS3A5017D switchLadder = TS3A5017D(4, SWITCH_1_A_GPIO_Port, SWITCH_1_A_Pin, SWITCH_1_B_GPIO_Port, SWITCH_1_B_Pin);
 
 // AUDIO DAC
 RAM2_DMA ALIGN_32BYTES(volatile int32_t saiBuffer[SAIDMABUFFERSIZE * 2 * AUDIOCHANNELS]);
-PCM1690 audioDacA(&hsai_BlockA1, &hspi2, (int32_t *)saiBuffer);
+PCM1690 audioDacA(&hsai_BlockA1, &hspi6, (int32_t *)saiBuffer);
 
-void testMCPI2CAddress();
-void resetMCPI2CAddress();
 void outputCollect();
 
 void sendDACs();
@@ -54,29 +43,33 @@ extern void polyRenderLoop();
 
 void PolyRenderInit() {
 
-    initCVRendering();
+    // initCVRendering();
 
     loadInitialWavetables();
 
     HAL_Delay(10);
 
-    spiBusLayer.connectToInterface(&hspi1);
+    spiBusLayer.connectToInterface(&hspi4);
     deviceManager.addBus(&spiBusLayer);
 
     layerA.chipID = !HAL_GPIO_ReadPin(CHIP_ID_A_GPIO_Port, CHIP_ID_A_Pin);
 
     layerA.id = !HAL_GPIO_ReadPin(CHIP_ID_B_GPIO_Port, CHIP_ID_B_Pin);
+    // layerA.id = 0;+++++
 
     // init pseudo rand so all chips follow different patterns.
     std::srand(layerA.chipID + layerA.id + 1);
 
     // CV DACs init
+    spiBusCVDac[0].connectToInterface(&hspi1);
+    spiBusCVDac[1].connectToInterface(&hspi2);
 
-    testMCPI2CAddress(); // check all MCP4728 addressing
+    deviceManager.addBus(&spiBusCVDac[0]);
+    deviceManager.addBus(&spiBusCVDac[1]);
 
-    for (uint16_t i = 0; i < ALLDACS; i++) {
-        cvDac[i].init();
-    }
+    cvDac[0].configurate(&spiBusCVDac[0], cvDacDMABufferA);
+    cvDac[1].configurate(&spiBusCVDac[1], cvDacDMABufferB);
+
     initPoly();
 
     // init all Layers
@@ -94,23 +87,32 @@ void PolyRenderInit() {
 
     // Audio Render Chips
     __HAL_SAI_ENABLE(&hsai_BlockA1);
-    HAL_GPIO_WritePin(Audio_Reset_GPIO_Port, Audio_Reset_Pin, GPIO_PIN_SET);
-    HAL_Delay(1);
+    HAL_GPIO_WritePin(AUDIO_RST_GPIO_Port, AUDIO_RST_Pin, GPIO_PIN_SET);
+    HAL_Delay(200);
     audioDacA.init();
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
-    // FlagHandler::renderNewCVFunc = renderCVs;
+    FlagHandler::renderNewCVFunc = renderCVs;
     FlagHandler::outputCollectFunc = outputCollect;
 }
 
 void PolyRenderRun() {
 
-    println("////////// Hi, it's Render. PolyFrank Render. //////////");
-    println("Layer ID is: ", layerA.id);
-    println("Chip ID is: ", layerA.chipID);
+    std::string message =
+        "Hi, it's Render. PolyFrank Render...  ID: " + std::to_string(layerA.id) + std::to_string(layerA.chipID);
+    println(message);
 
-    // enable reception line
-    // HAL_GPIO_WritePin(Layer_Ready_GPIO_Port, Layer_Ready_Pin, GPIO_PIN_SET);
+    // start Receive
+    if (layerA.chipID == 1) {
+        HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+        huart1.Instance->ICR = 0b1100;
+        huart1.Instance->RQR = UART_RXDATA_FLUSH_REQUEST; // clear rx Register
+
+        // // detect timeout for resyncing DMA
+        // HAL_UART_ReceiverTimeout_Config(&huart1, 16);
+        // HAL_UART_EnableReceiverTimeout(&huart1);
+        // huart1.Instance->CR1 |= USART_CR1_RTOIE_Msk;
+    }
 
     // start cv rendering
     renderCVs();
@@ -121,86 +123,16 @@ void PolyRenderRun() {
     renderAudio((int32_t *)&(saiBuffer[SAIDMABUFFERSIZE * AUDIOCHANNELS]));
     audioDacA.startSAI();
 
+    HAL_Delay(20); // wait for receiver started uart ->
+
+    // start Transmit
+    if (layerA.chipID == 0) {
+        huart1.Instance->RQR = UART_TXDATA_FLUSH_REQUEST; // clear tx Register
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+    }
+
     HAL_TIM_Base_Start_IT(&htim15);
 
     // run loop
     polyRenderLoop();
-}
-
-void testMCPI2CAddress() {
-
-    // set latch pins high
-
-    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_SET);
-
-    // check i2c ready
-    if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) {
-        println("I2C AddressChange - I2C Busy");
-        return;
-    }
-
-    // test Address reachable -> set target address
-
-    uint8_t addressFailed = 0;
-
-    for (uint16_t i = 0; i < ALLDACS; i++) {
-        addressFailed |= cvDac[i].testAddress();
-    }
-
-    if (addressFailed) { // reset all MCP4728 address to start clean and reassign every one;
-        resetMCPI2CAddress();
-
-        sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, 0x00, 0x01);
-
-        sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, 0x00, 0x02);
-
-        sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, 0x00, 0x03);
-
-        sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin, 0x00, 0x04);
-    }
-}
-
-void resetMCPI2CAddress() {
-
-    // set latch pins high
-
-    HAL_GPIO_WritePin(LDAC_1_GPIO_Port, LDAC_1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_2_GPIO_Port, LDAC_2_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_3_GPIO_Port, LDAC_3_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LDAC_4_GPIO_Port, LDAC_4_Pin, GPIO_PIN_SET);
-
-    // check i2c ready
-    if (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) {
-        println("I2C AddressChange - I2C Busy");
-        return;
-    }
-
-    // test Address reachable -> set target address
-    for (uint8_t address = 0x00; address < 0x08; address++) {
-        sendI2CAddressUpdate(i2c1Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_1_GPIO_Port, LDAC_1_Pin, address, 0x00);
-    }
-    for (uint8_t address = 0x00; address < 0x08; address++) {
-        sendI2CAddressUpdate(i2c1Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_2_GPIO_Port, LDAC_2_Pin, address, 0x00);
-    }
-    for (uint8_t address = 0x00; address < 0x08; address++) {
-        sendI2CAddressUpdate(i2c1Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c2Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, address, 0x00);
-        sendI2CAddressUpdate(i2c3Pins, LDAC_3_GPIO_Port, LDAC_3_Pin, address, 0x00);
-    }
-    for (uint8_t address = 0x00; address < 0x08; address++) {
-        sendI2CAddressUpdate(i2c1Pins, LDAC_4_GPIO_Port, LDAC_4_Pin, address, 0x00);
-    }
 }

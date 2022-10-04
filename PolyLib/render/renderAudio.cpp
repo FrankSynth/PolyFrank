@@ -301,7 +301,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     // const vec<VOICESPERCHIP> &morph = layerA.oscB.morph;
     const vec<VOICESPERCHIP> &noteStep = layerA.oscB.note;
     const vec<VOICESPERCHIP> &bitcrusher = layerA.oscB.bitcrusher;
-    const vec<VOICESPERCHIP> &bitcrusherInv = layerA.oscA.bitcrusherInv;
+    const vec<VOICESPERCHIP> &bitcrusherInv = layerA.oscB.bitcrusherInv;
     const vec<VOICESPERCHIP> &samplecrusher = layerA.oscB.samplecrusher;
     const vec<VOICESPERCHIP> &phaseoffset = layerA.oscB.phaseoffset;
     const vec<VOICESPERCHIP> &morphFract = layerA.oscB.morphFract;
@@ -352,14 +352,7 @@ vec<VOICESPERCHIP> getOscBSample() {
 
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
 
-    // static vec<VOICESPERCHIP> prevNewSample = 0;
 
-    // vec<VOICESPERCHIP> derivCorrection =
-    //     1.0f / max(phaseStep, 0.0000000000000000000000000000000000000000001f); // TODO !! FAIL bei 0
-
-    // vec<VOICESPERCHIP> derivSample1 = (newSample - prevNewSample) * derivCorrection;
-
-    // prevNewSample = newSample;
 
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB); // TODO WAVETABLES: values>1 not allowed!!
 
@@ -464,15 +457,15 @@ void renderAudio(volatile int32_t *renderDest) {
         vec<VOICESPERCHIP, int32_t> intSampleSteiner = sampleSteiner;
         vec<VOICESPERCHIP, int32_t> intSampleLadder = sampleLadder;
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleSteiner[0];
-        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleSteiner[1];
-        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleSteiner[2];
-        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleSteiner[3];
+        renderDest[sample * AUDIOCHANNELS + 1 * 2] = intSampleLadder[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2] = intSampleLadder[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2] = intSampleLadder[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2] = intSampleLadder[3];
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleLadder[0];
-        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleLadder[1];
-        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleLadder[2];
-        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleLadder[3];
+        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = intSampleSteiner[0];
+        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = intSampleSteiner[1];
+        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = intSampleSteiner[2];
+        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = intSampleSteiner[3];
     }
 
     layerA.noise.out = noiseSample;
