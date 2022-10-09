@@ -14,6 +14,7 @@ extern const std::vector<const char *> nlLadderSlopes;
 extern const std::vector<const char *> nlADSRShapes;
 extern const std::vector<const char *> nlClockSteps;
 extern const std::vector<const char *> nlSubOctaves;
+extern const std::vector<const char *> nlRange;
 
 typedef enum {
     MODULE_NOTDEFINED,
@@ -29,7 +30,8 @@ typedef enum {
     MODULE_NOISE,
     MODULE_VCF,
     MODULE_PHASE,
-    MODULE_WAVESHAPER
+    MODULE_WAVESHAPER,
+    MODULE_TUNE,
 
 } ModuleType;
 
@@ -54,6 +56,9 @@ class BaseModule {
     uint8_t id;
     uint8_t layerId;
     uint8_t displayVis = 1;
+
+    uint8_t LEDPortID = 0xFF;
+    uint8_t LEDPinID = 0xFF;
 
     const char *name;
     const char *shortName;
@@ -459,8 +464,8 @@ class Steiner : public BaseModule {
     Input iResonance = Input("RESONANCE", "RES", &resonance);
     Input iLevel = Input("LEVEL", "LEVEL", &levelRAW);
 
-    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
-    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);          // range get overriden by tune setting
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance); // range get overriden by tune setting
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
 
@@ -500,8 +505,8 @@ class Ladder : public BaseModule {
     Input iResonance = Input("RESONANCE", "RES", &resonance);
     Input iLevel = Input("LEVEL", "LEVEL", &levelRAW);
 
-    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);
-    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance);
+    Analog aCutoff = Analog("CUTOFF", 0, 1, 1, true, linMap, &iCutoff);          // range get overriden by tune setting
+    Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance); // range get overriden by tune setting
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
     Digital dSlope = Digital("SLOPE", 0, 3, 3, true, &nlLadderSlopes); // TODO hide when front connected
@@ -532,6 +537,7 @@ class LFO : public BaseModule {
         switches.push_back(&dClockStep);
         switches.push_back(&dEXTDiv);
         switches.push_back(&dAlignLFOs);
+        switches.push_back(&dRange);
 
         renderBuffer.push_back(&speed);
         renderBuffer.push_back(&speedRAW);
@@ -562,6 +568,8 @@ class LFO : public BaseModule {
     Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false, false);
 
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr);
+
+    Digital dRange = Digital("RANGE", 0, 1, 1, false, &nlRange, nullptr);
 
     RenderBuffer speed;
     RenderBuffer speedRAW;
@@ -782,6 +790,64 @@ class Feel : public BaseModule {
 
     RenderBuffer glide;
     RenderBuffer detune;
+};
+
+class Tune : public BaseModule {
+  public:
+    Tune(const char *name, const char *shortName) : BaseModule(name, shortName) {
+
+        knobs.push_back(&tuneS_A);
+        knobs.push_back(&tuneS_B);
+        knobs.push_back(&tuneS_C);
+        knobs.push_back(&tuneS_D);
+        knobs.push_back(&tuneS_E);
+        knobs.push_back(&tuneS_F);
+        knobs.push_back(&tuneS_G);
+        knobs.push_back(&tuneS_H);
+
+        knobs.push_back(&tuneL_A);
+        knobs.push_back(&tuneL_B);
+        knobs.push_back(&tuneL_C);
+        knobs.push_back(&tuneL_D);
+        knobs.push_back(&tuneL_E);
+        knobs.push_back(&tuneL_F);
+        knobs.push_back(&tuneL_G);
+        knobs.push_back(&tuneL_H);
+
+        knobs.push_back(&tuneCutoffScaleLadder);
+        knobs.push_back(&tuneResonanceScaleLadder);
+        knobs.push_back(&tuneCutoffScaleSteiner);
+        knobs.push_back(&tuneResonanceScaleSteiner);
+
+        moduleType = MODULE_TUNE;
+        // displayVis = false;
+    }
+
+    Analog tuneS_A = Analog("Steiner Scale A", 0.9, 1.1, 1, true);
+    Analog tuneS_B = Analog("Steiner Scale B", 0.9, 1.1, 1, true);
+    Analog tuneS_C = Analog("Steiner Scale C", 0.9, 1.1, 1, true);
+    Analog tuneS_D = Analog("Steiner Scale D", 0.9, 1.1, 1, true);
+    Analog tuneS_E = Analog("Steiner Scale E", 0.9, 1.1, 1, true);
+    Analog tuneS_F = Analog("Steiner Scale F", 0.9, 1.1, 1, true);
+    Analog tuneS_G = Analog("Steiner Scale G", 0.9, 1.1, 1, true);
+    Analog tuneS_H = Analog("Steiner Scale H", 0.9, 1.1, 1, true);
+
+    Analog tuneL_A = Analog("Ladder Scale A", 0.9, 1.1, 1, true);
+    Analog tuneL_B = Analog("Ladder Scale B", 0.9, 1.1, 1, true);
+    Analog tuneL_C = Analog("Ladder Scale C", 0.9, 1.1, 1, true);
+    Analog tuneL_D = Analog("Ladder Scale D", 0.9, 1.1, 1, true);
+    Analog tuneL_E = Analog("Ladder Scale E", 0.9, 1.1, 1, true);
+    Analog tuneL_F = Analog("Ladder Scale F", 0.9, 1.1, 1, true);
+    Analog tuneL_G = Analog("Ladder Scale G", 0.9, 1.1, 1, true);
+    Analog tuneL_H = Analog("Ladder Scale H", 0.9, 1.1, 1, true);
+
+    Analog tuneCutoffScaleLadder = Analog("Ladder Cutoff MAX", 0.8, 1, 1, false, linMap);
+    Analog tuneResonanceScaleLadder = Analog("Ladder Res MAX", 0.8, 1, 1, false, linMap);
+    Analog tuneCutoffScaleSteiner = Analog("Steiner Cutoff MAX", 0.8, 1, 1, false, linMap);
+    Analog tuneResonanceScaleSteiner = Analog("Steiner Res MAX", 0.8, 1, 1, false, linMap);
+
+    RenderBuffer tuneL;
+    RenderBuffer tuneS;
 };
 
 class Out : public BaseModule {

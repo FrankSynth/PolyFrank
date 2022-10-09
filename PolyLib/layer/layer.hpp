@@ -41,6 +41,7 @@ class Layer {
         modules.push_back(&midi);
         modules.push_back(&feel);
         modules.push_back(&layersettings);
+        modules.push_back(&tune);
 
         lfos.push_back(&lfoA);
         lfos.push_back(&lfoB);
@@ -155,6 +156,8 @@ class Layer {
     ADSR envF = ADSR("ENVELOPE VCF", "ENV F");
     Out out = Out("MASTER", "MASTER");
     Feel feel = Feel("FEEL", "FEEL");
+    Tune tune = Tune("TUNE", "TUNE");
+
     LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 
     std::vector<BaseModule *> modules; //  vector of all modules

@@ -206,9 +206,9 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
     PeriphClkInitStruct.PLL3.PLL3M = 2;
-    PeriphClkInitStruct.PLL3.PLL3N = 24;
-    PeriphClkInitStruct.PLL3.PLL3P = 4;
-    PeriphClkInitStruct.PLL3.PLL3Q = 2;
+    PeriphClkInitStruct.PLL3.PLL3N = 60;
+    PeriphClkInitStruct.PLL3.PLL3P = 8;
+    PeriphClkInitStruct.PLL3.PLL3Q = 10;
     PeriphClkInitStruct.PLL3.PLL3R = 24;
     PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_3;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;

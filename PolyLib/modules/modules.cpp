@@ -2,6 +2,8 @@
 
 // NameLists for switches
 const std::vector<const char *> nlOnOff{"OFF", "ON"};
+const std::vector<const char *> nlRange{"SHORT", "LONG"};
+
 const std::vector<const char *> nlVCFDest{"STEINER", "LADDER", "BOTH", "OFF"};
 const std::vector<const char *> nlSteinerModes{"LP", "HP", "BP", "AP"};
 const std::vector<const char *> nlLadderSlopes{"6", "12", "18", "24"};

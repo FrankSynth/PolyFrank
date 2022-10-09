@@ -224,19 +224,20 @@ void Layer::collectLayerConfiguration(int32_t *buffer, bool noFilter) {
     // println("collectConfiguration");
     uint32_t index = 0;
 
-    for (BaseModule *m : modules) { //  all modules
-
-        for (Analog *i : m->getPotis()) {
-            if (i->storeable || noFilter) {
-                buffer[index] = i->value;
-                index++;
+    for (BaseModule *m : modules) {         //  all modules
+        if (m->moduleType != MODULE_TUNE) { // exlude module Tune
+            for (Analog *i : m->getPotis()) {
+                if (i->storeable || noFilter) {
+                    buffer[index] = i->value;
+                    index++;
+                }
+                // println("value:  ", buffer[index]);
             }
-            // println("value:  ", buffer[index]);
-        }
-        for (Digital *i : m->getSwitches()) {
-            buffer[index] = i->valueMapped;
-            index++;
-            // println("value:  ", buffer[index]);
+            for (Digital *i : m->getSwitches()) {
+                buffer[index] = i->valueMapped;
+                index++;
+                // println("value:  ", buffer[index]);
+            }
         }
     }
 
@@ -268,20 +269,22 @@ void Layer::writeLayerConfiguration(int32_t *buffer, bool noFilter) {
     uint32_t index = 0;
 
     for (BaseModule *m : modules) { //  all modules
+        if (m->moduleType != MODULE_TUNE) {
 
-        for (Analog *i : m->getPotis()) {
-            if (i->storeable || noFilter) {
-                i->setValue(buffer[index]);
-                i->presetLock = true;
+            for (Analog *i : m->getPotis()) {
+                if (i->storeable || noFilter) {
+                    i->setValue(buffer[index]);
+                    i->presetLock = true;
 
+                    index++;
+                }
+            }
+
+            for (Digital *i : m->getSwitches()) {
+
+                i->setValueWithoutMapping(buffer[index]);
                 index++;
             }
-        }
-
-        for (Digital *i : m->getSwitches()) {
-
-            i->setValueWithoutMapping(buffer[index]);
-            index++;
         }
     }
 

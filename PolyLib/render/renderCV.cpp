@@ -16,6 +16,7 @@
 #include "renderPhaseshaper.hpp"
 #include "renderSteiner.hpp"
 #include "renderSub.hpp"
+#include "renderTune.hpp"
 #include "renderWaveshaper.hpp"
 
 extern DUALBU22210 cvDac[2];
@@ -202,6 +203,7 @@ void renderCVs() {
     renderSub();
     renderNoise(layerA.noise);
     renderMixer(layerA.mixer);
+    renderTune(layerA.tune);
     renderSteiner(layerA.steiner);
     renderLadder(layerA.ladder);
     renderLFO(layerA.lfoA);

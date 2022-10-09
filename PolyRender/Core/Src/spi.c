@@ -130,6 +130,7 @@ void MX_SPI4_Init(void) {
     hspi4.Init.NSS = SPI_NSS_HARD_INPUT;
     hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
     hspi4.Init.CRCPolynomial = 0x0;
     hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;

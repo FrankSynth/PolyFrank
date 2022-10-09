@@ -92,7 +92,7 @@ SECTIONS
     . = ALIGN(4);
     _sITCM = .;      
 
-    *gfx* (.text .text*)
+    /* *gfx* (.text .text*) */
     *guiBase* (.text .text*)
     *datacore* (.text .text*)
     *polyMath.o (.text .text*)
@@ -110,7 +110,7 @@ SECTIONS
     *rotary.o (.text .text*)
     *bus.o (.text .text*)
     *busInterface.o (.text .text*)
-    *gfx.o (.text .text*)
+    /* *gfx.o (.text .text*) */
     *polyControlIRQ.o (.text .text*)
     *usbd_midi_if.o (.text .text*)
     *moduleCallbacks.o (.text .text*)

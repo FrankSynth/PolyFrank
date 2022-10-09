@@ -21,8 +21,8 @@ extern MAX11128 adcA;
 extern MAX11128 adcB;
 
 // LED Driver
-extern std::vector<IS31FL3216> ledDriverA;
-extern std::vector<IS31FL3216> ledDriverB;
+extern IS32FL3237 ledDriver[2][2];
+extern IS31FL3205 ledDriverControl;
 
 extern TS3A5017D multiplexer;
 
@@ -89,8 +89,17 @@ void HIDConfig() {
     switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 4), nullptr);
     switches[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 5), nullptr);
 
+    // register transmit functions for the led Driver
+    FlagHandler::ledDriverA_ISR[0] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[0][0]);
+    FlagHandler::ledDriverA_ISR[1] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[0][1]);
+
+    FlagHandler::ledDriverB_ISR[0] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[1][0]);
+    FlagHandler::ledDriverB_ISR[1] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[1][1]);
+
+    FlagHandler::ledDriverControl_ISR = std::bind(&IS31FL3205::sendPWMData, &ledDriverControl);
+
     potiMapping();
-    patchLEDMappingInit();
+    LEDMappingInit();
 
     // activate FlagHandling for HID ICs
     FlagHandler::HID_Initialized = true;
@@ -382,17 +391,20 @@ void potiMapping() {
 }
 
 //////////// LED ///////////
-void renderLED() {
+void LEDRender() {
+
+    uint16_t breathing =
+        uint8_t((fast_sin_f32(millis() / 1000.f) + 1) / 4.f * (float)LEDBRIGHTNESS_MEDIUM / 2) + LEDBRIGHTNESS_MEDIUM;
+
     for (uint32_t i = 0; i < 2; i++) { // for both Layer
+        // clear Data
+
+        for (uint32_t x = 0; x < 2; x++) {
+            ledDriver[i][x].clearPWMData();
+        }
+
         if (allLayers[i]->layerState.value) {
-
-            uint8_t pulseBrightness =
-                uint8_t((fast_sin_f32(millis() / 1000.f) + 1) / 2.f * (float)LEDBRIGHTNESS_MEDIUM);
-
-            for (uint32_t x = 0; x < ledDriverA.size(); x++) {
-                setAllLEDs(i, x, LEDBRIGHTNESS_OFF);
-            }
-
+            // LEDModuleRenderbuffer(i);
             if (currentFocus.modul < allLayers[i]->modules.size()) {
 
                 if (currentFocus.type == FOCUSOUTPUT) {
@@ -400,11 +412,11 @@ void renderLED() {
                     if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
 
                         Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
-                        setLED(i, output->LEDPortID, output->LEDPinID, LEDBRIGHTNESS_MAX);
+                        LEDOutput(output, LEDBRIGHTNESS_MAX);
 
                         for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
                             Input *target = output->getPatchesInOut()[p]->targetIn;
-                            setLED(i, target->LEDPortID, target->LEDPinID, pulseBrightness);
+                            LEDInput(target, breathing);
                         }
                     }
                 }
@@ -412,154 +424,383 @@ void renderLED() {
                     if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
 
                         Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                        setLED(i, input->LEDPortID, input->LEDPinID, LEDBRIGHTNESS_MAX);
+                        LEDInput(input, LEDBRIGHTNESS_MAX);
 
                         for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
                             Output *source = input->getPatchesInOut()[p]->sourceOut;
-                            setLED(i, source->LEDPortID, source->LEDPinID, pulseBrightness);
+                            LEDOutput(source, breathing);
                         }
                     }
                 }
             }
-            // mapping Switch settings to LEDs
-            switchLEDMapping();
+
+            // Module and Switch LEDs
+            LEDModuleSwitch(i);
+            LEDModuleOUT(i);
         }
     }
-    // update LEDDriver Outputs
-    for (uint32_t i = 0; i < ledDriverA.size(); i++) {
-        ledDriverA[i].updateLEDs();
-    }
-    for (uint32_t i = 0; i < ledDriverB.size(); i++) {
-        ledDriverB[i].updateLEDs();
-    }
+    // TODO ENABLE NEW
+    //  if (FlagHandler::ledDriverATransmit == DRIVER_IDLE) {
+    //      FlagHandler::ledDriverA_Interrupt = true;
+    //  }
+    //  else {
+    //      println("ERROR | LEDDriverA Transmit not Complete");
+    //  }
+
+    // if (FlagHandler::ledDriverBTransmit == DRIVER_IDLE) {
+    //     FlagHandler::ledDriverB_Interrupt = true;
+    // }
+    // else {
+    //     println("ERROR | LEDDriverB Transmit not Complete");
+    // }
+
+    // if (FlagHandler::ledDriverControlTransmit == DRIVER_IDLE) {
+    //     FlagHandler::ledDriverControl_Interrupt = true;
+    // }
+    // else {
+    //     println("ERROR | LEDDriverControl Transmit not Complete");
+    // }
 }
 
-void patchLEDMappingInit() {
+void LEDMappingInit() {
     for (uint8_t i = 0; i < 2; i++) {
-        allLayers[i]->envA.out.LEDPinID = 10;
-        allLayers[i]->envA.out.LEDPortID = 0;
 
-        allLayers[i]->envF.out.LEDPinID = 9;
-        allLayers[i]->envF.out.LEDPortID = 0;
+        println("INFO | LED Mapping ", i);
 
-        allLayers[i]->lfoA.out.LEDPinID = 8;
-        allLayers[i]->lfoA.out.LEDPortID = 0;
+        /////// Inputs
 
-        allLayers[i]->lfoB.out.LEDPinID = 7;
-        allLayers[i]->lfoB.out.LEDPortID = 0;
-
-        allLayers[i]->ladder.iCutoff.LEDPinID = 11;
-        allLayers[i]->ladder.iCutoff.LEDPortID = 0;
-
-        allLayers[i]->steiner.iCutoff.LEDPinID = 12;
+        // Steiner
+        allLayers[i]->steiner.iCutoff.LEDPinID = 0;
         allLayers[i]->steiner.iCutoff.LEDPortID = 0;
 
-        allLayers[i]->out.iPan.LEDPinID = 14;
-        allLayers[i]->out.iPan.LEDPortID = 0;
+        allLayers[i]->steiner.iResonance.LEDPinID = 35;
+        allLayers[i]->steiner.iResonance.LEDPortID = 0;
 
-        allLayers[i]->out.iVCA.LEDPinID = 15;
-        allLayers[i]->out.iVCA.LEDPortID = 0;
+        allLayers[i]->steiner.iLevel.LEDPinID = 34;
+        allLayers[i]->steiner.iLevel.LEDPortID = 0;
 
-        allLayers[i]->out.iDistort.LEDPinID = 13;
-        allLayers[i]->out.iDistort.LEDPortID = 0;
+        // Ladder
+        allLayers[i]->ladder.iCutoff.LEDPinID = 31;
+        allLayers[i]->ladder.iCutoff.LEDPortID = 0;
 
-        allLayers[i]->feel.oSpread.LEDPinID = 4;
-        allLayers[i]->feel.oSpread.LEDPortID = 0;
+        allLayers[i]->ladder.iResonance.LEDPinID = 32;
+        allLayers[i]->ladder.iResonance.LEDPortID = 0;
+
+        allLayers[i]->ladder.iLevel.LEDPinID = 33;
+        allLayers[i]->ladder.iLevel.LEDPortID = 0;
+
+        // Feel
+        allLayers[i]->feel.iGlide.LEDPinID = 11;
+        allLayers[i]->feel.iGlide.LEDPortID = 1;
+
+        allLayers[i]->feel.iDetune.LEDPinID = 12;
+        allLayers[i]->feel.iDetune.LEDPortID = 1;
+
+        // OSC A
+        allLayers[i]->oscA.iFM.LEDPinID = 16;
+        allLayers[i]->oscA.iFM.LEDPortID = 0;
+
+        allLayers[i]->oscA.iMorph.LEDPinID = 15;
+        allLayers[i]->oscA.iMorph.LEDPortID = 0;
+
+        allLayers[i]->oscA.iEffect.LEDPinID = 14;
+        allLayers[i]->oscA.iEffect.LEDPortID = 0;
+
+        // OSC B
+        allLayers[i]->oscB.iFM.LEDPinID = 12;
+        allLayers[i]->oscB.iFM.LEDPortID = 0;
+
+        allLayers[i]->oscB.iMorph.LEDPinID = 11;
+        allLayers[i]->oscB.iMorph.LEDPortID = 0;
+
+        allLayers[i]->oscB.iEffect.LEDPinID = 10;
+        allLayers[i]->oscB.iEffect.LEDPortID = 0;
+
+        // ENV
+        allLayers[i]->envA.iAmount.LEDPinID = 29;
+        allLayers[i]->envA.iAmount.LEDPortID = 1;
+
+        allLayers[i]->envF.iAmount.LEDPinID = 31;
+        allLayers[i]->envF.iAmount.LEDPortID = 1;
+
+        // MIX  //check renderbuffer led output
+        allLayers[i]->mixer.oscALevelSteiner.LEDPinID = 8;
+        allLayers[i]->mixer.oscALevelSteiner.LEDPortID = 0;
+
+        allLayers[i]->mixer.oscBLevelSteiner.LEDPinID = 6;
+        allLayers[i]->mixer.oscBLevelSteiner.LEDPortID = 0;
+
+        allLayers[i]->mixer.subLevelSteiner.LEDPinID = 4;
+        allLayers[i]->mixer.subLevelSteiner.LEDPortID = 0;
+
+        allLayers[i]->mixer.noiseLevelSteiner.LEDPinID = 2;
+        allLayers[i]->mixer.noiseLevelSteiner.LEDPortID = 0;
+
+        allLayers[i]->mixer.oscALevelLadder.LEDPinID = 7;
+        allLayers[i]->mixer.oscALevelLadder.LEDPortID = 0;
+
+        allLayers[i]->mixer.oscBLevelLadder.LEDPinID = 5;
+        allLayers[i]->mixer.oscBLevelLadder.LEDPortID = 0;
+
+        allLayers[i]->mixer.subLevelLadder.LEDPinID = 3;
+        allLayers[i]->mixer.subLevelLadder.LEDPortID = 0;
+
+        allLayers[i]->mixer.noiseLevelLadder.LEDPinID = 1;
+        allLayers[i]->mixer.noiseLevelLadder.LEDPortID = 0;
+
+        /////// Outputs
+        allLayers[i]->lfoA.out.LEDPinID = 24;
+        allLayers[i]->lfoA.out.LEDPortID = 0;
+
+        allLayers[i]->lfoB.out.LEDPinID = 22;
+        allLayers[i]->lfoB.out.LEDPortID = 1;
+
+        allLayers[i]->envF.out.LEDPinID = 30;
+        allLayers[i]->envF.out.LEDPortID = 1;
+
+        allLayers[i]->envA.out.LEDPinID = 28;
+        allLayers[i]->envA.out.LEDPortID = 1;
+
+        allLayers[i]->feel.oSpread.LEDPinID = 13;
+        allLayers[i]->feel.oSpread.LEDPortID = 1;
+
+        /////// Module Output
+        allLayers[i]->lfoA.LEDPinID = 30;
+        allLayers[i]->lfoA.LEDPortID = 0;
+
+        allLayers[i]->lfoB.LEDPinID = 22;
+        allLayers[i]->lfoB.LEDPortID = 0;
+
+        allLayers[i]->envF.LEDPinID = 19;
+        allLayers[i]->envF.LEDPortID = 0;
+
+        allLayers[i]->envA.LEDPinID = 25;
+        allLayers[i]->envA.LEDPortID = 1;
+
+        /////// Configs
+        allLayers[i]->sub.dOctaveSwitch.configureNumberLEDs(1);
+        allLayers[i]->sub.dOctaveSwitch.LEDPinID[0] = 13;
+        allLayers[i]->sub.dOctaveSwitch.LEDPortID[0] = 0;
+
+        allLayers[i]->oscB.dSync.configureNumberLEDs(1);
+        allLayers[i]->oscB.dSync.LEDPinID[0] = 9;
+        allLayers[i]->oscB.dSync.LEDPortID[0] = 0;
+
+        allLayers[i]->mixer.dNOISEDestSwitch.configureNumberLEDs(2);
+        allLayers[i]->mixer.dNOISEDestSwitch.LEDPinID[0] = 2;
+        allLayers[i]->mixer.dNOISEDestSwitch.LEDPortID[0] = 0;
+        allLayers[i]->mixer.dNOISEDestSwitch.LEDPinID[1] = 1;
+        allLayers[i]->mixer.dNOISEDestSwitch.LEDPortID[1] = 0;
+
+        allLayers[i]->mixer.dOSCADestSwitch.configureNumberLEDs(2);
+        allLayers[i]->mixer.dOSCADestSwitch.LEDPinID[0] = 8;
+        allLayers[i]->mixer.dOSCADestSwitch.LEDPortID[0] = 0;
+        allLayers[i]->mixer.dOSCADestSwitch.LEDPinID[1] = 7;
+        allLayers[i]->mixer.dOSCADestSwitch.LEDPortID[1] = 0;
+
+        allLayers[i]->mixer.dOSCBDestSwitch.configureNumberLEDs(2);
+        allLayers[i]->mixer.dOSCBDestSwitch.LEDPinID[0] = 6;
+        allLayers[i]->mixer.dOSCBDestSwitch.LEDPortID[0] = 0;
+        allLayers[i]->mixer.dOSCBDestSwitch.LEDPinID[1] = 5;
+        allLayers[i]->mixer.dOSCBDestSwitch.LEDPortID[1] = 0;
+
+        allLayers[i]->mixer.dSUBDestSwitch.configureNumberLEDs(2);
+        allLayers[i]->mixer.dSUBDestSwitch.LEDPinID[0] = 4;
+        allLayers[i]->mixer.dSUBDestSwitch.LEDPortID[0] = 0;
+        allLayers[i]->mixer.dSUBDestSwitch.LEDPinID[1] = 3;
+        allLayers[i]->mixer.dSUBDestSwitch.LEDPortID[1] = 0;
+
+        allLayers[i]->lfoA.dAlignLFOs.configureNumberLEDs(1);
+        allLayers[i]->lfoA.dAlignLFOs.LEDPinID[0] = 25;
+        allLayers[i]->lfoA.dAlignLFOs.LEDPortID[0] = 0;
+
+        allLayers[i]->lfoA.dGateTrigger.configureNumberLEDs(1);
+        allLayers[i]->lfoA.dGateTrigger.LEDPinID[0] = 26;
+        allLayers[i]->lfoA.dGateTrigger.LEDPortID[0] = 0;
+
+        allLayers[i]->lfoB.dAlignLFOs.configureNumberLEDs(1);
+        allLayers[i]->lfoB.dAlignLFOs.LEDPinID[0] = 24;
+        allLayers[i]->lfoB.dAlignLFOs.LEDPortID[0] = 1;
+
+        allLayers[i]->lfoB.dGateTrigger.configureNumberLEDs(1);
+        allLayers[i]->lfoB.dGateTrigger.LEDPinID[0] = 23;
+        allLayers[i]->lfoB.dGateTrigger.LEDPortID[0] = 1;
+
+        allLayers[i]->steiner.dMode.configureNumberLEDs(4);
+        allLayers[i]->steiner.dMode.LEDPinID[0] = 18;
+        allLayers[i]->steiner.dMode.LEDPortID[0] = 1;
+        allLayers[i]->steiner.dMode.LEDPinID[1] = 19;
+        allLayers[i]->steiner.dMode.LEDPortID[1] = 1;
+        allLayers[i]->steiner.dMode.LEDPinID[2] = 20;
+        allLayers[i]->steiner.dMode.LEDPortID[2] = 1;
+        allLayers[i]->steiner.dMode.LEDPinID[3] = 21;
+        allLayers[i]->steiner.dMode.LEDPortID[3] = 1;
+
+        allLayers[i]->ladder.dSlope.configureNumberLEDs(4);
+        allLayers[i]->ladder.dSlope.LEDPinID[0] = 14;
+        allLayers[i]->ladder.dSlope.LEDPortID[0] = 1;
+        allLayers[i]->ladder.dSlope.LEDPinID[1] = 15;
+        allLayers[i]->ladder.dSlope.LEDPortID[1] = 1;
+        allLayers[i]->ladder.dSlope.LEDPinID[2] = 16;
+        allLayers[i]->ladder.dSlope.LEDPortID[2] = 1;
+        allLayers[i]->ladder.dSlope.LEDPinID[3] = 17;
+        allLayers[i]->ladder.dSlope.LEDPortID[3] = 1;
+
+        //////MIDI
+
+        allLayers[i]->midi.oNote.LEDPinID = 0;
+        allLayers[i]->midi.oNote.LEDPortID = 2;
+
+        allLayers[i]->midi.oVelocity.LEDPinID = 1;
+        allLayers[i]->midi.oVelocity.LEDPortID = 2;
+
+        allLayers[i]->midi.oMod.LEDPinID = 4;
+        allLayers[i]->midi.oMod.LEDPortID = 2;
+
+        allLayers[i]->midi.oPitchbend.LEDPinID = 3;
+        allLayers[i]->midi.oPitchbend.LEDPortID = 2;
+
+        allLayers[i]->midi.oAftertouch.LEDPinID = 2;
+        allLayers[i]->midi.oAftertouch.LEDPortID = 2;
     }
 }
 
-void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint8_t brigthness) {
+void LEDOutput(Output *output, uint16_t brigthness) {
+    if (output->LEDPortID == 2) { // MIDI MODULE Control
+        ledDriverControl.pwmData[output->LEDPinID] = brigthness;
+    }
+    else {
 
-    if (port == 0xFF || pin == 0xFF)
+        ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID] = brigthness;
+    }
+}
+
+void LEDInput(Input *input, uint16_t brigthness) {
+    ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID] = brigthness;
+}
+
+// MODULE LED OUTPUT
+void LEDModule(BaseModule *module) { // TODO Check ranges?
+
+    // println(module->layerId, "  ", module->LEDPortID, " ", module->LEDPinID, " ");
+    //
+    ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID] =
+        module->getOutputs()[0]->currentSample[0] + 1 * LEDBRIGHTNESS_MAX / 2;
+}
+
+void LEDRenderbuffer(RenderBuffer *rBuffer) { // TODO Check ranges?
+    ledDriver[rBuffer->layerId][rBuffer->LEDPortID].pwmData[rBuffer->LEDPinID] = rBuffer->currentSample[0];
+}
+
+void  LEDModuleOUT(uint32_t layerID) {
+    LEDModule(&allLayers[layerID]->lfoA);
+    LEDModule(&allLayers[layerID]->lfoB);
+    LEDModule(&allLayers[layerID]->envA);
+    LEDModule(&allLayers[layerID]->envF);
+}
+
+void LEDModuleRenderbuffer(uint32_t layerID) {
+    LEDRenderbuffer(&allLayers[layerID]->mixer.oscALevelLadder);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.oscALevelSteiner);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.oscBLevelLadder);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.oscBLevelSteiner);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.noiseLevelLadder);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.noiseLevelSteiner);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.subLevelLadder);
+    LEDRenderbuffer(&allLayers[layerID]->mixer.subLevelSteiner);
+}
+
+void LEDModuleSwitch(uint32_t layerID) {
+
+    LEDSingleSetting(&allLayers[layerID]->sub.dOctaveSwitch);
+    LEDSingleSetting(&allLayers[layerID]->oscB.dSync);
+
+    LEDDualSetting(&allLayers[layerID]->mixer.dOSCADestSwitch);
+    LEDDualSetting(&allLayers[layerID]->mixer.dOSCBDestSwitch);
+    LEDDualSetting(&allLayers[layerID]->mixer.dSUBDestSwitch);
+    LEDDualSetting(&allLayers[layerID]->mixer.dNOISEDestSwitch);
+
+    LEDQuadSetting(&allLayers[layerID]->steiner.dMode);
+    LEDQuadSetting(&allLayers[layerID]->ladder.dSlope);
+}
+
+void LEDDigital(Digital *digital, uint8_t id, uint16_t value) {
+    if (digital != nullptr) {
+        if (id < digital->LEDPortID.size() && id < digital->LEDPinID.size()) {
+            uint32_t pin = digital->LEDPinID[id];
+            uint32_t port = digital->LEDPortID[id];
+            ledDriver[digital->layerId][port].pwmData[pin] = value;
+        }
+    }
+}
+
+void LEDQuadSetting(Digital *digital) {
+    if (digital == nullptr)
         return;
-    if (layer == 0)
-        ledDriverA[port].pwmValue[pin] = brigthness;
-    if (layer == 1)
-        ledDriverB[port].pwmValue[pin] = brigthness;
-}
-
-void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness) {
-    if (layer == 0)
-        memset(ledDriverA[port].pwmValue, brigthness, 16);
-    if (layer == 1)
-        memset(ledDriverB[port].pwmValue, brigthness, 16);
-}
-
-void switchLEDMapping() {
-    if (allLayers[0]->layerState.value == 1) {
-        dualLEDSetting(ledDriverA[0].pwmValue[5], ledDriverA[0].pwmValue[6],
-                       allLayers[0]->mixer.dOSCADestSwitch.valueMapped);
-
-        quadLEDSetting(ledDriverA[0].pwmValue[0], ledDriverA[0].pwmValue[1], ledDriverA[0].pwmValue[2],
-                       ledDriverA[0].pwmValue[3], allLayers[0]->ladder.dSlope.valueMapped);
-    }
-
-    if (allLayers[1]->layerState.value == 1) {
-        dualLEDSetting(ledDriverB[0].pwmValue[5], ledDriverB[0].pwmValue[6],
-                       allLayers[1]->mixer.dOSCADestSwitch.valueMapped);
-
-        quadLEDSetting(ledDriverB[0].pwmValue[0], ledDriverB[0].pwmValue[1], ledDriverB[0].pwmValue[2],
-                       ledDriverB[0].pwmValue[3], allLayers[1]->ladder.dSlope.valueMapped);
-    }
-}
-
-void quadLEDSetting(uint8_t &LED1, uint8_t &LED2, uint8_t &LED3, uint8_t &LED4, int32_t &value) {
-    switch (value) {
-        case 0:
-            LED1 = LEDBRIGHTNESS_MAX;
-            LED2 = LEDBRIGHTNESS_OFF;
-            LED3 = LEDBRIGHTNESS_OFF;
-            LED4 = LEDBRIGHTNESS_OFF;
+    switch (digital->valueMapped) {
+        case 0: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
+            break;
+        }
+        case 1: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
 
             break;
-        case 1:
-            LED1 = LEDBRIGHTNESS_OFF;
-            LED2 = LEDBRIGHTNESS_MAX;
-            LED3 = LEDBRIGHTNESS_OFF;
-            LED4 = LEDBRIGHTNESS_OFF;
-
+        }
+        case 2: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 2, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
             break;
-        case 2:
-            LED1 = LEDBRIGHTNESS_OFF;
-            LED2 = LEDBRIGHTNESS_OFF;
-            LED3 = LEDBRIGHTNESS_MAX;
-            LED4 = LEDBRIGHTNESS_OFF;
+        }
+        case 3: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 3, LEDBRIGHTNESS_MAX);
             break;
-        case 3:
-            LED1 = LEDBRIGHTNESS_OFF;
-            LED2 = LEDBRIGHTNESS_OFF;
-            LED3 = LEDBRIGHTNESS_OFF;
-            LED4 = LEDBRIGHTNESS_MAX;
-
-            break;
+        }
+        default: break;
     }
 }
 
-void dualLEDSetting(uint8_t &LED1, uint8_t &LED2, int32_t &value) {
-    switch (value) {
-        case 0:
-            LED1 = LEDBRIGHTNESS_MAX;
-            LED2 = LEDBRIGHTNESS_OFF;
+void LEDDualSetting(Digital *digital) {
+    if (digital == nullptr)
+        return;
 
+    switch (digital->valueMapped) {
+        case 0: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             break;
-        case 1:
-            LED1 = LEDBRIGHTNESS_OFF;
-            LED2 = LEDBRIGHTNESS_MAX;
-
+        }
+        case 1: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
             break;
-        case 2:
-            LED1 = LEDBRIGHTNESS_MAX;
-            LED2 = LEDBRIGHTNESS_MAX;
+        }
+        case 2: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
             break;
-        case 3:
-            LED1 = LEDBRIGHTNESS_OFF;
-            LED2 = LEDBRIGHTNESS_OFF;
-
+        }
+        case 3: {
+            LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             break;
+        }
+        default: break;
     }
 }
-void singleLEDSetting(uint8_t &LED, int32_t &value) {
-    LED = value ? LEDBRIGHTNESS_MAX : LEDBRIGHTNESS_OFF;
+void LEDSingleSetting(Digital *digital) {
+    // LEDDigital(digital, 0, digital->valueMapped ? LEDBRIGHTNESS_MAX : LEDBRIGHTNESS_OFF);
 }
 
 //////////// PanelTouch ///////////
@@ -615,74 +856,93 @@ void PanelTouch::evaluateLayer(uint8_t pin, uint8_t port, uint8_t event) {
     else {
         pinStateLayer[layerID][port] &= ~(1 << pin);
     }
+
     if (port == TOUCH_IO_PORT_A) {
         switch (pin) {
-            case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
-            case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-            case 2: evaluateModul((BaseModule *)&(allLayers[layerID]->sub), event); break;
-            case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->noise), event); break;
-            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->envA), event); break;
-            case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->envF), event); break;
-            case 6: evaluateOutput((Output *)&(allLayers[layerID]->envA.out), event); break;
-            case 7: evaluateInput((Input *)&(allLayers[layerID]->ladder.iCutoff), event); break;
-            case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
-            case 9: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoB), event); break;
-            case 10: evaluateOutput((Output *)&(allLayers[layerID]->envF.out), event); break;
-            case 11: evaluateInput((Input *)&(allLayers[layerID]->steiner.iCutoff), event); break;
+            case 0: evaluateSetting((Digital *)&(allLayers[layerID]->oscB.dSync), event); break;
+            case 1: evaluateInput((Input *)&(allLayers[layerID]->oscB.iEffect), event); break;
+            case 2: evaluateInput((Input *)&(allLayers[layerID]->oscB.iMorph), event); break;
+            case 3: evaluateInput((Input *)&(allLayers[layerID]->oscB.iFM), event); break;
+            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
+            case 5: evaluateSetting((Digital *)&(allLayers[layerID]->sub.dOctaveSwitch), event); break;
+            case 6: evaluateInput((Input *)&(allLayers[layerID]->oscA.iEffect), event); break;
+            case 7: evaluateInput((Input *)&(allLayers[layerID]->oscA.iMorph), event); break;
+            case 8: evaluateInput((Input *)&(allLayers[layerID]->oscA.iFM), event); break;
+            case 9: evaluateInput((Input *)&(allLayers[layerID]->feel.iGlide), event); break;
+            case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->feel), event); break;
+            case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->oscA), event); break;
         }
 
         return;
     }
     if (port == TOUCH_IO_PORT_B) {
         switch (pin) {
-            case 0: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
-            case 1: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
-            case 2: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
-            case 3: evaluateInput((Input *)&(allLayers[layerID]->out.iDistort), event); break;
-            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->mixer), event); break;
-            case 5: evaluateOutput((Output *)&(allLayers[layerID]->feel.oSpread), event); break;
-            case 6: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
-            case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
-            case 8: evaluateInput((Input *)&(allLayers[layerID]->out.iPan), event); break;
-            case 9: evaluateSetting((Digital *)&(allLayers[layerID]->ladder.dSlope), event); break;
-            case 10: evaluateSetting((Digital *)&(allLayers[layerID]->mixer.dOSCADestSwitch), event); break;
-            case 11: evaluateInput((Input *)&(allLayers[layerID]->out.iVCA), event); break;
+            case 0: evaluateInput((Input *)&(allLayers[layerID]->steiner.iResonance), event); break;
+            case 1: evaluateInput((Input *)&(allLayers[layerID]->steiner.iCutoff), event); break;
+            case 2: evaluateSetting((Digital *)&(allLayers[layerID]->steiner.dMode), event); break;
+            case 3: evaluateInput((Input *)&(allLayers[layerID]->mixer.iNOISELevel), event); break;
+            case 4: evaluateInput((Input *)&(allLayers[layerID]->mixer.iSUBLevel), event); break;
+            case 5: evaluateInput((Input *)&(allLayers[layerID]->mixer.iOSCBLevel), event); break;
+            case 6: evaluateInput((Input *)&(allLayers[layerID]->mixer.iOSCALevel), event); break;
+            case 7: evaluateModul((BaseModule *)&(allLayers[layerID]->steiner), event); break;
+            case 8: evaluateModul((BaseModule *)&(allLayers[layerID]->mixer), event); break;
+            case 9: evaluateInput((Input *)&(allLayers[layerID]->feel.iDetune), event); break;
+            case 10: evaluateOutput((Output *)&(allLayers[layerID]->feel.oSpread), event); break;
+            case 11: break;
         }
 
         return;
     }
     if (port == TOUCH_IO_PORT_C) {
         switch (pin) {
-            case 0: break;
-            case 1: break;
-            case 2: break;
-            case 3: break;
-            case 4: break;
-            case 5: break;
-            case 6: break;
-            case 7: break;
-            case 8: break;
+            case 0: evaluateSetting((Digital *)&(allLayers[layerID]->lfoB.dAlignLFOs), event); break;
+            case 1: evaluateSetting((Digital *)&(allLayers[layerID]->lfoB.dGateTrigger), event); break;
+            case 2: evaluateInput((Input *)&(allLayers[layerID]->lfoB.iAmount), event); break;
+            case 3: evaluateInput((Input *)&(allLayers[layerID]->lfoB.iShape), event); break;
+            case 4: evaluateInput((Input *)&(allLayers[layerID]->lfoB.iFreq), event); break;
+            case 5: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
+            case 6: evaluateSetting((Digital *)&(allLayers[layerID]->lfoA.dAlignLFOs), event); break;
+            case 7: evaluateSetting((Digital *)&(allLayers[layerID]->lfoA.dGateTrigger), event); break;
+            case 8: evaluateOutput((Output *)&(allLayers[layerID]->lfoA.out), event); break;
             case 9: break;
             case 10: break;
-            case 11: break;
+            case 11: evaluateOutput((Output *)&(allLayers[layerID]->lfoB.out), event); break;
         }
 
         return;
     }
     if (port == TOUCH_IO_PORT_D) {
         switch (pin) {
-            case 0: break;
-            case 1: break;
-            case 2: break;
-            case 3: break;
+            case 0: evaluateInput((Input *)&(allLayers[layerID]->lfoA.iAmount), event); break;
+            case 1: evaluateInput((Input *)&(allLayers[layerID]->lfoA.iShape), event); break;
+            case 2: evaluateInput((Input *)&(allLayers[layerID]->lfoA.iFreq), event); break;
+            case 3: evaluateModul((BaseModule *)&(allLayers[layerID]->lfoA), event); break;
+            case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->ladder), event); break;
+            case 5: evaluateInput((Input *)&(allLayers[layerID]->ladder.iCutoff), event); break;
+            case 6: evaluateInput((Input *)&(allLayers[layerID]->ladder.iResonance), event); break;
+            case 7: evaluateInput((Input *)&(allLayers[layerID]->ladder.iLevel), event); break;
+            case 8: evaluateSetting((Digital *)&(allLayers[layerID]->ladder.dSlope), event); break;
+            case 9: break;
+            case 10: evaluateInput((Input *)&(allLayers[layerID]->ladder.iLevel), event); break;
+            case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->out), event); break;
+        }
+
+        return;
+    }
+    if (port == TOUCH_IO_PORT_E) {
+        switch (pin) {
+            case 0: evaluateInput((Input *)&(allLayers[layerID]->out.iPan), event); break;
+            case 1: evaluateInput((Input *)&(allLayers[layerID]->out.iVCA), event); break;
+            case 2: evaluateOutput((Output *)&(allLayers[layerID]->envA.out), event); break;
+            case 3: evaluateInput((Input *)&(allLayers[layerID]->envA.iAmount), event); break;
             case 4: break;
-            case 5: break;
-            case 6: break;
+            case 5: evaluateOutput((Output *)&(allLayers[layerID]->envF.out), event); break;
+            case 6: evaluateInput((Input *)&(allLayers[layerID]->envF.iAmount), event); break;
             case 7: break;
             case 8: break;
             case 9: break;
-            case 10: break;
-            case 11: break;
+            case 10: evaluateModul((BaseModule *)&(allLayers[layerID]->envF), event); break;
+            case 11: evaluateModul((BaseModule *)&(allLayers[layerID]->envA), event); break;
         }
 
         return;
@@ -696,6 +956,8 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
     else {
         pinStateControl[port] &= ~(1 << pin);
     }
+
+    // TODO DELETE
     if (port == TOUCH_IO_PORT_A) {
         switch (pin) {
             case 0: break;
@@ -731,9 +993,49 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
                 break;
             case 11: break;
         }
-
-        return;
     }
+    return;
+
+    // // TODO ENABLE NEW
+    // if (port == TOUCH_IO_PORT_A) {
+    //     switch (pin) {
+    //         case 0: evaluateOutput((Output *)&(allLayers[layerID]->midi.oVelocity), event); break;
+    //         case 1: evaluateOutput((Output *)&(allLayers[layerID]->midi.oNote), event); break;
+    //         case 2: evaluateModul(&allLayers[currentFocus.layer]->midi, event); break;
+    //         case 3: evaluateOutput((Output *)&(allLayers[layerID]->midi.oAftertouch), event); break;
+    //         case 4: evaluateOutput((Output *)&(allLayers[layerID]->midi.oPitchbend), event); break;
+    //         case 5: break; // TODO F1
+    //         case 6: break; // TODO F2
+    //         case 7: break; // TODO F3
+    //         case 8: break;
+    //         case 9: evaluateActionButton(&actionHandler.buttonRight[2], event); break;
+    //         case 10: evaluateActionButton(&actionHandler.buttonRight[1], event); break;
+    //         case 11: evaluateActionButton(&actionHandler.buttonRight[0], event); break;
+    //     }
+
+    //     return;
+    // }
+    // if (port == TOUCH_IO_PORT_B) {
+    //     switch (pin) {
+    //         case 0: evaluateActionButton(&actionHandler.buttonLeft[0], event); break;
+    //         case 1: evaluateActionButton(&actionHandler.buttonLeft[1], event); break;
+    //         case 2: evaluateActionButton(&actionHandler.buttonLeft[2], event); break;
+    //         case 3: evaluateActionHandle(&actionHandler.buttonHeader[0], event); break;
+    //         case 4: evaluateActionHandle(&actionHandler.buttonHeader[1], event); break;
+    //         case 5: evaluateActionHandle(&actionHandler.buttonHeader[2], event); break;
+    //         case 6: evaluateActionHandle(&actionHandler.buttonHeader[3], event); break;
+    //         case 7: break;
+    //         case 8: break;
+    //         case 9: globalSettings.setShift(event); break;
+    //         case 10:
+    //             if (event)
+    //                 nextLayer();
+    //             break;
+    //         case 11: evaluateOutput((Output *)&(allLayers[layerID]->midi.oMod), event); break;
+    //     }
+
+    //     return;
+    // }
 }
 
 void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {

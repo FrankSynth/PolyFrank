@@ -81,6 +81,18 @@ volatile bool renderingDoneSwitchBuffer;
 volatile bool readTemperature;
 std::function<void()> readTemperature_ISR = nullptr;
 
+ledDriverState ledDriverATransmit = DRIVER_IDLE;
+ledDriverState ledDriverBTransmit = DRIVER_IDLE;
+ledDriverState ledDriverControlTransmit = DRIVER_IDLE;
+
+volatile bool ledDriverA_Interrupt = false;
+volatile bool ledDriverB_Interrupt = false;
+volatile bool ledDriverControl_Interrupt = false;
+
+std::function<void()> ledDriverA_ISR[2];
+std::function<void()> ledDriverB_ISR[2];
+std::function<void()> ledDriverControl_ISR;
+
 #elif POLYRENDER
 
 // InterChip receive flags
@@ -189,6 +201,49 @@ void handleFlags() {
         if (readTemperature_ISR != nullptr) {
             readTemperature_ISR();
         }
+    }
+
+    if (ledDriverA_Interrupt) { // LED Driver A Statemachine
+        ledDriverA_Interrupt = false;
+
+        switch (ledDriverATransmit) {
+            case DRIVER_IDLE:
+                ledDriverATransmit = DRIVER_0_TRANSMIT;
+                ledDriverA_ISR[0]();
+                break;
+            case DRIVER_0_TRANSMIT:
+                ledDriverATransmit = DRIVER_1_TRANSMIT;
+                ledDriverA_ISR[1]();
+                break;
+            case DRIVER_1_TRANSMIT: ledDriverATransmit = DRIVER_IDLE; break;
+
+            default: break;
+        }
+    }
+    if (ledDriverB_Interrupt) { // LED Driver B Statemachine
+        ledDriverB_Interrupt = false;
+
+        switch (ledDriverBTransmit) {
+            case DRIVER_IDLE:
+                ledDriverBTransmit = DRIVER_0_TRANSMIT;
+                ledDriverB_ISR[0]();
+                break;
+            case DRIVER_0_TRANSMIT:
+                ledDriverBTransmit = DRIVER_1_TRANSMIT;
+                ledDriverB_ISR[1]();
+                break;
+            case DRIVER_1_TRANSMIT: ledDriverBTransmit = DRIVER_IDLE; break;
+
+            default: break;
+        }
+    }
+
+    if (ledDriverControl_Interrupt) { // LED Driver B Statemachine
+        ledDriverControl_Interrupt = false;
+
+        ledDriverControlTransmit = DRIVER_1_TRANSMIT;
+        ledDriverControl_ISR();
+        ledDriverControlTransmit = DRIVER_IDLE;
     }
 
 #elif POLYRENDER

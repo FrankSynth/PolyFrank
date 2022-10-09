@@ -304,6 +304,7 @@ uint8_t COMinterChip::sendResetAll(uint8_t layerId) {
 }
 
 uint8_t COMinterChip::sendRequestUIData(uint8_t layer, uint8_t chip) {
+    // println("sendRequestUIData:  L: ", layer, "C: ", chip);
 
     if (singleChipRequested == false) {
         receiveLayer = layer;
@@ -321,6 +322,9 @@ uint8_t COMinterChip::sendRequestUIData(uint8_t layer, uint8_t chip) {
 }
 
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount) {
+
+    // println("SettingInt:  L: ", layerId, "  M: ", modulID, "  I: ", settingID);
+
     uint8_t comCommand[SETTINGCMDSIZE];
     comCommand[0] = UPDATESETTINGINT;
     comCommand[1] = layerId << 7;
@@ -344,6 +348,8 @@ uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t sett
 }
 
 uint8_t COMinterChip::sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount) {
+    // println("SettingFloat:  L: ", layerId, "  M: ", modulID, "  I: ", settingID);
+
     uint8_t comCommand[SETTINGCMDSIZE];
     comCommand[0] = UPDATESETTINGFLOAT;
     comCommand[1] = layerId << 7;

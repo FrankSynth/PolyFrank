@@ -5,6 +5,13 @@
 
 typedef enum { DISABLED, NOTCONNECT, WAITFORRESPONSE, READY, INTERCHIPERROR } interChipState;
 
+typedef enum {
+    DRIVER_IDLE,
+    DRIVER_0_TRANSMIT,
+    DRIVER_1_TRANSMIT,
+
+} ledDriverState;
+
 namespace FlagHandler {
 
 #ifdef POLYCONTROL
@@ -46,6 +53,18 @@ extern volatile bool renderingDoneSwitchBuffer;
 
 extern volatile bool readTemperature;
 extern std::function<void()> readTemperature_ISR;
+
+extern ledDriverState ledDriverATransmit;
+extern ledDriverState ledDriverBTransmit;
+extern ledDriverState ledDriverControlTransmit;
+
+extern volatile bool ledDriverA_Interrupt;
+extern volatile bool ledDriverB_Interrupt;
+extern volatile bool ledDriverControl_Interrupt;
+
+extern std::function<void()> ledDriverA_ISR[2];
+extern std::function<void()> ledDriverB_ISR[2];
+extern std::function<void()> ledDriverControl_ISR;
 
 #elif POLYRENDER
 

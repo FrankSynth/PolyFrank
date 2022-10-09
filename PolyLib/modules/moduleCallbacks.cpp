@@ -116,6 +116,23 @@ void resetVoiceHandler(Arpeggiator *arp) {
     arp->voiceHandler->reset(arp->layerID);
 }
 
+void tuneLadderCutoff(float *min, float *max) {
+    allLayers[0]->ladder.aCutoff.setNewRange(*min, *max);
+    allLayers[1]->ladder.aCutoff.setNewRange(*min, *max);
+}
+void tuneLadderRes(float *min, float *max) {
+    allLayers[0]->ladder.aResonance.setNewRange(*min, *max);
+    allLayers[1]->ladder.aResonance.setNewRange(*min, *max);
+}
+void tuneSteinerCutoff(float *min, float *max) {
+    allLayers[0]->steiner.aCutoff.setNewRange(*min, *max);
+    allLayers[1]->steiner.aCutoff.setNewRange(*min, *max);
+}
+void tuneSteinerRes(float *min, float *max) {
+    allLayers[0]->steiner.aResonance.setNewRange(*min, *max);
+    allLayers[1]->steiner.aResonance.setNewRange(*min, *max);
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoA));
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoB));
@@ -183,6 +200,29 @@ void setModuleCallbacks() {
 
     liveData.livemodeClockSource.setValueChangedCallback(
         std::bind(switchClockSourceCallback, &liveData.livemodeClockSource.value));
+
+    // Tuning
+    allLayers[0]->tune.tuneCutoffScaleLadder.setValueChangedCallback(std::bind(
+        tuneLadderCutoff, &allLayers[0]->ladder.aCutoff.min, &allLayers[0]->tune.tuneCutoffScaleLadder.valueMapped));
+    allLayers[0]->tune.tuneResonanceScaleLadder.setValueChangedCallback(std::bind(
+        tuneLadderRes, &allLayers[0]->ladder.aResonance.min, &allLayers[0]->tune.tuneResonanceScaleLadder.valueMapped));
+
+    allLayers[0]->tune.tuneCutoffScaleSteiner.setValueChangedCallback(std::bind(
+        tuneSteinerCutoff, &allLayers[0]->steiner.aCutoff.min, &allLayers[0]->tune.tuneCutoffScaleSteiner.valueMapped));
+    allLayers[0]->tune.tuneResonanceScaleSteiner.setValueChangedCallback(
+        std::bind(tuneSteinerRes, &allLayers[0]->steiner.aResonance.min,
+                  &allLayers[0]->tune.tuneResonanceScaleSteiner.valueMapped));
+
+    allLayers[1]->tune.tuneCutoffScaleLadder.setValueChangedCallback(std::bind(
+        tuneLadderCutoff, &allLayers[1]->ladder.aCutoff.min, &allLayers[1]->tune.tuneCutoffScaleLadder.valueMapped));
+    allLayers[1]->tune.tuneResonanceScaleLadder.setValueChangedCallback(std::bind(
+        tuneLadderRes, &allLayers[1]->ladder.aResonance.min, &allLayers[1]->tune.tuneResonanceScaleLadder.valueMapped));
+
+    allLayers[1]->tune.tuneCutoffScaleSteiner.setValueChangedCallback(std::bind(
+        tuneSteinerCutoff, &allLayers[1]->steiner.aCutoff.min, &allLayers[1]->tune.tuneCutoffScaleSteiner.valueMapped));
+    allLayers[1]->tune.tuneResonanceScaleSteiner.setValueChangedCallback(
+        std::bind(tuneSteinerRes, &allLayers[1]->steiner.aResonance.min,
+                  &allLayers[1]->tune.tuneResonanceScaleSteiner.valueMapped));
 }
 
 #endif

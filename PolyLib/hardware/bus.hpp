@@ -268,7 +268,7 @@ class i2cBus : public busInterface {
         return state;
     }
     busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
-
+        //TODO wait if BUS state not ok?
         if (state == BUS_ERROR)
             return state;
 
@@ -353,12 +353,13 @@ class i2cBus : public busInterface {
 
 class PCA9548 : public baseDevice {
   public:
+    PCA9548() { deviceName = "PCA9548"; }
+
     void configurate(i2cBus *busInterface, uint8_t i2cDeviceAddress) {
         this->busInterface = busInterface;
         this->i2cDeviceAddress = i2cDeviceCode | i2cDeviceAddress << 1;
 
         state = DEVICE_READY;
-        deviceName = "PCA9548";
     }
 
     void switchVirtualBus(uint8_t VirtualBus) {
@@ -395,7 +396,7 @@ class i2cVirtualBus : public busInterface {
 
         status.clear();
 
-        status = "\nVirtual I2C Bus | ID: ";
+        status = "\nVI2C Bus | SubID: ";
         status += std::to_string(virtualBusAddress);
         status += "\r\n";
         // DATA

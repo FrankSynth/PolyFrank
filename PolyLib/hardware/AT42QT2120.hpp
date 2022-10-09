@@ -6,9 +6,10 @@
 
 class AT42QT2120 : public baseDevice {
   public:
+    AT42QT2120() { deviceName = "AT42QT2120"; }
+
     void configurate(i2cVirtualBus *busInterface) {
         this->busInterface = busInterface;
-        deviceName = "AT42QT2120";
         configIC();
         readTouchStatus();
 

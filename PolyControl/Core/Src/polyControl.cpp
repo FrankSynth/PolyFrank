@@ -25,17 +25,25 @@ spiBus spiBusEEPROM;
 spiBus spiBusLayer;
 spiBus spiBusPanel;
 
-i2cBus i2cBusTouch;
+i2cBus i2cBusControl;
 i2cBus i2cBusIOExp;
-i2cBus i2cBusPanel1;
-i2cBus i2cBusPanel2;
+i2cBus i2cBusPanelA;
+i2cBus i2cBusPanelB;
 
-i2cVirtualBus i2cBusPanelA;
-i2cVirtualBus i2cBusPanelB;
-i2cVirtualBus i2cBusPanel1H;
+i2cVirtualBus i2cVBusPanelA0;
+i2cVirtualBus i2cVBusPanelA1;
+i2cVirtualBus i2cVBusPanelA2;
+i2cVirtualBus i2cVBusPanelA3;
+i2cVirtualBus i2cVBusPanelA4;
 
-i2cVirtualBus i2cBusTouchA;
-i2cVirtualBus i2cBusTouchB;
+i2cVirtualBus i2cVBusPanelB0;
+i2cVirtualBus i2cVBusPanelB1;
+i2cVirtualBus i2cVBusPanelB2;
+i2cVirtualBus i2cVBusPanelB3;
+i2cVirtualBus i2cVBusPanelB4;
+
+i2cVirtualBus i2cVBusControl0;
+i2cVirtualBus i2cVBusControl1;
 
 // List of all devices
 // Control Touch devices
@@ -45,15 +53,24 @@ std::vector<AT42QT2120> touchControl;
 std::vector<AT42QT2120> touchPanelA;
 std::vector<AT42QT2120> touchPanelB;
 
+// LedDriver devices
+
+RAM2_DMA uint8_t ledDataControl[25]; // data + 1 command byte
+RAM2_DMA uint8_t ledDataA[2][74];    // 36*2 + 2 command byte
+RAM3_DMA uint8_t ledDataB[2][74];    // 36*2 + 2 command byte
+
+IS32FL3237 ledDriver[2][2];
+IS31FL3205 ledDriverControl;
+
 // I2C BusMultiplexer
 PCA9548 busMultiplexerControl;
 PCA9548 busMultiplexerPanelA;
+PCA9548 busMultiplexerPanelB;
 
 // IO Expander
 PCA9555 ioExpander;
 
 //  ADC
-
 RAM2_DMA ALIGN_32BYTES(uint32_t commandA[12]);
 RAM2 ALIGN_32BYTES(uint32_t adcDataA[12]);
 RAM2_DMA ALIGN_32BYTES(uint32_t commandB[12]);
@@ -62,10 +79,6 @@ RAM2 ALIGN_32BYTES(uint32_t adcDataB[12]);
 MAX11128 adcA;
 MAX11128 adcB;
 TS3A5017D multiplexer(4, ADC_Mult_A_GPIO_Port, ADC_Mult_A_Pin, ADC_Mult_B_GPIO_Port, ADC_Mult_B_Pin);
-
-// LED Driver
-std::vector<IS31FL3216> ledDriverA;
-std::vector<IS31FL3216> ledDriverB;
 
 M95M01 eeprom;
 
@@ -199,14 +212,14 @@ void PolyControlInit() {
         newFocus = {1, 0, 0, FOCUSMODULE};
     }
 
-    //Init Hardware User Interface 
+    // Init Hardware User Interface
     HIDConfig();
 
     for (Layer *l : allLayers) {
-        l->resetLayer();
+        // l->resetLayer();
     }
 
-    //Graphical User Interface
+    // Graphical User Interface
     ui.Init();
 
     // Midi configuration
@@ -248,49 +261,80 @@ void deviceConfig() {
     spiBusPanel.connectToInterface(&hspi2);
     spiBusEEPROM.connectToInterface(&hspi6);
 
-    i2cBusTouch.connectToInterface(&hi2c1);
+    i2cBusControl.connectToInterface(&hi2c1);
     i2cBusIOExp.connectToInterface(&hi2c2);
-    i2cBusPanel1.connectToInterface(&hi2c4);
-    i2cBusPanel2.connectToInterface(&hi2c3);
+    i2cBusPanelA.connectToInterface(&hi2c3);
+    i2cBusPanelB.connectToInterface(&hi2c4);
 
-    i2cBusPanelA.connectToBus(&i2cBusPanel1);
-    i2cBusPanelA.connectToMultiplexer(&busMultiplexerPanelA, 0);
+    // VirtualBus
+    i2cVBusPanelA0.connectToBus(&i2cBusPanelA);
+    i2cVBusPanelA1.connectToBus(&i2cBusPanelA);
+    i2cVBusPanelA2.connectToBus(&i2cBusPanelA);
+    i2cVBusPanelA3.connectToBus(&i2cBusPanelA);
+    i2cVBusPanelA4.connectToBus(&i2cBusPanelA);
 
-    // i2cBusPanelB.connectToBus(&i2cBusPanel1);
-    // i2cBusPanelB.connectToMultiplexer(&busMultiplexerPanelA, 1);
+    i2cVBusPanelB0.connectToBus(&i2cBusPanelB);
+    i2cVBusPanelB1.connectToBus(&i2cBusPanelB);
+    i2cVBusPanelB2.connectToBus(&i2cBusPanelB);
+    i2cVBusPanelB3.connectToBus(&i2cBusPanelB);
+    i2cVBusPanelB4.connectToBus(&i2cBusPanelB);
 
-    i2cBusTouchA.connectToBus(&i2cBusTouch);
-    i2cBusTouchA.connectToMultiplexer(&busMultiplexerControl, 0);
+    //-> connect Multiplexer
+    i2cVBusPanelA0.connectToMultiplexer(&busMultiplexerPanelA, 0);
+    i2cVBusPanelA1.connectToMultiplexer(&busMultiplexerPanelA, 1);
+    i2cVBusPanelA2.connectToMultiplexer(&busMultiplexerPanelA, 2);
+    i2cVBusPanelA3.connectToMultiplexer(&busMultiplexerPanelA, 3);
+    i2cVBusPanelA4.connectToMultiplexer(&busMultiplexerPanelA, 4);
 
-    i2cBusTouchB.connectToBus(&i2cBusTouch);
-    i2cBusTouchB.connectToMultiplexer(&busMultiplexerControl, 1);
+    i2cVBusPanelB0.connectToMultiplexer(&busMultiplexerPanelB, 0);
+    i2cVBusPanelB1.connectToMultiplexer(&busMultiplexerPanelB, 1);
+    i2cVBusPanelB2.connectToMultiplexer(&busMultiplexerPanelB, 2);
+    i2cVBusPanelB3.connectToMultiplexer(&busMultiplexerPanelB, 3);
+    i2cVBusPanelB4.connectToMultiplexer(&busMultiplexerPanelB, 4);
 
-    // i2cBusPanel1H.connectToBus(&i2cBusPanel1);
-    // i2cBusPanel1H.connectToMultiplexer(&busMultiplexerPanelA, 7);
+    i2cVBusControl0.connectToBus(&i2cBusControl);
+    i2cVBusControl1.connectToBus(&i2cBusControl);
+
+    i2cVBusControl0.connectToMultiplexer(&busMultiplexerControl, 0);
+    i2cVBusControl1.connectToMultiplexer(&busMultiplexerControl, 1);
 
     // connect multiplexer
-    busMultiplexerControl.configurate(&i2cBusTouch, 0);
-    busMultiplexerPanelA.configurate(&i2cBusPanel1, 0);
+    busMultiplexerControl.configurate(&i2cBusControl, 0);
+    busMultiplexerPanelA.configurate(&i2cBusPanelA, 0);
+    busMultiplexerPanelB.configurate(&i2cBusPanelB, 0);
 
     // connect devices
     // setup devices
+
     touchControl.resize(2);
-    // touchPanelA.resize(2);
-    // ledDriverA.resize(1);
-    // ledDriverB.resize(0);
+    touchPanelA.resize(5);
+    touchPanelB.resize(5);
 
-    // touchPanelB.resize(0);
-
-    // touchPanelA[0].configurate(&i2cBusPanelA);
-    // touchPanelA[1].configurate(&i2cBusPanelB);
-
-    touchControl[0].configurate(&i2cBusTouchA);
-    touchControl[1].configurate(&i2cBusTouchB);
+    touchControl[0].configurate(&i2cVBusControl0);
+    touchControl[1].configurate(&i2cVBusControl1);
 
     ioExpander.configurate(&i2cBusIOExp, 0);
 
-    // ledDriverA[0].configurate(&i2cBusPanel1H, 0);
-    // ledDriverB[0].configurate(&i2cBusPanel1H, 0);
+    // TODO NEW ENABLE
+    //  touchPanelA[0].configurate(&i2cVBusPanelA0);
+    //  touchPanelA[1].configurate(&i2cVBusPanelA1);
+    //  touchPanelA[2].configurate(&i2cVBusPanelA2);
+    //  touchPanelA[3].configurate(&i2cVBusPanelA3);
+    //  touchPanelA[4].configurate(&i2cVBusPanelA4);
+
+    // touchPanelB[0].configurate(&i2cVBusPanelB0);
+    // touchPanelB[1].configurate(&i2cVBusPanelB1);
+    // touchPanelB[2].configurate(&i2cVBusPanelB2);
+    // touchPanelB[3].configurate(&i2cVBusPanelB3);
+    // touchPanelB[4].configurate(&i2cVBusPanelB4);
+
+    ledDriver[0][0].configurate(&i2cBusPanelA, 0, ledDataA[0]);
+    ledDriver[0][1].configurate(&i2cBusPanelA, 3, ledDataA[1]);
+
+    ledDriver[1][0].configurate(&i2cBusPanelB, 0, ledDataB[0]);
+    ledDriver[1][1].configurate(&i2cBusPanelB, 3, ledDataB[1]);
+
+    ledDriverControl.configurate(&i2cBusControl, 0, ledDataControl);
 
     adcA.configurate(&spiBusPanel, 12, Panel_1_CS_GPIO_Port, Panel_1_CS_Pin, commandA, adcDataA);
     adcB.configurate(&spiBusPanel, 12, Panel_2_CS_GPIO_Port, Panel_2_CS_Pin, commandB, adcDataB);
@@ -303,34 +347,60 @@ void deviceConfig() {
     deviceManager.addBus(&spiBusPanel);
     deviceManager.addBus(&spiBusEEPROM);
 
-    deviceManager.addBus(&i2cBusTouch);
+    deviceManager.addBus(&i2cBusControl);
     deviceManager.addBus(&i2cBusIOExp);
-    deviceManager.addBus(&i2cBusPanel1);
-    // deviceManager.addBus(&i2cBusPanel2);
+    deviceManager.addBus(&i2cBusPanelA);
+    deviceManager.addBus(&i2cBusPanelB);
 
-    // deviceManager.addBus(&i2cBusPanel1A);
-    // deviceManager.addBus(&i2cBusPanel1B);
-    // deviceManager.addBus(&i2cBusPanel1H);
+    deviceManager.addBus(&i2cVBusControl0);
+    deviceManager.addBus(&i2cVBusControl1);
 
-    deviceManager.addBus(&i2cBusTouchA);
-    deviceManager.addBus(&i2cBusTouchB);
+    deviceManager.addBus(&i2cVBusPanelA0);
+    deviceManager.addBus(&i2cVBusPanelA1);
+    deviceManager.addBus(&i2cVBusPanelA2);
+    deviceManager.addBus(&i2cVBusPanelA3);
+    deviceManager.addBus(&i2cVBusPanelA4);
 
-    // deviceManager.addDevice(&touchPanelA[0]);
-    // deviceManager.addDevice(&touchPanelA[1]);
+    deviceManager.addBus(&i2cVBusPanelB0);
+    deviceManager.addBus(&i2cVBusPanelB1);
+    deviceManager.addBus(&i2cVBusPanelB2);
+    deviceManager.addBus(&i2cVBusPanelB3);
+    deviceManager.addBus(&i2cVBusPanelB4);
+
+    deviceManager.addDevice(&busMultiplexerControl);
+    deviceManager.addDevice(&busMultiplexerPanelA);
+    deviceManager.addDevice(&busMultiplexerPanelB);
+
+    deviceManager.addDevice(&ioExpander);
+
     deviceManager.addDevice(&touchControl[0]);
     deviceManager.addDevice(&touchControl[1]);
 
-    deviceManager.addDevice(&busMultiplexerControl);
-    deviceManager.addDevice(&ioExpander);
+    deviceManager.addDevice(&ledDriverControl);
+    deviceManager.addDevice(&ledDriver[0][0]);
+    deviceManager.addDevice(&ledDriver[0][1]);
+
+    deviceManager.addDevice(&ledDriver[1][0]);
+    deviceManager.addDevice(&ledDriver[1][1]);
+
+    deviceManager.addDevice(&touchPanelA[0]);
+    deviceManager.addDevice(&touchPanelA[1]);
+    deviceManager.addDevice(&touchPanelA[2]);
+    deviceManager.addDevice(&touchPanelA[3]);
+    deviceManager.addDevice(&touchPanelA[4]);
+
+    deviceManager.addDevice(&touchPanelB[0]);
+    deviceManager.addDevice(&touchPanelB[1]);
+    deviceManager.addDevice(&touchPanelB[2]);
+    deviceManager.addDevice(&touchPanelB[3]);
+    deviceManager.addDevice(&touchPanelB[4]);
 
     deviceManager.addDevice(&adcA);
     deviceManager.addDevice(&adcB);
 
-    // deviceManager.addDevice(&ledDriverA[0]);
-
     deviceManager.addDevice(&eeprom);
 
-    // println(*(deviceManager.report()));
+    println(*(deviceManager.report()));
 }
 
 void midiConfig() {

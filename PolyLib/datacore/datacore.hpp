@@ -172,6 +172,10 @@ class RenderBuffer {
     uint8_t id;
     uint8_t layerId;
     uint8_t moduleId;
+
+    uint8_t LEDPortID = 0xff;
+    uint8_t LEDPinID = 0xff;
+
     bool sendOutViaCom;
 
     // vec<VOICESPERCHIP> sample[2];
@@ -259,8 +263,21 @@ class Analog : public DataElement {
     void resetValue() {
         defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
         setValue(defaultValue);
-
         presetLock = 0;
+    }
+
+    void setNewRange(float min, float max) {
+
+        println("min: ", min, "  max: ", max);
+        println("oldvalue: ", valueMapped);
+        int32_t rawValue = reverseMapping(valueMapped);
+        println("rawValue: ", rawValue);
+
+        this->min = min;
+        this->max = max;
+
+        setValue(rawValue);
+        println("newValue: ", valueMapped);
     }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
@@ -271,11 +288,9 @@ class Analog : public DataElement {
 
     inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
         if (direction == 0) {
-            setValue(
-                value -
-                (testInt(
-                    (float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
-                    maxInputValue))); // use Acellaration and test for min step of 1 -> for low resolution analog inputs
+            setValue(value - (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
+                                      maxInputValue))); // use Acellaration and test for min step of 1 -> for low
+                                                        // resolution analog inputs
         }
         if (direction == 1) {
             setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
@@ -298,20 +313,22 @@ class Analog : public DataElement {
     const std::string &getValueAsString();
     std::string valueName;
 #endif
-    int32_t defaultValue = 0;
 
     int32_t value;
+    float valueMapped;
+
+    int32_t defaultValue = 0;
     float defaultValueMapped;
 
-    float valueMapped;
     float min;
     float max;
     float minMaxDifference;
-    Input *input = nullptr;
 
     int32_t minInputValue;
     int32_t maxInputValue;
     uint32_t inputRange;
+
+    Input *input = nullptr;
 
     operator float &() { return valueMapped; }
     operator const float &() const { return valueMapped; }
@@ -346,6 +363,16 @@ class Digital : public DataElement {
         this->storeable = storeable;
     }
 
+    std::vector<uint8_t> LEDPortID;
+    std::vector<uint8_t> LEDPinID;
+
+    void configureNumberLEDs(uint8_t numLEDs) {
+        for (uint32_t i = 0; i < numLEDs; i++) {
+
+            LEDPortID.push_back(0xff);
+            LEDPinID.push_back(0xff);
+        }
+    }
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);
 
@@ -443,6 +470,9 @@ class BasePatch {
     typeLinLog mapping = linMap;
 
     std::vector<PatchElement *> patchesInOut;
+
+    uint8_t LEDPortID = 0xFF;
+    uint8_t LEDPinID = 0xFF;
 };
 
 class Input : public BasePatch {
@@ -483,9 +513,6 @@ class Input : public BasePatch {
     // calculate all inputs with their attached patchesInOut
     void collectCurrentSample();
     typeLinLog mapping;
-
-    uint8_t LEDPortID = 0xFF;
-    uint8_t LEDPinID = 0xFF;
 };
 
 class Output : public BasePatch {
@@ -506,13 +533,7 @@ class Output : public BasePatch {
         this->visible = visible;
     }
 
-    // void updateToNextSample() {
-    //     // vec<VOICESPERCHIP> temp = currentSample;
-    //     currentSample = nextSample;
-    //     // nextSample = temp;
-    // }
     vec<VOICESPERCHIP> currentSample;
-    // vec<VOICESPERCHIP> nextSample;
 
     operator float *() { return currentSample; }
     operator const float *() const { return currentSample; }

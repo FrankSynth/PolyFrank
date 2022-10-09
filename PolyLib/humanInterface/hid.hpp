@@ -6,9 +6,8 @@
 #include <stdio.h>
 
 #define LEDBRIGHTNESS_OFF 0
-#define LEDBRIGHTNESS_LOW 10
-#define LEDBRIGHTNESS_MEDIUM 50
-#define LEDBRIGHTNESS_MAX 255
+#define LEDBRIGHTNESS_MEDIUM 16383
+#define LEDBRIGHTNESS_MAX 65535
 #define NUMBERENCODERS 6
 
 typedef enum {
@@ -26,30 +25,40 @@ typedef enum {
     TOUCH_IO_PIN_11,
 } TOUCH_IO_PIN;
 
-typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D } TOUCH_IO_PORT;
+typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D, TOUCH_IO_PORT_E } TOUCH_IO_PORT;
 
 void HIDConfig();
 
+// Encoder
 void processEncoder();
 
+// Touch
 void processControlTouch();
 void processPanelTouch(uint8_t layerID);
 
+// Potentiometer
 void potiMapping();
 void processPanelPotis(uint32_t *adcData, uint32_t layer);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 
-void renderLED();
+// LED
+void LEDMappingInit();
 
-void patchLEDMappingInit();
-void switchLEDMapping();
-void setLED(uint8_t layer, uint8_t port, uint8_t pin, uint8_t brigthness);
-void setAllLEDs(uint8_t layer, uint8_t port, uint32_t brigthness);
+void LEDRender();
 
-void patchLEDMapping(FOCUSMODE type, uint32_t id, uint8_t pwm);
-void quadLEDSetting(uint8_t &LED1, uint8_t &LED2, uint8_t &LED3, uint8_t &LED4, int32_t &value);
-void dualLEDSetting(uint8_t &LED1, uint8_t &LED2, int32_t &value);
-void singleLEDSetting(uint8_t &LED, int32_t &value);
+void LEDModuleOUT(uint32_t layerID);
+void LEDModuleRenderbuffer(uint32_t layerID);
+void LEDModuleSwitch(uint32_t layerID);
+
+void LEDSingleSetting(Digital *digital);
+void LEDDualSetting(Digital *digital);
+void LEDQuadSetting(Digital *digital);
+
+void LEDOutput(Output *output, uint16_t brigthness);
+void LEDInput(Input *input, uint16_t brigthness);
+void LEDDigital(Digital *digital, uint8_t id, uint16_t value);
+void LEDModule(BaseModule *module);
+void LEDRenderbuffer(RenderBuffer *rBuffer);
 
 class PanelTouch {
   public:

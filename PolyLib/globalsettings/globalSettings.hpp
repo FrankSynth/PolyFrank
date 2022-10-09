@@ -1,8 +1,11 @@
 #pragma once
 
 #include "datacore/datacore.hpp"
+#include "layer/layer.hpp"
 #include "preset/preset.hpp"
 #include <vector>
+
+extern std::vector<Layer *> allLayers;
 
 struct categoryStruct {
     std::string category;
@@ -39,16 +42,21 @@ class GlobalSettings {
         int32_t *buffer = (int32_t *)blockBuffer;
 
         for (Setting *i : __globSettingsSystem.settings) {
-            buffer[index] = i->value;
-            index++;
+            buffer[index++] = i->value;
         }
         for (Setting *i : __globSettingsMIDI.settings) {
-            buffer[index] = i->value;
-            index++;
+            buffer[index++] = i->value;
         }
         for (Setting *i : __globSettingsDisplay.settings) {
-            buffer[index] = i->value;
-            index++;
+            buffer[index++] = i->value;
+        }
+
+        // Store Tuning
+        for (Analog *a : allLayers[0]->tune.knobs) {
+            buffer[index++] = a->valueMapped;
+        }
+        for (Analog *a : allLayers[1]->tune.knobs) {
+            buffer[index++] = a->valueMapped;
         }
 
         writeConfigBlock();
@@ -66,16 +74,21 @@ class GlobalSettings {
         readConfig();
 
         for (Setting *s : __globSettingsSystem.settings) {
-            s->setValue(buffer[index]);
-            index++;
+            s->setValue(buffer[index++]);
         }
         for (Setting *s : __globSettingsMIDI.settings) {
-            s->setValue(buffer[index]);
-            index++;
+            s->setValue(buffer[index++]);
         }
         for (Setting *s : __globSettingsDisplay.settings) {
-            s->setValue(buffer[index]);
-            index++;
+            s->setValue(buffer[index++]);
+        }
+
+        // Store Tuning
+        for (Analog *a : allLayers[0]->tune.knobs) {
+            a->setValueWithoutMapping(buffer[index++]);
+        }
+        for (Analog *a : allLayers[1]->tune.knobs) {
+            a->setValueWithoutMapping(buffer[index++]);
         }
     }
 

@@ -71,6 +71,7 @@ void UART5_IRQHandler(void);
 
 void DMA1_Stream0_IRQHandler(void);
 void DMA1_Stream1_IRQHandler(void);
+void DMA1_Stream3_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
 // void DMA2_Stream2_IRQHandler(void);
@@ -87,6 +88,7 @@ void TIM4_IRQHandler(void);
 void TIM16_IRQHandler(void);
 void BDMA_Channel0_IRQHandler(void);
 void BDMA_Channel1_IRQHandler(void);
+void BDMA_Channel2_IRQHandler(void);
 
 // void DMAMUX1_OVR_IRQHandler(void);
 /* USER CODE BEGIN EFP */

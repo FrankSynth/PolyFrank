@@ -6,11 +6,12 @@
 
 class PCA9555 : public baseDevice {
   public:
+    PCA9555() { deviceName = "PCA9555"; }
+
     void configurate(i2cBus *busInterface, uint8_t i2cAddress) {
 
         this->busInterface = busInterface;
         i2cDeviceAddress = i2cDeviceCode | i2cAddress << 1;
-        deviceName = "PCA9555";
 
         // set all pins to INPUT PULLUP
         uint8_t initData[3];

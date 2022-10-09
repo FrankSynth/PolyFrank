@@ -7,7 +7,7 @@
 // #include "debughelper/debughelper.hpp"
 
 #include "hardware/AT42QT2120.hpp"
-#include "hardware/IS31FL3216.hpp"
+#include "hardware/IS3XFL.hpp"
 #include "hardware/M95M01.hpp"
 #include "hardware/MAX11128.hpp"
 #include "hardware/PCA9555.hpp"
@@ -36,7 +36,7 @@ class devManager {
     std::string *report() { // return status of all devices
         status.clear();
 
-        status += "Interfaces\r\n";
+        status += "INFO || Interfaces\r\n";
 
         // collect interface status
         for (busInterface *interface : interfaces) {
@@ -51,7 +51,7 @@ class devManager {
         }
 
         // collect device status
-        status += "Devices : \r\n";
+        status += "\nDevices : \r\n";
 
         for (baseDevice *device : devices) {
             status += *device->report();

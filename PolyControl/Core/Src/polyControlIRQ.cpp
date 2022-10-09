@@ -35,6 +35,9 @@ extern volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 extern Layer layerA;
 extern Layer layerB;
 
+extern IS32FL3237 ledDriver[2][2];
+extern IS31FL3205 ledDriverControl;
+
 void sendRequestAllUIData();
 void receiveFromRenderChip(uint8_t layer, uint8_t chip);
 void checkLayerRequests();
@@ -61,10 +64,10 @@ void polyControlLoop() { // Here the party starts
         if (timerUIData > 8) { // 120Hz ui data test
             timerUIData = 0;
             sendRequestAllUIData();
+            // LEDRender();
         }
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
-            // renderLED();
         }
         if (enableWFI) {
             __disable_irq();
