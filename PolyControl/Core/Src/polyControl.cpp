@@ -216,7 +216,7 @@ void PolyControlInit() {
     HIDConfig();
 
     for (Layer *l : allLayers) {
-        // l->resetLayer();
+        l->resetLayer();
     }
 
     // Graphical User Interface
@@ -322,17 +322,17 @@ void deviceConfig() {
     //  touchPanelA[3].configurate(&i2cVBusPanelA3);
     //  touchPanelA[4].configurate(&i2cVBusPanelA4);
 
-    // touchPanelB[0].configurate(&i2cVBusPanelB0);
-    // touchPanelB[1].configurate(&i2cVBusPanelB1);
-    // touchPanelB[2].configurate(&i2cVBusPanelB2);
-    // touchPanelB[3].configurate(&i2cVBusPanelB3);
-    // touchPanelB[4].configurate(&i2cVBusPanelB4);
-
-    ledDriver[0][0].configurate(&i2cBusPanelA, 0, ledDataA[0]);
-    ledDriver[0][1].configurate(&i2cBusPanelA, 3, ledDataA[1]);
-
     ledDriver[1][0].configurate(&i2cBusPanelB, 0, ledDataB[0]);
     ledDriver[1][1].configurate(&i2cBusPanelB, 3, ledDataB[1]);
+
+    touchPanelB[0].configurate(&i2cVBusPanelB0);
+    touchPanelB[1].configurate(&i2cVBusPanelB1);
+    touchPanelB[2].configurate(&i2cVBusPanelB2);
+    touchPanelB[3].configurate(&i2cVBusPanelB3);
+    touchPanelB[4].configurate(&i2cVBusPanelB4);
+
+    // ledDriver[0][0].configurate(&i2cBusPanelA, 0, ledDataA[0]);
+    // ledDriver[0][1].configurate(&i2cBusPanelA, 3, ledDataA[1]);
 
     ledDriverControl.configurate(&i2cBusControl, 0, ledDataControl);
 

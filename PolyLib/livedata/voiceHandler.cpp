@@ -59,6 +59,8 @@ void VoiceHandler::playNote(const Key &key) {
         if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
             layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
         }
+
+        lastVoiceID[key.layerID] = v->voiceID;
     }
 }
 

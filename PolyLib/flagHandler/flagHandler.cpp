@@ -147,13 +147,13 @@ void handleFlags() {
         }
 
         // Panel Touch
-        if (Panel_0_Touch_Interrupt) {
-            // Panel_0_Touch_Interrupt = 0;
-            if (Panel_0_Touch_ISR != nullptr) {
-                Panel_0_Touch_ISR();
-            }
-        }
-        if (Panel_1_Touch_Interrupt) {
+        // if (Panel_0_Touch_Interrupt) {
+        //     // Panel_0_Touch_Interrupt = 0;
+        //     if (Panel_0_Touch_ISR != nullptr) {
+        //         Panel_0_Touch_ISR();
+        //     }
+        // }
+        if (Panel_1_Touch_Interrupt && (ledDriverBTransmit == DRIVER_IDLE)) {
             // Panel_1_Touch_Interrupt = 0;
             if (Panel_1_Touch_ISR != nullptr) {
                 Panel_1_Touch_ISR();
@@ -221,7 +221,14 @@ void handleFlags() {
         }
     }
     if (ledDriverB_Interrupt) { // LED Driver B Statemachine
+
         ledDriverB_Interrupt = false;
+        //     ledDriverBTransmit = DRIVER_0_TRANSMIT;
+        //     ledDriverB_ISR[0]();
+        //     ledDriverB_ISR[1]();
+
+        //     ledDriverBTransmit = DRIVER_IDLE;
+        // }
 
         switch (ledDriverBTransmit) {
             case DRIVER_IDLE:
@@ -237,7 +244,6 @@ void handleFlags() {
             default: break;
         }
     }
-
     if (ledDriverControl_Interrupt) { // LED Driver B Statemachine
         ledDriverControl_Interrupt = false;
 

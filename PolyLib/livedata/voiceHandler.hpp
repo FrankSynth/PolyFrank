@@ -38,6 +38,8 @@ class VoiceHandler {
 
     uint32_t sustain[2] = {0, 0};
 
+    uint32_t lastVoiceID[2] = {0, 0};
+
     Setting livemodeVoiceModeA = Setting("MODE A", 0, 0, 3, false, binary, &polySplitNameList);
     Setting livemodeVoiceModeB = Setting("MODE B", 0, 0, 3, false, binary, &polySplitNameList);
 

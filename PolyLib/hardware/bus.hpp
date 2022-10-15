@@ -268,9 +268,11 @@ class i2cBus : public busInterface {
         return state;
     }
     busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
-        //TODO wait if BUS state not ok?
-        if (state == BUS_ERROR)
+        // TODO wait if BUS state not ok?
+        if (state == BUS_ERROR) {
+            println("I2C in ErrorState");
             return state;
+        }
 
         txCounter += size;
 
@@ -295,10 +297,12 @@ class i2cBus : public busInterface {
             __enable_irq();
             if (ret == HAL_ERROR) {
                 state = BUS_ERROR;
+                println("I2C Error");
                 return state;
             }
             else if (ret == HAL_BUSY) {
                 state = BUS_BUSY;
+                println("I2C BUSY");
                 return state;
             }
             else {

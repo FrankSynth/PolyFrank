@@ -64,7 +64,7 @@ void polyControlLoop() { // Here the party starts
         if (timerUIData > 8) { // 120Hz ui data test
             timerUIData = 0;
             sendRequestAllUIData();
-            // LEDRender();
+            LEDRender();
         }
         if (getRenderState() == RENDER_DONE) {
             ui.Draw();
@@ -339,6 +339,12 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
     }
 }
 
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
+    if (hi2c == &hi2c4) {
+        FlagHandler::ledDriverB_Interrupt = true;
+    }
+}
+
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
@@ -358,12 +364,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
     if (pin & Control_INT_Pin) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;
     }
-    //  if (pin & GPIO_PIN_2) { //  Touch
-    //      FlagHandler::Panel_0_Touch_Interrupt = true;
-    //  }
-    //  if (pin & GPIO_PIN_5) { //  Touch
-    //      FlagHandler::Panel_1_Touch_Interrupt = true;
-    //  }
+    if (pin & Panel_2_INT_Pin) { //  Touch
+        FlagHandler::Panel_0_Touch_Interrupt = true;
+        // println("panel1Int");
+    }
+    if (pin & Panel_1_INT_Pin) { //  Touch
+        FlagHandler::Panel_1_Touch_Interrupt = true;
+        // println("panel2Int");
+    }
 
     if (pin & GPIO_PIN_8) { //  Touch
         liveData.externalClockTick();

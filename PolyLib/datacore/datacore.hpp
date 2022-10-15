@@ -268,16 +268,16 @@ class Analog : public DataElement {
 
     void setNewRange(float min, float max) {
 
-        println("min: ", min, "  max: ", max);
-        println("oldvalue: ", valueMapped);
+        // println("min: ", min, "  max: ", max);
+        // println("oldvalue: ", valueMapped);
         int32_t rawValue = reverseMapping(valueMapped);
-        println("rawValue: ", rawValue);
+        // println("rawValue: ", rawValue);
 
         this->min = min;
         this->max = max;
 
         setValue(rawValue);
-        println("newValue: ", valueMapped);
+        // println("newValue: ", valueMapped);
     }
 
     static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
@@ -372,6 +372,7 @@ class Digital : public DataElement {
             LEDPortID.push_back(0xff);
             LEDPinID.push_back(0xff);
         }
+        println("size:  ", LEDPortID.size());
     }
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);

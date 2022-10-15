@@ -33,7 +33,6 @@ class GUI {
 
     std::vector<Layer *> layers;
 
-  private:
     std::vector<GUIPanelBase *> panels;
 
     GUIPanelLive guiPanelLiveData;
@@ -62,4 +61,6 @@ class GUI {
     GUIPanelError guiError;
 
     location oldFocus;
+
+  private:
 };

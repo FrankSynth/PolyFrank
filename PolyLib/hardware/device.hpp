@@ -51,7 +51,7 @@ class devManager {
         }
 
         // collect device status
-        status += "\nDevices : \r\n";
+        status += "\nINFO || Devices : \r\n";
 
         for (baseDevice *device : devices) {
             status += *device->report();
