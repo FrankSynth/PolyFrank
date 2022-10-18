@@ -168,7 +168,7 @@ void MX_I2C4_Init(void) {
     }
     /** Configure Digital filter
      */
-    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c4, 0) != HAL_OK) {
+    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 4) != HAL_OK) {
         Error_Handler();
     }
     /* USER CODE BEGIN I2C4_Init 2 */
@@ -247,7 +247,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
 
         /* I2C3 DMA Init */
         /* I2C3_TX Init */
-        hdma_i2c3_tx.Instance = DMA1_Stream3;
+        hdma_i2c3_tx.Instance = DMA2_Stream3;
         hdma_i2c3_tx.Init.Request = DMA_REQUEST_I2C3_TX;
         hdma_i2c3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
         hdma_i2c3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -256,7 +256,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         hdma_i2c3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
         hdma_i2c3_tx.Init.Mode = DMA_NORMAL;
         hdma_i2c3_tx.Init.Priority = DMA_PRIORITY_LOW;
-        hdma_i2c3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        hdma_i2c3_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
         if (HAL_DMA_Init(&hdma_i2c3_tx) != HAL_OK) {
             Error_Handler();
         }
@@ -264,9 +264,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c3_tx);
 
         /* I2C3 interrupt Init */
-        HAL_NVIC_SetPriority(I2C3_EV_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(I2C3_EV_IRQn, 2, 4);
         HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
-        HAL_NVIC_SetPriority(I2C3_ER_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(I2C3_ER_IRQn, 2, 4);
         HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
         /* USER CODE BEGIN I2C3_MspInit 1 */
 
@@ -310,9 +310,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2cHandle) {
         __HAL_LINKDMA(i2cHandle, hdmatx, hdma_i2c4_tx);
 
         /* I2C4 interrupt Init */
-        HAL_NVIC_SetPriority(I2C4_EV_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(I2C4_EV_IRQn, 2, 4);
         HAL_NVIC_EnableIRQ(I2C4_EV_IRQn);
-        HAL_NVIC_SetPriority(I2C4_ER_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(I2C4_ER_IRQn, 2, 4);
         HAL_NVIC_EnableIRQ(I2C4_ER_IRQn);
         /* USER CODE BEGIN I2C4_MspInit 1 */
 

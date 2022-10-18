@@ -1179,8 +1179,8 @@ void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, 
             // register
             registerDigitalElement(0, &((ADSR *)module)->dLoop);
             registerDigitalElement(1, &((ADSR *)module)->dLatch);
-            registerDigitalElement(2, &((ADSR *)module)->dClockStep);
-            registerDigitalElement(3, nullptr);
+            registerDigitalElement(2, &((ADSR *)module)->dReset);
+            registerDigitalElement(3, &((ADSR *)module)->dGateTrigger);
 
             // draw
             drawCustomDigitalElement(&((ADSR *)module)->dLoop, x, y, elementWidth - 2, h);

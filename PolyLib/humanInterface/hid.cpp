@@ -98,6 +98,8 @@ void HIDConfig() {
 
     FlagHandler::ledDriverControl_ISR = std::bind(&IS31FL3205::sendPWMData, &ledDriverControl);
 
+    FlagHandler::ledDriverUpdateCurrent_ISR = std::bind(updateLEDDriverCurrent);
+
     potiMapping();
     LEDMappingInit();
 
@@ -169,7 +171,7 @@ void processControlTouch() {
 //////////// POTIS ///////////
 void processPanelPotis(uint32_t *adcData, uint32_t layer) {
     static int16_t octaveSwitchLastScan[2][2] = {{0, 0}, {0, 0}}; // threshold for jitter reduction  [layer][switch]
-    static uint32_t x = 0;
+    static int16_t octaveSwitchCounter[2][2] = {{0, 0}, {0, 0}};  // threshold for jitter reduction  [layer][switch]
 
     SCB_InvalidateDCache_by_Addr(adcData, 48); // clear dcache
 
@@ -182,14 +184,14 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
             // this filters out the switching artefact of the octave switches
             //  check data stability
             if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
-                x++;
+                octaveSwitchCounter[layer][channel - 1]++;
             }
             else {
-                x = 0;
+                octaveSwitchCounter[layer][channel - 1] = 0;
             }
 
             // value stable -> apply new octave switch value
-            if (x > 40) {
+            if (octaveSwitchCounter[layer][channel - 1] > 10) {
                 if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
                     panelADCStates[layer][multiplex][channel] = potiData;
 
@@ -294,24 +296,24 @@ void potiMapping() {
                 &allLayers[i]->mixer.aOSCALevel};
 
             potiFunctionPointer[i][1][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1),
-                &allLayers[i]->ladder.aLevel};
-            potiFunctionPointer[i][2][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1),
-                &allLayers[i]->ladder.aResonance};
-            potiFunctionPointer[i][3][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1),
-                &allLayers[i]->ladder.aCutoff};
-
-            potiFunctionPointer[i][1][5] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1),
                 &allLayers[i]->steiner.aLevel};
-            potiFunctionPointer[i][2][5] = {
+            potiFunctionPointer[i][2][4] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1),
                 &allLayers[i]->steiner.aResonance};
-            potiFunctionPointer[i][3][5] = {
+            potiFunctionPointer[i][3][4] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1),
                 &allLayers[i]->steiner.aCutoff};
+
+            potiFunctionPointer[i][1][5] = {
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1),
+                &allLayers[i]->ladder.aLevel};
+            potiFunctionPointer[i][2][5] = {
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1),
+                &allLayers[i]->ladder.aResonance};
+            potiFunctionPointer[i][3][5] = {
+                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1),
+                &allLayers[i]->ladder.aCutoff};
 
             potiFunctionPointer[i][1][6] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aAmount), std::placeholders::_1),
@@ -393,18 +395,30 @@ void potiMapping() {
 
 extern GUI ui;
 //////////// LED ///////////
+
+void updateLEDDriverCurrent() {
+
+    ledDriver[0][0].setCurrent(globalSettings.dispLED.value);
+    ledDriver[0][1].setCurrent(globalSettings.dispLED.value);
+    ledDriver[1][0].setCurrent(globalSettings.dispLED.value);
+    ledDriver[1][1].setCurrent(globalSettings.dispLED.value);
+
+    ledDriverControl.setCurrent(globalSettings.dispLED.value);
+}
+
 void LEDRender() {
     uint16_t breathing = uint16_t((fast_sin_f32((float)millis() / 300.f) + 1.f) / 2.f * (float)LEDBRIGHTNESS_MEDIUM);
 
-    // println(breathing);
-    ledDriverControl.clearPWMData();
+    ledDriverControl.clearPWMData(); // delete old data
 
-    for (uint32_t i = 1; i < 2; i++) { // for both Layer  //TODO only on layer active  i = 0!!!!
+    for (uint32_t i = 0; i < 2; i++) { // for both Layer
         // clear Data
 
         for (uint32_t x = 0; x < 2; x++) {
-            ledDriver[i][x].clearPWMData();
+            ledDriver[i][x].clearPWMData(); // delete old data
         }
+
+        LEDAllInputs(i); // drawInputData to LED
 
         if (allLayers[i]->layerState.value) {
             if (ui.activePanel == &ui.guiPanelFocus) { // show patches?
@@ -444,26 +458,27 @@ void LEDRender() {
             LEDModuleOUT(i);
         }
     }
-    // TODO ENABLE NEW
-    //  if (FlagHandler::ledDriverATransmit == DRIVER_IDLE) {
-    //      FlagHandler::ledDriverA_Interrupt = true;
-    //  }
-    //  else {
-    //      println("ERROR | LEDDriverA Transmit not Complete");
-    //  }
+    if (FlagHandler::ledDriverATransmit == DRIVER_IDLE) {
+        FlagHandler::ledDriverATransmit = DRIVER_START;
+        FlagHandler::ledDriverA_Interrupt = true;
+    }
+    else {
+        // println("ERROR | LEDDriverA Transmit not Complete");
+    }
 
     if (FlagHandler::ledDriverBTransmit == DRIVER_IDLE) {
+        FlagHandler::ledDriverBTransmit = DRIVER_START;
         FlagHandler::ledDriverB_Interrupt = true;
     }
     else {
-        println("ERROR | LEDDriverB Transmit not Complete");
+        // println("ERROR | LEDDriverB Transmit not Complete");
     }
 
     if (FlagHandler::ledDriverControlTransmit == DRIVER_IDLE) {
         FlagHandler::ledDriverControl_Interrupt = true;
     }
     else {
-        println("ERROR | LEDDriverControl Transmit not Complete");
+        // println("ERROR | LEDDriverControl Transmit not Complete");
     }
 }
 
@@ -761,6 +776,25 @@ void LEDModuleRenderbuffer(uint32_t layerID) {
     LEDRenderbuffer(&allLayers[layerID]->mixer.noiseLevelSteiner);
     LEDRenderbuffer(&allLayers[layerID]->mixer.subLevelLadder);
     LEDRenderbuffer(&allLayers[layerID]->mixer.subLevelSteiner);
+}
+
+void LEDAllInputs(uint32_t layerID) {
+
+    for (BaseModule *m : allLayers[layerID]->getModules()) {
+        for (Analog *a : m->getPotis()) {
+            if (a->input != nullptr) {
+                if (a->input->LEDPortID != 0xFF) { // active LED
+                    float value = a->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
+
+                    // value = testFloat(value, a->minInputValue, a->maxInputValue);
+                    value = (value - a->min) / (a->max - a->min);
+                    value = testFloat(value, 0, 1);
+
+                    LEDInput(a->input, (float)(LEDBRIGHTNESS_MAX)*value);
+                }
+            }
+        }
+    }
 }
 
 void LEDModuleSwitch(uint32_t layerID) {

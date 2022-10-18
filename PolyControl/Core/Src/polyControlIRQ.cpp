@@ -61,7 +61,7 @@ void polyControlLoop() { // Here the party starts
     HAL_UART_Receive_Stream(&huart5);
 
     while (1) {
-        if (timerUIData > 8) { // 120Hz ui data test
+        if (timerUIData > 32) { // 120Hz ui data test
             timerUIData = 0;
             sendRequestAllUIData();
             LEDRender();
@@ -340,9 +340,20 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-    if (hi2c == &hi2c4) {
+    if (hi2c->Instance == hi2c4.Instance) {
         FlagHandler::ledDriverB_Interrupt = true;
     }
+    else if (hi2c->Instance == hi2c3.Instance) {
+        FlagHandler::ledDriverA_Interrupt = true;
+    }
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+    println("ErrorI2c");
+}
+
+void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c) {
+    println("AbortI2c");
 }
 
 // EXTI Callback
@@ -360,7 +371,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         FlagHandler::Panel_1_EOC_Interrupt = true;
     }
 
-    // TODO ASSIGN to new EXTI pins rev2
     if (pin & Control_INT_Pin) { // Control Touch
         FlagHandler::Control_Touch_Interrupt = true;
     }

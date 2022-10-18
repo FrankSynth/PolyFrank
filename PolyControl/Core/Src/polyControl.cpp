@@ -128,7 +128,7 @@ void deviceConfig();
 
 void PolyControlInit() {
 
-    HAL_Delay(200); // wait 200ms for system stabilisation
+    HAL_Delay(400); // wait 200ms for system stabilisation
 
     // Say hello
     println("\n\nINFO || Hi, Frank here! Lets get everything ready...");
@@ -154,7 +154,7 @@ void PolyControlInit() {
     initPoly();
 
     // let the layer start
-    HAL_Delay(250);
+    HAL_Delay(350);
 
     // Device Configuration
     deviceConfig();
@@ -316,11 +316,11 @@ void deviceConfig() {
     ioExpander.configurate(&i2cBusIOExp, 0);
 
     // TODO NEW ENABLE
-    //  touchPanelA[0].configurate(&i2cVBusPanelA0);
-    //  touchPanelA[1].configurate(&i2cVBusPanelA1);
-    //  touchPanelA[2].configurate(&i2cVBusPanelA2);
-    //  touchPanelA[3].configurate(&i2cVBusPanelA3);
-    //  touchPanelA[4].configurate(&i2cVBusPanelA4);
+    touchPanelA[0].configurate(&i2cVBusPanelA0);
+    touchPanelA[1].configurate(&i2cVBusPanelA1);
+    touchPanelA[2].configurate(&i2cVBusPanelA2);
+    touchPanelA[3].configurate(&i2cVBusPanelA3);
+    touchPanelA[4].configurate(&i2cVBusPanelA4);
 
     ledDriver[1][0].configurate(&i2cBusPanelB, 0, ledDataB[0]);
     ledDriver[1][1].configurate(&i2cBusPanelB, 3, ledDataB[1]);
@@ -331,8 +331,8 @@ void deviceConfig() {
     touchPanelB[3].configurate(&i2cVBusPanelB3);
     touchPanelB[4].configurate(&i2cVBusPanelB4);
 
-    // ledDriver[0][0].configurate(&i2cBusPanelA, 0, ledDataA[0]);
-    // ledDriver[0][1].configurate(&i2cBusPanelA, 3, ledDataA[1]);
+    ledDriver[0][0].configurate(&i2cBusPanelA, 0, ledDataA[0]);
+    ledDriver[0][1].configurate(&i2cBusPanelA, 3, ledDataA[1]);
 
     ledDriverControl.configurate(&i2cBusControl, 0, ledDataControl);
 

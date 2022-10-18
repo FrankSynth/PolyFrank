@@ -62,7 +62,6 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern DMA2D_HandleTypeDef hdma2d;
 extern LTDC_HandleTypeDef hltdc;
-extern MDMA_HandleTypeDef hmdma_mdma_channel40_sw_0;
 extern DMA_HandleTypeDef hdma_spi1_tx;
 extern DMA_HandleTypeDef hdma_spi1_rx;
 extern DMA_HandleTypeDef hdma_spi2_tx;
@@ -263,7 +262,7 @@ void EXTI4_IRQHandler(void) {
 /**
  * @brief This function handles DMA1 stream3 global interrupt.
  */
-void DMA1_Stream3_IRQHandler(void) {
+void DMA2_Stream3_IRQHandler(void) {
     /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
 
     /* USER CODE END DMA1_Stream3_IRQn 0 */
@@ -510,18 +509,6 @@ void OTG_FS_IRQHandler(void) {
 //     /* USER CODE END DMAMUX1_OVR_IRQn 1 */
 // }
 
-/**
- * @brief This function handles MDMA global interrupt.
- */
-void MDMA_IRQHandler(void) {
-    /* USER CODE BEGIN MDMA_IRQn 0 */
-
-    /* USER CODE END MDMA_IRQn 0 */
-    HAL_MDMA_IRQHandler(&hmdma_mdma_channel40_sw_0);
-    /* USER CODE BEGIN MDMA_IRQn 1 */
-
-    /* USER CODE END MDMA_IRQn 1 */
-}
 /**
  * @brief This function handles TIM16 global interrupt.
  */

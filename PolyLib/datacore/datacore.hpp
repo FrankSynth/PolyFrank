@@ -372,7 +372,7 @@ class Digital : public DataElement {
             LEDPortID.push_back(0xff);
             LEDPinID.push_back(0xff);
         }
-        println("size:  ", LEDPortID.size());
+        // println("size:  ", LEDPortID.size());
     }
     // Inputs range must be from 0 -> MAX_VALUE_12BIT
     void setValue(int32_t newValue);

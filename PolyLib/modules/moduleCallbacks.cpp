@@ -133,6 +133,10 @@ void tuneSteinerRes(float *min, float *max) {
     allLayers[1]->steiner.aResonance.setNewRange(*min, *max);
 }
 
+void updateLEDCurrent() {
+    FlagHandler::ledDriverUpdateCurrent = true;
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoA));
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoB));
@@ -223,6 +227,8 @@ void setModuleCallbacks() {
     allLayers[1]->tune.tuneResonanceScaleSteiner.setValueChangedCallback(
         std::bind(tuneSteinerRes, &allLayers[1]->steiner.aResonance.min,
                   &allLayers[1]->tune.tuneResonanceScaleSteiner.valueMapped));
+
+    globalSettings.dispLED.setValueChangedCallback(std::bind(updateLEDCurrent));
 }
 
 #endif

@@ -61,6 +61,9 @@ void LEDInput(Input *input, uint16_t brigthness);
 void LEDDigital(Digital *digital, uint8_t id, uint16_t value);
 void LEDModule(BaseModule *module);
 void LEDRenderbuffer(RenderBuffer *rBuffer);
+void LEDAllInputs(uint32_t layerID);
+
+void updateLEDDriverCurrent();
 
 class PanelTouch {
   public:

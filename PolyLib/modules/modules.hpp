@@ -281,7 +281,7 @@ class OSC_B : public BaseModule {
     // Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr);
     Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave);
 
-    Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff);
+    Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff, nullptr, false);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 8, true, &nlWavetable, nullptr, false);
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 9, true, &nlWavetable, nullptr, false);
@@ -412,15 +412,15 @@ class Mixer : public BaseModule {
     Input iSUBLevel = Input("SUB", "SUB", &subLevel);
     Input iNOISELevel = Input("NOISE", "NOISE", &noiseLevel);
 
-    Analog aOSCALevel = Analog("OSC A", 0, 1, 0.8, true, linMap, &iOSCALevel);
+    Analog aOSCALevel = Analog("OSC A", 0, 1, 0, true, linMap, &iOSCALevel);
     Analog aOSCBLevel = Analog("OSC B", 0, 1, 0, true, linMap, &iOSCBLevel);
     Analog aSUBLevel = Analog("SUB", 0, 1, 0, true, linMap, &iSUBLevel);
     Analog aNOISELevel = Analog("NOISE", 0, 1, 0, true, linMap, &iNOISELevel);
 
-    Digital dOSCADestSwitch = Digital("OSC A", 0, 3, 1, true, &nlVCFDest, nullptr, false);
-    Digital dOSCBDestSwitch = Digital("OSC B", 0, 3, 0, true, &nlVCFDest, nullptr, false);
-    Digital dSUBDestSwitch = Digital("SUB", 0, 3, 1, true, &nlVCFDest, nullptr, false);
-    Digital dNOISEDestSwitch = Digital("NOISE", 0, 3, 1, true, &nlVCFDest, nullptr, false);
+    Digital dOSCADestSwitch = Digital("OSC A", 0, 3, 0, true, &nlVCFDest, nullptr, false);
+    Digital dOSCBDestSwitch = Digital("OSC B", 0, 3, 1, true, &nlVCFDest, nullptr, false);
+    Digital dSUBDestSwitch = Digital("SUB", 0, 3, 0, true, &nlVCFDest, nullptr, false);
+    Digital dNOISEDestSwitch = Digital("NOISE", 0, 3, 0, true, &nlVCFDest, nullptr, false);
 
     RenderBuffer oscALevelSteiner = RenderBuffer(false);
     RenderBuffer oscALevelLadder = RenderBuffer(false);
@@ -469,7 +469,7 @@ class Steiner : public BaseModule {
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
     Analog aParSer = Analog("PAR/SER", 0, 1, 0, true, linMap);
 
-    Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes); // TODO hide when front connected
+    Digital dMode = Digital("MODE", 0, 3, 0, true, &nlSteinerModes, nullptr, false); // TODO hide when front connected
 
     RenderBuffer resonance;
     RenderBuffer level;
@@ -509,7 +509,7 @@ class Ladder : public BaseModule {
     Analog aResonance = Analog("RESONANCE", 0, 1, 0, true, linMap, &iResonance); // range get overriden by tune setting
     Analog aLevel = Analog("LEVEL", 0, 1, 1, true, linMap, &iLevel);
 
-    Digital dSlope = Digital("SLOPE", 0, 3, 3, true, &nlLadderSlopes); // TODO hide when front connected
+    Digital dSlope = Digital("SLOPE", 0, 3, 3, true, &nlLadderSlopes, nullptr, false); // TODO hide when front connected
 
     RenderBuffer resonance;
     RenderBuffer levelRAW;
@@ -544,6 +544,7 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&shape);
         renderBuffer.push_back(&shapeRAW);
         renderBuffer.push_back(&amount);
+        // renderBuffer.push_back(&currentSampleRAW);  //TODO ENABLE
 
         moduleType = MODULE_LFO;
 
@@ -567,7 +568,7 @@ class LFO : public BaseModule {
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
     Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false, false);
 
-    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr);
+    Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr, false);
 
     Digital dRange = Digital("RANGE", 0, 1, 1, false, &nlRange, nullptr);
 
@@ -576,6 +577,8 @@ class LFO : public BaseModule {
     RenderBuffer shape;
     RenderBuffer shapeRAW;
     RenderBuffer amount;
+
+    RenderBuffer currentSampleRAW; // TODO im lfo render beschreiben mit rohdaten ohne amount
 
     vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
@@ -658,7 +661,8 @@ class ADSR : public BaseModule {
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr, false);
-    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr, false);
+
+    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
     Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr);
     Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false);
 

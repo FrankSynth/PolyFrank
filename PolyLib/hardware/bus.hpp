@@ -18,17 +18,18 @@ class spiBus : public busInterface {
     }
 
     std::string *report() {
-        status = "\nSPI\r\n";
+        status = "SPI";
 
         // DMA
         if ((hspi->hdmarx != nullptr) | (hspi->hdmatx != nullptr)) {
-            status += " DMA: ";
+            status += "  |  DMA: ";
             if (hspi->hdmarx != nullptr)
                 status += "RX ";
             if (hspi->hdmatx != nullptr)
                 status += "TX ";
-            status += "\r\n";
         }
+        status += "\r\n";
+
         // STATE
         status += " State: ";
         if (state == BUS_READY)
@@ -46,9 +47,9 @@ class spiBus : public busInterface {
         status += "\r\n";
 
         // DATA
-        status += " Packets: ";
-        status += " RX " + std::to_string(rxCounter);
-        status += " TX " + std::to_string(txCounter);
+        status += "   Packets: ";
+        status += "   RX " + std::to_string(rxCounter);
+        status += "   TX " + std::to_string(txCounter);
 
         status += "\r\n";
 
@@ -220,32 +221,38 @@ class i2cBus : public busInterface {
     }
 
     std::string *report() {
-        status = "\nI2C\r\n";
+        status = "I2C";
 
         // DMA
         if ((hi2c->hdmarx != nullptr) | (hi2c->hdmatx != nullptr)) {
-            status += " DMA: ";
+            status += "  |  DMA: ";
             if (hi2c->hdmarx != nullptr)
                 status += "RX ";
             if (hi2c->hdmatx != nullptr)
                 status += "TX ";
-            status += "\r\n";
         }
+        status += "\r\n";
 
         // STATE
         status += " State: ";
         if (state == BUS_READY)
             status += "ready";
-        if (state == BUS_BUSY)
+        else if (state == BUS_BUSY)
             status += "busy";
-        if (state == BUS_ERROR)
+        else if (state == BUS_SEND)
+            status += "send";
+        else if (state == BUS_RECEIVE)
+            status += "receive";
+        else if (state == BUS_SENDRECEIVE)
+            status += "send receive";
+        else if (state == BUS_ERROR)
             status += "error";
         status += "\r\n";
 
         // DATA
-        status += " Packets: ";
-        status += " RX " + std::to_string(rxCounter);
-        status += " TX " + std::to_string(txCounter);
+        status += "   Packets: ";
+        status += "   RX " + std::to_string(rxCounter);
+        status += "   TX " + std::to_string(txCounter);
 
         status += "\r\n";
 
@@ -267,7 +274,7 @@ class i2cBus : public busInterface {
         }
         return state;
     }
-    busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {
+    busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false, bool enableIT = false) {
         // TODO wait if BUS state not ok?
         if (state == BUS_ERROR) {
             println("I2C in ErrorState");
@@ -280,8 +287,25 @@ class i2cBus : public busInterface {
 
         if (enableDMA) {
             if (hi2c->hdmatx != nullptr) {
+                // __disable_irq();
 
                 HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_DMA(hi2c, address, data, size);
+                // __enable_irq();
+                if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
+                    state = BUS_ERROR;
+                    return state;
+                }
+            }
+            else {
+                return BUS_ERROR;
+            }
+        }
+        else if (enableIT) {
+            if (hi2c->hdmatx != nullptr) {
+                // __disable_irq();
+
+                HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit_IT(hi2c, address, data, size);
+                // __enable_irq();
                 if (ret == HAL_ERROR || ret == HAL_TIMEOUT) {
                     state = BUS_ERROR;
                     return state;
@@ -400,13 +424,13 @@ class i2cVirtualBus : public busInterface {
 
         status.clear();
 
-        status = "\nVI2C Bus | SubID: ";
+        status = "VI2C Bus | SubID: ";
         status += std::to_string(virtualBusAddress);
         status += "\r\n";
         // DATA
-        status += " Packets: ";
-        status += " RX " + std::to_string(VirtualRxCounter);
-        status += " TX " + std::to_string(VirtualTxCounter);
+        status += "   Packets: ";
+        status += "   RX " + std::to_string(VirtualRxCounter);
+        status += "   TX " + std::to_string(VirtualTxCounter);
 
         status += "\r\n";
 

@@ -47,17 +47,20 @@ class IS32FL3237 : public IS3XFL {
         data = databuffer;
         pwmData = (uint16_t *)&(databuffer[1]);
 
+        clearPWMData(); // clear Data
+
         data[0] = IS32REG_PWM;
 
-        state = DEVICE_READY;
-
         // enable Chip
-        sendCommand(ISXXREG_RESET, 0x00);
+        sendCommand(ISXXREG_RESET, 0x00);         // reset Device
         sendCommand(ISXXREG_CONTROL, 0b00000111); // 16MHz 16Bit
         sendCommand(ISXXREG_PHASE, 0b11111111);   // enable phase delay
-        sendLEDScaling(0xFF);
+        sendLEDScaling(0xFF);                     // Set all LED Scalings
+        // sendPWMData();                            // send PWM data 0x00
 
-        setCurrent(10); // set current
+        setCurrent(10); // set global Current to 0
+
+        state = DEVICE_READY;
     }
     void setCurrent(uint8_t current) { // configurate max current
         sendCommand(ISXXREG_GLBCURRENT, current);
@@ -76,7 +79,7 @@ class IS32FL3237 : public IS3XFL {
     }
     void sendPWMData() {
         // send all PWM data, if update not successfull? -> check last byte ist 0x00 for update trigger
-        busInterface->transmit(i2cDeviceAddress, data, IS32LEDDATASIZE, true);
+        busInterface->transmit(i2cDeviceAddress, data, IS32LEDDATASIZE, false, true);
 
         // println("INFO | LED sendPWMData");
     }
@@ -123,23 +126,20 @@ class IS31FL3205 : public IS3XFL {
         data = databuffer;
         pwmData = (uint16_t *)&data[1];
 
+        clearPWMData(); // clear Data
+
         data[0] = IS31REG_PWM;
 
-        state = DEVICE_READY;
-
         // enable Chip
-        sendCommand(ISXXREG_RESET, 0x00);
+        sendCommand(ISXXREG_RESET, 0x00);         // reset Device
         sendCommand(ISXXREG_CONTROL, 0b00000111); // 16MHz 16Bit
         sendCommand(ISXXREG_PHASE, 0b11111111);   // enable phase delay
-        sendLEDScaling(0xFF);
+        sendLEDScaling(0xFF);                     // Set all LED Scalings
+        // sendPWMData();                            // send PWM data 0x00
 
-        setCurrent(10); // set current
+        setCurrent(10); // set global Current to 0
 
-        // // set LED brightness to 0
-        for (uint32_t i = 0; i < IS31LEDDATASIZE; i++) // clear databuffer
-            databuffer[i] = 0x00;
-        { /* code */
-        }
+        state = DEVICE_READY;
     }
     void setCurrent(uint8_t current) { // configurate max current
         sendCommand(ISXXREG_GLBCURRENT, current);
@@ -193,7 +193,6 @@ class IS31FL3205 : public IS3XFL {
     i2cBus *busInterface;
 
     uint8_t i2cDeviceCode = 0x68;
-    uint8_t i2cReadDeviceAddress = 0;
     uint8_t i2cDeviceAddress = 0;
 };
 

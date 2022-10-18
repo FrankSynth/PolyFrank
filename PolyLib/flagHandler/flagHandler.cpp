@@ -81,17 +81,20 @@ volatile bool renderingDoneSwitchBuffer;
 volatile bool readTemperature;
 std::function<void()> readTemperature_ISR = nullptr;
 
-ledDriverState ledDriverATransmit = DRIVER_IDLE;
-ledDriverState ledDriverBTransmit = DRIVER_IDLE;
-ledDriverState ledDriverControlTransmit = DRIVER_IDLE;
+volatile ledDriverState ledDriverATransmit = DRIVER_IDLE;
+volatile ledDriverState ledDriverBTransmit = DRIVER_IDLE;
+volatile ledDriverState ledDriverControlTransmit = DRIVER_IDLE;
 
 volatile bool ledDriverA_Interrupt = false;
 volatile bool ledDriverB_Interrupt = false;
 volatile bool ledDriverControl_Interrupt = false;
 
+volatile bool ledDriverUpdateCurrent = false;
+
 std::function<void()> ledDriverA_ISR[2];
 std::function<void()> ledDriverB_ISR[2];
 std::function<void()> ledDriverControl_ISR;
+std::function<void()> ledDriverUpdateCurrent_ISR;
 
 #elif POLYRENDER
 
@@ -146,15 +149,12 @@ void handleFlags() {
             }
         }
 
-        // Panel Touch
-        // if (Panel_0_Touch_Interrupt) {
-        //     // Panel_0_Touch_Interrupt = 0;
-        //     if (Panel_0_Touch_ISR != nullptr) {
-        //         Panel_0_Touch_ISR();
-        //     }
-        // }
+        if (Panel_0_Touch_Interrupt && (ledDriverATransmit == DRIVER_IDLE)) {
+            if (Panel_0_Touch_ISR != nullptr) {
+                Panel_0_Touch_ISR();
+            }
+        }
         if (Panel_1_Touch_Interrupt && (ledDriverBTransmit == DRIVER_IDLE)) {
-            // Panel_1_Touch_Interrupt = 0;
             if (Panel_1_Touch_ISR != nullptr) {
                 Panel_1_Touch_ISR();
             }
@@ -195,61 +195,63 @@ void handleFlags() {
             }
             Panel_1_RXTX_Interrupt = 0;
         }
+
+        if (ledDriverA_Interrupt) { // LED Driver A Statemachine
+            ledDriverA_Interrupt = false;
+
+            switch (ledDriverATransmit) {
+                case DRIVER_START:
+                    ledDriverATransmit = DRIVER_0_TRANSMIT;
+                    ledDriverA_ISR[0]();
+                    break;
+                case DRIVER_0_TRANSMIT:
+                    ledDriverATransmit = DRIVER_1_TRANSMIT;
+                    ledDriverA_ISR[1]();
+                    break;
+                case DRIVER_1_TRANSMIT: ledDriverATransmit = DRIVER_IDLE; break;
+
+                default: break;
+            }
+        }
+
+        if (ledDriverB_Interrupt) { // LED Driver B Statemachine
+            ledDriverB_Interrupt = false;
+
+            switch (ledDriverBTransmit) {
+                case DRIVER_START:
+                    ledDriverBTransmit = DRIVER_0_TRANSMIT;
+                    ledDriverB_ISR[0]();
+                    break;
+                case DRIVER_0_TRANSMIT:
+                    ledDriverBTransmit = DRIVER_1_TRANSMIT;
+                    ledDriverB_ISR[1]();
+                    break;
+                case DRIVER_1_TRANSMIT: ledDriverBTransmit = DRIVER_IDLE; break;
+
+                default: break;
+            }
+        }
+
+        if (ledDriverControl_Interrupt) { // LED Driver B Statemachine
+            ledDriverControl_Interrupt = false;
+
+            ledDriverControlTransmit = DRIVER_1_TRANSMIT;
+            ledDriverControl_ISR();
+            ledDriverControlTransmit = DRIVER_IDLE;
+        }
+
+        if (ledDriverUpdateCurrent && ledDriverATransmit == DRIVER_IDLE &&
+            ledDriverBTransmit == DRIVER_IDLE) { // Update LED Drive Current
+            ledDriverUpdateCurrent = false;
+
+            ledDriverUpdateCurrent_ISR();
+        }
     }
     if (readTemperature) {
         readTemperature = false;
         if (readTemperature_ISR != nullptr) {
             readTemperature_ISR();
         }
-    }
-
-    if (ledDriverA_Interrupt) { // LED Driver A Statemachine
-        ledDriverA_Interrupt = false;
-
-        switch (ledDriverATransmit) {
-            case DRIVER_IDLE:
-                ledDriverATransmit = DRIVER_0_TRANSMIT;
-                ledDriverA_ISR[0]();
-                break;
-            case DRIVER_0_TRANSMIT:
-                ledDriverATransmit = DRIVER_1_TRANSMIT;
-                ledDriverA_ISR[1]();
-                break;
-            case DRIVER_1_TRANSMIT: ledDriverATransmit = DRIVER_IDLE; break;
-
-            default: break;
-        }
-    }
-    if (ledDriverB_Interrupt) { // LED Driver B Statemachine
-
-        ledDriverB_Interrupt = false;
-        //     ledDriverBTransmit = DRIVER_0_TRANSMIT;
-        //     ledDriverB_ISR[0]();
-        //     ledDriverB_ISR[1]();
-
-        //     ledDriverBTransmit = DRIVER_IDLE;
-        // }
-
-        switch (ledDriverBTransmit) {
-            case DRIVER_IDLE:
-                ledDriverBTransmit = DRIVER_0_TRANSMIT;
-                ledDriverB_ISR[0]();
-                break;
-            case DRIVER_0_TRANSMIT:
-                ledDriverBTransmit = DRIVER_1_TRANSMIT;
-                ledDriverB_ISR[1]();
-                break;
-            case DRIVER_1_TRANSMIT: ledDriverBTransmit = DRIVER_IDLE; break;
-
-            default: break;
-        }
-    }
-    if (ledDriverControl_Interrupt) { // LED Driver B Statemachine
-        ledDriverControl_Interrupt = false;
-
-        ledDriverControlTransmit = DRIVER_1_TRANSMIT;
-        ledDriverControl_ISR();
-        ledDriverControlTransmit = DRIVER_IDLE;
     }
 
 #elif POLYRENDER

@@ -28,7 +28,6 @@
 #include "i2c.h"
 #include "ltdc.h"
 #include "math/polyMath.hpp"
-#include "mdma.h"
 #include "polyControl.hpp"
 #include "rng.h"
 #include "spi.h"
@@ -111,7 +110,7 @@ int main(void) {
     MX_GPIO_Init();
     MX_BDMA_Init();
     MX_DMA_Init();
-    MX_MDMA_Init();
+    // MX_MDMA_Init();
     MX_USB_DEVICE_Init();
     MX_FMC_Init();
     BSP_SDRAM_Initialization_sequence(REFRESH_COUNT);

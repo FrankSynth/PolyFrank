@@ -128,7 +128,7 @@ class GlobalSettings {
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
-    Setting dispLED = Setting("LED", 10, 1, 10, false, binary);
+    Setting dispLED = Setting("LED", 5, 1, 20, false, binary);
 
     Setting dispTemperature = Setting("TEMPERATURE", 0, 0, 1, false, binary, &amountLayerNameList);
 
