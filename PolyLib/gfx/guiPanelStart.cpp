@@ -45,8 +45,8 @@ void GUIPanelStart::Draw() {
     if (fadeTimer < 500) {
         fade = (float)fadeTimer / 500.;
     }
-    if (fadeTimer > 2100) {
-        fade = 1 - (float)(-2100 + (int32_t)fadeTimer) / 500.;
+    if (fadeTimer > 2000) {
+        fade = 1 - (float)(-2000 + (int32_t)fadeTimer) / 500.;
 
         if (fade < 0)
             fade = 0;

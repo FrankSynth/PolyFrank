@@ -229,6 +229,8 @@ void renderADSR(ADSR &adsr) {
     // keytrack
     adsr.out = fast_lerp_f32(adsr.out, adsr.out * layerA.midi.oNote, adsr.aKeytrack);
 
+    adsr.currentSampleRAW = adsr.out;
+
     adsr.out = adsr.out * adsr.amount;
 }
 

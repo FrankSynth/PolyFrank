@@ -474,6 +474,9 @@ class BasePatch {
 
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
+
+    uint8_t LEDPortID2 = 0xFF; // for mixer double use LED
+    uint8_t LEDPinID2 = 0xFF;  // for mixer double use LED
 };
 
 class Input : public BasePatch {

@@ -544,7 +544,7 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&shape);
         renderBuffer.push_back(&shapeRAW);
         renderBuffer.push_back(&amount);
-        // renderBuffer.push_back(&currentSampleRAW);  //TODO ENABLE
+        renderBuffer.push_back(&currentSampleRAW);
 
         moduleType = MODULE_LFO;
 
@@ -560,7 +560,7 @@ class LFO : public BaseModule {
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
-    // TODO Switch  ywischen den beiden freq einstellungen, wie im UI?
+    // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 0, false, &nlClockSteps);
     Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff, nullptr, false);
@@ -578,7 +578,7 @@ class LFO : public BaseModule {
     RenderBuffer shapeRAW;
     RenderBuffer amount;
 
-    RenderBuffer currentSampleRAW; // TODO im lfo render beschreiben mit rohdaten ohne amount
+    RenderBuffer currentSampleRAW;
 
     vec<VOICESPERCHIP> currentTime;
     bool newPhase[VOICESPERCHIP] = {false};
@@ -637,6 +637,7 @@ class ADSR : public BaseModule {
         switches.push_back(&dEXTDiv);
 
         renderBuffer.push_back(&amount);
+        renderBuffer.push_back(&currentSampleRAW);
 
         moduleType = MODULE_ADSR;
     }
@@ -667,6 +668,7 @@ class ADSR : public BaseModule {
     Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false);
 
     RenderBuffer amount;
+    RenderBuffer currentSampleRAW;
 
     inline void resetPhase(uint32_t voice) {
         if (dReset)

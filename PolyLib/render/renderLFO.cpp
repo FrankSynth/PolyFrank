@@ -55,6 +55,7 @@ inline vec<VOICESPERCHIP> accumulateAmount(const LFO &lfo) {
 
 void renderLFO(LFO &lfo) {
     int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
+    vec<VOICESPERCHIP> &sampleRAW = lfo.currentSampleRAW;
     vec<VOICESPERCHIP> &currentRandom = lfo.currentRandom;
     vec<VOICESPERCHIP> &prevRandom = lfo.prevRandom;
     vec<VOICESPERCHIP> &phase = lfo.currentTime;
@@ -147,6 +148,9 @@ void renderLFO(LFO &lfo) {
         sample[otherVoice] = sample[0] * alignLFOs + sample[otherVoice] * !alignLFOs;
     for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
+
+    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+        sampleRAW[voice] = sample[voice];
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
         sample[voice] = sample[voice] * amount[voice];

@@ -47,10 +47,14 @@ void polyRenderLoop() {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    __disable_irq();
     huart->Instance->ICR = 0b1100;
+    __enable_irq();
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+    __disable_irq();
     huart->Instance->CR3 &= ~USART_CR3_DMAT; // clear dma register
+    __enable_irq();
 }
 
 void HAL_UART_ReceiveRTOCallback(UART_HandleTypeDef *huart) {

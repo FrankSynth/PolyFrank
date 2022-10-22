@@ -44,10 +44,10 @@ void MX_DMA_Init(void) {
     HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 2, 0); // sai
     HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 
-    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 2, 2); // UART TX
+    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 1, 2); // UART TX
     HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
-    HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 2, 2); // UART RX
+    HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 1, 2); // UART RX
     HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 
     HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 2, 1); // SPI 1 TX

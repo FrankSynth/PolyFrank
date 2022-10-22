@@ -5,11 +5,22 @@
 #include "modules/modules.hpp"
 #include <stdio.h>
 
+#include "humanInterface/gamma.hpp"
+
 #define LEDBRIGHTNESS_OFF 0
 #define LEDBRIGHTNESS_LOW LEDBRIGHTNESS_MAX / 4
 
 #define LEDBRIGHTNESS_MEDIUM LEDBRIGHTNESS_MAX / 2
-#define LEDBRIGHTNESS_MAX 65535
+#define LEDBRIGHTNESS_MAX 4096
+
+#define LEDBRIGTHNESS_SETTING LEDBRIGHTNESS_MAX
+#define LEDBRIGTHNESS_MODULEOUT LEDBRIGHTNESS_MAX
+#define LEDBRIGTHNESS_MODULEIN LEDBRIGHTNESS_MAX / 2
+
+#define LEDBRIGTHNESS_PATCHOUT LEDBRIGHTNESS_MAX
+#define LEDBRIGTHNESS_PATCHIN LEDBRIGHTNESS_MAX
+#define LEDBRIGTHNESS_PATCHMARKER LEDBRIGHTNESS_MAX
+
 #define NUMBERENCODERS 6
 
 typedef enum {
@@ -42,6 +53,8 @@ void processPanelTouch(uint8_t layerID);
 void potiMapping();
 void processPanelPotis(uint32_t *adcData, uint32_t layer);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
+void clearPotiState(uint32_t layer);
+void pullFrontValues(uint32_t layer);
 
 // LED
 void LEDMappingInit();
@@ -53,9 +66,10 @@ void LEDModuleRenderbuffer(uint32_t layerID);
 void LEDModuleSwitch(uint32_t layerID);
 
 void LEDSingleSetting(Digital *digital);
-void LEDDualSetting(Digital *digital);
+void LEDDualSetting(Digital *digital, float amount = 1);
 void LEDQuadSetting(Digital *digital);
 
+void LEDSetPWM(uint16_t &pwmArrayEntry, uint16_t pwmRAW);
 void LEDOutput(Output *output, uint16_t brigthness);
 void LEDInput(Input *input, uint16_t brigthness);
 void LEDDigital(Digital *digital, uint8_t id, uint16_t value);
@@ -94,4 +108,7 @@ class PanelTouch {
     uint16_t pinStateControl[8];
 
     uint8_t layerID;
+
+    bool clearOnReleaseOut = false;
+    bool clearOnReleaseIn = false;
 };

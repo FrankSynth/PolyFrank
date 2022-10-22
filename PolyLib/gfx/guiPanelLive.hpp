@@ -2,6 +2,8 @@
 
 #include "guiPanelBase.hpp"
 #include "livedata/liveData.hpp"
+extern void clearPotiState(uint32_t layer);
+
 
 class GUIPanelLive : public GUIPanelBase {
   public:
@@ -19,7 +21,12 @@ class GUIPanelLive : public GUIPanelBase {
 
     void resetSystem() {
         allLayers[0]->resetLayer();
+        allLayers[0]->clearPresetLocks();
+        clearPotiState(0);
         allLayers[1]->resetLayer();
+        allLayers[1]->clearPresetLocks();
+        clearPotiState(1);
+
         liveData.resetLiveConfig();
     }
 

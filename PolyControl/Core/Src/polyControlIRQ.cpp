@@ -61,7 +61,7 @@ void polyControlLoop() { // Here the party starts
     HAL_UART_Receive_Stream(&huart5);
 
     while (1) {
-        if (timerUIData > 32) { // 120Hz ui data test
+        if (timerUIData > 16) { // 120Hz ui data test
             timerUIData = 0;
             sendRequestAllUIData();
             LEDRender();

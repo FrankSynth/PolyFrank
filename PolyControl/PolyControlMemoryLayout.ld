@@ -93,13 +93,13 @@ SECTIONS
     _sITCM = .;      
 
     /* *gfx* (.text .text*) */
-    *guiBase* (.text .text*)
+    /* *guiBase* (.text .text*) */
     *datacore* (.text .text*)
     *polyMath.o (.text .text*)
     *layer* (.text .text*)
     *hid* (.text .text*)
     *flagHandler.o (.text .text*) 
-    *com* (.text .text*) 
+    /* *com* (.text .text*)  */
     *stm32h7xx_it.o (.text .text*)
     /* *arp.o (.text .text*) */
     /* *clock.o (.text .text*) */

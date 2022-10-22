@@ -94,6 +94,8 @@ void GUIPanelLive::Draw() {
     }
 }
 
+extern void pullFrontValues(uint32_t layer);
+
 void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
@@ -102,8 +104,7 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionRightData(1);
     actionHandler.registerActionRightData(2);
 
-    actionHandler.registerActionLeft(0, {std::bind(&Layer::clearPresetLocks, allLayers[currentFocus.layer]), "FRONT"},
-                                     true);
+    actionHandler.registerActionLeft(0, {std::bind(&pullFrontValues, currentFocus.layer), "FRONT"}, true);
     actionHandler.registerActionLeft(1);
     actionHandler.registerActionLeft(2, {std::bind(&GUIPanelLive::resetSystem, this), "RST ALL"}, true);
 }

@@ -169,6 +169,21 @@ void processControlTouch() {
 }
 
 //////////// POTIS ///////////
+
+void pullFrontValues(uint32_t layer) {
+
+    allLayers[layer]->clearPresetLocks();
+    clearPotiState(layer);
+}
+
+void clearPotiState(uint32_t layer) {
+    for (uint32_t multiplex = 0; multiplex < 4; multiplex++) { // for all Channels
+        for (uint32_t channel = 0; channel < 12; channel++) {  // for all Channels
+            panelADCStates[layer][multiplex][channel] = 0;
+        }
+    }
+}
+
 void processPanelPotis(uint32_t *adcData, uint32_t layer) {
     static int16_t octaveSwitchLastScan[2][2] = {{0, 0}, {0, 0}}; // threshold for jitter reduction  [layer][switch]
     static int16_t octaveSwitchCounter[2][2] = {{0, 0}, {0, 0}};  // threshold for jitter reduction  [layer][switch]
@@ -407,7 +422,8 @@ void updateLEDDriverCurrent() {
 }
 
 void LEDRender() {
-    uint16_t breathing = uint16_t((fast_sin_f32((float)millis() / 300.f) + 1.f) / 2.f * (float)LEDBRIGHTNESS_MEDIUM);
+    uint16_t breathing =
+        uint16_t((fast_sin_f32((float)millis() / 300.f) + 1.f) / 2.f * (float)LEDBRIGTHNESS_PATCHMARKER);
 
     ledDriverControl.clearPWMData(); // delete old data
 
@@ -418,31 +434,39 @@ void LEDRender() {
             ledDriver[i][x].clearPWMData(); // delete old data
         }
 
-        LEDAllInputs(i); // drawInputData to LED
-
         if (allLayers[i]->layerState.value) {
-            if (ui.activePanel == &ui.guiPanelFocus) { // show patches?
+            bool patchDraw = false;
+
+            if (ui.activePanel == &ui.guiPanelFocus && currentFocus.layer == i) { // show patches?
                 // LEDModuleRenderbuffer(i);
                 if (currentFocus.modul < allLayers[i]->modules.size()) {
-
                     if (currentFocus.type == FOCUSOUTPUT) {
-
+                        patchDraw = true;
                         if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
 
                             Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
-                            LEDOutput(output, LEDBRIGHTNESS_MAX);
+                            LEDOutput(output, LEDBRIGTHNESS_PATCHOUT);
 
                             for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
                                 Input *target = output->getPatchesInOut()[p]->targetIn;
-                                LEDInput(target, breathing);
+                                if (allLayers[i]->modules[target->moduleId]->moduleType ==
+                                    MODULE_MIX) { // mixer double use LED
+                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
+                                              breathing);
+                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
+                                              breathing);
+                                }
+                                else {
+                                    LEDInput(target, breathing);
+                                }
                             }
                         }
                     }
                     else if (currentFocus.type == FOCUSINPUT) {
+                        patchDraw = true;
                         if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
-
                             Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                            LEDInput(input, LEDBRIGHTNESS_MAX);
+                            LEDInput(input, LEDBRIGTHNESS_PATCHIN);
 
                             for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
                                 Output *source = input->getPatchesInOut()[p]->sourceOut;
@@ -452,10 +476,11 @@ void LEDRender() {
                     }
                 }
             }
-
-            // Module and Switch LEDs
-            LEDModuleSwitch(i);
-            LEDModuleOUT(i);
+            if (patchDraw == false) {
+                LEDAllInputs(i); // drawInputData to LED
+                LEDModuleSwitch(i);
+                LEDModuleOUT(i);
+            }
         }
     }
     if (FlagHandler::ledDriverATransmit == DRIVER_IDLE) {
@@ -598,15 +623,23 @@ void LEDMappingInit() {
         // MIX  //check renderbuffer led output
         allLayers[i]->mixer.iOSCALevel.LEDPinID = 8;
         allLayers[i]->mixer.iOSCALevel.LEDPortID = 0;
+        allLayers[i]->mixer.iOSCALevel.LEDPinID2 = 7;
+        allLayers[i]->mixer.iOSCALevel.LEDPortID2 = 0;
 
         allLayers[i]->mixer.iOSCBLevel.LEDPinID = 6;
         allLayers[i]->mixer.iOSCBLevel.LEDPortID = 0;
+        allLayers[i]->mixer.iOSCBLevel.LEDPinID2 = 5;
+        allLayers[i]->mixer.iOSCBLevel.LEDPortID2 = 0;
 
         allLayers[i]->mixer.iSUBLevel.LEDPinID = 4;
         allLayers[i]->mixer.iSUBLevel.LEDPortID = 0;
+        allLayers[i]->mixer.iSUBLevel.LEDPinID2 = 3;
+        allLayers[i]->mixer.iSUBLevel.LEDPortID2 = 0;
 
         allLayers[i]->mixer.iNOISELevel.LEDPinID = 2;
         allLayers[i]->mixer.iNOISELevel.LEDPortID = 0;
+        allLayers[i]->mixer.iNOISELevel.LEDPinID2 = 1;
+        allLayers[i]->mixer.iNOISELevel.LEDPortID2 = 0;
 
         /////// Outputs
         allLayers[i]->lfoA.out.LEDPinID = 24;
@@ -725,39 +758,43 @@ void LEDMappingInit() {
     }
 }
 
+void LEDSetPWM(uint16_t &pwmArrayEntry, uint16_t pwmRAW) {
+
+    pwmArrayEntry = gamma_lut[pwmRAW];
+}
 void LEDOutput(Output *output, uint16_t brigthness) {
     if (output->LEDPortID == 2) { // MIDI MODULE Control
-        ledDriverControl.pwmData[output->LEDPinID] = brigthness;
+
+        LEDSetPWM(ledDriverControl.pwmData[output->LEDPinID], brigthness);
     }
     else {
-
-        ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID] = brigthness;
+        LEDSetPWM(ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID], brigthness);
     }
 }
 
 void LEDInput(Input *input, uint16_t brigthness) {
-    ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID] = brigthness;
+    LEDSetPWM(ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID], brigthness);
 }
 
 // MODULE LED OUTPUT
-void LEDModule(BaseModule *module) { // TODO Check ranges?
+void LEDModule(BaseModule *module) {
 
     if (module->moduleType == MODULE_LFO) {
-        float outputData = module->getOutputs()[0]->currentSample[0];
-
-        ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID] =
-            (outputData + 1) * (float)(LEDBRIGHTNESS_MAX / 2);
+        float outputData =
+            ((LFO *)module)->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
+        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
+                  (outputData + 1) * (float)(LEDBRIGTHNESS_MODULEOUT / 2));
     }
     if (module->moduleType == MODULE_ADSR) {
-        float outputData = module->getOutputs()[0]->currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
-
-        ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID] =
-            abs(outputData * (float)(LEDBRIGHTNESS_MAX));
+        float outputData =
+            ((ADSR *)module)->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
+        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
+                  abs(outputData * (float)(LEDBRIGTHNESS_MODULEOUT)));
     }
 }
 
 void LEDRenderbuffer(RenderBuffer *rBuffer) { // TODO Check ranges?
-    ledDriver[rBuffer->layerId][rBuffer->LEDPortID].pwmData[rBuffer->LEDPinID] = rBuffer->currentSample[0];
+    LEDSetPWM(ledDriver[rBuffer->layerId][rBuffer->LEDPortID].pwmData[rBuffer->LEDPinID], rBuffer->currentSample[0]);
 }
 
 void LEDModuleOUT(uint32_t layerID) {
@@ -778,19 +815,26 @@ void LEDModuleRenderbuffer(uint32_t layerID) {
     LEDRenderbuffer(&allLayers[layerID]->mixer.subLevelSteiner);
 }
 
+#include "humanInterface/gamma.hpp"
+
 void LEDAllInputs(uint32_t layerID) {
 
     for (BaseModule *m : allLayers[layerID]->getModules()) {
         for (Analog *a : m->getPotis()) {
             if (a->input != nullptr) {
-                if (a->input->LEDPortID != 0xFF) { // active LED
+                if (a->input->LEDPortID != 0xFF) {
+                    // active LED
                     float value = a->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
 
-                    // value = testFloat(value, a->minInputValue, a->maxInputValue);
-                    value = (value - a->min) / (a->max - a->min);
-                    value = testFloat(value, 0, 1);
-
-                    LEDInput(a->input, (float)(LEDBRIGHTNESS_MAX)*value);
+                    if (a->min < 0) { // we excpect symmetrical values
+                        value = value / a->max;
+                        value = testFloat(abs(value), -1, 1);
+                    }
+                    else {
+                        value = (value - a->min) / (a->max - a->min);
+                        value = testFloat(value, 0, 1);
+                    }
+                    LEDInput(a->input, (float)(LEDBRIGTHNESS_MODULEIN)*value);
                 }
             }
         }
@@ -808,12 +852,32 @@ void LEDModuleSwitch(uint32_t layerID) {
     LEDSingleSetting(&allLayers[layerID]->lfoB.dAlignLFOs);
     LEDSingleSetting(&allLayers[layerID]->lfoB.dGateTrigger);
 
-    if (touch.activeOutput == nullptr) { // double use leds
-        LEDDualSetting(&allLayers[layerID]->mixer.dOSCADestSwitch);
-        LEDDualSetting(&allLayers[layerID]->mixer.dOSCBDestSwitch);
-        LEDDualSetting(&allLayers[layerID]->mixer.dSUBDestSwitch);
-        LEDDualSetting(&allLayers[layerID]->mixer.dNOISEDestSwitch);
-    }
+    Analog *analog;
+    float value;
+
+    analog = &allLayers[layerID]->mixer.aOSCALevel;
+    value = analog->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
+    value = (value - analog->min) / (analog->max - analog->min);
+    value = testFloat(value, 0, 1);
+    LEDDualSetting(&allLayers[layerID]->mixer.dOSCADestSwitch, value);
+
+    analog = &allLayers[layerID]->mixer.aOSCBLevel;
+    value = analog->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
+    value = (value - analog->min) / (analog->max - analog->min);
+    value = testFloat(value, 0, 1);
+    LEDDualSetting(&allLayers[layerID]->mixer.dOSCBDestSwitch, value);
+
+    analog = &allLayers[layerID]->mixer.aSUBLevel;
+    value = analog->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
+    value = (value - analog->min) / (analog->max - analog->min);
+    value = testFloat(value, 0, 1);
+    LEDDualSetting(&allLayers[layerID]->mixer.dSUBDestSwitch, value);
+
+    analog = &allLayers[layerID]->mixer.aNOISELevel;
+    value = analog->input->renderBuffer->currentSample[liveData.voiceHandler.lastVoiceID[layerID]];
+    value = (value - analog->min) / (analog->max - analog->min);
+    value = testFloat(value, 0, 1);
+    LEDDualSetting(&allLayers[layerID]->mixer.dNOISEDestSwitch, value);
 
     LEDQuadSetting(&allLayers[layerID]->steiner.dMode);
     LEDQuadSetting(&allLayers[layerID]->ladder.dSlope);
@@ -823,7 +887,8 @@ void LEDDigital(Digital *digital, uint8_t id, uint16_t value) {
     if (id < digital->LEDPinID.size()) {
         uint32_t pin = digital->LEDPinID[id];
         uint32_t port = digital->LEDPortID[id];
-        ledDriver[digital->layerId][port].pwmData[pin] = value;
+
+        LEDSetPWM(ledDriver[digital->layerId][port].pwmData[pin], value);
     }
 }
 
@@ -832,7 +897,7 @@ void LEDQuadSetting(Digital *digital) {
         return;
     switch (digital->valueMapped) {
         case 0: {
-            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
@@ -840,7 +905,7 @@ void LEDQuadSetting(Digital *digital) {
         }
         case 1: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
 
@@ -849,7 +914,7 @@ void LEDQuadSetting(Digital *digital) {
         case 2: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 2, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 2, LEDBRIGTHNESS_SETTING);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
             break;
         }
@@ -857,31 +922,31 @@ void LEDQuadSetting(Digital *digital) {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 3, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 3, LEDBRIGTHNESS_SETTING);
             break;
         }
         default: break;
     }
 }
 
-void LEDDualSetting(Digital *digital) {
+void LEDDualSetting(Digital *digital, float amount) {
     if (digital == nullptr)
         return;
 
     switch (digital->valueMapped) {
         case 0: {
-            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING * amount);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             break;
         }
         case 1: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING * amount);
             break;
         }
         case 2: {
-            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
-            LEDDigital(digital, 1, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING * amount);
+            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING * amount);
             break;
         }
         case 3: {
@@ -902,7 +967,7 @@ void LEDSingleSetting(Digital *digital) {
             break;
         }
         case 1: {
-            LEDDigital(digital, 0, LEDBRIGHTNESS_MAX);
+            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING);
             break;
         }
         default: break;
@@ -1126,6 +1191,8 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
 void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
     if (event) { // push Event
         if (activeOutput != nullptr) {
+            clearOnReleaseOut = false; // we doing a patch remove clear flag
+
             // MIDI Outputs specialCase -> get LayerID from target and reassign module with corrected layerID
             if ((activeOutput->moduleId == allLayers[0]->midi.id) && (activeOutput->layerId != pInput->layerId)) {
                 forceSetOutputFocus(
@@ -1144,13 +1211,25 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
             }
         }
         else {
-
+            if (currentFocus.type == FOCUSINPUT) {
+                if (pInput->layerId == currentFocus.layer && pInput->idGlobal == allLayers[currentFocus.layer]
+                                                                                     ->modules[currentFocus.modul]
+                                                                                     ->inputs[currentFocus.id]
+                                                                                     ->idGlobal) { // already selected
+                    clearOnReleaseIn = true;
+                }
+            }
             setInputFocus(pInput);
         }
     }
     else { // release Event -> clear active input
         if (pInput == activeInput) {
             activeInput = nullptr;
+        }
+        if (clearOnReleaseIn) {
+
+            clearOnReleaseIn = false;
+            newFocus.type = FOCUSMODULE;
         }
     }
 }
@@ -1159,6 +1238,8 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
     if (event) { // push Event
 
         if (activeInput != nullptr) {
+            clearOnReleaseIn = false; // we doing a patch remove clear flag
+
             // MIDI Outputs specialCase -> get LayerID from target and reassign module with corrected layerID
             if ((activeInput->moduleId == allLayers[0]->midi.id) && (activeInput->layerId != pOutput->layerId)) {
                 forceSetInputFocus(
@@ -1177,16 +1258,28 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
         }
 
         else {
+            if (currentFocus.type == FOCUSOUTPUT) {
+                if (pOutput->layerId == currentFocus.layer && pOutput->idGlobal == allLayers[currentFocus.layer]
+                                                                                       ->modules[currentFocus.modul]
+                                                                                       ->outputs[currentFocus.id]
+                                                                                       ->idGlobal) { // already selected
+                    clearOnReleaseOut = true;
+                }
+            }
             setOutputFocus(pOutput);
-            // println("-------------> create Focus OUT");
         }
     }
 
     else { // release Event -> clear active output
         if (pOutput == activeOutput) {
-            // println("-------------> Release Focus OUT");
 
             activeOutput = nullptr;
+        }
+        if (clearOnReleaseOut) {
+
+            clearOnReleaseOut = false;
+
+            newFocus.type = FOCUSMODULE;
         }
     }
 }
@@ -1228,7 +1321,6 @@ void PanelTouch::evaluateSetting(Digital *pSwitch, uint8_t event) {
 void PanelTouch::setInputFocus(Input *pInput) {
     if (activeInput == nullptr && activeOutput == nullptr) {
         activeInput = pInput;
-
         newFocus = {pInput->layerId, pInput->moduleId, pInput->id, FOCUSINPUT};
     }
 }
@@ -1236,7 +1328,6 @@ void PanelTouch::setInputFocus(Input *pInput) {
 void PanelTouch::setOutputFocus(Output *pOutput) {
     if (activeInput == nullptr && activeOutput == nullptr) {
         activeOutput = pOutput;
-
         newFocus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
     }
 }
