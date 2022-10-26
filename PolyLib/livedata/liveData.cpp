@@ -186,11 +186,13 @@ void LiveData::receivedMidiSongPosition(unsigned int spp) {
 }
 
 void LiveData::midiClockTick() {
-    if (livemodeClockSource.value == 1) { // clock source == midi
-        arps[0].midiUpdateDelayTimer = 0;
-        arps[1].midiUpdateDelayTimer = 0;
-        clock.tick();
-    }
+    if (livemodeClockSource.value != 1)
+        return;
+
+    extClockTimeout = 0;
+    arps[0].midiUpdateDelayTimer = 0;
+    arps[1].midiUpdateDelayTimer = 0;
+    clock.tick();
 }
 
 void LiveData::internalClockTick() {
@@ -203,11 +205,12 @@ void LiveData::externalClockTick() {
     if (liveData.livemodeClockSource.value != 0)
         return;
 
+    extClockTimeout = 0;
     extSync = true;
     calcBPMfromExternalSource();
 }
 void LiveData::calcBPMfromExternalSource() {
-    clock.bpm = 60000000 / meassuredBPMTime;
+    clock.bpm = (double)60000000.0 / (double)meassuredBPMTime;
     meassuredBPMTime = 0;
 };
 
@@ -229,6 +232,12 @@ void LiveData::serviceRoutine() {
     // reset  External Clock Signal Out
     if (extClockLengthTimer > (uint32_t)globalSettings.extClockOutLength.value) {
         HAL_GPIO_WritePin(IO_Sync_OUT_GPIO_Port, IO_Sync_OUT_Pin, GPIO_PIN_SET);
+    }
+
+    static float bpmCache = 0;
+    if (clock.bpm != bpmCache) {
+        bpmCache = clock.bpm;
+        layerCom.sendBPM(clock.bpm);
     }
 }
 
@@ -256,10 +265,10 @@ void switchClockSourceCallback(int32_t *setting) {
             allLayers[0]->envA.dEXTDiv.displayVis = true;
             allLayers[0]->envF.dEXTDiv.displayVis = true;
 
-            allLayers[1]->lfoA.dClockStep.displayVis = false;
-            allLayers[1]->lfoB.dClockStep.displayVis = false;
-            allLayers[1]->lfoA.dEXTDiv.displayVis = true;
-            allLayers[1]->lfoB.dEXTDiv.displayVis = true;
+            // allLayers[1]->lfoA.dClockStep.displayVis = false;
+            // allLayers[1]->lfoB.dClockStep.displayVis = false;
+            // allLayers[1]->lfoA.dEXTDiv.displayVis = true;
+            // allLayers[1]->lfoB.dEXTDiv.displayVis = true;
 
             allLayers[1]->envA.dClockStep.displayVis = false;
             allLayers[1]->envF.dClockStep.displayVis = false;
@@ -280,10 +289,10 @@ void switchClockSourceCallback(int32_t *setting) {
             liveData.arps[1].arpStepsAExt.displayVis = false;
             liveData.arps[1].arpStepsBExt.displayVis = false;
 
-            allLayers[0]->lfoA.dClockStep.displayVis = true;
-            allLayers[0]->lfoB.dClockStep.displayVis = true;
-            allLayers[0]->lfoA.dEXTDiv.displayVis = false;
-            allLayers[0]->lfoB.dEXTDiv.displayVis = false;
+            // allLayers[0]->lfoA.dClockStep.displayVis = true;
+            // allLayers[0]->lfoB.dClockStep.displayVis = true;
+            // allLayers[0]->lfoA.dEXTDiv.displayVis = false;
+            // allLayers[0]->lfoB.dEXTDiv.displayVis = false;
 
             allLayers[0]->envA.dClockStep.displayVis = true;
             allLayers[0]->envF.dClockStep.displayVis = true;
@@ -307,7 +316,6 @@ void switchClockSourceCallback(int32_t *setting) {
 }
 
 void LiveData::externalSyncHandling() {
-    static int32_t extSyncCounter = 0;
 
     if (extSync == false) // no ext signal received
         return;
@@ -355,8 +363,6 @@ void LiveData::externalSyncHandling() {
             }
         }
     }
-
-    calcAllLFOSnapFreq();
 }
 
 void LiveData::clockHandling() {
@@ -406,24 +412,7 @@ void LiveData::clockHandling() {
         }
     }
 
-    calcAllLFOSnapFreq();
-
     clock.ticked = 0;
-}
-
-void LiveData::calcLFOSnapFreq(LFO &lfo) {
-    if (lfo.dFreqSnap == 0)
-        return;
-
-    float freq = clock.bpm * multTime[lfo.dFreq] / 60.0f;
-    lfo.aFreq.setValueWithoutMapping(freq);
-}
-
-void LiveData::calcAllLFOSnapFreq() {
-    for (uint8_t i = 0; i < 2; i++) {
-        for (LFO *lfo : allLayers[i]->lfos)
-            calcLFOSnapFreq(*lfo);
-    }
 }
 
 void LiveData::collectLiveConfiguration(int32_t *buffer) {

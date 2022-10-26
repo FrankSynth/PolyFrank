@@ -94,24 +94,26 @@ SECTIONS
 
     /* *gfx* (.text .text*) */
     /* *guiBase* (.text .text*) */
-    *datacore* (.text .text*)
-    *polyMath.o (.text .text*)
+    *datacore* (.text .text* .rodata .rodata*)
+    *polyMath.o (.text .text* .rodata .rodata*)
     *layer* (.text .text*)
-    *hid* (.text .text*)
-    *flagHandler.o (.text .text*) 
-    /* *com* (.text .text*)  */
-    *stm32h7xx_it.o (.text .text*)
+    *hid.o (.text .text* .rodata .rodata*)
+    *guiBase.o (.text .text* .rodata .rodata*)
+    /* *gui.o (.text .text* .rodata .rodata*) */
+    *flagHandler.o (.text .text* .rodata .rodata*) 
+    *com.o (.text .text* .rodata .rodata*) 
+    *stm32h7xx_it.o (.text .text* .rodata .rodata*)
     /* *arp.o (.text .text*) */
     /* *clock.o (.text .text*) */
     /* *liveData.o (.text .text*) */
     /* *voiceHandler.o (.text .text*) */
-    /* *IS31FL3216.o (.text .text*) */
-    /* *MAX11128.o (.text .text*) */
-    /* *rotary.o (.text .text*) */
+    *IS31FL3216.o (.text .text*)
+    *MAX11128.o (.text .text*)
+    *rotary.o (.text .text* .rodata .rodata*)
     *bus.o (.text .text*)
     *busInterface.o (.text .text*)
-    /* *gfx.o (.text .text*) */
-    *polyControlIRQ.o (.text .text*)
+    *gfx.o (.text .text* .rodata .rodata*)
+    *polyControlIRQ.o (.text .text* .rodata .rodata*)
     *usbd_midi_if.o (.text .text*)
     *moduleCallbacks.o (.text .text*)
 

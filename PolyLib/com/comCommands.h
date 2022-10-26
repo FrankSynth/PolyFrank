@@ -21,6 +21,7 @@
 #define RESETALLCMDSIZE 2
 #define SENDUPDATETOCONTROLSIZE 2
 #define MESSAGECMDSIZE 1
+#define BPMCMDSIZE 5
 
 #define VOICE0 0
 #define VOICE1 1
@@ -64,5 +65,6 @@ enum comCommands {
     UPDATERENDERBUFFER,  // next bytes are settings
     // UPDATERENDERBUFFERVOICE, // next bytes are settings
     UPDATEAUDIOBUFFER,     // next bytes are settings
+    BPM,                   // next bytes are settings
     LASTBYTE = 0b01111111, // LAST BYTE of transmission
 };

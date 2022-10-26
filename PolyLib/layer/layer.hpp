@@ -134,6 +134,8 @@ class Layer {
 
     volatile uint8_t chipID = 0;
 
+    float bpm = 120;
+
 #endif
 
     uint8_t id;

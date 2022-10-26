@@ -8,18 +8,20 @@
 #include "humanInterface/gamma.hpp"
 
 #define LEDBRIGHTNESS_OFF 0
+
+#define LEDBRIGHTNESS_MAX 4096
+#define LEDBRIGHTNESS_MEDIUM LEDBRIGHTNESS_MAX / 2
 #define LEDBRIGHTNESS_LOW LEDBRIGHTNESS_MAX / 4
 
-#define LEDBRIGHTNESS_MEDIUM LEDBRIGHTNESS_MAX / 2
-#define LEDBRIGHTNESS_MAX 4096
+#define LEDBRIGHTNESS_SETTING LEDBRIGHTNESS_MAX
+#define LEDBRIGHTNESS_MODULEOUT LEDBRIGHTNESS_MAX
+#define LEDBRIGHTNESS_MODULEIN LEDBRIGHTNESS_MAX / 2
 
-#define LEDBRIGTHNESS_SETTING LEDBRIGHTNESS_MAX
-#define LEDBRIGTHNESS_MODULEOUT LEDBRIGHTNESS_MAX
-#define LEDBRIGTHNESS_MODULEIN LEDBRIGHTNESS_MAX / 2
+#define LEDBRIGHTNESS_PATCHOUT LEDBRIGHTNESS_MAX
+#define LEDBRIGHTNESS_PATCHIN LEDBRIGHTNESS_MAX
+#define LEDBRIGHTNESS_PATCHMARKER LEDBRIGHTNESS_MAX
 
-#define LEDBRIGTHNESS_PATCHOUT LEDBRIGHTNESS_MAX
-#define LEDBRIGTHNESS_PATCHIN LEDBRIGHTNESS_MAX
-#define LEDBRIGTHNESS_PATCHMARKER LEDBRIGHTNESS_MAX
+#define LEDMAXDISTANCE 60.f
 
 #define NUMBERENCODERS 6
 
@@ -38,9 +40,12 @@ typedef enum {
     TOUCH_IO_PIN_11,
 } TOUCH_IO_PIN;
 
-typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D, TOUCH_IO_PORT_E } TOUCH_IO_PORT;
+typedef struct {
+    std::function<void(uint16_t amount)> function;
+    DataElement *data;
+} potiFunctionStruct;
 
-void HIDConfig();
+typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D, TOUCH_IO_PORT_E } TOUCH_IO_PORT;
 
 // Encoder
 void processEncoder();
@@ -50,14 +55,10 @@ void processControlTouch();
 void processPanelTouch(uint8_t layerID);
 
 // Potentiometer
-void potiMapping();
 void processPanelPotis(uint32_t *adcData, uint32_t layer);
 void mapPanelPotis(uint16_t activeChannel, uint16_t ID, uint16_t value);
 void clearPotiState(uint32_t layer);
 void pullFrontValues(uint32_t layer);
-
-// LED
-void LEDMappingInit();
 
 void LEDRender();
 
@@ -70,10 +71,11 @@ void LEDDualSetting(Digital *digital, float amount = 1);
 void LEDQuadSetting(Digital *digital);
 
 void LEDSetPWM(uint16_t &pwmArrayEntry, uint16_t pwmRAW);
-void LEDOutput(Output *output, uint16_t brigthness);
-void LEDInput(Input *input, uint16_t brigthness);
+void LEDOutput(Output *output, uint16_t brightness);
+void LEDInput(Input *input, uint16_t brightness);
 void LEDDigital(Digital *digital, uint8_t id, uint16_t value);
 void LEDModule(BaseModule *module);
+void LEDModule(BaseModule *module, uint16_t brightness);
 void LEDRenderbuffer(RenderBuffer *rBuffer);
 void LEDAllInputs(uint32_t layerID);
 

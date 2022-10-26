@@ -3,6 +3,29 @@
 #include "renderLFO.hpp"
 #include "renderCV.hpp"
 
+// for snapping /////////////////////
+
+#define DOT 1.0f / 1.5f
+#define TRI 3.0f / 2.0f
+
+#define QUARTER 1.0f
+#define EIGHT 2.0f * QUARTER
+#define SIXTEENTH 2.0f * EIGHT
+#define THIRTYTWOTH 2.0f * SIXTEENTH
+#define SIXTYFOURTH 2.0f * THIRTYTWOTH
+#define HALF QUARTER / 2.0f
+#define FULL HALF / 2.0f
+#define TWOFULL FULL / 2.0f
+#define FOURFULL TWOFULL / 2.0f
+
+const float multTime[23] = {
+    FOURFULL,         TWOFULL *DOT,    FOURFULL *TRI,  TWOFULL,      FULL *DOT, TWOFULL *TRI,   FULL,
+    HALF *DOT,        FULL *TRI,       HALF,           QUARTER *DOT, HALF *TRI, QUARTER,        EIGHT *DOT,
+    QUARTER *TRI,     EIGHT,           SIXTEENTH *DOT, EIGHT *TRI,   SIXTEENTH, SIXTEENTH *TRI, THIRTYTWOTH,
+    THIRTYTWOTH *TRI, SIXTYFOURTH *TRI};
+
+/////////////////////////////////
+
 inline float calcSin(float phase) {
     return fast_sin_f32(phase);
 }
@@ -11,11 +34,21 @@ inline float calcRamp(float phase) {
     return phase * 2.0f - 1.0f;
 }
 
+inline float calcRampTriangle(float phase, float shape) {
+    float midPoint = std::clamp((shape - 1.f) / 2.f, 0.000001f, 1.f); // prevent division by 0 in fastMap
+
+    if (phase < midPoint)
+        return fastMap(phase, 0.f, midPoint, -1.f, 1.f);
+    else
+        return fastMap(phase, midPoint, 1.f, 1.f, -1.f);
+}
+
 inline float calcInvRamp(float phase) {
     return calcRamp(phase) * -1.0f;
 }
 
 inline float calcTriangle(float phase) {
+
     if (phase < 0.5f) {
         return calcRamp(phase * 2.0f);
     }
@@ -41,10 +74,9 @@ LogCurve linlogMapping(64, 0.01);
 
 inline vec<VOICESPERCHIP> accumulateSpeed(const LFO &lfo) {
     if (lfo.dFreqSnap == 0)
-        return lfo.iFreq + lfo.aFreq; // max 200 Hz
+        return (lfo.iFreq + lfo.aFreq); // max 200 Hz
 
-    return (lfo.iFreq + 1.0f) * lfo.aFreq; // max 200 Hz  //TODO Lucas check das mal nochmal dann die werte
-    // return std::clamp(lfo.iFreq.currentSample[voice] + lfo.aFreq.valueMapped, lfo.aFreq.min, lfo.aFreq.max);
+    return clamp(lfo.iFreq + lfo.aFreq, lfo.aFreq.min, lfo.aFreq.max);
 }
 inline vec<VOICESPERCHIP> accumulateShape(const LFO &lfo) {
     return clamp(lfo.iShape + lfo.aShape, lfo.aShape.min, lfo.aShape.max);
@@ -71,9 +103,22 @@ void renderLFO(LFO &lfo) {
     vec<VOICESPERCHIP> sample;
 
     shapeRAW = accumulateShape(lfo);
-    speedRAW = accumulateSpeed(lfo) * (layerA.lfoImperfection * layerA.feel.aImperfection.valueMapped + 1.0f);
+    speedRAW = accumulateSpeed(lfo);
 
-    speed = linlogMapping.mapValue(speedRAW) * 100.0f;
+    if (lfo.dFreqSnap == 0) {
+        speed =
+            linlogMapping.mapValue(speedRAW * (layerA.lfoImperfection * layerA.feel.aImperfection.valueMapped + 1.0f)) *
+            100.0f;
+    }
+    else {
+
+        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+            uint32_t snapper = std::round(speedRAW[voice] * lfo.dFreq.max);
+            speed[voice] = layerA.bpm * multTime[snapper] / 60.0f;
+            speedRAW[voice] = (float)snapper / (float)lfo.dFreq.max;
+        }
+    }
+
     amount = accumulateAmount(lfo);
 
     shape = shapeRAW * 7;
@@ -91,15 +136,15 @@ void renderLFO(LFO &lfo) {
 
     for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
         if (shape[voice] < 1) {
-            sample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcRamp(phase[voice]), fract[voice]);
+            sample[voice] = fast_lerp_f32(calcSin(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
 
-        else if (shape[voice] < 2) {
-            sample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
-        }
+        // else if (shape[voice] < 2) {
+        //     sample[voice] = fast_lerp_f32(calcRamp(phase[voice]), calcTriangle(phase[voice]), fract[voice]);
+        // }
 
         else if (shape[voice] < 3) {
-            sample[voice] = fast_lerp_f32(calcTriangle(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
+            sample[voice] = calcRampTriangle(phase[voice], shape[voice]);
         }
 
         else {
@@ -110,7 +155,7 @@ void renderLFO(LFO &lfo) {
 
             if (shape[voice] < 4) {
                 sample[voice] =
-                    fast_lerp_f32(calcInvRamp(phase[voice]),
+                    fast_lerp_f32(calcRamp(phase[voice]),
                                   fast_lerp_f32(prevRandom[voice], currentRandom[voice], phase[voice]), fract[voice]);
             }
 
@@ -138,14 +183,18 @@ void renderLFO(LFO &lfo) {
 
     if (layerA.chipID == 0) { // chip A
         lfo.alignFloatBuffer = sample[0];
+        lfo.alignPhaseBuffer = phase[0];
     }
     else if (alignLFOs) { // chip B
         sample[0] = lfo.alignFloatBuffer;
+        phase[0] = lfo.alignPhaseBuffer;
     }
 
     // check if all voices should output the same LFO
     for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         sample[otherVoice] = sample[0] * alignLFOs + sample[otherVoice] * !alignLFOs;
+    for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
+        phase[otherVoice] = phase[0] * alignLFOs + phase[otherVoice] * !alignLFOs;
     for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
 

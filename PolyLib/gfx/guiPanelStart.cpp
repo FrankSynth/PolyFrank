@@ -45,8 +45,8 @@ void GUIPanelStart::Draw() {
     if (fadeTimer < 500) {
         fade = (float)fadeTimer / 500.;
     }
-    if (fadeTimer > 2000) {
-        fade = 1 - (float)(-2000 + (int32_t)fadeTimer) / 500.;
+    if (fadeTimer > 2500) {
+        fade = 1 - (float)(-2500 + (int32_t)fadeTimer) / 500.;
 
         if (fade < 0)
             fade = 0;
@@ -68,12 +68,15 @@ void GUIPanelStart::Draw() {
 
     drawRectangleFill(backgroundColor, 0, 0, LCDWIDTH, LCDHEIGHT);
 
+    static elapsedMillis timer = 0;
+
     for (uint32_t y = 0; y < LCDHEIGHT / SEGMENTSSIZE; y++) {
         for (uint32_t x = 0; x < LCDWIDTH / SEGMENTSSIZE; x++) {
             int32_t radius =
                 fade * segmentRadius *
 
-                (fast_sin_f32(-(float)millis() / 2500 + 250 + segmentOffset[y][x] * 0.5 + randomOffset[y][x]) + 1) / 2;
+                (fast_sin_fade_f32((float)timer / 1500.f - segmentOffset[y][x] * 0.5f - randomOffset[y][x]) + 1.f) /
+                2.f;
 
             drawRectangleCentered(cHighlight, uint32_t(radius), x * SEGMENTSSIZE + segmentRadius,
                                   y * SEGMENTSSIZE + segmentRadius);

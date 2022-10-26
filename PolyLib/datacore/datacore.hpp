@@ -458,6 +458,7 @@ class BasePatch {
     bool findPatchInOut(uint8_t output, uint8_t input);
 
     inline const char *getName() { return name; };
+    inline const char *getShortName() { return shortName; };
     inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
 
     uint8_t id;

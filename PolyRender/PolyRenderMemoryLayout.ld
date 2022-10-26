@@ -99,7 +99,7 @@ SECTIONS
     *device.o (.text .text*)
     *MCP4728.o (.text .text*) 
     *flagHandler.o (.text .text*) 
-    *com* (.text .text*) 
+    *com.o (.text .text* .rodata .rodata*) 
     *stm32h7xx_it.o (.text .text*)
     *stm32h7xx_hal_sai.o (.text .text*)
     *DUALBU22210.o (.text .text*)

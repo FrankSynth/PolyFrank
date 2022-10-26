@@ -20,7 +20,7 @@ RAM2_DMA ALIGN_32BYTES(volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFF
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferA[20]);
 RAM2_DMA ALIGN_32BYTES(volatile uint16_t cvDacDMABufferB[20]);
 
-RAM2_DMA ALIGN_32BYTES(volatile float interchipLFOBuffer[2]);
+RAM2_DMA ALIGN_32BYTES(volatile float interchipLFOBuffer[4]);
 
 int8_t audioSendBuffer[UPDATEAUDIOBUFFERSIZE - 1];
 
@@ -104,7 +104,7 @@ void PolyRenderRun() {
 
     // start Receive
     if (layerA.chipID == 1) {
-        HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+        HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 16);
         huart1.Instance->ICR = 0b1100;
         huart1.Instance->RQR = UART_RXDATA_FLUSH_REQUEST; // clear rx Register
 
@@ -128,7 +128,7 @@ void PolyRenderRun() {
     // start Transmit
     if (layerA.chipID == 0) {
         huart1.Instance->RQR = UART_TXDATA_FLUSH_REQUEST; // clear tx Register
-        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 8);
+        HAL_UART_Transmit_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 16);
     }
 
     HAL_TIM_Base_Start_IT(&htim15);

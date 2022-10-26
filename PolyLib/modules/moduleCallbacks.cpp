@@ -60,6 +60,7 @@ extern std::vector<Layer *> allLayers;
 extern GlobalSettings globalSettings;
 extern LiveData liveData;
 extern COMinterChip layerCom;
+extern Clock clock;
 
 extern midi::MidiInterface<midiUSB::COMusb> midiDeviceUSB;
 extern midi::MidiInterface<COMdin> midiDeviceDIN;
@@ -67,20 +68,32 @@ extern midi::MidiInterface<COMdin> midiDeviceDIN;
 void lfoFreqSnap(LFO *lfo) {
     if (lfo->dFreqSnap) {
         lfo->dFreq.displayVis = true;
-        lfo->aFreq.displayVis = false;
+        // lfo->aFreq.displayVis = false;
     }
     else {
         lfo->dFreq.displayVis = false;
-        lfo->aFreq.displayVis = true;
+        // lfo->aFreq.displayVis = true;
     }
 }
 
-void retriggerLFOforAlign(LFO *lfo) {
-    if (lfo->dAlignLFOs == 1) {
-        layerCom.sendRetrigger(lfo->layerId, lfo->id, 0);
-        layerCom.sendRetrigger(lfo->layerId, lfo->id, 4);
-    }
+void lfoSetSnappedFreqFromKnob(LFO *lfo) {
+    lfo->dFreq.valueMapped = std::round(lfo->aFreq.valueMapped * (float)lfo->dFreq.max);
+    // layerCom.sendSetting(lfo->dFreq.layerId, lfo->dFreq.moduleId, lfo->dFreq.id, lfo->dFreq.valueMapped);
 }
+
+void lfoSetSnappedFreqFromList(LFO *lfo) {
+    lfo->aFreq.valueMapped = (float)lfo->dFreq / lfo->dFreq.max;
+    lfo->aFreq.value = lfo->aFreq.reverseMapping(lfo->aFreq.valueMapped);
+
+    layerCom.sendSetting(lfo->aFreq.layerId, lfo->aFreq.moduleId, lfo->aFreq.id, lfo->aFreq.valueMapped);
+}
+
+// void retriggerLFOforAlign(LFO *lfo) {
+//     if (lfo->dAlignLFOs == 1) {
+//         layerCom.sendRetrigger(lfo->layerId, lfo->id, 0);
+//         layerCom.sendRetrigger(lfo->layerId, lfo->id, 4);
+//     }
+// }
 
 void clearComBufferForMidi() {
     midiDeviceDIN.mTransport.clear();
@@ -143,10 +156,20 @@ void setModuleCallbacks() {
     allLayers[1]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[1]->lfoA));
     allLayers[1]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[1]->lfoB));
 
-    allLayers[0]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoA));
-    allLayers[0]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoB));
-    allLayers[1]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoA));
-    allLayers[1]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoB));
+    allLayers[0]->lfoA.aFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromKnob, &allLayers[0]->lfoA));
+    allLayers[0]->lfoB.aFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromKnob, &allLayers[0]->lfoB));
+    allLayers[1]->lfoA.aFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromKnob, &allLayers[1]->lfoA));
+    allLayers[1]->lfoB.aFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromKnob, &allLayers[1]->lfoB));
+
+    allLayers[0]->lfoA.dFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromList, &allLayers[0]->lfoA));
+    allLayers[0]->lfoB.dFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromList, &allLayers[0]->lfoB));
+    allLayers[1]->lfoA.dFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromList, &allLayers[1]->lfoA));
+    allLayers[1]->lfoB.dFreq.setValueChangedCallback(std::bind(lfoSetSnappedFreqFromList, &allLayers[1]->lfoB));
+
+    // allLayers[0]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoA));
+    // allLayers[0]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[0]->lfoB));
+    // allLayers[1]->lfoA.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoA));
+    // allLayers[1]->lfoB.dAlignLFOs.setValueChangedCallback(std::bind(retriggerLFOforAlign, &allLayers[1]->lfoB));
 
     allLayers[0]->waveshaperA.aPoint1X.setValueChangedCallback(
         std::bind(layer0WaveShaperX1, &allLayers[0]->waveshaperA));

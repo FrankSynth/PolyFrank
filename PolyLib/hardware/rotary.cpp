@@ -55,7 +55,7 @@ void rotary::process(uint32_t pinState) {
     // Return emit bits, ie the generated event.
     if ((state & 0x30) == DIR_CW) {
 
-        acellaration();
+        acceleration();
 
         if (functionCW != nullptr) {
             functionCW();
@@ -63,7 +63,7 @@ void rotary::process(uint32_t pinState) {
         lastStepTime = millis();
     }
     else if ((state & 0x30) == DIR_CCW) {
-        acellaration();
+        acceleration();
 
         if (functionCCW != nullptr) {
             functionCCW();
@@ -73,7 +73,7 @@ void rotary::process(uint32_t pinState) {
     }
 }
 
-void rotary::acellaration() {
+void rotary::acceleration() {
     ROTARYENCODERACCELERATION = std::clamp(1.0f / (float)(millis() - lastStepTime), 0.001f, 1.0f);
 }
 

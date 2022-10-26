@@ -30,7 +30,7 @@ class rotary {
     }
     void process(uint32_t pinState);
 
-    void acellaration();
+    void acceleration();
     uint32_t lastStepTime;
 
   private:

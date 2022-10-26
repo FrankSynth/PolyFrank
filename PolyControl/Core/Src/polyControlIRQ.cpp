@@ -383,7 +383,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
         // println("panel2Int");
     }
 
-    if (pin & GPIO_PIN_8) { //  Touch
+    if (pin & GPIO_PIN_8) {
         liveData.externalClockTick();
     }
 

@@ -13,6 +13,8 @@ extern const std::vector<const char *> nlSteinerModes;
 extern const std::vector<const char *> nlLadderSlopes;
 extern const std::vector<const char *> nlADSRShapes;
 extern const std::vector<const char *> nlClockSteps;
+extern const std::vector<const char *> nlClockStepsInv;
+extern const std::vector<const char *> nlDivSteps;
 extern const std::vector<const char *> nlSubOctaves;
 extern const std::vector<const char *> nlRange;
 
@@ -460,7 +462,7 @@ class Steiner : public BaseModule {
 
         moduleType = MODULE_VCF;
     }
-    Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
+    Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
     Input iResonance = Input("RESONANCE", "RES", &resonance);
     Input iLevel = Input("LEVEL", "LEVEL", &levelRAW);
 
@@ -501,7 +503,7 @@ class Ladder : public BaseModule {
         moduleType = MODULE_VCF;
     }
 
-    Input iCutoff = Input("CUTOFF", "CUT", &cutoff);
+    Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
     Input iResonance = Input("RESONANCE", "RES", &resonance);
     Input iLevel = Input("LEVEL", "LEVEL", &levelRAW);
 
@@ -526,9 +528,9 @@ class LFO : public BaseModule {
         inputs.push_back(&iShape);
         inputs.push_back(&iAmount);
 
-        knobs.push_back(&aFreq);
         knobs.push_back(&aShape);
         knobs.push_back(&aAmount);
+        knobs.push_back(&aFreq);
 
         switches.push_back(&dFreq);
         switches.push_back(&dFreqSnap);
@@ -561,12 +563,12 @@ class LFO : public BaseModule {
     Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
 
     // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
-    Digital dFreq = Digital("FREQ", 0, 22, 0, false, &nlClockSteps);
-    Digital dFreqSnap = Digital("SNAP", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dGateTrigger = Digital("SYNC G", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dClockTrigger = Digital("SYNC C", 0, 1, 0, false, &nlOnOff, nullptr, false);
-    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr, false);
-    Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false, false);
+    Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv);
+    Digital dFreqSnap = Digital("SNAP FREQ", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dGateTrigger = Digital("GATE RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dClockTrigger = Digital("CLOCK RESET", 0, 1, 0, false, &nlOnOff, nullptr, false);
+    Digital dClockStep = Digital("CLOCK RESET", 0, 22, 10, false, &nlClockSteps, nullptr, false);
+    Digital dEXTDiv = Digital("CLOCK RESET", 0, 4, 0, false, &nlDivSteps, nullptr, false);
 
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr, false);
 
@@ -588,6 +590,7 @@ class LFO : public BaseModule {
     bool alignedRandom = false;
 
     float alignFloatBuffer = 0;
+    float alignPhaseBuffer = 0;
 
     inline void resetPhase(uint32_t voice) {
         currentTime[voice] = 1;
@@ -603,8 +606,11 @@ class LFO : public BaseModule {
     }
 
     inline void gateOn(uint32_t voice) {
-        if (dGateTrigger.valueMapped == 1 && dAlignLFOs.valueMapped == 0) {
-            resetPhase(voice);
+        if (dGateTrigger.valueMapped == 1) {
+            if (dAlignLFOs.valueMapped == 0)
+                resetPhase(voice);
+            else
+                resetAllPhases();
         }
     }
 };
@@ -660,12 +666,12 @@ class ADSR : public BaseModule {
     // TODO Hide controls on front
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dGateTrigger = Digital("GATE", 0, 1, 1, true, &nlOnOff, nullptr, false);
+    Digital dReset = Digital("TRIGGER RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dGateTrigger = Digital("GATE TRIGGER", 0, 1, 1, true, &nlOnOff, nullptr, true);
 
-    Digital dClockTrigger = Digital("CLOCK", 0, 1, 0, true, &nlOnOff, nullptr);
-    Digital dClockStep = Digital("CLOCK", 0, 22, 0, false, &nlClockSteps, nullptr);
-    Digital dEXTDiv = Digital("EXT DIV", 0, 22, 0, false, &nlClockSteps, nullptr, false);
+    Digital dClockTrigger = Digital("CLOCK TRIGGER", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dClockStep = Digital("CLOCK RESET", 0, 22, 10, false, &nlClockSteps, nullptr);
+    Digital dEXTDiv = Digital("EXT DIV", 0, 4, 0, false, &nlDivSteps, nullptr, false);
 
     RenderBuffer amount;
     RenderBuffer currentSampleRAW;

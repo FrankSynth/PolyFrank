@@ -9,7 +9,7 @@ extern devManager deviceManager;
 extern volatile uint8_t interChipDMAInBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 extern volatile uint8_t interChipDMAOutBuffer[2 * (INTERCHIPBUFFERSIZE + 4)];
 
-extern volatile float interchipLFOBuffer[2];
+extern volatile float interchipLFOBuffer[4];
 
 // CV DACS
 

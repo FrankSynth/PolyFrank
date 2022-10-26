@@ -53,7 +53,7 @@ void GUIPanelFocus::registerPanelSettings() {
         actionHandler.registerActionLeft(1);
     }
 
-    if (currentFocus.type != FOCUSINPUT || currentFocus.type != FOCUSOUTPUT) {
+    if (currentFocus.type != FOCUSINPUT && currentFocus.type != FOCUSOUTPUT) {
         actionHandler.registerActionLeft(2, {std::bind(focusDown, this->newPanelFocus), "DOWN"});
     }
     else {
@@ -154,6 +154,11 @@ void GUIPanelFocus::Draw() {
                       scroll->entrys, FOCUSPANELENTRYS);
     }
 }
+
+void GUIPanelFocus::scrollToLastEntry() {
+    jumpToLastPos = true;
+}
+
 void GUIPanelFocus::collectEntrys() {
     // set scroller
     if (currentFocus.type == FOCUSLAYER) {
@@ -218,6 +223,11 @@ void GUIPanelFocus::collectEntrys() {
         }
         scroll->entrys = module.size();
     }
+    if (jumpToLastPos) {
+        scroll->setScroll(scroll->entrys);
+        jumpToLastPos = false;
+    }
+
     scroll->checkScroll(); // check scoll position
 }
 

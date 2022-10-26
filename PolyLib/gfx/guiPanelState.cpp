@@ -19,9 +19,20 @@ void GUIPanelState::Draw() {
 
     // Draw BPM//
 
-    text = "BPM : " + std::to_string((uint16_t)std::round(clock.bpm));
-
+    text = "BPM ";
     int16_t BoxWidth = 105;
+
+    if (liveData.livemodeClockSource.value < 2) {
+
+        text.append("(EXT)");
+        BoxWidth += 50;
+    }
+
+    text.append(": ");
+    if (liveData.livemodeClockSource.value < 2 && liveData.extClockTimeout > 300) // TIMEOUT 300 sec
+        text.append(" --");
+    else
+        text.append(std::to_string((uint16_t)std::round(clock.bpm)));
 
     relX -= drawBoxWithTextFixWidth(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, BoxWidth,
                                     panelHeight, spacer, 1, CENTER);

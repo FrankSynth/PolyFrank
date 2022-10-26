@@ -2,7 +2,7 @@
 
 float fast_sin_f32(float x) {
     float sinVal, fract; /* Temporary variables for input, output */
-    uint16_t index;      /* Index variable */
+    uint32_t index;      /* Index variable */
     float a, b;          /* Two nearest output values */
     int32_t n;
     float findex;
@@ -30,7 +30,7 @@ float fast_sin_f32(float x) {
     /* Calculation of index of the table */
     findex = (float)FAST_MATH_TABLE_SIZE * x;
 
-    index = ((uint16_t)findex) & 0x1ff;
+    index = ((uint32_t)findex) & 0x1ff;
 
     /* fractional value calculation */
     fract = findex - (float)index;
@@ -45,6 +45,53 @@ float fast_sin_f32(float x) {
 
     /* Return the output value */
     return (sinVal);
+}
+
+float fast_sin_fade_f32(float x) {
+    // float sinVal, fract; /* Temporary variables for input, output */
+    uint32_t index; /* Index variable */
+    float a;        /* Two nearest output values */
+    // int32_t n;
+    float findex;
+
+    x += 0.75f;
+
+    /* Special case for small negative inputs */
+    if (x < 0.75f) {
+        return -1.f;
+    }
+
+    if (x > 1.75f) {
+        return -1.f;
+    }
+
+    /* input x is in radians */
+    /* Scale the input to [0 1] range from [0 2*PI] , divide input by 2*pi */
+    // in = x * 0.159154943092f;
+
+    /* Calculation of floor value of input */
+
+    /* Map input value to [0 1] */
+    // x = x - std::floor(x);
+
+    /* Calculation of index of the table */
+    findex = (float)FAST_MATH_TABLE_SIZE * x;
+
+    index = ((uint32_t)findex) & 0x1ff;
+
+    /* fractional value calculation */
+    // fract = findex - (float)index;
+
+    /* Read two nearest values of input value from the sin table */
+    a = sinTable_f32[index];
+    // b = sinTable_f32[index + 1];
+
+    /* Linear interpolation process */
+    // sinVal = (1.0f - fract) * a + fract * b;
+    // sinVal = fast_lerp_f32(a, b, fract);
+
+    /* Return the output value */
+    return (a);
 }
 
 float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];

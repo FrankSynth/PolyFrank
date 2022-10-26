@@ -48,14 +48,14 @@ void setGUIColor(int32_t *colorSelection) {
     switch (*colorSelection) {
         case 0: // DEFAULT
             cWhite = 0xFFF1F1F1;
-            cWhiteLight = 0xFFB0B0B0;
+            cWhiteLight = 0xFF808080;
             cWhiteDark = 0xFF404040;
-            cGreyLight = 0xFF202020;
-            cGrey = 0xFF101010;
-            cGreyDark = 0xFF080808;
+            cGreyLight = 0xC0201C20;
+            cGrey = 0xb0100C10;
+            cGreyDark = 0x80100C10;
             cBlack = 0xFF000000;
 
-            cBackground = 0xFF0f161a;
+            cBackground = 0xff000000;
 
             cHighlight = 0xFFf8ca50;
             cWarning = 0xFFF10000;
@@ -90,7 +90,8 @@ void setGUIColor(int32_t *colorSelection) {
 
             cBackground = 0xFFF1F1F1;
 
-            cHighlight = 0xFFd20023;
+            cHighlight = 0xFFd20023; // dark red
+            // cHighlight = 0xFFEB8C32; // orange
             cWarning = 0xFFF10000;
 
             cLayerA = 0xffB0B0B0;

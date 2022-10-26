@@ -40,6 +40,9 @@ extern float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];
  */
 float fast_sin_f32(float x);
 
+// for fade animationos, return only one cycle
+float fast_sin_fade_f32(float x);
+
 /**
  * @brief fast lerp with float
  *

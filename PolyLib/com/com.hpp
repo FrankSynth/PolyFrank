@@ -307,6 +307,7 @@ class COMinterChip {
     uint8_t sendResetAll(uint8_t layerId);
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, int32_t amount);
     uint8_t sendSetting(uint8_t layerId, uint8_t modulID, uint8_t settingID, float amount);
+    uint8_t sendBPM(float bpm);
     uint8_t sendRequestUIData(uint8_t layer, uint8_t chip);
     busState beginReceiveTransmission(uint8_t layer, uint8_t chip);
     volatile bool sentRequestUICommand = false;

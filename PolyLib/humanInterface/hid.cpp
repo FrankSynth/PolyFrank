@@ -3,6 +3,7 @@
 #include "hid.hpp"
 #include "gfx/gui.hpp"
 #include "hardware/device.hpp"
+#include "hidStartup.hpp"
 
 #include <functional>
 
@@ -30,82 +31,16 @@ extern TS3A5017D multiplexer;
 extern rotary encoders[NUMBERENCODERS];
 extern tactileSwitch switches[NUMBERENCODERS];
 
+extern GUI ui;
+
 // Touch
 PanelTouch touch;
 
 // number layer, number multiplex, number channels
 
-typedef struct {
-    std::function<void(uint16_t amount)> function;
-    DataElement *data;
-} potiFunctionStruct;
-
 potiFunctionStruct potiFunctionPointer[2][4][12];
 uint16_t panelADCStates[2][4][12];
 float panelADCInterpolate[2][4][12];
-
-void HIDConfig() {
-
-    // Control
-    FlagHandler::Control_Touch_ISR = std::bind(processControlTouch);
-    FlagHandler::Control_Encoder_ISR = std::bind(processEncoder);
-
-    // Panels
-    FlagHandler::Panel_0_RXTX_ISR = std::bind(processPanelPotis, adcA.adcData, 0);
-    FlagHandler::Panel_1_RXTX_ISR = std::bind(processPanelPotis, adcB.adcData, 1);
-
-    FlagHandler::Panel_0_EOC_ISR = std::bind(&MAX11128::fetchNewData, &adcA);
-    FlagHandler::Panel_1_EOC_ISR = std::bind(&MAX11128::fetchNewData, &adcB);
-    FlagHandler::Panel_nextChannel_ISR = std::bind(&TS3A5017D::nextChannel, &multiplexer);
-
-    FlagHandler::Panel_0_Touch_ISR = std::bind(processPanelTouch, 0);
-    FlagHandler::Panel_1_Touch_ISR = std::bind(processPanelTouch, 1);
-
-    // register encoder
-
-    // MENU
-    encoders[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 0),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 0));
-
-    encoders[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 1),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 1));
-
-    encoders[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 2),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 2));
-
-    encoders[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 3),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 3));
-    // SCROLL
-    encoders[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 4),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 4));
-    // AMOUNT
-    encoders[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_CW, &actionHandler, 5),
-                                       std::bind(&actionMapping::callActionEncoder_CCW, &actionHandler, 5));
-
-    switches[0].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 0), nullptr);
-    switches[1].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 1), nullptr);
-    switches[2].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 2), nullptr);
-    switches[3].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 3), nullptr);
-    switches[4].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 4), nullptr);
-    switches[5].registerEventFunctions(std::bind(&actionMapping::callActionEncoder_Push, &actionHandler, 5), nullptr);
-
-    // register transmit functions for the led Driver
-    FlagHandler::ledDriverA_ISR[0] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[0][0]);
-    FlagHandler::ledDriverA_ISR[1] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[0][1]);
-
-    FlagHandler::ledDriverB_ISR[0] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[1][0]);
-    FlagHandler::ledDriverB_ISR[1] = std::bind(&IS32FL3237::sendPWMData, &ledDriver[1][1]);
-
-    FlagHandler::ledDriverControl_ISR = std::bind(&IS31FL3205::sendPWMData, &ledDriverControl);
-
-    FlagHandler::ledDriverUpdateCurrent_ISR = std::bind(updateLEDDriverCurrent);
-
-    potiMapping();
-    LEDMappingInit();
-
-    // activate FlagHandling for HID ICs
-    FlagHandler::HID_Initialized = true;
-}
 
 //////////// ENCODER ///////////
 void processEncoder() {
@@ -254,160 +189,6 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
     }
 }
 
-void potiMapping() {
-    for (uint32_t i = 0; i < 2; i++) { // register potis for both layer
-        if (allLayers[i]->layerState.value == 1) {
-
-            potiFunctionPointer[i][0][0] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aParSer), std::placeholders::_1),
-                &allLayers[i]->steiner.aParSer};
-            potiFunctionPointer[i][1][0] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->feel.aSpread), std::placeholders::_1),
-                &allLayers[i]->feel.aSpread};
-            potiFunctionPointer[i][2][0] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->feel.aDetune), std::placeholders::_1),
-                &allLayers[i]->feel.aDetune};
-            potiFunctionPointer[i][3][0] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->feel.aGlide), std::placeholders::_1),
-                &allLayers[i]->feel.aGlide};
-
-            potiFunctionPointer[i][0][1] = {
-                std::bind(&Digital::setValueRange, &(allLayers[i]->oscA.dOctave), std::placeholders::_1, 585, 4083),
-                &allLayers[i]->oscA.dOctave};
-            potiFunctionPointer[i][1][1] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aEffect), std::placeholders::_1),
-                &allLayers[i]->oscA.aEffect};
-            potiFunctionPointer[i][2][1] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMorph), std::placeholders::_1),
-                &allLayers[i]->oscA.aMorph};
-            potiFunctionPointer[i][3][1] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscA.aMasterTune), std::placeholders::_1),
-                &allLayers[i]->oscA.aMasterTune};
-
-            potiFunctionPointer[i][0][2] = {
-                std::bind(&Digital::setValueRange, &(allLayers[i]->oscB.dOctave), std::placeholders::_1, 585, 4083),
-                &allLayers[i]->oscB.dOctave};
-            potiFunctionPointer[i][1][2] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aEffect), std::placeholders::_1),
-                &allLayers[i]->oscB.aEffect};
-            potiFunctionPointer[i][2][2] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aMorph), std::placeholders::_1),
-                &allLayers[i]->oscB.aMorph};
-            potiFunctionPointer[i][3][2] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->oscB.aTuning), std::placeholders::_1),
-                &allLayers[i]->oscB.aTuning};
-
-            potiFunctionPointer[i][0][3] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aNOISELevel), std::placeholders::_1),
-                &allLayers[i]->mixer.aNOISELevel};
-            potiFunctionPointer[i][1][3] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aSUBLevel), std::placeholders::_1),
-                &allLayers[i]->mixer.aSUBLevel};
-            potiFunctionPointer[i][2][3] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCBLevel), std::placeholders::_1),
-                &allLayers[i]->mixer.aOSCBLevel};
-            potiFunctionPointer[i][3][3] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->mixer.aOSCALevel), std::placeholders::_1),
-                &allLayers[i]->mixer.aOSCALevel};
-
-            potiFunctionPointer[i][1][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aLevel), std::placeholders::_1),
-                &allLayers[i]->steiner.aLevel};
-            potiFunctionPointer[i][2][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aResonance), std::placeholders::_1),
-                &allLayers[i]->steiner.aResonance};
-            potiFunctionPointer[i][3][4] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->steiner.aCutoff), std::placeholders::_1),
-                &allLayers[i]->steiner.aCutoff};
-
-            potiFunctionPointer[i][1][5] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aLevel), std::placeholders::_1),
-                &allLayers[i]->ladder.aLevel};
-            potiFunctionPointer[i][2][5] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aResonance), std::placeholders::_1),
-                &allLayers[i]->ladder.aResonance};
-            potiFunctionPointer[i][3][5] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->ladder.aCutoff), std::placeholders::_1),
-                &allLayers[i]->ladder.aCutoff};
-
-            potiFunctionPointer[i][1][6] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aAmount), std::placeholders::_1),
-                &allLayers[i]->lfoA.aAmount};
-            potiFunctionPointer[i][2][6] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aShape), std::placeholders::_1),
-                &allLayers[i]->lfoA.aShape};
-            potiFunctionPointer[i][3][6] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoA.aFreq), std::placeholders::_1),
-                &allLayers[i]->lfoA.aFreq};
-
-            potiFunctionPointer[i][0][7] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDelay), std::placeholders::_1),
-                &allLayers[i]->envF.aDelay};
-            potiFunctionPointer[i][1][7] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aAmount), std::placeholders::_1),
-                &allLayers[i]->lfoB.aAmount};
-            potiFunctionPointer[i][2][7] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aShape), std::placeholders::_1),
-                &allLayers[i]->lfoB.aShape};
-            potiFunctionPointer[i][3][7] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aFreq), std::placeholders::_1),
-                &allLayers[i]->lfoB.aFreq};
-
-            potiFunctionPointer[i][0][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAttack), std::placeholders::_1),
-                &allLayers[i]->envF.aAttack};
-            potiFunctionPointer[i][1][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDecay), std::placeholders::_1),
-                &allLayers[i]->envF.aDecay};
-            potiFunctionPointer[i][2][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aSustain), std::placeholders::_1),
-                &allLayers[i]->envF.aSustain};
-            potiFunctionPointer[i][3][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aRelease), std::placeholders::_1),
-                &allLayers[i]->envF.aRelease};
-
-            potiFunctionPointer[i][0][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aSustain), std::placeholders::_1),
-                &allLayers[i]->envA.aSustain};
-            potiFunctionPointer[i][1][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aRelease), std::placeholders::_1),
-                &allLayers[i]->envA.aRelease};
-            potiFunctionPointer[i][2][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAmount), std::placeholders::_1),
-                &allLayers[i]->envA.aAmount};
-            potiFunctionPointer[i][3][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAmount), std::placeholders::_1),
-                &allLayers[i]->envF.aAmount};
-
-            potiFunctionPointer[i][0][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDelay), std::placeholders::_1),
-                &allLayers[i]->envA.aDelay};
-            potiFunctionPointer[i][1][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAttack), std::placeholders::_1),
-                &allLayers[i]->envA.aAttack};
-            potiFunctionPointer[i][2][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDecay), std::placeholders::_1),
-                &allLayers[i]->envA.aDecay};
-            potiFunctionPointer[i][3][10] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aMaster), std::placeholders::_1),
-                &allLayers[i]->out.aMaster};
-
-            potiFunctionPointer[i][0][11] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aDistort), std::placeholders::_1),
-                &allLayers[i]->out.aDistort};
-            potiFunctionPointer[i][1][11] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aPanSpread), std::placeholders::_1),
-                &allLayers[i]->out.aPanSpread};
-            potiFunctionPointer[i][2][11] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aPan), std::placeholders::_1),
-                &allLayers[i]->out.aPan};
-            potiFunctionPointer[i][3][11] = {
-                std::bind(&Analog::setValue, &(allLayers[i]->out.aVCA), std::placeholders::_1),
-                &allLayers[i]->out.aVCA};
-        }
-    }
-}
-
 extern GUI ui;
 //////////// LED ///////////
 
@@ -421,68 +202,7 @@ void updateLEDDriverCurrent() {
     ledDriverControl.setCurrent(globalSettings.dispLED.value);
 }
 
-void LEDRender() {
-    uint16_t breathing =
-        uint16_t((fast_sin_f32((float)millis() / 300.f) + 1.f) / 2.f * (float)LEDBRIGTHNESS_PATCHMARKER);
-
-    ledDriverControl.clearPWMData(); // delete old data
-
-    for (uint32_t i = 0; i < 2; i++) { // for both Layer
-        // clear Data
-
-        for (uint32_t x = 0; x < 2; x++) {
-            ledDriver[i][x].clearPWMData(); // delete old data
-        }
-
-        if (allLayers[i]->layerState.value) {
-            bool patchDraw = false;
-
-            if (ui.activePanel == &ui.guiPanelFocus && currentFocus.layer == i) { // show patches?
-                // LEDModuleRenderbuffer(i);
-                if (currentFocus.modul < allLayers[i]->modules.size()) {
-                    if (currentFocus.type == FOCUSOUTPUT) {
-                        patchDraw = true;
-                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
-
-                            Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
-                            LEDOutput(output, LEDBRIGTHNESS_PATCHOUT);
-
-                            for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
-                                Input *target = output->getPatchesInOut()[p]->targetIn;
-                                if (allLayers[i]->modules[target->moduleId]->moduleType ==
-                                    MODULE_MIX) { // mixer double use LED
-                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
-                                              breathing);
-                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
-                                              breathing);
-                                }
-                                else {
-                                    LEDInput(target, breathing);
-                                }
-                            }
-                        }
-                    }
-                    else if (currentFocus.type == FOCUSINPUT) {
-                        patchDraw = true;
-                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
-                            Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
-                            LEDInput(input, LEDBRIGTHNESS_PATCHIN);
-
-                            for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
-                                Output *source = input->getPatchesInOut()[p]->sourceOut;
-                                LEDOutput(source, breathing);
-                            }
-                        }
-                    }
-                }
-            }
-            if (patchDraw == false) {
-                LEDAllInputs(i); // drawInputData to LED
-                LEDModuleSwitch(i);
-                LEDModuleOUT(i);
-            }
-        }
-    }
+void setLEDFlags() {
     if (FlagHandler::ledDriverATransmit == DRIVER_IDLE) {
         FlagHandler::ledDriverATransmit = DRIVER_START;
         FlagHandler::ledDriverA_Interrupt = true;
@@ -507,289 +227,134 @@ void LEDRender() {
     }
 }
 
-void LEDMappingInit() {
-    for (uint8_t i = 0; i < 2; i++) {
+void LEDRender() {
 
-        println("INFO | LED Mapping ", i);
+    static bool introFrame = true;
+    static elapsedMillis timerIntroScreen;
 
-        /////// Inputs
+    ledDriverControl.clearPWMData(); // delete old data
 
-        // Steiner
-        allLayers[i]->steiner.iCutoff.LEDPinID = 0;
-        allLayers[i]->steiner.iCutoff.LEDPortID = 0;
+    if (introFrame) {
 
-        allLayers[i]->steiner.iResonance.LEDPinID = 35;
-        allLayers[i]->steiner.iResonance.LEDPortID = 0;
+        LEDIntroFrame();
+        setLEDFlags();
 
-        allLayers[i]->steiner.iLevel.LEDPinID = 34;
-        allLayers[i]->steiner.iLevel.LEDPortID = 0;
+        if (timerIntroScreen > 3000)
+            introFrame = false;
 
-        // Ladder
-        allLayers[i]->ladder.iCutoff.LEDPinID = 31;
-        allLayers[i]->ladder.iCutoff.LEDPortID = 0;
-
-        allLayers[i]->ladder.iResonance.LEDPinID = 32;
-        allLayers[i]->ladder.iResonance.LEDPortID = 0;
-
-        allLayers[i]->ladder.iLevel.LEDPinID = 33;
-        allLayers[i]->ladder.iLevel.LEDPortID = 0;
-
-        // Feel
-        allLayers[i]->feel.iGlide.LEDPinID = 11;
-        allLayers[i]->feel.iGlide.LEDPortID = 1;
-
-        allLayers[i]->feel.iDetune.LEDPinID = 12;
-        allLayers[i]->feel.iDetune.LEDPortID = 1;
-
-        // OSC A
-        allLayers[i]->oscA.iFM.LEDPinID = 16;
-        allLayers[i]->oscA.iFM.LEDPortID = 0;
-
-        allLayers[i]->oscA.iMorph.LEDPinID = 15;
-        allLayers[i]->oscA.iMorph.LEDPortID = 0;
-
-        allLayers[i]->oscA.iEffect.LEDPinID = 14;
-        allLayers[i]->oscA.iEffect.LEDPortID = 0;
-
-        // OSC B
-        allLayers[i]->oscB.iFM.LEDPinID = 12;
-        allLayers[i]->oscB.iFM.LEDPortID = 0;
-
-        allLayers[i]->oscB.iMorph.LEDPinID = 11;
-        allLayers[i]->oscB.iMorph.LEDPortID = 0;
-
-        allLayers[i]->oscB.iEffect.LEDPinID = 10;
-        allLayers[i]->oscB.iEffect.LEDPortID = 0;
-
-        // ENV
-        allLayers[i]->envA.iAmount.LEDPinID = 31;
-        allLayers[i]->envA.iAmount.LEDPortID = 1;
-
-        allLayers[i]->envF.iAmount.LEDPinID = 34;
-        allLayers[i]->envF.iAmount.LEDPortID = 1;
-
-        // OUT
-        allLayers[i]->out.iVCA.LEDPinID = 27;
-        allLayers[i]->out.iVCA.LEDPortID = 1;
-
-        allLayers[i]->out.iPan.LEDPinID = 26;
-        allLayers[i]->out.iPan.LEDPortID = 1;
-
-        // lfoA
-        allLayers[i]->lfoA.iFreq.LEDPinID = 29;
-        allLayers[i]->lfoA.iFreq.LEDPortID = 0;
-
-        allLayers[i]->lfoA.iShape.LEDPinID = 28;
-        allLayers[i]->lfoA.iShape.LEDPortID = 0;
-
-        allLayers[i]->lfoA.iAmount.LEDPinID = 27;
-        allLayers[i]->lfoA.iAmount.LEDPortID = 0;
-
-        // lfoB
-        allLayers[i]->lfoB.iFreq.LEDPinID = 23;
-        allLayers[i]->lfoB.iFreq.LEDPortID = 0;
-
-        allLayers[i]->lfoB.iShape.LEDPinID = 21;
-        allLayers[i]->lfoB.iShape.LEDPortID = 0;
-
-        allLayers[i]->lfoB.iAmount.LEDPinID = 20;
-        allLayers[i]->lfoB.iAmount.LEDPortID = 0;
-
-        // MIX  //check renderbuffer led output
-        allLayers[i]->mixer.oscALevelSteiner.LEDPinID = 8;
-        allLayers[i]->mixer.oscALevelSteiner.LEDPortID = 0;
-
-        allLayers[i]->mixer.oscBLevelSteiner.LEDPinID = 6;
-        allLayers[i]->mixer.oscBLevelSteiner.LEDPortID = 0;
-
-        allLayers[i]->mixer.subLevelSteiner.LEDPinID = 4;
-        allLayers[i]->mixer.subLevelSteiner.LEDPortID = 0;
-
-        allLayers[i]->mixer.noiseLevelSteiner.LEDPinID = 2;
-        allLayers[i]->mixer.noiseLevelSteiner.LEDPortID = 0;
-
-        allLayers[i]->mixer.oscALevelLadder.LEDPinID = 7;
-        allLayers[i]->mixer.oscALevelLadder.LEDPortID = 0;
-
-        allLayers[i]->mixer.oscBLevelLadder.LEDPinID = 5;
-        allLayers[i]->mixer.oscBLevelLadder.LEDPortID = 0;
-
-        allLayers[i]->mixer.subLevelLadder.LEDPinID = 3;
-        allLayers[i]->mixer.subLevelLadder.LEDPortID = 0;
-
-        allLayers[i]->mixer.noiseLevelLadder.LEDPinID = 1;
-        allLayers[i]->mixer.noiseLevelLadder.LEDPortID = 0;
-
-        // MIX  //check renderbuffer led output
-        allLayers[i]->mixer.iOSCALevel.LEDPinID = 8;
-        allLayers[i]->mixer.iOSCALevel.LEDPortID = 0;
-        allLayers[i]->mixer.iOSCALevel.LEDPinID2 = 7;
-        allLayers[i]->mixer.iOSCALevel.LEDPortID2 = 0;
-
-        allLayers[i]->mixer.iOSCBLevel.LEDPinID = 6;
-        allLayers[i]->mixer.iOSCBLevel.LEDPortID = 0;
-        allLayers[i]->mixer.iOSCBLevel.LEDPinID2 = 5;
-        allLayers[i]->mixer.iOSCBLevel.LEDPortID2 = 0;
-
-        allLayers[i]->mixer.iSUBLevel.LEDPinID = 4;
-        allLayers[i]->mixer.iSUBLevel.LEDPortID = 0;
-        allLayers[i]->mixer.iSUBLevel.LEDPinID2 = 3;
-        allLayers[i]->mixer.iSUBLevel.LEDPortID2 = 0;
-
-        allLayers[i]->mixer.iNOISELevel.LEDPinID = 2;
-        allLayers[i]->mixer.iNOISELevel.LEDPortID = 0;
-        allLayers[i]->mixer.iNOISELevel.LEDPinID2 = 1;
-        allLayers[i]->mixer.iNOISELevel.LEDPortID2 = 0;
-
-        /////// Outputs
-        allLayers[i]->lfoA.out.LEDPinID = 24;
-        allLayers[i]->lfoA.out.LEDPortID = 0;
-
-        allLayers[i]->lfoB.out.LEDPinID = 22;
-        allLayers[i]->lfoB.out.LEDPortID = 1;
-
-        allLayers[i]->envF.out.LEDPinID = 33;
-        allLayers[i]->envF.out.LEDPortID = 1;
-
-        allLayers[i]->envA.out.LEDPinID = 30;
-        allLayers[i]->envA.out.LEDPortID = 1;
-
-        allLayers[i]->feel.oSpread.LEDPinID = 13;
-        allLayers[i]->feel.oSpread.LEDPortID = 1;
-
-        /////// Module Output
-        allLayers[i]->lfoA.LEDPinID = 30;
-        allLayers[i]->lfoA.LEDPortID = 0;
-
-        allLayers[i]->lfoB.LEDPinID = 22;
-        allLayers[i]->lfoB.LEDPortID = 0;
-
-        allLayers[i]->envF.LEDPinID = 19;
-        allLayers[i]->envF.LEDPortID = 0;
-
-        allLayers[i]->envA.LEDPinID = 25;
-        allLayers[i]->envA.LEDPortID = 1;
-
-        /////// Configs
-        allLayers[i]->sub.dOctaveSwitch.configureNumberLEDs(1);
-        allLayers[i]->sub.dOctaveSwitch.LEDPinID[0] = 13;
-        allLayers[i]->sub.dOctaveSwitch.LEDPortID[0] = 0;
-
-        allLayers[i]->oscB.dSync.configureNumberLEDs(1);
-        allLayers[i]->oscB.dSync.LEDPinID[0] = 9;
-        allLayers[i]->oscB.dSync.LEDPortID[0] = 0;
-
-        allLayers[i]->mixer.dNOISEDestSwitch.configureNumberLEDs(2);
-        allLayers[i]->mixer.dNOISEDestSwitch.LEDPinID[0] = 2;
-        allLayers[i]->mixer.dNOISEDestSwitch.LEDPortID[0] = 0;
-        allLayers[i]->mixer.dNOISEDestSwitch.LEDPinID[1] = 1;
-        allLayers[i]->mixer.dNOISEDestSwitch.LEDPortID[1] = 0;
-
-        allLayers[i]->mixer.dOSCADestSwitch.configureNumberLEDs(2);
-        allLayers[i]->mixer.dOSCADestSwitch.LEDPinID[0] = 8;
-        allLayers[i]->mixer.dOSCADestSwitch.LEDPortID[0] = 0;
-        allLayers[i]->mixer.dOSCADestSwitch.LEDPinID[1] = 7;
-        allLayers[i]->mixer.dOSCADestSwitch.LEDPortID[1] = 0;
-
-        allLayers[i]->mixer.dOSCBDestSwitch.configureNumberLEDs(2);
-        allLayers[i]->mixer.dOSCBDestSwitch.LEDPinID[0] = 6;
-        allLayers[i]->mixer.dOSCBDestSwitch.LEDPortID[0] = 0;
-        allLayers[i]->mixer.dOSCBDestSwitch.LEDPinID[1] = 5;
-        allLayers[i]->mixer.dOSCBDestSwitch.LEDPortID[1] = 0;
-
-        allLayers[i]->mixer.dSUBDestSwitch.configureNumberLEDs(2);
-        allLayers[i]->mixer.dSUBDestSwitch.LEDPinID[0] = 4;
-        allLayers[i]->mixer.dSUBDestSwitch.LEDPortID[0] = 0;
-        allLayers[i]->mixer.dSUBDestSwitch.LEDPinID[1] = 3;
-        allLayers[i]->mixer.dSUBDestSwitch.LEDPortID[1] = 0;
-
-        allLayers[i]->lfoA.dAlignLFOs.configureNumberLEDs(1);
-        allLayers[i]->lfoA.dAlignLFOs.LEDPinID[0] = 25;
-        allLayers[i]->lfoA.dAlignLFOs.LEDPortID[0] = 0;
-
-        allLayers[i]->lfoA.dGateTrigger.configureNumberLEDs(1);
-        allLayers[i]->lfoA.dGateTrigger.LEDPinID[0] = 26;
-        allLayers[i]->lfoA.dGateTrigger.LEDPortID[0] = 0;
-
-        allLayers[i]->lfoB.dAlignLFOs.configureNumberLEDs(1);
-        allLayers[i]->lfoB.dAlignLFOs.LEDPinID[0] = 24;
-        allLayers[i]->lfoB.dAlignLFOs.LEDPortID[0] = 1;
-
-        allLayers[i]->lfoB.dGateTrigger.configureNumberLEDs(1);
-        allLayers[i]->lfoB.dGateTrigger.LEDPinID[0] = 23;
-        allLayers[i]->lfoB.dGateTrigger.LEDPortID[0] = 1;
-
-        allLayers[i]->ladder.dSlope.configureNumberLEDs(4);
-        allLayers[i]->ladder.dSlope.LEDPinID[0] = 18;
-        allLayers[i]->ladder.dSlope.LEDPortID[0] = 1;
-        allLayers[i]->ladder.dSlope.LEDPinID[1] = 19;
-        allLayers[i]->ladder.dSlope.LEDPortID[1] = 1;
-        allLayers[i]->ladder.dSlope.LEDPinID[2] = 20;
-        allLayers[i]->ladder.dSlope.LEDPortID[2] = 1;
-        allLayers[i]->ladder.dSlope.LEDPinID[3] = 21;
-        allLayers[i]->ladder.dSlope.LEDPortID[3] = 1;
-
-        allLayers[i]->steiner.dMode.configureNumberLEDs(4);
-        allLayers[i]->steiner.dMode.LEDPinID[0] = 14;
-        allLayers[i]->steiner.dMode.LEDPortID[0] = 1;
-        allLayers[i]->steiner.dMode.LEDPinID[1] = 15;
-        allLayers[i]->steiner.dMode.LEDPortID[1] = 1;
-        allLayers[i]->steiner.dMode.LEDPinID[2] = 16;
-        allLayers[i]->steiner.dMode.LEDPortID[2] = 1;
-        allLayers[i]->steiner.dMode.LEDPinID[3] = 17;
-        allLayers[i]->steiner.dMode.LEDPortID[3] = 1;
-
-        //////MIDI
-
-        allLayers[i]->midi.oNote.LEDPinID = 0;
-        allLayers[i]->midi.oNote.LEDPortID = 2;
-
-        allLayers[i]->midi.oVelocity.LEDPinID = 1;
-        allLayers[i]->midi.oVelocity.LEDPortID = 2;
-
-        allLayers[i]->midi.oMod.LEDPinID = 4;
-        allLayers[i]->midi.oMod.LEDPortID = 2;
-
-        allLayers[i]->midi.oPitchbend.LEDPinID = 3;
-        allLayers[i]->midi.oPitchbend.LEDPortID = 2;
-
-        allLayers[i]->midi.oAftertouch.LEDPinID = 2;
-        allLayers[i]->midi.oAftertouch.LEDPortID = 2;
+        return;
     }
+
+    uint16_t breathing =
+        uint16_t((fast_sin_f32((float)millis() / 300.f) + 1.f) / 2.f * (float)LEDBRIGHTNESS_PATCHMARKER);
+
+    for (uint32_t i = 0; i < 2; i++) { // for both Layer
+        // clear Data
+
+        for (uint32_t x = 0; x < 2; x++) {
+            ledDriver[i][x].clearPWMData(); // delete old data
+        }
+
+        if (allLayers[i]->layerState.value) {
+            bool patchDraw = false;
+
+            if (ui.activePanel == &ui.guiPanelFocus && currentFocus.layer == i) { // show patches?
+                // LEDModuleRenderbuffer(i);
+                if (currentFocus.modul < allLayers[i]->modules.size()) {
+                    if (currentFocus.type == FOCUSOUTPUT) {
+                        patchDraw = true;
+                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
+
+                            Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+                            LEDOutput(output, LEDBRIGHTNESS_PATCHOUT);
+
+                            for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
+                                Input *target = output->getPatchesInOut()[p]->targetIn;
+                                if (allLayers[i]->modules[target->moduleId]->moduleType ==
+                                    MODULE_MIX) { // mixer double use LED
+                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
+                                              breathing);
+                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
+                                              breathing);
+                                }
+                                else {
+                                    LEDInput(target, breathing);
+                                }
+                            }
+                        }
+                    }
+                    else if (currentFocus.type == FOCUSINPUT) {
+                        patchDraw = true;
+                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
+                            Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+                            LEDInput(input, LEDBRIGHTNESS_PATCHIN);
+
+                            for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
+                                Output *source = input->getPatchesInOut()[p]->sourceOut;
+                                LEDOutput(source, breathing);
+                            }
+                        }
+                    }
+                }
+            }
+            if (patchDraw == false) {
+                LEDAllInputs(i); // drawInputData to LED
+                LEDModuleSwitch(i);
+                LEDModuleOUT(i);
+            }
+        }
+    }
+
+    setLEDFlags();
 }
 
 void LEDSetPWM(uint16_t &pwmArrayEntry, uint16_t pwmRAW) {
-
     pwmArrayEntry = gamma_lut[pwmRAW];
 }
-void LEDOutput(Output *output, uint16_t brigthness) {
+void LEDOutput(Output *output, uint16_t brightness) {
     if (output->LEDPortID == 2) { // MIDI MODULE Control
 
-        LEDSetPWM(ledDriverControl.pwmData[output->LEDPinID], brigthness);
+        LEDSetPWM(ledDriverControl.pwmData[output->LEDPinID], brightness);
     }
     else {
-        LEDSetPWM(ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID], brigthness);
+        LEDSetPWM(ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID], brightness);
     }
 }
 
-void LEDInput(Input *input, uint16_t brigthness) {
-    LEDSetPWM(ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID], brigthness);
+void LEDInput(Input *input, uint16_t brightness) {
+    LEDSetPWM(ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID], brightness);
 }
 
 // MODULE LED OUTPUT
 void LEDModule(BaseModule *module) {
 
     if (module->moduleType == MODULE_LFO) {
-        float outputData =
-            ((LFO *)module)->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
+
+        LFO *lfo = (LFO *)module;
+        float outputData;
+
+        if (lfo->dGateTrigger)
+            outputData = lfo->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
+        else
+            outputData = lfo->currentSampleRAW.currentSample[0];
+
         LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
-                  (outputData + 1) * (float)(LEDBRIGTHNESS_MODULEOUT / 2));
+                  (outputData + 1) * (float)(LEDBRIGHTNESS_MODULEOUT / 2));
     }
-    if (module->moduleType == MODULE_ADSR) {
+    else if (module->moduleType == MODULE_ADSR) {
         float outputData =
             ((ADSR *)module)->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
         LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
-                  abs(outputData * (float)(LEDBRIGTHNESS_MODULEOUT)));
+                  abs(outputData * (float)(LEDBRIGHTNESS_MODULEOUT)));
+    }
+}
+void LEDModule(BaseModule *module, uint16_t brightness) {
+
+    if (module->moduleType == MODULE_LFO) {
+        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
+    }
+    else if (module->moduleType == MODULE_ADSR) {
+        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
     }
 }
 
@@ -834,7 +399,7 @@ void LEDAllInputs(uint32_t layerID) {
                         value = (value - a->min) / (a->max - a->min);
                         value = testFloat(value, 0, 1);
                     }
-                    LEDInput(a->input, (float)(LEDBRIGTHNESS_MODULEIN)*value);
+                    LEDInput(a->input, (float)(LEDBRIGHTNESS_MODULEIN)*value);
                 }
             }
         }
@@ -897,7 +462,7 @@ void LEDQuadSetting(Digital *digital) {
         return;
     switch (digital->valueMapped) {
         case 0: {
-            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING);
+            LEDDigital(digital, 0, LEDBRIGHTNESS_SETTING);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
@@ -905,7 +470,7 @@ void LEDQuadSetting(Digital *digital) {
         }
         case 1: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_SETTING);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
 
@@ -914,7 +479,7 @@ void LEDQuadSetting(Digital *digital) {
         case 2: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 2, LEDBRIGTHNESS_SETTING);
+            LEDDigital(digital, 2, LEDBRIGHTNESS_SETTING);
             LEDDigital(digital, 3, LEDBRIGHTNESS_OFF);
             break;
         }
@@ -922,7 +487,7 @@ void LEDQuadSetting(Digital *digital) {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             LEDDigital(digital, 2, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 3, LEDBRIGTHNESS_SETTING);
+            LEDDigital(digital, 3, LEDBRIGHTNESS_SETTING);
             break;
         }
         default: break;
@@ -935,18 +500,18 @@ void LEDDualSetting(Digital *digital, float amount) {
 
     switch (digital->valueMapped) {
         case 0: {
-            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING * amount);
+            LEDDigital(digital, 0, LEDBRIGHTNESS_SETTING * amount);
             LEDDigital(digital, 1, LEDBRIGHTNESS_OFF);
             break;
         }
         case 1: {
             LEDDigital(digital, 0, LEDBRIGHTNESS_OFF);
-            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING * amount);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_SETTING * amount);
             break;
         }
         case 2: {
-            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING * amount);
-            LEDDigital(digital, 1, LEDBRIGTHNESS_SETTING * amount);
+            LEDDigital(digital, 0, LEDBRIGHTNESS_SETTING * amount);
+            LEDDigital(digital, 1, LEDBRIGHTNESS_SETTING * amount);
             break;
         }
         case 3: {
@@ -967,7 +532,7 @@ void LEDSingleSetting(Digital *digital) {
             break;
         }
         case 1: {
-            LEDDigital(digital, 0, LEDBRIGTHNESS_SETTING);
+            LEDDigital(digital, 0, LEDBRIGHTNESS_SETTING);
             break;
         }
         default: break;
@@ -1207,6 +772,7 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
                 }
                 else {
                     allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0);
+                    ui.guiPanelFocus.scrollToLastEntry();
                 }
             }
         }
@@ -1253,6 +819,7 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
                 }
                 else {
                     allLayers[layerID]->addPatchInOutById(pOutput->idGlobal, activeInput->idGlobal, 0);
+                    ui.guiPanelFocus.scrollToLastEntry();
                 }
             }
         }

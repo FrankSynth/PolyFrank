@@ -21,7 +21,7 @@
 
 extern DUALBU22210 cvDac[2];
 extern Layer layerA;
-extern volatile float interchipLFOBuffer[2];
+extern volatile float interchipLFOBuffer[4];
 
 /*
 List of assignement
@@ -183,11 +183,11 @@ inline void setSwitches() {
     const int32_t &steinerMode = layerA.steiner.dMode.valueMapped;
     const int32_t &ladderMode = layerA.ladder.dSlope.valueMapped;
 
-    HAL_GPIO_WritePin(SWITCH_2_B_GPIO_Port, SWITCH_2_B_Pin, (GPIO_PinState)(steinerMode < 2));
-    HAL_GPIO_WritePin(SWITCH_2_A_GPIO_Port, SWITCH_2_A_Pin, (GPIO_PinState)(!(steinerMode & 0x1)));
+    HAL_GPIO_WritePin(SWITCH_2_B_GPIO_Port, SWITCH_2_B_Pin, (GPIO_PinState)(!(steinerMode & 0b1)));
+    HAL_GPIO_WritePin(SWITCH_2_A_GPIO_Port, SWITCH_2_A_Pin, (GPIO_PinState)(steinerMode < 2));
 
     HAL_GPIO_WritePin(SWITCH_1_B_GPIO_Port, SWITCH_1_B_Pin, (GPIO_PinState)(ladderMode < 2));
-    HAL_GPIO_WritePin(SWITCH_1_A_GPIO_Port, SWITCH_1_A_Pin, (GPIO_PinState)(!(ladderMode & 0x1)));
+    HAL_GPIO_WritePin(SWITCH_1_A_GPIO_Port, SWITCH_1_A_Pin, (GPIO_PinState)(!(ladderMode & 0b1)));
 }
 
 void renderCVs() {
@@ -225,10 +225,14 @@ void renderCVs() {
     if (layerA.chipID == 0) { // chip A
         interchipLFOBuffer[0] = layerA.lfoA.alignFloatBuffer;
         interchipLFOBuffer[1] = layerA.lfoB.alignFloatBuffer;
+        interchipLFOBuffer[2] = layerA.lfoA.alignPhaseBuffer;
+        interchipLFOBuffer[3] = layerA.lfoB.alignPhaseBuffer;
     }
     else {
         layerA.lfoA.alignFloatBuffer = interchipLFOBuffer[0];
         layerA.lfoB.alignFloatBuffer = interchipLFOBuffer[1];
+        layerA.lfoA.alignPhaseBuffer = interchipLFOBuffer[2];
+        layerA.lfoB.alignPhaseBuffer = interchipLFOBuffer[3];
     }
 
     voice++;

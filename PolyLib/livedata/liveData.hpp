@@ -79,7 +79,9 @@ class LiveData {
     Setting livemodeExternalClockMultiplyOut = Setting("EXT. CLK OUT", 3, 0, 7, false, binary, &extStepNameList, false);
 
     elapsedMillis extClockLengthTimer;
+    elapsedSeconds extClockTimeout = 301;
     elapsedMicros meassuredBPMTime = 0;
+    int32_t extSyncCounter = 0;
 
     bool extSync = false;
 };

@@ -200,7 +200,6 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
     uint8_t comCommand[NEWNOTECMDSIZE];
 
     comCommand[0] = NEWNOTE;
-    comCommand[1] = layerId << 7;
     comCommand[2] = note;
     comCommand[3] = velocity;
 
@@ -208,12 +207,12 @@ uint8_t COMinterChip::sendNewNote(uint8_t layerId, uint8_t voiceID, uint8_t note
 
     if (voiceID == VOICEALL) {
         for (uint32_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[1] |= voice;
+            comCommand[1] = voice | layerId << 7;
             pushOutBuffer(comCommand, NEWNOTECMDSIZE);
         }
     }
     else {
-        comCommand[1] |= voiceID;
+        comCommand[1] = voiceID | layerId << 7;
         pushOutBuffer(comCommand, NEWNOTECMDSIZE);
     }
 
@@ -224,16 +223,15 @@ uint8_t COMinterChip::sendOpenGate(uint8_t layerId, uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
 
     comCommand[0] = OPENGATE;
-    comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
         for (uint32_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[1] |= voice;
+            comCommand[1] = voice | layerId << 7;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
     }
     else {
-        comCommand[1] |= voiceID;
+        comCommand[1] = voiceID | layerId << 7;
         pushOutBuffer(comCommand, GATECMDSIZE);
     }
 
@@ -244,18 +242,28 @@ uint8_t COMinterChip::sendCloseGate(uint8_t layerId, uint8_t voiceID) {
     uint8_t comCommand[GATECMDSIZE];
 
     comCommand[0] = CLOSEGATE;
-    comCommand[1] = layerId << 7;
 
     if (voiceID == VOICEALL) {
         for (uint32_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[1] |= voice;
+            comCommand[1] = voice | layerId << 7;
             pushOutBuffer(comCommand, GATECMDSIZE);
         }
     }
     else {
-        comCommand[1] |= voiceID;
+        comCommand[1] = voiceID | layerId << 7;
         pushOutBuffer(comCommand, GATECMDSIZE);
     }
+
+    return 0;
+}
+
+uint8_t COMinterChip::sendBPM(float bpm) {
+    uint8_t comCommand[BPMCMDSIZE];
+
+    comCommand[0] = BPM;
+    *(float *)(&comCommand[1]) = bpm;
+
+    pushOutBuffer(comCommand, BPMCMDSIZE);
 
     return 0;
 }
@@ -264,18 +272,17 @@ uint8_t COMinterChip::sendRetrigger(uint8_t layerId, uint8_t modulID, uint8_t vo
     uint8_t comCommand[RETRIGGERCMDSIZE];
 
     comCommand[0] = RETRIGGER;
-    comCommand[1] = layerId << 7;
     comCommand[2] = modulID;
 
     if (voiceID == VOICEALL) {
         for (uint32_t voice = 0; voice < VOICEALL; voice++) {
-            comCommand[1] |= voice;
+            comCommand[1] = voice | layerId << 7;
 
             pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
         }
     }
     else {
-        comCommand[1] |= voiceID;
+        comCommand[1] = voiceID | layerId << 7;
 
         pushOutBuffer(comCommand, RETRIGGERCMDSIZE);
     }
@@ -807,6 +814,13 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 readLayerVoice(layerID, voice, (dmaInBufferPointer[currentInBufferSelect])[++i]);
                 if (voice != NOVOICE && layerID == layerA.id)
                     layerA.gateOff(voice);
+                break;
+            }
+
+            case BPM: {
+                volatile float amountFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                i += 3; // sizeof(float) - 1
+                layerA.bpm = amountFloat;
                 break;
             }
 

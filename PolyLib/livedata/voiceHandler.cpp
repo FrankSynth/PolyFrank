@@ -53,12 +53,12 @@ void VoiceHandler::playNote(const Key &key) {
 
         layerCom.sendNewNote(v->layerID, v->voiceID, v->note, v->velocity);
 
-        if (allLayers[v->layerID]->lfoA.dAlignLFOs == 1 && allLayers[v->layerID]->lfoA.dGateTrigger == 1) {
-            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoA.id, VOICEALL);
-        }
-        if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
-            layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
-        }
+        // if (allLayers[v->layerID]->lfoA.dAlignLFOs == 1 && allLayers[v->layerID]->lfoA.dGateTrigger == 1) {
+        //     layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoA.id, VOICEALL);
+        // }
+        // if (allLayers[v->layerID]->lfoB.dAlignLFOs == 1 && allLayers[v->layerID]->lfoB.dGateTrigger == 1) {
+        //     layerCom.sendRetrigger(v->layerID, allLayers[v->layerID]->lfoB.id, VOICEALL);
+        // }
 
         lastVoiceID[key.layerID] = v->voiceID;
     }

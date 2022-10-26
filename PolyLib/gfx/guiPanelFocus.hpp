@@ -16,6 +16,8 @@ class GUIPanelFocus : public GUIPanelBase {
 
     void registerPanelSettings();
 
+    void scrollToLastEntry();
+
     void updateEntrys();
 
     Analog *getAnalogEntry();
@@ -34,6 +36,8 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t digitalIndex;
     uint16_t moduleIndex;
     uint16_t patchIndex;
+
+    bool jumpToLastPos = false;
 
     FOCUSMODE mode;
 

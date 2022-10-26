@@ -159,18 +159,34 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
     // get text
     if (entry->type == PATCHOUTPUT) {
         text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getShortName();
+
+        // Draw Name
+        if (select) {
+            drawRectangleChampfered(cHighlight, x, y, nameWidth, h, 1);
+            drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        }
+        else {
+            drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
+            drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        }
     }
     else {
         text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getShortName();
-    }
-    // Draw Name
-    if (select) {
-        drawRectangleChampfered(cHighlight, x, y, nameWidth, h, 1);
-        drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
-    }
-    else {
-        drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
-        drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
+        text.append(" ");
+        std::string text2 = "| ";
+        text2.append(data->targetIn->getShortName());
+
+        // Draw Name
+        if (select) {
+            drawRectangleChampfered(cHighlight, x, y, nameWidth, h, 1);
+            drawString(text, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+            drawString(text2, cFont_Select, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
+        }
+        else {
+            drawRectangleFill(cWhite, x + nameWidth - 1, y + 2, 1, h - 4);
+            drawString(text, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, RIGHT);
+            drawString(text2, cFont_Deselect, x + nameWidth / 2, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
+        }
     }
 
     uint16_t valueBarWidth = w - nameWidth - 2 * spaceLeftRightBar;
@@ -1185,7 +1201,9 @@ void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, 
             // draw
             drawCustomDigitalElement(&((ADSR *)module)->dLoop, x, y, elementWidth - 2, h);
             drawCustomDigitalElement(&((ADSR *)module)->dLatch, x + elementWidth, y, elementWidth - 2, h);
-            drawCustomDigitalElement(&((ADSR *)module)->dClockStep, x + 2 * elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((ADSR *)module)->dReset, x + 2 * elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((ADSR *)module)->dClockTrigger, x + 3 * elementWidth, y, elementWidth - 2, h);
+
             break;
         }
 
@@ -1194,13 +1212,20 @@ void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, 
             registerDigitalElement(0, &((LFO *)module)->dFreqSnap);
             registerDigitalElement(1, &((LFO *)module)->dGateTrigger);
             registerDigitalElement(2, &((LFO *)module)->dClockTrigger);
-            registerDigitalElement(3, &((LFO *)module)->dClockStep);
 
             // draw
             drawCustomDigitalElement(&((LFO *)module)->dFreqSnap, x, y, elementWidth - 2, h);
             drawCustomDigitalElement(&((LFO *)module)->dGateTrigger, x + elementWidth, y, elementWidth - 2, h);
             drawCustomDigitalElement(&((LFO *)module)->dClockTrigger, x + 2 * elementWidth, y, elementWidth - 2, h);
-            drawCustomDigitalElement(&((LFO *)module)->dClockStep, x + 3 * elementWidth, y, elementWidth - 2, h);
+
+            if (liveData.livemodeClockSource.value) {
+                registerDigitalElement(3, &((LFO *)module)->dClockStep);
+                drawCustomDigitalElement(&((LFO *)module)->dClockStep, x + 3 * elementWidth, y, elementWidth - 2, h);
+            }
+            else {
+                registerDigitalElement(3, &((LFO *)module)->dEXTDiv);
+                drawCustomDigitalElement(&((LFO *)module)->dEXTDiv, x + 3 * elementWidth, y, elementWidth - 2, h);
+            }
             break;
         }
 
@@ -1434,13 +1459,13 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
         float fract = shape - std::floor(shape);
 
         if (shape < 1) {
-            index = fast_lerp_f32(calcSin(phase), calcRamp(phase), fract);
+            index = fast_lerp_f32(calcSin(phase), calcInvRamp(phase), fract);
         }
-        else if (shape < 2) {
-            index = fast_lerp_f32(calcRamp(phase), calcTriangle(phase), fract);
-        }
+        // else if (shape < 2) {
+        //     index = calcRampTriangle(phase, shape);
+        // }
         else if (shape < 3) {
-            index = fast_lerp_f32(calcTriangle(phase), calcInvRamp(phase), fract);
+            index = calcRampTriangle(phase, shape);
         }
         else if (shape < 4) {
 
@@ -1448,7 +1473,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             uint16_t randPhase = randPhasef;
             float randPhaseFrac = randPhasef - std::floor(randPhasef);
 
-            index = fast_lerp_f32(calcInvRamp(phase),
+            index = fast_lerp_f32(calcRamp(phase),
 
                                   fast_lerp_f32(
 

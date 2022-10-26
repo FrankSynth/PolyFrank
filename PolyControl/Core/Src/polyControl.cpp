@@ -5,6 +5,7 @@
 #include "globalsettings/globalSettings.hpp"
 #include "hardware/device.hpp"
 #include "humanInterface/hid.hpp"
+#include "humanInterface/hidStartup.hpp"
 
 #include "midiInterface/MIDIInterface.h"
 #include "usbd_midi_if.hpp"
