@@ -185,11 +185,14 @@ void GUIPanelPatchMatrix::activate() {
                     break;
                 }
             }
-            collectOutputs();
-            for (uint32_t i = 0; i < allOutputs.size(); i++) {
-                if (allOutputs[i]->idGlobal == selectedPatch->sourceOut->idGlobal) {
-                    scrollOut.setScroll(i);
-                    break;
+
+            if (selectedPatch != nullptr) {
+                collectOutputs();
+                for (uint32_t i = 0; i < allOutputs.size(); i++) {
+                    if (allOutputs[i]->idGlobal == selectedPatch->sourceOut->idGlobal) {
+                        scrollOut.setScroll(i);
+                        break;
+                    }
                 }
             }
         }
@@ -207,19 +210,21 @@ void GUIPanelPatchMatrix::activate() {
                     break;
                 }
             }
+            if (selectedPatch != nullptr) {
 
-            for (uint32_t i = 0; i < allModules.size(); i++) {
-                if (allModules[i]->id == selectedPatch->targetIn->moduleId) {
-                    scrollModule.setScroll(i);
-                    break;
+                for (uint32_t i = 0; i < allModules.size(); i++) {
+                    if (allModules[i]->id == selectedPatch->targetIn->moduleId) {
+                        scrollModule.setScroll(i);
+                        break;
+                    }
                 }
-            }
 
-            collectInputs();
-            for (uint32_t i = 0; i < allInputs.size(); i++) {
-                if (allInputs[i]->id == selectedPatch->targetIn->idGlobal) {
-                    scrollIn.setScroll(i);
-                    break;
+                collectInputs();
+                for (uint32_t i = 0; i < allInputs.size(); i++) {
+                    if (allInputs[i]->id == selectedPatch->targetIn->idGlobal) {
+                        scrollIn.setScroll(i);
+                        break;
+                    }
                 }
             }
         }
