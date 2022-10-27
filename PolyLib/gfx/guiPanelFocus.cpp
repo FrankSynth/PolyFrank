@@ -94,13 +94,15 @@ void GUIPanelFocus::Draw() {
     if (cachedFocus.type == FOCUSMODULE) {
         BaseModule *module = allLayers[cachedFocus.layer]->modules[cachedFocus.modul];
 
-        if (lastModuleID != cachedFocus.modul) { // check last module id an load position if needed
+        if (lastModuleFocus.modul != cachedFocus.modul &&
+            lastModuleFocus.layer != cachedFocus.layer) { // check last module id and load position if needed
             scroll->setScroll(module->moduleScrollPosition);
             scroll->checkScroll();
-            lastModuleID = cachedFocus.modul;
+            lastModuleFocus = cachedFocus;
         }
-        else {
-            module->moduleScrollPosition = scroll->position;
+        else { // same position for both
+            allLayers[0]->modules[cachedFocus.modul]->moduleScrollPosition = scroll->position;
+            allLayers[1]->modules[cachedFocus.modul]->moduleScrollPosition = scroll->position;
         }
 
         ModuleType type = module->moduleType;

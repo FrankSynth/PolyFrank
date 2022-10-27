@@ -27,7 +27,6 @@ class GUIPanelFocus : public GUIPanelBase {
 
   private:
     // Boxes
-    uint16_t focusChanged;
 
     uint16_t customControlsY;
     uint16_t customControlsHeight;
@@ -37,7 +36,7 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t moduleIndex;
     uint16_t patchIndex;
 
-    uint8_t lastModuleID = 0xFF;
+    location lastModuleFocus = 0xFF;
 
     bool jumpToLastPos = false;
 
