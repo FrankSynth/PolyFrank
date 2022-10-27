@@ -27,7 +27,7 @@
 #endif
 
 // table for fast sin
-extern const float sinTable_f32[FAST_MATH_TABLE_SIZE + 1];
+extern float sinTable_float[FAST_MATH_TABLE_SIZE + 1];
 
 // table for fast lin2log
 extern float noteLin2LogTable_f32[FAST_NOTELIN2LOG_TABLE_SIZE + 1];

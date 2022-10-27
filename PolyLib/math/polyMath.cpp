@@ -36,8 +36,8 @@ float fast_sin_f32(float x) {
     fract = findex - (float)index;
 
     /* Read two nearest values of input value from the sin table */
-    a = sinTable_f32[index];
-    b = sinTable_f32[index + 1];
+    a = sinTable_float[index];
+    b = sinTable_float[index + 1];
 
     /* Linear interpolation process */
     // sinVal = (1.0f - fract) * a + fract * b;
@@ -83,8 +83,8 @@ float fast_sin_fade_f32(float x) {
     // fract = findex - (float)index;
 
     /* Read two nearest values of input value from the sin table */
-    a = sinTable_f32[index];
-    // b = sinTable_f32[index + 1];
+    a = sinTable_float[index];
+    // b = sinTable_float[index + 1];
 
     /* Linear interpolation process */
     // sinVal = (1.0f - fract) * a + fract * b;

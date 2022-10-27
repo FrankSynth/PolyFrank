@@ -97,7 +97,7 @@ SECTIONS
     *wavetables.o (.text .text*)
     *polyRenderIRQ.o (.text .text*)
     *device.o (.text .text*)
-    *MCP4728.o (.text .text*) 
+    /* *MCP4728.o (.text .text*)  */
     *flagHandler.o (.text .text*) 
     *com.o (.text .text* .rodata .rodata*) 
     *stm32h7xx_it.o (.text .text*)
@@ -106,11 +106,15 @@ SECTIONS
     *moduleCallbacks.o (.text .text*)
 
     
+
+    
+    /* *arm_common_tables.o (.rodata .rodata*) */
+
     *moduleCallbacks.o (.rodata .rodata*)
     *render* (.rodata .rodata*) 
     *spline.o (.rodata .rodata*) 
     *polyMath.o (.rodata .rodata*) 
-    *module* (.rodata .rodata*) 
+    /* *module* (.rodata .rodata*)  */
     *layer* (.rodata .rodata*) 
     *datacore* (.rodata .rodata*) 
     *wavetables.o (.rodata .rodata*) 
