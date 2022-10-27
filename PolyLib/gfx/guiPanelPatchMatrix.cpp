@@ -221,9 +221,11 @@ void GUIPanelPatchMatrix::activate() {
 
                 collectInputs();
                 for (uint32_t i = 0; i < allInputs.size(); i++) {
-                    if (allInputs[i]->id == selectedPatch->targetIn->idGlobal) {
-                        scrollIn.setScroll(i);
-                        break;
+                    if (allInputs[i]->input != nullptr) {
+                        if (allInputs[i]->input->idGlobal == selectedPatch->targetIn->idGlobal) {
+                            scrollIn.setScroll(i);
+                            break;
+                        }
                     }
                 }
             }
