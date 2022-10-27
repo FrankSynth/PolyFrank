@@ -1194,15 +1194,22 @@ void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, 
         case MODULE_ADSR: {
             // register
             registerDigitalElement(0, &((ADSR *)module)->dLoop);
-            registerDigitalElement(1, &((ADSR *)module)->dLatch);
-            registerDigitalElement(2, &((ADSR *)module)->dReset);
-            registerDigitalElement(3, &((ADSR *)module)->dGateTrigger);
+            registerDigitalElement(1, &((ADSR *)module)->dReset);
+            registerDigitalElement(2, &((ADSR *)module)->dClockTrigger);
 
             // draw
             drawCustomDigitalElement(&((ADSR *)module)->dLoop, x, y, elementWidth - 2, h);
-            drawCustomDigitalElement(&((ADSR *)module)->dLatch, x + elementWidth, y, elementWidth - 2, h);
-            drawCustomDigitalElement(&((ADSR *)module)->dReset, x + 2 * elementWidth, y, elementWidth - 2, h);
-            drawCustomDigitalElement(&((ADSR *)module)->dClockTrigger, x + 3 * elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((ADSR *)module)->dReset, x + elementWidth, y, elementWidth - 2, h);
+            drawCustomDigitalElement(&((ADSR *)module)->dClockTrigger, x + 2 * elementWidth, y, elementWidth - 2, h);
+
+            if (liveData.livemodeClockSource.value) {
+                registerDigitalElement(3, &((ADSR *)module)->dClockStep);
+                drawCustomDigitalElement(&((ADSR *)module)->dClockStep, x + 3 * elementWidth, y, elementWidth - 2, h);
+            }
+            else {
+                registerDigitalElement(3, &((ADSR *)module)->dEXTDiv);
+                drawCustomDigitalElement(&((ADSR *)module)->dEXTDiv, x + 3 * elementWidth, y, elementWidth - 2, h);
+            }
 
             break;
         }

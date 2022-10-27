@@ -667,12 +667,12 @@ class ADSR : public BaseModule {
 
     // TODO Hide controls on front
     Digital dLoop = Digital("LOOP", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dReset = Digital("TRIGGER RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
+    Digital dLatch = Digital("LATCH", 0, 1, 0, true, &nlOnOff, nullptr, true);
+    Digital dReset = Digital("RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dGateTrigger = Digital("GATE TRIGGER", 0, 1, 1, true, &nlOnOff, nullptr, true);
 
     Digital dClockTrigger = Digital("CLOCK TRIGGER", 0, 1, 0, true, &nlOnOff, nullptr, false);
-    Digital dClockStep = Digital("CLOCK RESET", 0, 22, 10, false, &nlClockSteps, nullptr);
+    Digital dClockStep = Digital("CLOCK TRIGGER", 0, 22, 10, false, &nlClockSteps, nullptr, false);
     Digital dEXTDiv = Digital("EXT DIV", 0, 4, 0, false, &nlDivSteps, nullptr, false);
 
     RenderBuffer amount;

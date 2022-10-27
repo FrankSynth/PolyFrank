@@ -75,8 +75,6 @@ void Layer::resetLayer() {
     clearPatches();
     loadDefaultPatches();
 
-    envF.aShape.setValue(MAX_VALUE_12BIT);
-
 #ifdef POLYRENDER
     allGatesOff();
     envA.resetAllADSRs();
