@@ -52,7 +52,7 @@ void GUIPanelLive::updateEntrys() {
         pCategory = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &liveData.arps[currentFocus.layer].__liveSettingsArp;
+        pCategory = &liveData.arps[cachedFocus.layer].__liveSettingsArp;
     }
 
     for (Setting *s : pCategory->settings) {
@@ -104,9 +104,9 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionRightData(1);
     actionHandler.registerActionRightData(2);
 
-    actionHandler.registerActionLeft(0, {std::bind(&pullFrontValues, currentFocus.layer), "FRONT"}, true);
+    actionHandler.registerActionLeft(0, {std::bind(&pullFrontValues, cachedFocus.layer), "FRONT"}, true);
     actionHandler.registerActionLeft(1);
-    actionHandler.registerActionLeft(2, {std::bind(&GUIPanelLive::resetSystem, this), "RST ALL"}, true);
+    actionHandler.registerActionLeft(2);
 }
 
 void GUIPanelLive::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, std::string name, uint8_t pathVisible,

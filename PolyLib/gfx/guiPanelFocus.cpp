@@ -46,14 +46,14 @@ void GUIPanelFocus::registerPanelSettings() {
                                             {std::bind(&Scroller::scroll, this->scroll, -1), "SCROLL"});
     }
 
-    if (currentFocus.type != FOCUSLAYER) {
+    if (cachedFocus.type != FOCUSLAYER) {
         actionHandler.registerActionLeft(1, {std::bind(focusUp), "UP"});
     }
     else {
         actionHandler.registerActionLeft(1);
     }
 
-    if (currentFocus.type != FOCUSINPUT && currentFocus.type != FOCUSOUTPUT) {
+    if (cachedFocus.type != FOCUSINPUT && cachedFocus.type != FOCUSOUTPUT) {
         actionHandler.registerActionLeft(2, {std::bind(focusDown, this->newPanelFocus), "DOWN"});
     }
     else {
@@ -81,6 +81,7 @@ void GUIPanelFocus::registerPanelSettings() {
 }
 
 void GUIPanelFocus::Draw() {
+
     // register Panel Settings
     registerPanelSettings();
 
@@ -90,8 +91,19 @@ void GUIPanelFocus::Draw() {
     // resetFocus
     newPanelFocus.type = NOFOCUS;
 
-    if (currentFocus.type == FOCUSMODULE) {
-        ModuleType type = allLayers[currentFocus.layer]->modules[currentFocus.modul]->moduleType;
+    if (cachedFocus.type == FOCUSMODULE) {
+        BaseModule *module = allLayers[cachedFocus.layer]->modules[cachedFocus.modul];
+
+        if (lastModuleID != cachedFocus.modul) { // check last module id an load position if needed
+            scroll->setScroll(module->moduleScrollPosition);
+            scroll->checkScroll();
+            lastModuleID = cachedFocus.modul;
+        }
+        else {
+            module->moduleScrollPosition = scroll->position;
+        }
+
+        ModuleType type = module->moduleType;
 
         if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
             type == MODULE_ADSR) {
@@ -106,8 +118,8 @@ void GUIPanelFocus::Draw() {
             drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
                           panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, entrys);
 
-            drawWaveFromModule(waveBuffer, allLayers[currentFocus.layer]->modules[currentFocus.modul],
-                               LCDWIDTH / 2 - waveBuffer.width / 2, HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
+            drawWaveFromModule(waveBuffer, module, LCDWIDTH / 2 - waveBuffer.width / 2,
+                               HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
         }
         else { // module without wave
 
@@ -121,8 +133,7 @@ void GUIPanelFocus::Draw() {
                           scroll->offset, scroll->entrys, FOCUSPANELENTRYS);
         }
 
-        drawCustomControls(allLayers[currentFocus.layer]->modules[currentFocus.modul], panelAbsX, customControlsY,
-                           panelWidth, customControlsHeight);
+        drawCustomControls(module, panelAbsX, customControlsY, panelWidth, customControlsHeight);
 
         scroll->maxEntrysVisible = entrys;
     }
@@ -131,19 +142,19 @@ void GUIPanelFocus::Draw() {
         entrys = FOCUSPANELENTRYS;
         scroll->maxEntrysVisible = entrys;
 
-        if (currentFocus.type == FOCUSOUTPUT) {
+        if (cachedFocus.type == FOCUSOUTPUT) {
             registerModulePatchOut();
             for (int i = 0; i < FOCUSPANELENTRYS; i++) {
                 panelElements[i].Draw();
             }
         }
-        else if (currentFocus.type == FOCUSINPUT) {
+        else if (cachedFocus.type == FOCUSINPUT) {
             registerModulePatchIn();
             for (int i = 0; i < FOCUSPANELENTRYS; i++) {
                 panelElements[i].Draw();
             }
         }
-        else if (currentFocus.type == FOCUSLAYER) {
+        else if (cachedFocus.type == FOCUSLAYER) {
 
             registerLayerModules();
             for (int i = 0; i < FOCUSPANELENTRYS; i++) {
@@ -161,52 +172,52 @@ void GUIPanelFocus::scrollToLastEntry() {
 
 void GUIPanelFocus::collectEntrys() {
     // set scroller
-    if (currentFocus.type == FOCUSLAYER) {
+    if (cachedFocus.type == FOCUSLAYER) {
         scroll = &scrollLayer;
     }
     else {
         scroll = &scrollModule;
     }
     // check for location change
-    if (oldFocus.modul != currentFocus.modul) {
+    if (oldFocus.modul != cachedFocus.modul) {
         scroll->resetScroll();
-        oldFocus = currentFocus;
+        oldFocus = cachedFocus;
     }
 
-    if (currentFocus.type == FOCUSINPUT) {
+    if (cachedFocus.type == FOCUSINPUT) {
         patch.clear();
 
-        for (PatchElement *p : allLayers[currentFocus.layer]
-                                   ->getModules()[currentFocus.modul]
-                                   ->getInputs()[currentFocus.id]
+        for (PatchElement *p : allLayers[cachedFocus.layer]
+                                   ->getModules()[cachedFocus.modul]
+                                   ->getInputs()[cachedFocus.id]
                                    ->getPatchesInOut()) {
             patch.push_back(p);
         }
 
         scroll->entrys = patch.size();
     }
-    else if (currentFocus.type == FOCUSOUTPUT) {
+    else if (cachedFocus.type == FOCUSOUTPUT) {
         patch.clear();
 
-        for (PatchElement *p : allLayers[currentFocus.layer]
-                                   ->getModules()[currentFocus.modul]
-                                   ->getOutputs()[currentFocus.id]
+        for (PatchElement *p : allLayers[cachedFocus.layer]
+                                   ->getModules()[cachedFocus.modul]
+                                   ->getOutputs()[cachedFocus.id]
                                    ->getPatchesInOut()) {
             patch.push_back(p);
         }
         scroll->entrys = patch.size();
     }
 
-    else if (currentFocus.type == FOCUSMODULE) {
+    else if (cachedFocus.type == FOCUSMODULE) {
         analog.clear();
         digital.clear();
 
-        for (Analog *a : allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getPotis()) {
+        for (Analog *a : allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getPotis()) {
             if (a->displayVis) { // filter Display Visibility
                 analog.push_back(a);
             }
         }
-        for (Digital *d : allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getSwitches()) {
+        for (Digital *d : allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getSwitches()) {
             if (d->displayVis) { // filter Display Visibility
                 digital.push_back(d);
             }
@@ -214,9 +225,9 @@ void GUIPanelFocus::collectEntrys() {
 
         scroll->entrys = analog.size() + digital.size();
     }
-    else if (currentFocus.type == FOCUSLAYER) {
+    else if (cachedFocus.type == FOCUSLAYER) {
         module.clear();
-        for (BaseModule *m : allLayers[currentFocus.layer]->getModules()) {
+        for (BaseModule *m : allLayers[cachedFocus.layer]->getModules()) {
             if (m->displayVis) { // filter Display Visibility
                 module.push_back(m);
             }
@@ -308,9 +319,9 @@ void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements)
     }
 
     dataPanelElements[scroll->relPosition].select = 1;
-    if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
+    if (allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs.size()) {
         actionHandler.registerActionRight(
-            1, {std::bind(focusPatch, location(currentFocus.layer, currentFocus.modul, currentFocus.id, FOCUSOUTPUT)),
+            1, {std::bind(focusPatch, location(cachedFocus.layer, cachedFocus.modul, cachedFocus.id, FOCUSOUTPUT)),
                 "OUT"});
     }
 }
@@ -333,10 +344,15 @@ void GUIPanelFocus::registerModulePatchIn() {
 
     panelElements[scroll->relPosition].select = 1;
 
+    // for patch jumping to matrix
+    if (panelElements[scroll->relPosition].numberEntrys != 0) { // check entry not empty
+        selectedPatch = panelElements[scroll->relPosition].entrys->patch;
+    }
+
     // register newFocus
 
-    newPanelFocus.id = currentFocus.id;
-    newPanelFocus.modul = currentFocus.modul;
+    newPanelFocus.id = cachedFocus.id;
+    newPanelFocus.modul = cachedFocus.modul;
     newPanelFocus.type = FOCUSINPUT;
 
     actionHandler.registerActionRight(2, {std::bind(focusPatch, newPanelFocus), "PATCH"});
@@ -359,10 +375,15 @@ void GUIPanelFocus::registerModulePatchOut() {
 
     panelElements[scroll->relPosition].select = 1;
 
+    // for patch jumping to matrix
+    if (panelElements[scroll->relPosition].numberEntrys != 0) { // check entry not empty
+        selectedPatch = panelElements[scroll->relPosition].entrys->patch;
+    }
+
     // register newFocus
 
-    newPanelFocus.id = currentFocus.id;
-    newPanelFocus.modul = currentFocus.modul;
+    newPanelFocus.id = cachedFocus.id;
+    newPanelFocus.modul = cachedFocus.modul;
     newPanelFocus.type = FOCUSOUTPUT;
 
     actionHandler.registerActionRight(2, {std::bind(focusPatch, newPanelFocus), "PATCH"});

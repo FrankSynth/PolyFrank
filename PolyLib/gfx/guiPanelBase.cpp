@@ -158,7 +158,7 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
     std::string text;
     // get text
     if (entry->type == PATCHOUTPUT) {
-        text = allLayers[currentFocus.layer]->getModules()[data->sourceOut->moduleId]->getShortName();
+        text = allLayers[cachedFocus.layer]->getModules()[data->sourceOut->moduleId]->getShortName();
 
         // Draw Name
         if (select) {
@@ -171,7 +171,7 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
         }
     }
     else {
-        text = allLayers[currentFocus.layer]->getModules()[data->targetIn->moduleId]->getShortName();
+        text = allLayers[cachedFocus.layer]->getModules()[data->targetIn->moduleId]->getShortName();
         text.append(" ");
         std::string text2 = "| ";
         text2.append(data->targetIn->getShortName());

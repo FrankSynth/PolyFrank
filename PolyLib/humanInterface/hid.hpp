@@ -78,6 +78,7 @@ void LEDModule(BaseModule *module);
 void LEDModule(BaseModule *module, uint16_t brightness);
 void LEDRenderbuffer(RenderBuffer *rBuffer);
 void LEDAllInputs(uint32_t layerID);
+void resetSystem();
 
 void updateLEDDriverCurrent();
 

@@ -48,7 +48,7 @@ void GUIPanelPatchMatrix::collectModules() {
 
     allModules.clear();
 
-    for (BaseModule *module : allLayers[currentFocus.layer]->getModules()) { // Collect Module if inputs available
+    for (BaseModule *module : allLayers[cachedFocus.layer]->getModules()) { // Collect Module if inputs available
         uint8_t check = 0;
         for (Input *input : module->inputs) {
             if (input->visible) {
@@ -98,8 +98,8 @@ void GUIPanelPatchMatrix::collectOutputs() {
     allOutputs.clear();
 
     if (viewMode == MIDIVIEW) {
-        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+        for (Output *output : allLayers[cachedFocus.layer]->outputs) { // Collect Module if inputs available
+            ModuleType moduleType = allLayers[cachedFocus.layer]->modules[output->moduleId]->moduleType;
             if (moduleType == MODULE_MIDI) {
                 if (output->visible) {
                     if (filteredView) {
@@ -114,8 +114,8 @@ void GUIPanelPatchMatrix::collectOutputs() {
         }
     }
     else if (viewMode == ENVVIEW) {
-        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+        for (Output *output : allLayers[cachedFocus.layer]->outputs) { // Collect Module if inputs available
+            ModuleType moduleType = allLayers[cachedFocus.layer]->modules[output->moduleId]->moduleType;
             if ((moduleType == MODULE_ADSR) | (moduleType == MODULE_LFO) | (moduleType == MODULE_FEEL)) {
                 if (output->visible) {
                     if (filteredView) {
@@ -130,8 +130,8 @@ void GUIPanelPatchMatrix::collectOutputs() {
         }
     }
     else if (viewMode == AUDIOVIEW) {
-        for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
-            ModuleType moduleType = allLayers[currentFocus.layer]->modules[output->moduleId]->moduleType;
+        for (Output *output : allLayers[cachedFocus.layer]->outputs) { // Collect Module if inputs available
+            ModuleType moduleType = allLayers[cachedFocus.layer]->modules[output->moduleId]->moduleType;
             if ((moduleType == MODULE_OSC_A) | (moduleType == MODULE_OSC_B) | (moduleType == MODULE_SUB) |
                 (moduleType == MODULE_NOISE)) {
                 if (output->visible) {
@@ -153,9 +153,9 @@ void GUIPanelPatchMatrix::collectOutputs() {
 
 void GUIPanelPatchMatrix::activate() {
     // find correc view
-    ModuleType type = allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->moduleType;
+    ModuleType type = allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->moduleType;
 
-    if (currentFocus.type == FOCUSOUTPUT) {
+    if (cachedFocus.type == FOCUSOUTPUT) {
         if ((type == MODULE_ADSR) | (type == MODULE_LFO) | (type == MODULE_FEEL)) {
             setEnvView();
         }
@@ -169,35 +169,56 @@ void GUIPanelPatchMatrix::activate() {
 
     collectModules();
 
-    if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSMODULE) {
+    if (cachedFocus.type == FOCUSINPUT || cachedFocus.type == FOCUSMODULE) {
 
         for (uint32_t i = 0; i < allModules.size(); i++) {
-            if (allModules[i]->id == currentFocus.modul) {
+            if (allModules[i]->id == cachedFocus.modul) {
                 scrollModule.setScroll(i);
                 break;
             }
         }
-    }
-
-    if (currentFocus.type == FOCUSINPUT) {
-        collectInputs();
-        for (uint32_t i = 0; i < allInputs.size(); i++) {
-            if (allInputs[i]->id == currentFocus.id) {
-                scrollIn.setScroll(i);
-                break;
+        if (cachedFocus.type == FOCUSINPUT) {
+            collectInputs();
+            for (uint32_t i = 0; i < allInputs.size(); i++) {
+                if (allInputs[i]->id == cachedFocus.id) {
+                    scrollIn.setScroll(i);
+                    break;
+                }
+            }
+            collectOutputs();
+            for (uint32_t i = 0; i < allOutputs.size(); i++) {
+                if (allOutputs[i]->idGlobal == selectedPatch->sourceOut->idGlobal) {
+                    scrollOut.setScroll(i);
+                    break;
+                }
             }
         }
     }
 
-    if (currentFocus.type == FOCUSOUTPUT) {
+    if (cachedFocus.type == FOCUSOUTPUT) {
 
-        if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
-            uint16_t searchID = allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs[0]->idGlobal;
+        if (allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs.size()) {
+            uint16_t searchID = allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs[0]->idGlobal;
 
             collectOutputs();
             for (uint32_t i = 0; i < allOutputs.size(); i++) {
                 if (allOutputs[i]->idGlobal == searchID) {
                     scrollOut.setScroll(i);
+                    break;
+                }
+            }
+
+            for (uint32_t i = 0; i < allModules.size(); i++) {
+                if (allModules[i]->id == selectedPatch->targetIn->moduleId) {
+                    scrollModule.setScroll(i);
+                    break;
+                }
+            }
+
+            collectInputs();
+            for (uint32_t i = 0; i < allInputs.size(); i++) {
+                if (allInputs[i]->id == selectedPatch->targetIn->idGlobal) {
+                    scrollIn.setScroll(i);
                     break;
                 }
             }
@@ -232,7 +253,6 @@ void GUIPanelPatchMatrix::Draw() {
     if (updateLocation) {
         updateLocation = false;
 
-        // println("module ID:  ", allModules[scrollModule.position]->id);
         currentFocus.modul = allModules[scrollModule.position]->id;
 
         if (allInputs.size()) {
@@ -244,9 +264,6 @@ void GUIPanelPatchMatrix::Draw() {
             currentFocus.id = 0;
         }
         currentFocus.type = FOCUSINPUT;
-
-        // println("modul :", currentFocus.modul, "  type :", currentFocus.type, "  id :",
-        // currentFocus.id);
     }
 
     registerElements();
@@ -296,7 +313,7 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
 
     if (panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry != nullptr) {
         actionHandler.registerActionRight(
-            1, {std::bind(&Layer::removePatchInOutById, allLayers[currentFocus.layer],
+            1, {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
                           panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->sourceOut->idGlobal,
                           panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->targetIn->idGlobal),
                 "RESET"});
@@ -318,7 +335,7 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
                 {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 0),
                  "AMOUNT"},
-                {std::bind(&Layer::removePatchInOutById, allLayers[currentFocus.layer],
+                {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->sourceOut->idGlobal,
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry->targetIn->idGlobal),
                  "RESET"});
@@ -326,11 +343,11 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
         else {
             actionHandler.registerActionEncoder(
                 5,
-                {std::bind(&Layer::addPatchInOutById, allLayers[currentFocus.layer],
+                {std::bind(&Layer::addPatchInOutById, allLayers[cachedFocus.layer],
                            panelElementsOut[scrollOut.relPosition].entry->idGlobal,
                            panelElementsIn[scrollIn.relPosition].entry->input->idGlobal, 0),
                  "AMOUNT"},
-                {std::bind(&Layer::addPatchInOutById, allLayers[currentFocus.layer],
+                {std::bind(&Layer::addPatchInOutById, allLayers[cachedFocus.layer],
                            panelElementsOut[scrollOut.relPosition].entry->idGlobal,
                            panelElementsIn[scrollIn.relPosition].entry->input->idGlobal, 0),
                  "AMOUNT"},
@@ -384,18 +401,18 @@ void GUIPanelPatchMatrix::init(uint32_t width, uint32_t height, uint32_t x, uint
 }
 
 void GUIPanelPatchMatrix::addCurrentPatch() {
-    allLayers[currentFocus.layer]->addPatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
-                                                     panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
+    allLayers[cachedFocus.layer]->addPatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
+                                                    panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
 }
 
 void GUIPanelPatchMatrix::removeCurrentPatch() {
     //
-    allLayers[currentFocus.layer]->removePatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
-                                                        panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
+    allLayers[cachedFocus.layer]->removePatchInOutById(panelElementsOut[scrollOut.relPosition].entry->idGlobal,
+                                                       panelElementsIn[scrollIn.relPosition].entry->input->idGlobal);
 }
 
 void GUIPanelPatchMatrix::clearPatches() {
-    allLayers[currentFocus.layer]->clearPatches();
+    allLayers[cachedFocus.layer]->clearPatches();
 }
 
 #endif

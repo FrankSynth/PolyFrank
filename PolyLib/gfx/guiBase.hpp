@@ -37,6 +37,9 @@ extern uint16_t c4444wavecolorTrans;
 
 extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
+
+extern PatchElement *selectedPatch;
+
 // responsive sizes
 #define HEADERHEIGHT 34
 #define FOOTERHEIGHT 34
@@ -170,6 +173,7 @@ extern uint8_t oldActivePanelID;
 
 extern uint8_t panelChanged;
 
+extern location cachedFocus;
 extern location currentFocus;
 extern location newFocus;
 

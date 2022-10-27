@@ -68,24 +68,24 @@ void GUIPanelEffect::updateEntrys(BaseModule *module) {
 void GUIPanelEffect::registerOverviewEntrys() {
     entrys.clear();
 
-    overviewPanelElements[0].addEntry(&allLayers[currentFocus.layer]->oscA.aSamplecrusher);
-    overviewPanelElements[0].addEntry(&allLayers[currentFocus.layer]->oscA.aBitcrusher);
-    overviewPanelElements[0].addEntry(&allLayers[currentFocus.layer]->waveshaperA.aDryWet, true);
-    overviewPanelElements[0].addEntry(&allLayers[currentFocus.layer]->phaseshaperA.aDryWet, true);
+    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->oscA.aSamplecrusher);
+    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->oscA.aBitcrusher);
+    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->waveshaperA.aDryWet, true);
+    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->phaseshaperA.aDryWet, true);
 
-    overviewPanelElements[1].addEntry(&allLayers[currentFocus.layer]->oscB.aSamplecrusher);
-    overviewPanelElements[1].addEntry(&allLayers[currentFocus.layer]->oscB.aBitcrusher);
-    overviewPanelElements[1].addEntry(&allLayers[currentFocus.layer]->waveshaperB.aDryWet, true);
-    overviewPanelElements[1].addEntry(&allLayers[currentFocus.layer]->phaseshaperB.aDryWet, true);
+    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->oscB.aSamplecrusher);
+    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->oscB.aBitcrusher);
+    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->waveshaperB.aDryWet, true);
+    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->phaseshaperB.aDryWet, true);
 
-    overviewPanelElements[2].addEntry(&allLayers[currentFocus.layer]->noise.aSamplecrusher);
+    overviewPanelElements[2].addEntry(&allLayers[cachedFocus.layer]->noise.aSamplecrusher);
     overviewPanelElements[2].addEntry(nullptr);
     overviewPanelElements[2].addEntry(nullptr);
     overviewPanelElements[2].addEntry(nullptr);
 
-    overviewPanelElements[0].addEffectAmt(&allLayers[currentFocus.layer]->oscA.aEffect);
-    overviewPanelElements[1].addEffectAmt(&allLayers[currentFocus.layer]->oscB.aEffect);
-    overviewPanelElements[2].addEffectAmt(&allLayers[currentFocus.layer]->noise.aSamplecrusher);
+    overviewPanelElements[0].addEffectAmt(&allLayers[cachedFocus.layer]->oscA.aEffect);
+    overviewPanelElements[1].addEffectAmt(&allLayers[cachedFocus.layer]->oscB.aEffect);
+    overviewPanelElements[2].addEffectAmt(&allLayers[cachedFocus.layer]->noise.aSamplecrusher);
 
     scroll.entrys = 3;
     scroll.checkScroll();
@@ -156,36 +156,36 @@ void GUIPanelEffect::Draw() {
 
         if (moduleType == OSCA) {
             if (effectType == WAVE) {
-                module = &(allLayers[currentFocus.layer]->waveshaperA);
-                drawWaveShaperPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscA, (Waveshaper *)module);
+                module = &(allLayers[cachedFocus.layer]->waveshaperA);
+                drawWaveShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA, (Waveshaper *)module);
             }
             else if (effectType == PHASE) {
-                module = &(allLayers[currentFocus.layer]->phaseshaperA);
-                drawPhaseShaperPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscA, (Phaseshaper *)module);
+                module = &(allLayers[cachedFocus.layer]->phaseshaperA);
+                drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA, (Phaseshaper *)module);
             }
             else if (effectType == CRUSH) {
-                module = &(allLayers[currentFocus.layer]->oscA);
-                drawCrushPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscA);
+                module = &(allLayers[cachedFocus.layer]->oscA);
+                drawCrushPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA);
             }
         }
         else if (moduleType == OSCB) {
             if (effectType == WAVE) {
-                module = &(allLayers[currentFocus.layer]->waveshaperB);
-                drawWaveShaperPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscB, (Waveshaper *)module);
+                module = &(allLayers[cachedFocus.layer]->waveshaperB);
+                drawWaveShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB, (Waveshaper *)module);
             }
             else if (effectType == PHASE) {
-                module = &(allLayers[currentFocus.layer]->phaseshaperB);
-                drawPhaseShaperPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscB, (Phaseshaper *)module);
+                module = &(allLayers[cachedFocus.layer]->phaseshaperB);
+                drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB, (Phaseshaper *)module);
             }
             else if (effectType == CRUSH) {
-                module = &(allLayers[currentFocus.layer]->oscB);
-                drawCrushPanel(allLayers[currentFocus.layer]->renderedAudioWavesOscB);
+                module = &(allLayers[cachedFocus.layer]->oscB);
+                drawCrushPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB);
             }
         }
 
         else if (moduleType == NOISE) {
             if (effectType == CRUSH) {
-                module = &(allLayers[currentFocus.layer]->noise);
+                module = &(allLayers[cachedFocus.layer]->noise);
                 int8_t wave[100];
                 calculateNoiseWave((Noise *)module, wave, 100);
                 drawCrushPanel(wave);

@@ -258,14 +258,14 @@ void LEDRender() {
         if (allLayers[i]->layerState.value) {
             bool patchDraw = false;
 
-            if (ui.activePanel == &ui.guiPanelFocus && currentFocus.layer == i) { // show patches?
+            if (ui.activePanel == &ui.guiPanelFocus && cachedFocus.layer == i) { // show patches?
                 // LEDModuleRenderbuffer(i);
-                if (currentFocus.modul < allLayers[i]->modules.size()) {
-                    if (currentFocus.type == FOCUSOUTPUT) {
+                if (cachedFocus.modul < allLayers[i]->modules.size()) {
+                    if (cachedFocus.type == FOCUSOUTPUT) {
                         patchDraw = true;
-                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getOutputs().size()) {
+                        if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getOutputs().size()) {
 
-                            Output *output = allLayers[i]->modules[currentFocus.modul]->getOutputs()[currentFocus.id];
+                            Output *output = allLayers[i]->modules[cachedFocus.modul]->getOutputs()[cachedFocus.id];
                             LEDOutput(output, LEDBRIGHTNESS_PATCHOUT);
 
                             for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
@@ -283,10 +283,10 @@ void LEDRender() {
                             }
                         }
                     }
-                    else if (currentFocus.type == FOCUSINPUT) {
+                    else if (cachedFocus.type == FOCUSINPUT) {
                         patchDraw = true;
-                        if (currentFocus.id < allLayers[i]->modules[currentFocus.modul]->getInputs().size()) {
-                            Input *input = allLayers[i]->modules[currentFocus.modul]->getInputs()[currentFocus.id];
+                        if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getInputs().size()) {
+                            Input *input = allLayers[i]->modules[cachedFocus.modul]->getInputs()[cachedFocus.id];
                             LEDInput(input, LEDBRIGHTNESS_PATCHIN);
 
                             for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
@@ -716,7 +716,7 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
         switch (pin) {
             case 0: evaluateOutput((Output *)&(allLayers[layerID]->midi.oVelocity), event); break;
             case 1: evaluateOutput((Output *)&(allLayers[layerID]->midi.oNote), event); break;
-            case 2: evaluateModul(&allLayers[currentFocus.layer]->midi, event); break;
+            case 2: evaluateModul(&allLayers[cachedFocus.layer]->midi, event); break;
             case 3: evaluateOutput((Output *)&(allLayers[layerID]->midi.oAftertouch), event); break;
             case 4: evaluateOutput((Output *)&(allLayers[layerID]->midi.oPitchbend), event); break;
             case 5: break; // TODO F1
@@ -777,11 +777,11 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
             }
         }
         else {
-            if (currentFocus.type == FOCUSINPUT) {
-                if (pInput->layerId == currentFocus.layer && pInput->idGlobal == allLayers[currentFocus.layer]
-                                                                                     ->modules[currentFocus.modul]
-                                                                                     ->inputs[currentFocus.id]
-                                                                                     ->idGlobal) { // already selected
+            if (cachedFocus.type == FOCUSINPUT && ui.activePanel == &ui.guiPanelFocus) {
+                if (pInput->layerId == cachedFocus.layer && pInput->idGlobal == allLayers[cachedFocus.layer]
+                                                                                    ->modules[cachedFocus.modul]
+                                                                                    ->inputs[cachedFocus.id]
+                                                                                    ->idGlobal) { // already selected
                     clearOnReleaseIn = true;
                 }
             }
@@ -825,11 +825,11 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
         }
 
         else {
-            if (currentFocus.type == FOCUSOUTPUT) {
-                if (pOutput->layerId == currentFocus.layer && pOutput->idGlobal == allLayers[currentFocus.layer]
-                                                                                       ->modules[currentFocus.modul]
-                                                                                       ->outputs[currentFocus.id]
-                                                                                       ->idGlobal) { // already selected
+            if (cachedFocus.type == FOCUSOUTPUT && ui.activePanel == &ui.guiPanelFocus) {
+                if (pOutput->layerId == cachedFocus.layer && pOutput->idGlobal == allLayers[cachedFocus.layer]
+                                                                                      ->modules[cachedFocus.modul]
+                                                                                      ->outputs[cachedFocus.id]
+                                                                                      ->idGlobal) { // already selected
                     clearOnReleaseOut = true;
                 }
             }
@@ -914,6 +914,17 @@ void PanelTouch::forceSetInputFocus(Input *pInput) {
 
 void PanelTouch::setModulFocus(BaseModule *pModule) {
     newFocus = {pModule->layerId, pModule->id, 0, FOCUSMODULE};
+}
+
+void resetSystem() {
+    allLayers[0]->resetLayer();
+    allLayers[0]->clearPresetLocks();
+    clearPotiState(0);
+    allLayers[1]->resetLayer();
+    allLayers[1]->clearPresetLocks();
+    clearPotiState(1);
+
+    liveData.resetLiveConfig();
 }
 
 #endif

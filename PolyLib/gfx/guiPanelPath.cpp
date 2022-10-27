@@ -16,7 +16,7 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
 
     //// Draw Layer Field////
 
-    uint8_t layerID = allLayers[currentFocus.layer]->id; // get ID
+    uint8_t layerID = allLayers[cachedFocus.layer]->id; // get ID
     std::string text;
     if (layerID == 0) {
         text = "A"; // Layer name
@@ -36,12 +36,11 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
         return;
     }
     //// Draw Module Field////
-    if (currentFocus.type >= FOCUSMODULE) {
-        if (!allLayers[currentFocus.layer]->getModules().size()) { //  empty
+    if (cachedFocus.type >= FOCUSMODULE) {
+        if (!allLayers[cachedFocus.layer]->getModules().size()) { //  empty
             return;
         }
-        std::string text =
-            allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getShortName(); // Modul name
+        std::string text = allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getShortName(); // Modul name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
@@ -50,27 +49,27 @@ void GUIPanelPath::Draw(uint8_t onlyLayer) {
 
     //// Draw Focus Field////
 
-    if (currentFocus.type == FOCUSOUTPUT) {
-        if (!allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getOutputs().size()) { //  empty
+    if (cachedFocus.type == FOCUSOUTPUT) {
+        if (!allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getOutputs().size()) { //  empty
             return;
         }
-        std::string text = allLayers[currentFocus.layer]
-                               ->getModules()[currentFocus.modul]
-                               ->getOutputs()[currentFocus.id]
+        std::string text = allLayers[cachedFocus.layer]
+                               ->getModules()[cachedFocus.modul]
+                               ->getOutputs()[cachedFocus.id]
                                ->getName(); // Output name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,
                                 CENTER);
         relX += 1;
     }
-    else if (currentFocus.type == FOCUSINPUT) {
-        if (!allLayers[currentFocus.layer]->getModules()[currentFocus.modul]->getInputs().size()) { //  empty
+    else if (cachedFocus.type == FOCUSINPUT) {
+        if (!allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getInputs().size()) { //  empty
             return;
         }
 
-        std::string text = allLayers[currentFocus.layer]
-                               ->getModules()[currentFocus.modul]
-                               ->getInputs()[currentFocus.id]
+        std::string text = allLayers[cachedFocus.layer]
+                               ->getModules()[cachedFocus.modul]
+                               ->getInputs()[cachedFocus.id]
                                ->getName(); // Input name
 
         relX += drawBoxWithText(text, font, cWhite, cBlack, relX + panelAbsX, relY + panelAbsY, panelHeight, spacer, 1,

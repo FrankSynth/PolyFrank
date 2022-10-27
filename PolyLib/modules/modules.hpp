@@ -62,6 +62,8 @@ class BaseModule {
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
 
+    uint8_t moduleScrollPosition = 0x00;
+
     const char *name;
     const char *shortName;
 

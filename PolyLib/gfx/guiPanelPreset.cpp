@@ -57,14 +57,14 @@ void GUIPanelPreset::registerPanelSettings() {
              "LOAD AB"},
             1);
 
-        if (currentFocus.layer == 0) {
+        if (cachedFocus.layer == 0) {
             actionHandler.registerActionRight(
                 1,
                 {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_A),
                  "LOAD A"},
                 1);
         }
-        else if (currentFocus.layer == 1) {
+        else if (cachedFocus.layer == 1) {
             actionHandler.registerActionRight(
                 1,
                 {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_B),
@@ -90,7 +90,7 @@ void GUIPanelPreset::registerPanelSettings() {
         actionHandler.registerActionLeft(1);
     }
 
-    actionHandler.registerActionLeft(2);
+    actionHandler.registerActionLeft(2, {std::bind(resetSystem), "RST ALL"}, true);
 }
 
 void GUIPanelPreset::updateEntrys() {

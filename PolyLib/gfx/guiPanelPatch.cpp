@@ -122,7 +122,7 @@ void GUIPanelPatch::collectModules() {
 
     allModules.clear();
 
-    for (BaseModule *module : allLayers[currentFocus.layer]->getModules()) { // Collect Module if inputs available
+    for (BaseModule *module : allLayers[cachedFocus.layer]->getModules()) { // Collect Module if inputs available
         uint8_t check = 0;
         for (Input *input : module->inputs) {
             if (input->visible) {
@@ -169,7 +169,7 @@ void GUIPanelPatch::collectOutputs() {
 
     allOutputs.clear();
 
-    for (Output *output : allLayers[currentFocus.layer]->outputs) { // Collect Module if inputs available
+    for (Output *output : allLayers[cachedFocus.layer]->outputs) { // Collect Module if inputs available
         if (output->visible) {
             if (filteredView) {
                 if (output->patchesInOut.size())
@@ -196,30 +196,30 @@ void GUIPanelPatch::activate() {
 
     collectModules();
 
-    if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSMODULE) {
+    if (cachedFocus.type == FOCUSINPUT || cachedFocus.type == FOCUSMODULE) {
 
         for (uint32_t i = 0; i < allModules.size(); i++) {
-            if (allModules[i]->id == currentFocus.modul) {
+            if (allModules[i]->id == cachedFocus.modul) {
                 scrollModule.setScroll(i);
                 break;
             }
         }
     }
 
-    if (currentFocus.type == FOCUSINPUT) {
+    if (cachedFocus.type == FOCUSINPUT) {
         collectInputs();
         for (uint32_t i = 0; i < allInputs.size(); i++) {
-            if (allInputs[i]->id == currentFocus.id) {
+            if (allInputs[i]->id == cachedFocus.id) {
                 scrollTarget.setScroll(i);
                 break;
             }
         }
     }
 
-    if (currentFocus.type == FOCUSOUTPUT) {
+    if (cachedFocus.type == FOCUSOUTPUT) {
 
-        if (allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs.size()) {
-            uint16_t searchID = allLayers[currentFocus.layer]->modules[currentFocus.modul]->outputs[0]->idGlobal;
+        if (allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs.size()) {
+            uint16_t searchID = allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs[0]->idGlobal;
 
             collectOutputs();
             for (uint32_t i = 0; i < allOutputs.size(); i++) {
@@ -359,17 +359,17 @@ void GUIPanelPatch::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y
 }
 
 void GUIPanelPatch::addCurrentPatch() {
-    allLayers[currentFocus.layer]->addPatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
-                                                     panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
+    allLayers[cachedFocus.layer]->addPatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
+                                                    panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
 }
 
 void GUIPanelPatch::removeCurrentPatch() {
-    allLayers[currentFocus.layer]->removePatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
-                                                        panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
+    allLayers[cachedFocus.layer]->removePatchInOutById(panelElementsSource[scrollSource.relPosition].entry->idGlobal,
+                                                       panelElementsTarget[scrollTarget.relPosition].entry->idGlobal);
 }
 
 void GUIPanelPatch::clearPatches() {
-    allLayers[currentFocus.layer]->clearPatches();
+    allLayers[cachedFocus.layer]->clearPatches();
 }
 
 #endif

@@ -2,8 +2,12 @@
 
 #include "guiBase.hpp"
 
+location cachedFocus;
+
 location currentFocus;
 location newFocus;
+
+PatchElement *selectedPatch = nullptr;
 
 quickViewStruct quickView;
 elapsedMillis quickViewTimer;
@@ -159,22 +163,22 @@ void Todo(){};
 
 void nextLayer() {
     if (layerMergeMode) {
-        currentFocus.layer = 0; // anzahl der Layer festgelegt
+        currentFocus.layer = 0;
     }
     else {
 
-        currentFocus.layer = changeIntLoop(currentFocus.layer, 1, 0, 1); // anzahl der Layer festgelegt
+        currentFocus.layer = changeIntLoop(cachedFocus.layer, 1, 0, 1);
     }
 }
 
 void focusUp() {
 
-    if (currentFocus.type == FOCUSINPUT || currentFocus.type == FOCUSOUTPUT) {
-        newFocus = currentFocus;
+    if (cachedFocus.type == FOCUSINPUT || cachedFocus.type == FOCUSOUTPUT) {
+        newFocus = cachedFocus;
         newFocus.type = FOCUSMODULE;
     }
-    else if (currentFocus.type == FOCUSMODULE) {
-        newFocus = currentFocus;
+    else if (cachedFocus.type == FOCUSMODULE) {
+        newFocus = cachedFocus;
         newFocus.type = FOCUSLAYER;
     }
 }

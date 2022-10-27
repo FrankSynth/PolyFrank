@@ -4,7 +4,6 @@
 #include "livedata/liveData.hpp"
 extern void clearPotiState(uint32_t layer);
 
-
 class GUIPanelLive : public GUIPanelBase {
   public:
     void init(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0, std::string name = "",
@@ -18,17 +17,6 @@ class GUIPanelLive : public GUIPanelBase {
     void registerPanelSettings();
 
     void selectSubPanel(uint8_t subPanelSelect);
-
-    void resetSystem() {
-        allLayers[0]->resetLayer();
-        allLayers[0]->clearPresetLocks();
-        clearPotiState(0);
-        allLayers[1]->resetLayer();
-        allLayers[1]->clearPresetLocks();
-        clearPotiState(1);
-
-        liveData.resetLiveConfig();
-    }
 
   private:
     // Boxes

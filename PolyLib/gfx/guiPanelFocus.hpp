@@ -37,6 +37,8 @@ class GUIPanelFocus : public GUIPanelBase {
     uint16_t moduleIndex;
     uint16_t patchIndex;
 
+    uint8_t lastModuleID = 0xFF;
+
     bool jumpToLastPos = false;
 
     FOCUSMODE mode;

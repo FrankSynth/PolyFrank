@@ -153,8 +153,8 @@ void GUI::Draw() {
     guiSide.Draw();
 
     if (quickViewTimer < quickViewTimeout &&
-        !(currentFocus.type == FOCUSMODULE && currentFocus.modul == quickView.modul &&
-          currentFocus.layer == quickView.layer && ui.activePanel == &ui.guiPanelFocus)) {
+        !(cachedFocus.type == FOCUSMODULE && cachedFocus.modul == quickView.modul &&
+          cachedFocus.layer == quickView.layer && ui.activePanel == &ui.guiPanelFocus)) {
 
         // println(quickViewTimer);
         guiPanelQuickView.Draw();
@@ -173,18 +173,7 @@ void GUI::Draw() {
 }
 void GUI::checkFocusChange() {
 
-    if (currentFocus.layer == 0) {
-        cLayer = cLayerA;
-        c4444dot = ((uint16_t(((uint8_t *)&cLayerA)[3] & 0xF0)) << 8) |
-                   ((uint16_t(((uint8_t *)&cLayerA)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerA)[1] & 0xF0)) |
-                   ((uint16_t(((uint8_t *)&cLayerA)[0] & 0xF0)) >> 4);
-    }
-    else {
-        cLayer = cLayerB;
-        c4444dot = ((uint16_t(((uint8_t *)&cLayerB)[3] & 0xF0)) << 8) |
-                   ((uint16_t(((uint8_t *)&cLayerB)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerB)[1] & 0xF0)) |
-                   ((uint16_t(((uint8_t *)&cLayerB)[0] & 0xF0)) >> 4);
-    }
+    __disable_irq();
 
     if (newFocus.type != NOFOCUS) { // check new focus set and activate Focus Panel
         if (currentFocus.id != newFocus.id || currentFocus.modul != newFocus.modul ||
@@ -199,6 +188,22 @@ void GUI::checkFocusChange() {
             setPanelActive(6);
             newFocus.type = NOFOCUS;
         }
+    }
+
+    cachedFocus = currentFocus; // make focus position safe
+    __enable_irq();
+
+    if (cachedFocus.layer == 0) {
+        cLayer = cLayerA;
+        c4444dot = ((uint16_t(((uint8_t *)&cLayerA)[3] & 0xF0)) << 8) |
+                   ((uint16_t(((uint8_t *)&cLayerA)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerA)[1] & 0xF0)) |
+                   ((uint16_t(((uint8_t *)&cLayerA)[0] & 0xF0)) >> 4);
+    }
+    else {
+        cLayer = cLayerB;
+        c4444dot = ((uint16_t(((uint8_t *)&cLayerB)[3] & 0xF0)) << 8) |
+                   ((uint16_t(((uint8_t *)&cLayerB)[2] & 0xF0)) << 4) | (uint16_t(((uint8_t *)&cLayerB)[1] & 0xF0)) |
+                   ((uint16_t(((uint8_t *)&cLayerB)[0] & 0xF0)) >> 4);
     }
 }
 

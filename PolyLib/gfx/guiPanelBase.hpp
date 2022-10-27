@@ -264,14 +264,14 @@ class Data_PanelElement {
 
     std::string *panelElementName; // custom Name
 
+    entryStruct entrys[4];
+
   private:
     uint16_t panelAbsX;
     uint16_t panelAbsY;
 
     uint16_t entryWidth;
     uint16_t entryHeight;
-
-    entryStruct entrys[4];
 
     uint16_t width;
     uint16_t height;
