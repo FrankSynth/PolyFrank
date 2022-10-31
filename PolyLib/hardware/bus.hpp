@@ -8,10 +8,40 @@
 
 #include "debughelper/debughelper.hpp"
 
+inline void datasizeAsString(std::string &buffer, uint32_t counter) {
+
+    float value;
+
+    if (counter >= 1000e6) { // giga
+        value = (double)counter / 1000e6;
+        floatToString2(buffer, value);
+        buffer += "GB";
+        return;
+    }
+    if (counter >= 1000e3) { // mega
+        value = (float)counter / 1000e3;
+        floatToString2(buffer, value);
+        buffer += "MB";
+        return;
+    }
+    if (counter >= 1000) { // kilo
+        value = (float)counter / 1000;
+        floatToString2(buffer, value);
+        buffer += "kB";
+        return;
+    }
+    buffer += std::to_string(counter);
+    buffer += "B";
+    return;
+};
+
 // SPI bus class
 class spiBus : public busInterface {
   public:
-    spiBus() { type = SPI; };
+    spiBus() {
+        type = SPI;
+        status.reserve(128);
+    };
     void connectToInterface(SPI_HandleTypeDef *hspi) {
         this->hspi = hspi;
         state = BUS_READY;
@@ -47,9 +77,11 @@ class spiBus : public busInterface {
         status += "\r\n";
 
         // DATA
-        status += "   Packets: ";
-        status += "   RX " + std::to_string(rxCounter);
-        status += "   TX " + std::to_string(txCounter);
+        status += " Data:";
+        status += " RX ";
+        datasizeAsString(status, rxCounter);
+        status += " TX ";
+        datasizeAsString(status, txCounter);
 
         status += "\r\n";
 
@@ -213,7 +245,10 @@ class spiBus : public busInterface {
 // I2C bus class
 class i2cBus : public busInterface {
   public:
-    i2cBus() { type = I2C; };
+    i2cBus() {
+        type = I2C;
+        status.reserve(128);
+    };
 
     void connectToInterface(I2C_HandleTypeDef *hi2c) {
         this->hi2c = hi2c;
@@ -250,9 +285,11 @@ class i2cBus : public busInterface {
         status += "\r\n";
 
         // DATA
-        status += "   Packets: ";
-        status += "   RX " + std::to_string(rxCounter);
-        status += "   TX " + std::to_string(txCounter);
+        status += " Data:";
+        status += " RX ";
+        datasizeAsString(status, rxCounter);
+        status += " TX ";
+        datasizeAsString(status, txCounter);
 
         status += "\r\n";
 
@@ -412,6 +449,7 @@ class i2cVirtualBus : public busInterface {
     i2cVirtualBus() {
         type = VIRTUALI2C;
         state = BUS_READY;
+        status.reserve(128);
     }
 
     void connectToMultiplexer(PCA9548 *busMultiplexer, uint8_t virtualBusAddress) {
@@ -428,9 +466,11 @@ class i2cVirtualBus : public busInterface {
         status += std::to_string(virtualBusAddress);
         status += "\r\n";
         // DATA
-        status += "   Packets: ";
-        status += "   RX " + std::to_string(VirtualRxCounter);
-        status += "   TX " + std::to_string(VirtualTxCounter);
+        status += " Data:";
+        status += " RX ";
+        datasizeAsString(status, VirtualRxCounter);
+        status += " TX ";
+        datasizeAsString(status, VirtualTxCounter);
 
         status += "\r\n";
 

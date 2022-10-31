@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 // #include "bdma.h"
+#include "adc.h"
 #include "dma.h"
 #include "gpio.h"
 #include "mdma.h"
@@ -117,9 +118,14 @@ int main(void) {
     MX_RNG_Init();
 
     MX_TIM2_Init();
+    MX_TIM5_Init();
+
     MX_TIM15_Init();
     MX_TIM16_Init();
     MX_USART1_UART_Init();
+    MX_ADC3_Init();
+
+    HAL_ADC_Start(&hadc3);
 
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
@@ -196,7 +202,7 @@ void SystemClock_Config(void) {
     }
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
                                                RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_SPI6 |
-                                               RCC_PERIPHCLK_USART1;
+                                               RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_ADC;
     PeriphClkInitStruct.PLL2.PLL2M = 10;
     PeriphClkInitStruct.PLL2.PLL2N = 384;
     PeriphClkInitStruct.PLL2.PLL2P = 25;
@@ -209,7 +215,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL3.PLL3N = 60;
     PeriphClkInitStruct.PLL3.PLL3P = 8;
     PeriphClkInitStruct.PLL3.PLL3Q = 10;
-    PeriphClkInitStruct.PLL3.PLL3R = 24;
+    PeriphClkInitStruct.PLL3.PLL3R = 20;
     PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_3;
     PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
     PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
@@ -218,6 +224,8 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL2;
     PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
     PeriphClkInitStruct.RngClockSelection = RCC_RNGCLKSOURCE_HSI48;
+    PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL3;
+
     // PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C1235CLKSOURCE_PLL3;
     PeriphClkInitStruct.Usart16ClockSelection = RCC_USART16CLKSOURCE_PLL3;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {

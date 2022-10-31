@@ -237,6 +237,7 @@ $(BUILD_DIR):
 # flash
 #######################################
 flash: $(BUILD_DIR)/$(TARGET).elf
+	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "init; reset; exit"   
 	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
 
 #######################################

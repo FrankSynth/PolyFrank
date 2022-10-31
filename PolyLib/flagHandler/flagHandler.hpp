@@ -73,18 +73,11 @@ extern volatile bool ledDriverUpdateCurrent;
 
 #elif POLYRENDER
 
-// InterChip receive flags
-
-extern bool cvDacStarted[10];
-extern bool cvDacFinished[10];
-extern bool cvDacLastFinished[3];
-
 extern volatile bool outputCollect;
 extern volatile bool outputReady;
 extern void (*outputCollectFunc)();
 
 extern volatile bool renderNewCV;
-extern void (*renderNewCVFunc)();
 
 #endif
 

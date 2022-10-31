@@ -92,7 +92,6 @@ void PolyRenderInit() {
     audioDacA.init();
 
     // FlagHandler::sendRenderedCVsFunc = sendDACs;
-    FlagHandler::renderNewCVFunc = renderCVs;
     FlagHandler::outputCollectFunc = outputCollect;
 }
 
@@ -107,11 +106,6 @@ void PolyRenderRun() {
         HAL_UART_Receive_DMA(&huart1, (uint8_t *)interchipLFOBuffer, 16);
         huart1.Instance->ICR = 0b1100;
         huart1.Instance->RQR = UART_RXDATA_FLUSH_REQUEST; // clear rx Register
-
-        // // detect timeout for resyncing DMA
-        // HAL_UART_ReceiverTimeout_Config(&huart1, 16);
-        // HAL_UART_EnableReceiverTimeout(&huart1);
-        // huart1.Instance->CR1 |= USART_CR1_RTOIE_Msk;
     }
 
     // start cv rendering

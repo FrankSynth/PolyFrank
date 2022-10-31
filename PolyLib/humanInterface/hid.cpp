@@ -37,9 +37,13 @@ extern GUI ui;
 PanelTouch touch;
 
 // number layer, number multiplex, number channels
+typedef enum { VALUEBELOW, VALUEABOVE, VALUEGRABED } presetGrabState;
 
 potiFunctionStruct potiFunctionPointer[2][4][12];
 uint16_t panelADCStates[2][4][12];
+
+presetGrabState panelGrab[2][4][12];
+
 float panelADCInterpolate[2][4][12];
 
 //////////// ENCODER ///////////
@@ -128,46 +132,82 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
     uint32_t multiplex = (multiplexer.currentChannel + 3) % 4;
 
     for (uint32_t channel = 0; channel < 12; channel++) { // for all Channels
-        uint16_t potiData = ((adcData[channel] >> 1) & 0xFFF);
-        if (((multiplex == 0) & (channel == 1)) || ((multiplex == 0) & (channel == 2))) { // octave switches
+        if (potiFunctionPointer[layer][multiplex][channel].data != nullptr) {
 
-            // this filters out the switching artefact of the octave switches
-            //  check data stability
-            if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
-                octaveSwitchCounter[layer][channel - 1]++;
-            }
-            else {
-                octaveSwitchCounter[layer][channel - 1] = 0;
-            }
+            uint16_t potiData = ((adcData[channel] >> 1) & 0xFFF);
+            if (((multiplex == 0) & (channel == 1)) || ((multiplex == 0) & (channel == 2))) { // octave switches
 
-            // value stable -> apply new octave switch value
-            if (octaveSwitchCounter[layer][channel - 1] > 10) {
-                if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
-                    panelADCStates[layer][multiplex][channel] = potiData;
+                // this filters out the switching artefact of the octave switches
+                //  check data stability
+                if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
+                    octaveSwitchCounter[layer][channel - 1]++;
+                }
+                else {
+                    octaveSwitchCounter[layer][channel - 1] = 0;
+                }
 
-                    if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) { // call function
+                // value stable -> apply new octave switch value
+                if (octaveSwitchCounter[layer][channel - 1] > 10) {
+                    if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
+                        panelADCStates[layer][multiplex][channel] = potiData;
+
                         potiFunctionPointer[layer][multiplex][channel].function(
                             panelADCStates[layer][multiplex][channel]);
                     }
                 }
+
+                octaveSwitchLastScan[layer][channel - 1] = potiData; // store new data
             }
+            else {
+                // interpolation
 
-            octaveSwitchLastScan[layer][channel - 1] = potiData; // store new data
-        }
-        else {
-            // interpolation
+                panelADCInterpolate[layer][multiplex][channel] = fast_lerp_f32(
+                    panelADCInterpolate[layer][multiplex][channel], (float)((adcData[channel] >> 1) & 0xFFF), 0.25);
 
-            panelADCInterpolate[layer][multiplex][channel] = fast_lerp_f32(
-                panelADCInterpolate[layer][multiplex][channel], (float)((adcData[channel] >> 1) & 0xFFF), 0.25);
+                uint16_t difference = std::abs(panelADCStates[layer][multiplex][channel] - potiData);
+                // check if value is loaded from preset
 
-            uint16_t difference = std::abs(panelADCStates[layer][multiplex][channel] - potiData);
-            uint16_t shift = 1;
-            // check if value is loaded from preset
-            if (potiFunctionPointer[layer][multiplex][channel].data->presetLock)
-                shift = 3;
+                bool updateValue =
+                    false; // update value flag to check differen condition -> preset lock, grabbing, noise reduction
+                if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) {
+                    if (globalSettings.presetValueHandling.value ==
+                        1) { // we need to grab the value before we can change it
+                        if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) { // we have a lock?
+                            bool compare =
+                                ((Analog *)(potiFunctionPointer[layer][multiplex][channel].data))->value < potiData;
+                            if (panelGrab[layer][multiplex][channel] ==
+                                VALUEGRABED) { // lock and valuegrabed? -> preset value loaded
+                                if (compare) { // store grab status
+                                    panelGrab[layer][multiplex][channel] = VALUEABOVE;
+                                }
+                                else {
+                                    panelGrab[layer][multiplex][channel] = VALUEBELOW;
+                                }
+                            }
+                            else if (panelGrab[layer][multiplex][channel] !=
+                                     compare) { // grab status changed? -> value grabbed
+                                panelGrab[layer][multiplex][channel] = VALUEGRABED;
+                                updateValue = true; // update poti to release lock
+                            }
+                        }
+                    }
 
-            if (difference >> shift) { // active quickview only on stronger value changes
-                if (potiFunctionPointer[layer][multiplex][channel].function != nullptr) {
+                    if (globalSettings.presetValueHandling.value == 0) { // we need to move a poti to overwrite the
+                                                                         // value
+
+                        if (difference >> 3) {  // check value change is big enough for preset overwrite
+                            updateValue = true; // update poti to release lock
+                        }
+                    }
+                    if (updateValue) {
+                        potiFunctionPointer[layer][multiplex][channel].data->presetLock = false;
+                    }
+                }
+                else if (difference >> 1) { // we have no lock-> normal mode
+                    updateValue = true;
+                }
+
+                if (updateValue) { // active quickview only on stronger value changes
 
                     if (potiFunctionPointer[layer][multiplex][channel].data->quickview) { // filter quickview potis
                         if (difference >> 3 || (difference >> 1 && (quickViewTimer < quickViewTimeout))) {

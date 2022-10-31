@@ -467,6 +467,41 @@ uint8_t COMinterChip::sendString(const char *message) {
     return 0;
 }
 
+uint8_t COMinterChip::sendUsage(float usage) {
+    uint8_t comCommand[USAGECMDSIZE];
+    comCommand[0] = USAGEPERCENTAGE;
+    *(float *)(&comCommand[1]) = usage;
+
+    pushOutBuffer(comCommand, USAGECMDSIZE);
+    return 0;
+}
+uint8_t COMinterChip::sendTemperature(float temperature) {
+    uint8_t comCommand[TEMPERATURECMDSIZE];
+    comCommand[0] = TEMPERATURE;
+    *(float *)(&comCommand[1]) = temperature;
+
+    pushOutBuffer(comCommand, TEMPERATURECMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendCVTime(float time) {
+    uint8_t comCommand[CVTIMECMDSIZE];
+    comCommand[0] = CVTIME;
+    *(float *)(&comCommand[1]) = time;
+
+    pushOutBuffer(comCommand, CVTIMECMDSIZE);
+    return 0;
+}
+
+uint8_t COMinterChip::sendAudioTime(float time) {
+    uint8_t comCommand[AUDIOTIMECMDSIZE];
+    comCommand[0] = AUDIOTIME;
+    *(float *)(&comCommand[1]) = time;
+
+    pushOutBuffer(comCommand, AUDIOTIMECMDSIZE);
+    return 0;
+}
+
 uint8_t COMinterChip::sendOutput(uint8_t modulID, uint8_t settingID, vec<VOICESPERCHIP> &amount) {
     uint8_t comCommand[OUTPUTCMDSIZE];
     comCommand[0] = UPDATEOUTPUTFLOAT;
@@ -970,6 +1005,38 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                     allLayers[receiveLayer]->renderedAudioWaves[k] =
                         *(int8_t *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
                 }
+                break;
+            }
+
+                //     CVTIME,    // next bytes float
+                //     AUDIOTIME, // next bytes float
+
+            case CVTIME: {
+                float valueFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                globalSettings.renderStatus[receiveLayer][receiveChip].timeCV.value = valueFloat;
+                i += 3;
+                break;
+            }
+
+            case AUDIOTIME: {
+                float valueFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+
+                globalSettings.renderStatus[receiveLayer][receiveChip].timeAudio.value = valueFloat;
+                i += 3;
+                break;
+            }
+
+            case TEMPERATURE: {
+                float valueFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                globalSettings.renderStatus[receiveLayer][receiveChip].temperature.value = valueFloat;
+                i += 3;
+                break;
+            }
+
+            case USAGEPERCENTAGE: {
+                float valueFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
+                globalSettings.renderStatus[receiveLayer][receiveChip].usage.value = valueFloat;
+                i += 3;
                 break;
             }
 

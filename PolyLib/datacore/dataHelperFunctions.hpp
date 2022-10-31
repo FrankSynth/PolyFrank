@@ -430,3 +430,41 @@ inline float calcRandom() {
     // map to -1, 1
     return ((float)randomNumber / 8388607.0f) - 1.0f;
 }
+
+extern elapsedMicros systemTimeElapsed;
+
+inline void initUsageTimer() {
+    systemTimeElapsed = 0;
+}
+
+inline void startUsageTimer() {
+    htim5.Instance->CR1 |= TIM_CR1_CEN; // Enable TIM8};
+}
+inline void stopUsageTimer() {
+    htim5.Instance->CR1 &= ~TIM_CR1_CEN; // Disable TIM8;
+}
+
+inline float ReadAndResetUsageTimer() { // returns an float percentage value
+
+    htim5.Instance->CR1 &= ~TIM_CR1_CEN; // Disable TIM8;
+
+    float usage = (float)(htim5.Instance->CNT) / (float)(systemTimeElapsed);
+    // float usage = (float)(systemTimeElapsed);
+
+    htim5.Instance->CNT = 0x00;
+    systemTimeElapsed = 0;
+    return usage * 100; // return in percentage
+}
+
+inline void floatToString2(std::string &buffer, float fValue) {
+
+    int32_t integer = int32_t(fValue);
+    int32_t decimal = (abs(fValue) - floor(abs(fValue))) * 100;
+
+    if (decimal < 10) {
+        buffer += std::to_string(integer) + ".0" + std::to_string(decimal);
+    }
+    else {
+        buffer += std::to_string(integer) + "." + std::to_string(decimal);
+    }
+}

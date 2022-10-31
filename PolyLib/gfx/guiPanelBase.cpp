@@ -80,7 +80,7 @@ void drawConsole(const CircularBuffer<char, 1024> &consoleBuffer, uint16_t rows,
     }
 }
 
-void drawDeviceManager(std::string *string, uint16_t rows, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
+void drawConsoleString(std::string *string, uint16_t rows, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
 
     uint8_t characterHeigth = fontConsole->size;
 

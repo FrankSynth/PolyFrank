@@ -155,6 +155,41 @@ class Setting : public DataElement {
 #endif
 };
 
+// basic data element
+class Status {
+  public:
+    Status(const char *name, const char *unitName = nullptr, bool displayVis = true) {
+        this->unitName = unitName;
+        this->name = name;
+        this->displayVis = displayVis;
+    }
+
+    void appendValueAsString(std::string &buffer, bool withName = true, bool withUnit = true, bool withReturn = true) {
+
+        if (withName) {
+            buffer += name;
+            buffer += " ";
+        }
+
+        floatToString2(buffer, value);
+
+        if (withUnit) {
+            buffer += " ";
+            buffer += unitName;
+        }
+
+        if (withReturn) {
+            buffer += "\n\r";
+        }
+    }
+
+    float value;
+
+    const char *name;     // custom Name List for different Values
+    const char *unitName; // custom Name List for different Values
+    bool displayVis = false;
+};
+
 /**
  * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
  *

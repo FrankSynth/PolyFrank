@@ -22,7 +22,7 @@ class devManager {
     devManager() { // bus initialization
 
         // reserve memory for status
-        status.reserve(500);
+        status.reserve(2048);
     }
 
     void addBus(busInterface *bus) {

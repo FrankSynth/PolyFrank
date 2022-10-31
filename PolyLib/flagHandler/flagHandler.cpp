@@ -23,23 +23,6 @@ void initFlagHandler() {
 
     readTemperature = false;
 
-#elif POLYRENDER
-
-    for (uint32_t i = 0; i < 10; i++)
-        cvDacStarted[i] = false;
-
-    for (uint32_t i = 0; i < 10; i++)
-        cvDacFinished[i] = false;
-
-    for (uint32_t i = 0; i < 3; i++)
-        cvDacLastFinished[i] = true;
-
-    renderNewCV = false;
-    // cvRendered = false;
-    // cvSent = false;
-    renderNewCVFunc = nullptr;
-    // sendRenderedCVsFunc = nullptr;
-
 #endif
 }
 
@@ -105,17 +88,11 @@ std::function<uint8_t()> interChipReceive_DMA_FinishedFunc;
 bool interChipReceive_newDataAvailable;
 std::function<uint8_t()> interChipReceive_newDataAvailableFunc;
 
-bool cvDacStarted[10];
-bool cvDacFinished[10];
-bool cvDacLastFinished[3];
-
 volatile bool outputCollect = true;
 volatile bool outputReady = false;
-// std::function<void()> outputCollectFunc;
 void (*outputCollectFunc)();
 
 volatile bool renderNewCV;
-void (*renderNewCVFunc)();
 
 #endif
 
@@ -256,14 +233,7 @@ void handleFlags() {
 
 #elif POLYRENDER
 
-    // if (renderNewCV) {
-    //     renderNewCV = false;
-    //     renderNewCVFunc();
-    // }
-
     if (outputCollect) {
-        // outputReady = false;
-
         if (outputCollectFunc != nullptr) {
             outputCollectFunc();
         }

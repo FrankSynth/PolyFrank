@@ -313,32 +313,16 @@ class Sub : public BaseModule {
   public:
     Sub(const char *name, const char *shortName) : BaseModule(name, shortName) {
         outputs.push_back(&out);
-
         inputs.push_back(&iShape);
-        // inputs.push_back(&iBitcrusher);
-        // inputs.push_back(&iSamplecrusher);
-
         knobs.push_back(&aShape);
-        // knobs.push_back(&aBitcrusher);
-        // knobs.push_back(&aSamplecrusher);
-
         switches.push_back(&dOctaveSwitch);
-
         renderBuffer.push_back(&shape);
-        // renderBuffer.push_back(&bitcrusher);
-        // renderBuffer.push_back(&samplecrusher);
         moduleType = MODULE_SUB;
     }
 
     Output out = Output("OUT");
-
     Input iShape = Input("SHAPE", "SHAPE", &shape);
-    // Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
-    // Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
-
     Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
-    // Analog aBitcrusher = Analog("BITCRUSH", 0, 1, 0, true, linMap, &iBitcrusher);
-    // Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher);
 
     Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
 
@@ -346,9 +330,6 @@ class Sub : public BaseModule {
     vec<VOICESPERCHIP, uint32_t> subWavetable;
     float phaseLength;
     vec<VOICESPERCHIP> oscANote;
-
-    // RenderBuffer bitcrusher;
-    // RenderBuffer samplecrusher;
 };
 
 class Noise : public BaseModule {
@@ -562,7 +543,7 @@ class LFO : public BaseModule {
 
     Analog aFreq = Analog("FREQ", 0, 1, 0.6, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap, &iShape);
-    Analog aAmount = Analog("AMOUNT", 0, 1, 1, true, linMap, &iAmount);
+    Analog aAmount = Analog("AMOUNT", -1, 1, 0, true, linMap, &iAmount);
 
     // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv);
@@ -893,7 +874,7 @@ class Out : public BaseModule {
     Input iPan = Input("PAN", "PAN", &pan);
 
     Analog aDistort = Analog("DRIVE", 0, 1, 1, true, linMap, &iDistort);
-    Analog aVCA = Analog("VCA", 0, 1, 0, true, linMap, &iVCA);
+    Analog aVCA = Analog("VCA", -1, 1, 0, true, linMap, &iVCA);
     Analog aPan = Analog("PAN", -1, 1, 0, true, linMap, &iPan);
     Analog aPanSpread = Analog("PANSPREAD", 0, 1, 0, true);
     Analog aMaster = Analog("MASTER", 0, 1, 1, true, linMap, nullptr, true, false); // not storeable

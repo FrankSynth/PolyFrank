@@ -87,7 +87,7 @@ void DMA2D_IRQHandler(void);
 void MDMA_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 
-void TIM5_IRQHandler(void);
+void TIM3_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void TIM16_IRQHandler(void);
 void BDMA_Channel0_IRQHandler(void);

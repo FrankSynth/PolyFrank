@@ -57,26 +57,38 @@ void polyControlLoop() { // Here the party starts
     bool enableWFI = false;
     elapsedMillis timerWFI;
     elapsedMillis timerUIData;
+    elapsedMillis timerStatusUpdate;
 
     HAL_UART_Receive_Stream(&huart5);
+    initUsageTimer();
 
     while (1) {
+
+        if (timerStatusUpdate >= 1000) {
+            timerStatusUpdate = 0;
+            globalSettings.controlStatus.usage.value = ReadAndResetUsageTimer();
+        }
+
         if (timerUIData > 16) { // 120Hz ui data test
+            // startUsageTimer();
             timerUIData = 0;
             sendRequestAllUIData();
             LEDRender();
         }
         if (getRenderState() == RENDER_DONE) {
+            // startUsageTimer();
             ui.Draw();
         }
         if (enableWFI) {
             __disable_irq();
+            stopUsageTimer();
             __DSB();
             __WFI();
+            startUsageTimer();
             __enable_irq();
         }
         else {
-            if (timerWFI > 300000)
+            if (timerWFI > 5000)
                 enableWFI = true;
         }
     }
@@ -126,15 +138,13 @@ uint8_t sendDeleteAllPatches(uint8_t layerId) {
 }
 
 //////////////TEMPERATURE////////////
-
 void temperature() {
 
     static unsigned int adc_v;
-    static double adcx;
+    static float adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
 
     adc_v = HAL_ADC_GetValue(&hadc3);
-    adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
-    globalSettings.temperature = (uint32_t)round(adcx * (adc_v - *(unsigned short *)(0x1FF1E820)) + 30);
+    globalSettings.controlStatus.temperature.value = adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30;
 
     HAL_ADC_Start(&hadc3);
 }
@@ -230,6 +240,8 @@ void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state) {
 //////////////Callback////////////
 
 void UART_RxISR_8BIT_FIFOEN_Stream(UART_HandleTypeDef *huart) {
+    // startUsageTimer();
+
     uint16_t uhMask = huart->Mask;
     uint16_t uhdata;
 
@@ -246,6 +258,8 @@ void UART_RxISR_8BIT_FIFOEN_Stream(UART_HandleTypeDef *huart) {
 // SPI Callback
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+    // startUsageTimer();
+
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
         layerCom.spi->callTxComplete();
@@ -273,6 +287,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+    // startUsageTimer();
 
     // InterChip Com
     if (hspi == layerCom.spi->hspi) {
@@ -306,6 +321,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
+    // startUsageTimer();
 
     if (hspi == spiBusPanel.hspi) {
 
@@ -340,6 +356,8 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
+    // startUsageTimer();
+
     if (hi2c->Instance == hi2c4.Instance) {
         FlagHandler::ledDriverB_Interrupt = true;
     }
@@ -358,6 +376,7 @@ void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c) {
 
 // EXTI Callback
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    // startUsageTimer();
 
     if (pin & GPIO_PIN_12 || pin & GPIO_PIN_3 || pin & GPIO_PIN_4 || pin & GPIO_PIN_5) { // ioExpander -> encoder
         FlagHandler::Control_Encoder_Interrupt = true;
@@ -464,8 +483,9 @@ void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
 
 // TIM Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupts
+    // startUsageTimer();
 
-    if (htim->Instance == htim5.Instance) {
+    if (htim->Instance == htim3.Instance) {
         liveData.internalClockTick();
     }
     if (htim->Instance == htim4.Instance) {

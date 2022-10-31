@@ -20,7 +20,7 @@ void GUIPanelString::registerPanelSettings() {
 
     actionHandler.registerActionRight(0, {std::bind(&GUIPanelString::setPanel, this, 0), "DEVICE"});
     actionHandler.registerActionRight(1, {std::bind(&GUIPanelString::setPanel, this, 1), "CONSOLE"});
-    actionHandler.registerActionRight(2);
+    actionHandler.registerActionRight(2, {std::bind(&GUIPanelString::setPanel, this, 2), "STATUS"});
 
     actionHandler.registerActionLeft(0);
     actionHandler.registerActionLeft(1);
@@ -43,10 +43,13 @@ void GUIPanelString::Draw() {
     registerPanelSettings();
 
     if (subPanelID == 0)
-        drawDeviceManager(deviceManager.report(), 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+        drawConsoleString(deviceManager.report(), 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
 
     if (subPanelID == 1)
         drawConsole(consoleBuffer, 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+
+    if (subPanelID == 2)
+        drawConsoleString(globalSettings.statusReport(), 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
 }
 
 void GUIPanelString::setPanel(uint8_t subPanelID) {

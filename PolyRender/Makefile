@@ -36,6 +36,8 @@ BUILD_DIR = PolyRender/build
 ######################################
 # C sources
 C_SOURCES =  \
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c \
+PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
 PolyRender/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
@@ -220,6 +222,7 @@ $(BUILD_DIR):
 # flash
 #######################################
 flash: $(BUILD_DIR)/$(TARGET).elf
+	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "init; reset; exit"   
 	openocd -f interface/stlink.cfg  -f target/stm32h7x_dual_bank.cfg -c "program $(BUILD_DIR)/$(TARGET).elf reset exit"
 
 #######################################

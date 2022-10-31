@@ -332,6 +332,11 @@ class COMinterChip {
     // uint8_t sendRenderbufferVoice(uint8_t modulID, uint8_t settingID, uint8_t voice, float amount);
     uint8_t sendAudioBuffer(int8_t *audiodata);
 
+    uint8_t sendUsage(float usage);
+    uint8_t sendTemperature(float temperature);
+    uint8_t sendCVTime(float time);
+    uint8_t sendAudioTime(float time);
+
     busState beginReceiveTransmission();
 
   private:

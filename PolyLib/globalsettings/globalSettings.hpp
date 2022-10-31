@@ -12,6 +12,17 @@ struct categoryStruct {
     std::vector<Setting *> settings;
 };
 
+struct renderStatusStruct {
+    Status temperature = Status("Temp", "C", 1);
+    Status usage = Status("Usage", "%", 1);
+    Status timeCV = Status("CV", "uS", 1);
+    Status timeAudio = Status("AUDIO", "uS", 1);
+};
+struct controlStatusStruct {
+    Status temperature = Status("Temp", "C", 1);
+    Status usage = Status("Usage", "%", 1);
+};
+
 class GlobalSettings {
   public:
     GlobalSettings() {
@@ -20,6 +31,7 @@ class GlobalSettings {
 
         __globSettingsSystem.category = "SYSTEM";
         __globSettingsSystem.settings.push_back(&extClockOutLength);
+        __globSettingsSystem.settings.push_back(&presetValueHandling);
 
         __globSettingsMIDI.category = "MIDI";
         __globSettingsMIDI.settings.push_back(&midiSource);
@@ -33,6 +45,7 @@ class GlobalSettings {
         __globSettingsDisplay.settings.push_back(&dispLED);
         __globSettingsDisplay.settings.push_back(&dispTemperature);
 
+        statusReportString.reserve(1024); // reserve enough space for status report
         // init setting IDs
         // initID();
     }
@@ -111,15 +124,45 @@ class GlobalSettings {
 
     void setShift(uint8_t shift) { this->shift = shift; }
 
+    std::string *statusReport() {
+
+        statusReportString.clear();
+
+        // control
+        statusReportString += "Control Status: \n\r";
+        controlStatus.temperature.appendValueAsString(statusReportString);
+        controlStatus.usage.appendValueAsString(statusReportString);
+
+        for (uint32_t layer = 0; layer < 2; layer++) {
+            statusReportString += "\f";
+
+            for (uint32_t chip = 0; chip < 2; chip++) {
+
+                statusReportString += "Render Status " + std::to_string(layer) + std::to_string(chip) + "\n\r";
+
+                renderStatus[layer][chip].temperature.appendValueAsString(statusReportString);
+                renderStatus[layer][chip].usage.appendValueAsString(statusReportString);
+                renderStatus[layer][chip].timeCV.appendValueAsString(statusReportString);
+                renderStatus[layer][chip].timeAudio.appendValueAsString(statusReportString);
+                statusReportString += "\n\r";
+            }
+        }
+
+        return &statusReportString;
+    }
+
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
     categoryStruct __globSettingsSystem;
     categoryStruct __globSettingsMIDI;
     categoryStruct __globSettingsDisplay;
 
+    std::string statusReportString;
+
     // all Settings, don't forget to push to __globSettings vector of this class
     Setting multiLayer = Setting("LAYER", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Setting extClockOutLength = Setting("EXT CLK. ms.", 2, 1, 50, false, binary);
+    Setting presetValueHandling = Setting("PRESET VALUE", 0, 0, 1, false, binary, &presetValueHandlingNameList);
 
     Setting midiSource = Setting("MIDI", 0, 0, 1, false, binary, &midiTypeNameList);
     Setting midiSend = Setting("SEND", 0, 0, 1, false, binary, &offOnNameList);
@@ -134,11 +177,14 @@ class GlobalSettings {
 
     Error error;
 
-    uint32_t temperature = 0;
+    controlStatusStruct controlStatus;
+    renderStatusStruct renderStatus[2][2];
 
     uint8_t shift = 0;
 
   private:
+    const std::vector<const char *> presetValueHandlingNameList = {"OVERWRITE", "GRAB"};
+
     const std::vector<const char *> amountLayerNameList = {"OFF", "ON"};
     const std::vector<const char *> midiTypeNameList = {"USB", "DIN"};
     const std::vector<const char *> offOnNameList = {"OFF", "ON"};

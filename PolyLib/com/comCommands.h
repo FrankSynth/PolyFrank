@@ -23,6 +23,11 @@
 #define MESSAGECMDSIZE 1
 #define BPMCMDSIZE 5
 
+#define TEMPERATURECMDSIZE 5
+#define CVTIMECMDSIZE 5
+#define AUDIOTIMECMDSIZE 5
+#define USAGECMDSIZE 5
+
 #define VOICE0 0
 #define VOICE1 1
 #define VOICE2 2
@@ -66,5 +71,9 @@ enum comCommands {
     // UPDATERENDERBUFFERVOICE, // next bytes are settings
     UPDATEAUDIOBUFFER,     // next bytes are settings
     BPM,                   // next bytes are settings
+    TEMPERATURE,           // next bytes float
+    CVTIME,                // next bytes float
+    AUDIOTIME,             // next bytes float
+    USAGEPERCENTAGE,       // next bytes float
     LASTBYTE = 0b01111111, // LAST BYTE of transmission
 };
