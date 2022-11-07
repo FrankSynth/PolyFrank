@@ -101,6 +101,9 @@ HAL_StatusTypeDef USB_CoreInit(USB_OTG_GlobalTypeDef *USBx, USB_OTG_CfgTypeDef c
         /* Select FS Embedded PHY */
         USBx->GUSBCFG |= USB_OTG_GUSBCFG_PHYSEL;
 
+        while ((USBx->GUSBCFG & USB_OTG_GUSBCFG_PHYSEL) == 0)
+            ;
+
         /* Reset after a PHY select and set Host mode */
         ret = USB_CoreReset(USBx);
 

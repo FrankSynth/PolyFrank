@@ -29,48 +29,16 @@
 #include "usbd_midi.h"
 #include "usbd_midi_if.hpp"
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE END PV */
-
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* USB Device Core handle declaration. */
 USBD_HandleTypeDef hUsbDeviceHS;
 USBD_HandleTypeDef hUsbDeviceFS;
-
-/*
- * -- Insert your variables declaration here --
- */
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-/*
- * -- Insert your external function declaration here --
- */
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
 
 /**
  * Init USB device Library, add supported class and start the library
  * @retval None
  */
 void MX_USB_DEVICE_Init(void) {
-    /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
-    SCB_InvalidateICache();
-
-    // HAL_Delay(300);
-    /* USER CODE END USB_DEVICE_Init_PreTreatment */
+    // __disable_irq();
+    // SCB_InvalidateICache();
 
     /* Init Device Library, add supported class and start the library. */
     if (USBD_Init(&hUsbDeviceHS, &HS_Desc, DEVICE_HS) != USBD_OK) {
@@ -78,49 +46,42 @@ void MX_USB_DEVICE_Init(void) {
     }
     // HAL_Delay(50);
 
-    if (USBD_RegisterClass(&hUsbDeviceHS, &USBD_CDC) != USBD_OK) {
+    if (USBD_RegisterClass(&hUsbDeviceHS, &USBD_MIDI) != USBD_OK) {
         PolyError_Handler("ERROR | INIT | USBD_RegisterClass HS Failed");
     }
     // HAL_Delay(50);
-
-    if (USBD_CDC_RegisterInterface(&hUsbDeviceHS, &USBD_Interface_fops_HS) != USBD_OK) {
-        PolyError_Handler("ERROR | INIT | USBD_CDC_RegisterInterface HS Failed");
+    if (USBD_MIDI_RegisterInterface(&hUsbDeviceHS, &USBD_Interface_MIDI_fops_HS) != USBD_OK) {
+        PolyError_Handler("ERROR | INIT | USBD_MIDI_RegisterInterface HS Failed");
     }
     // HAL_Delay(50);
+    // __enable_irq();
 
-    if (USBD_Start(&hUsbDeviceHS) != USBD_OK) {
-        PolyError_Handler("ERROR | INIT | USBD_Start HS Failed");
-    }
-
-    /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
-    SCB_InvalidateICache();
-    // SCB_InvalidateDCache();
     // HAL_Delay(50);
+    // __disable_irq();
 
-    /* USER CODE END USB_DEVICE_Init_PreTreatment */
+    // SCB_InvalidateICache();
 
-    /* Init Device Library, add supported class and start the library. */
     if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK) {
         PolyError_Handler("ERROR | INIT | USBD_Init FS Failed");
     }
     // HAL_Delay(50);
 
-    if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_MIDI) != USBD_OK) {
+    if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK) {
         PolyError_Handler("ERROR | INIT | USBD_RegisterClass FS Failed");
     }
     // HAL_Delay(50);
-    if (USBD_MIDI_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_MIDI_fops_FS) != USBD_OK) {
-        PolyError_Handler("ERROR | INIT | USBD_MIDI_RegisterInterface FS Failed");
+    if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK) {
+        PolyError_Handler("ERROR | INIT | USBD_CDC_RegisterInterface FS Failed");
     }
+
     // HAL_Delay(50);
+    if (USBD_Start(&hUsbDeviceHS) != USBD_OK) {
+        PolyError_Handler("ERROR | INIT | USBD_Start HS Failed");
+    }
     if (USBD_Start(&hUsbDeviceFS) != USBD_OK) {
         PolyError_Handler("ERROR | INIT | USBD_Start FS Failed");
     }
-
-    /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
-    // SCB_InvalidateICache();
-
-    /* USER CODE END USB_DEVICE_Init_PostTreatment */
+    // __enable_irq();
 }
 
 /**

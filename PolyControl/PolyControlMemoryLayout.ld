@@ -53,7 +53,7 @@
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */
-_estack = 0x20020000;    /* end of RAM */
+_estack = 0x20020000-16;    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
 _Min_Heap_Size = 0x800;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
@@ -237,37 +237,37 @@ SECTIONS
   .ARM.attributes 0 : { *(.ARM.attributes) }
 
 
-  .ram_D1_buffer : /* Space before ':' is critical */
+  .ram_D1_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D1_buffer)
   } >RAM_D1
 
-  .ram_D2_buffer : /* Space before ':' is critical */
+  .ram_D2_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D2_buffer)
   } >RAM_D2
 
-    .ram_D2_DMA_buffer : /* Space before ':' is critical */
+    .ram_D2_DMA_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D2_DMA_buffer)
   } >RAM_D2_DMA
 
-  .ram_D3_buffer : /* Space before ':' is critical */
+  .ram_D3_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D3_buffer)
   } >RAM_D3
 
-    .ram_D3_DMA_buffer : /* Space before ':' is critical */
+    .ram_D3_DMA_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D3_DMA_buffer)
   } >RAM_D3_DMA  
 
-  .frame_buffer_a : /* Space before ':' is critical */
+  .frame_buffer_a (NOLOAD) : /* Space before ':' is critical */
   {
     *(.frame_buffer_a)
   } >FRAMEBUFFER_A
 
-    .frame_buffer_b : /* Space before ':' is critical */
+    .frame_buffer_b (NOLOAD) : /* Space before ':' is critical */
   {
     *(.frame_buffer_b)
   } >FRAMEBUFFER_B

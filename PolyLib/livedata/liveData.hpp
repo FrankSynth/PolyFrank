@@ -25,6 +25,7 @@ class LiveData {
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeA);
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeB);
         __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeMergeLayer);
+        // __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeNumberVoices);
         __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
         __liveSettingsLivemode.settings.push_back(&livemodeClockSource);
         __liveSettingsLivemode.settings.push_back(&internalClock.clockBPM);

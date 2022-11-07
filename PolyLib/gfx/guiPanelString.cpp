@@ -22,7 +22,7 @@ void GUIPanelString::registerPanelSettings() {
     actionHandler.registerActionRight(1, {std::bind(&GUIPanelString::setPanel, this, 1), "CONSOLE"});
     actionHandler.registerActionRight(2, {std::bind(&GUIPanelString::setPanel, this, 2), "STATUS"});
 
-    actionHandler.registerActionLeft(0);
+    actionHandler.registerActionLeft(0, {std::bind(rebootToBooloader), "BOOT"}, true);
     actionHandler.registerActionLeft(1);
     actionHandler.registerActionLeft(2);
 

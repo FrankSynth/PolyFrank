@@ -78,10 +78,14 @@ void SystemClock_Config(void);
  * @brief  The application entry point.
  * @retval int
  */
-int main(void) {
-    /* USER CODE BEGIN 1 */
 
-    /* USER CODE END 1 */
+int main(void) {
+
+    // __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
+    // __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
+    // __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+    // __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+
     /* MPU  Configuration--------------------------------------------------------*/
     MPU_Config();
     /* Enable I-Cache---------------------------------------------------------*/

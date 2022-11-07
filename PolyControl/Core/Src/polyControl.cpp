@@ -21,6 +21,9 @@ extern ADC_HandleTypeDef hadc3;
 
 extern devManager deviceManager;
 
+extern USBD_HandleTypeDef hUsbDeviceFS;
+extern USBD_HandleTypeDef hUsbDeviceHS;
+
 // List of all busObjects
 spiBus spiBusEEPROM;
 spiBus spiBusLayer;
@@ -129,7 +132,7 @@ void deviceConfig();
 
 void PolyControlInit() {
 
-    HAL_Delay(400); // wait 200ms for system stabilisation
+    HAL_Delay(800); // wait 200ms for system stabilisation
 
     // Say hello
     println("\n\nINFO || Hi, Frank here! Lets get everything ready...");
@@ -234,6 +237,7 @@ void PolyControlInit() {
     }
 
     println("INFO || ... everything looks fine! Let the party start");
+    println("INFO || For help type -h");
 
     HAL_Delay(50);
     // And turn the Display on
@@ -401,7 +405,7 @@ void deviceConfig() {
 
     deviceManager.addDevice(&eeprom);
 
-    println(*(deviceManager.report()));
+    // println(*(deviceManager.report()));
 }
 
 void midiConfig() {

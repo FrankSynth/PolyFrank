@@ -1,8 +1,8 @@
 #include "wavetables.hpp"
 std::vector<const WaveTable *> wavetables;
 
-uint32_t WaveTable::subSize[SUBWAVETABLES] = {2048, 2048, 2048, 2048, 1448, 936, 608, 392,
-                                              256,  160,  128,  128,  128,  128, 128, 128};
+uint32_t WaveTable::subSize[SUBWAVETABLES] = {2048, 2048, 1720, 1116, 724, 468, 304, 196,
+                                              128,  80,   64,   64,   64,  64,  64,  64};
 
 uint32_t WaveTable::size = MAXWAVETABLELENGTH;
 

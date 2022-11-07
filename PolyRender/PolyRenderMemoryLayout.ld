@@ -239,22 +239,22 @@ SECTIONS
   .ARM.attributes 0 : { *(.ARM.attributes) }
 
 
-  .ram_D1_buffer : /* Space before ':' is critical */
+  .ram_D1_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D1_buffer)
   } >RAM_D1
 
-  .ram_D2_buffer : /* Space before ':' is critical */
+  .ram_D2_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D2_buffer)
   } >RAM_D2
 
-    .ram_D2_DMA_buffer : /* Space before ':' is critical */
+    .ram_D2_DMA_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D2_DMA_buffer)
   } >RAM_D2_DMA
 
-  .ram_D3_buffer : /* Space before ':' is critical */
+  .ram_D3_buffer (NOLOAD) : /* Space before ':' is critical */
   {
     *(.ram_D3_buffer)
   } >RAM_D3

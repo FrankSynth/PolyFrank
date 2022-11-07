@@ -51,6 +51,7 @@ typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_
 void processEncoder();
 
 // Touch
+
 void processControlTouch();
 void processPanelTouch(uint8_t layerID);
 
@@ -82,6 +83,8 @@ void resetSystem();
 
 void updateLEDDriverCurrent();
 
+typedef enum { SLOTFREE, SLOTUSED } SLOTSTATE;
+
 class PanelTouch {
   public:
     void eventLayer(uint8_t layerID, uint16_t touchState, uint8_t port);
@@ -96,21 +99,39 @@ class PanelTouch {
     void evaluateActionHandle(actionHandle *pAction, uint8_t event);
     void evaluateSetting(Digital *pSwitch, uint8_t event);
 
+    void evaluateFunctionButtons(uint32_t buttonID, uint32_t event);
+
     void setInputFocus(Input *pInput);
     void setOutputFocus(Output *pOutput);
+
+    void externPatchInput(Input *pInput);
+    void externPatchRemove(Input *pInput);
 
     void forceSetOutputFocus(Output *pOutput);
     void forceSetInputFocus(Input *pInput);
 
     void setModulFocus(BaseModule *pModule);
 
+    bool outputPatchActive() {
+        if (activeOutput == nullptr)
+            return false;
+
+        return true;
+    };
+
     Output *activeOutput = nullptr;
     Input *activeInput = nullptr;
+
+    location tempOutputLocation;
 
     uint16_t pinStateLayer[2][8];
     uint16_t pinStateControl[8];
 
+    SLOTSTATE saveSlotState[2][3] = {{SLOTFREE, SLOTFREE, SLOTFREE}, {SLOTFREE, SLOTFREE, SLOTFREE}};
+
     uint8_t layerID;
+
+    bool externalPatchAction = false;
 
     bool clearOnReleaseOut = false;
     bool clearOnReleaseIn = false;

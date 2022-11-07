@@ -29,7 +29,7 @@ inline float bitcrush(float bitcrush, float bitcrushInv, float sample) {
 
 inline float getSubSample(float phase) {
 
-    const float &shape = layerA.sub.shape[0];
+    const float &shape = layerA.oscA.shapeSub[0];
 
     uint32_t positionA = phase * WaveTable::subSize[0];
 
@@ -158,7 +158,7 @@ void renderAudioUI(int8_t *renderDest) {
     for (uint32_t sample = 0; sample < 100; sample++) {
         renderDest[sample] = (int8_t)(softLimit(getOscASample(phase)) * 127.0f);
         renderDest[sample + 100] = (int8_t)(softLimit(getOscBSample(phase)) * 127.0f);
-        renderDest[sample + (100 * 2)] = (int8_t)(softLimit(getSubSample(phase)) * 127.0f);
+        renderDest[sample + (100 * 2)] = (int8_t)(softLimit(getSubSample(phase)) * 127.0f); // TODO SUB Obsolete
         phase += 0.01f;
     }
 }

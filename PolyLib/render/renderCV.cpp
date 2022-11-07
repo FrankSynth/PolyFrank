@@ -15,7 +15,6 @@
 #include "renderOutput.hpp"
 #include "renderPhaseshaper.hpp"
 #include "renderSteiner.hpp"
-#include "renderSub.hpp"
 #include "renderTune.hpp"
 #include "renderWaveshaper.hpp"
 
@@ -90,26 +89,6 @@ inline void collectAllCurrentInputs() {
         }
     }
 }
-
-// inline void updateAllOutputSamples() {
-
-//     // LayerRenBufferSw = !LayerRenBufferSw;
-
-//     for (BaseModule *m : layerA.modules) {
-
-//         // __disable_irq();
-//         // for (Output *o : m->outputs) {
-//         //     o->updateToNextSample();
-//         // }
-//         // __enable_irq();
-
-//         // __disable_irq();
-//         // for (RenderBuffer *b : m->renderBuffer) {
-//         //     b->updateToNextSample();
-//         // }
-//         // __enable_irq();
-//     }
-// }
 
 inline void writeDataToDACBuffer() {
 
@@ -198,7 +177,6 @@ void renderCVs() {
     renderMidi();
     renderOSC_A();
     renderOSC_B();
-    renderSub();
     renderNoise(layerA.noise);
     renderMixer(layerA.mixer);
     renderTune(layerA.tune);

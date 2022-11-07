@@ -6,6 +6,7 @@
 #include "hardware/device.hpp"
 #include "humanInterface/hid.hpp"
 
+#include "debughelper/firmware.hpp"
 #include "midiInterface/MIDIInterface.h"
 #include "usbd_midi_if.hpp"
 
@@ -160,7 +161,7 @@ void midiControlChange(uint8_t channel, uint8_t cc, uint8_t value) {
     liveData.controlChange(channel, cc, value);
 }
 void midiPitchBend(uint8_t channel, int value) {
-    liveData.controlChange(channel, midi::PitchBend, value);
+    liveData.controlChange(channel, midi::PitchBend, value / 12 * globalSettings.midiPitchBendRange.value);
 }
 
 void midiAfterTouch(uint8_t channel, byte value) {
@@ -473,14 +474,163 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
     /* Prevent unused argument(s) compilation warning */
     if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
-        FlagHandler::USB_FS_CONNECTED = true;
-    }
-
-    if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // FS Connected
+        println("HS USB CONNECTED");
         FlagHandler::USB_HS_CONNECTED = true;
+    }
+    else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
+        println("FS USB CONNECTED");
+        FlagHandler::USB_FS_CONNECTED = true;
     }
 }
 
+void printHelp() {
+    println("Hello Frank here!");
+    println("Here some help for you:");
+    println("-h    help");
+    println("-r    system reset");
+    println("-d    hardware info");
+    println("-s    status");
+    println("-isp  flash all 4 render IC");
+}
+
+void printStatus() {
+    println(*globalSettings.statusReport());
+}
+void printDeviceManager() {
+    println(*deviceManager.report());
+}
+extern USBD_HandleTypeDef hUsbDeviceFS;
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+// static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx);
+
+// static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx) {
+//     volatile uint32_t count = 0U;
+
+//     /* Wait for AHB master IDLE state. */
+//     do {
+//         if (++count > 200000U) {
+//             return HAL_TIMEOUT;
+//         }
+//     } while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U);
+
+//     /* Core Soft Reset */
+//     count = 0U;
+//     USBx->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
+
+//     do {
+//         if (++count > 200000U) {
+//             return HAL_TIMEOUT;
+//         }
+//     } while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_CSRST) == USB_OTG_GRSTCTL_CSRST);
+
+//     return HAL_OK;
+// }
+
+extern USBD_HandleTypeDef hUsbDeviceHS;
+extern USBD_HandleTypeDef hUsbDeviceFS;
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+void COMmunicateISR() {
+    static std::vector<char> data;
+    while (comAvailable()) {
+        data.push_back(comRead());
+        // println(data.back());
+
+        if (!data.empty()) {               // data not empty -> decode
+            if (data.back() == (char)10) { // if we get a "ENTER" decode the data
+                data.pop_back();
+                std::string command(data.begin(), data.end());
+
+                if (command.compare("-dfu") == 0) {
+
+                    uint8_t response = ENTERMODE;
+                    CDC_Transmit_FS(&response, 1);
+
+                    // HAL_Delay(10);
+                    // HAL_PCD_DevDisconnect(&hpcd_USB_OTG_HS);
+                    // HAL_Delay(10);
+                    // HAL_PCD_DevDisconnect(&hpcd_USB_OTG_FS);
+                    // HAL_Delay(10);
+                    // USBD_DeInit(&hUsbDeviceHS);
+                    // HAL_Delay(10);
+                    // USBD_DeInit(&hUsbDeviceFS);
+                    // HAL_Delay(10);
+
+                    // USB_CoreReset(hpcd_USB_OTG_FS.Instance);
+                    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+
+                    // HAL_Delay(10);
+                    // // RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
+                    // __HAL_RCC_OTGHS_FORCE_RESET();
+                    // __HAL_RCC_OTGFS_FORCE_RESET();
+
+                    // HAL_Delay(1000);
+
+                    // __HAL_RCC_OTGHS_RELEASE_RESET();
+                    // __HAL_RCC_OTGFS_RELEASE_RESET();
+
+                    HAL_Delay(500);
+
+                    rebootToBooloader();
+                    break;
+                }
+                else if (command.compare("-isp") == 0) {
+
+                    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+                    HAL_Delay(10);
+
+                    flashRenderMCUSPI();
+                }
+                else if (command.compare("-h") == 0 || command.compare("-help") == 0) {
+                    printHelp();
+                }
+                else if (command.compare("-s") == 0 || command.compare("-status") == 0) {
+
+                    printStatus();
+                }
+                else if (command.compare("-d") == 0 || command.compare("-device") == 0) {
+                    printDeviceManager();
+                }
+                else if (command.compare("-r") == 0 || command.compare("-restart") == 0) {
+
+                    HAL_Delay(10);
+                    HAL_PCD_DevDisconnect(&hpcd_USB_OTG_HS);
+                    HAL_Delay(10);
+                    HAL_PCD_DevDisconnect(&hpcd_USB_OTG_FS);
+                    HAL_Delay(10);
+                    USBD_DeInit(&hUsbDeviceHS);
+                    HAL_Delay(10);
+                    USBD_DeInit(&hUsbDeviceFS);
+                    HAL_Delay(10);
+
+                    // USB_CoreReset(hpcd_USB_OTG_FS.Instance);
+                    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+                    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+
+                    HAL_Delay(10);
+                    RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
+                    HAL_Delay(500);
+                    // USB_CoreReset(hpcd_USB_OTG_FS.Instance);
+
+                    __NVIC_SystemReset();
+                }
+                else {
+                    println("Invalid Command.. for help type -h");
+                }
+
+                data.clear();
+            }
+        }
+    }
+}
 // TIM Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupts
     // startUsageTimer();
@@ -493,7 +643,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
     }
     if (htim->Instance == htim16.Instance) {
 
-        elapsedMicros timTimer;
+        COMmunicateISR();
 
         if (globalSettings.midiSource.getValue() == 0) { // if midi USB
             midiDeviceUSB.read();

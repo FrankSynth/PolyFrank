@@ -20,10 +20,10 @@ TARGET = PolyControl
 # building variabless
 ######################################
 # debug build?
-DEBUG = 1
+DEBUG = 0
 DISASSEMBLY = 0
 # optimization
-OPT = -Ofast
+OPT = -O2
 
 #######################################
 # paths
@@ -111,6 +111,7 @@ CP = $(PREFIX)objcopy
 SZ = $(PREFIX)size
 endif
 HEX = $(CP) -O ihex
+BIN = $(CP) -O binary -S
 
 #######################################
 # CFLAGS
@@ -197,7 +198,8 @@ LIBDIR = -LPolyControl/Drivers/CMSIS/Lib/GCC -larm_cortexM7lfdp_math
 LDFLAGS = $(MCU) -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections,--print-memory-usage
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex 
+all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+
 
 
 #######################################
@@ -228,7 +230,9 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) PolyControl/Makefile
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
-
+	
+$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+	$(BIN) $< $@
 
 $(BUILD_DIR):
 	mkdir "$@"

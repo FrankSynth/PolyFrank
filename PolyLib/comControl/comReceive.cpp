@@ -1,7 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "comReceive.hpp"
-
+#include "debughelper/debughelper.hpp"
 CircularBuffer<uint8_t, 512> receiveBuffer; // read buffer
 
 void comReceive(uint8_t *Buf, uint32_t *Len) {
@@ -11,12 +11,7 @@ void comReceive(uint8_t *Buf, uint32_t *Len) {
 }
 
 uint8_t comAvailable() {
-    if (receiveBuffer.empty()) {
-        return 0;
-    }
-    else {
-        return 1;
-    }
+    return !receiveBuffer.empty();
 }
 
 char comRead() {
@@ -24,11 +19,9 @@ char comRead() {
     if (!receiveBuffer.empty()) {
         data = receiveBuffer.front();
         receiveBuffer.pop_front();
+        return data;
     }
-    else {
-        return 0;
-    }
-    return data;
+    return 0;
 }
 
 #endif

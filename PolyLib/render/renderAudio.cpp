@@ -162,15 +162,15 @@ inline vec<VOICESPERCHIP> getSubSample() {
     static vec<VOICESPERCHIP> phaseDifferenceOscA;
     static vec<VOICESPERCHIP, uint32_t> sampleCrushCount;
 
-    // const vec<VOICESPERCHIP> &bitcrusher = layerA.sub.bitcrusher;
-    // const vec<VOICESPERCHIP> &samplecrusher = layerA.sub.samplecrusher;
-    const vec<VOICESPERCHIP> &shape = layerA.sub.shape;
-    const vec<VOICESPERCHIP, uint32_t> &subWavetable = layerA.sub.subWavetable;
+    // const vec<VOICESPERCHIP> &bitcrusher = layerA.oscA.bitcrusher;
+    // const vec<VOICESPERCHIP> &samplecrusher = layerA.oscA.samplecrusher;
+    const vec<VOICESPERCHIP> &shape = layerA.oscA.shapeSub;
+    const vec<VOICESPERCHIP, uint32_t> &subWavetable = layerA.oscA.subWavetable;
 
     static vec<VOICESPERCHIP> phase;
     static vec<VOICESPERCHIP> oscApreviousPhase;
 
-    const float &phaseLength = layerA.sub.phaseLength;
+    const float &phaseLength = layerA.oscA.phaseLengthSub;
 
     oscApreviousPhase -= (layerA.oscA.phase < oscApreviousPhase);
     phaseDifferenceOscA = layerA.oscA.phase - oscApreviousPhase;
@@ -352,8 +352,6 @@ vec<VOICESPERCHIP> getOscBSample() {
 
     vec<VOICESPERCHIP> newSample = fast_lerp_f32(sampleA, sampleB, morphFract);
 
-
-
     newSample = renderWaveshaperSample(newSample, layerA.waveshaperB); // TODO WAVETABLES: values>1 not allowed!!
 
     newSample = bitcrush(bitcrusher, bitcrusherInv, newSample);
@@ -469,7 +467,7 @@ void renderAudio(volatile int32_t *renderDest) {
     }
 
     layerA.noise.out = noiseSample;
-    layerA.sub.out = subSample;
+    layerA.oscA.outSub = subSample;
     layerA.oscA.out = oscASample;
     layerA.oscB.out = oscBSample;
 }

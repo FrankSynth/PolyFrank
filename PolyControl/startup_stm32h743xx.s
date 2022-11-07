@@ -58,7 +58,17 @@ defined in linker script */
     .section  .text.Reset_Handler
   .weak  Reset_Handler
   .type  Reset_Handler, %function
-Reset_Handler:  
+Reset_Handler:    
+  // Clive Two.Zero is the God of ST community forum
+  // Device specific, if in doubt RTFM
+  LDR R0, =0x2001FFF0 // End of SRAM for your CPU
+  LDR R1, =0xDEADBEEF // magic value
+  LDR R2, [R0, #0]
+  STR R0, [R0, #0] // Invalidate
+  CMP R2, R1
+  BEQ UseDFU
+  // DFU bootloader not needed, continue with OpenBLT
+
   ldr   sp, =_estack      /* set stack pointer */
 
 /* Call the clock system intitialization function.*/
@@ -112,6 +122,27 @@ LoopFillZerobss:
   bl  main
   bx  lr    
 .size  Reset_Handler, .-Reset_Handler
+
+UseDFU:
+  // AN2606 Application note
+  // STM32 microcontroller system memory boot mode
+  // System control block registers base
+  LDR R1, =0xE000ED00
+
+  // location of system memory (DFU bootloader)
+  LDR R0, =0x1FF09800
+
+  // Set the vector table offset to the sysmem image
+  STR R0, [R1, #8]
+
+  // load the stack pointer
+  LDR SP, [R0, #0]
+
+  // prepare for jump to bootloader
+  LDR R0, [R0, #4]
+
+  BX R0 // this jumps to DFU bootloader
+
 
 /**
  * @brief  This is the code that gets called when the processor receives an 

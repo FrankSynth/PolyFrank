@@ -138,6 +138,7 @@ class OSC_A : public BaseModule {
   public:
     OSC_A(const char *name, const char *shortName) : BaseModule(name, shortName) {
         outputs.push_back(&out);
+        outputs.push_back(&outSub);
 
         inputs.push_back(&iFM);
         inputs.push_back(&iMorph);
@@ -146,6 +147,7 @@ class OSC_A : public BaseModule {
 
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
+        inputs.push_back(&iShapeSub);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
@@ -153,12 +155,14 @@ class OSC_A : public BaseModule {
 
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
+        knobs.push_back(&aShapeSub);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
         switches.push_back(&dSample2);
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
+        switches.push_back(&dOctaveSwitchSub);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&fm);
@@ -168,6 +172,7 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&bitcrusher);
         renderBuffer.push_back(&samplecrusher);
         renderBuffer.push_back(&effect);
+        renderBuffer.push_back(&shapeSub);
 
         moduleType = MODULE_OSC_A;
 
@@ -177,8 +182,8 @@ class OSC_A : public BaseModule {
 
     Output out = Output("OUT");
 
-    Input iFM = Input("FM", "FM", &fm);                // TODO different to OSC B?????
-    Input iMorph = Input("MORPH", "MORPH", &morphRAW); // TODO morph raw?
+    Input iFM = Input("FM", "FM", &fm);
+    Input iMorph = Input("MORPH", "MORPH", &morphRAW);
     Input iEffect = Input("EFFECT", "EFFECT", &effect);
 
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
@@ -197,8 +202,15 @@ class OSC_A : public BaseModule {
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
 
-    // Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr);
-    Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave);
+    Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave, false);
+
+    Output outSub = Output("OUT");
+    Input iShapeSub = Input("SUB SHAPE", "SUB SHAPE", &shapeSub);
+    Analog aShapeSub = Analog("SUB SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShapeSub);
+    Digital dOctaveSwitchSub = Digital("SUB OCTAVE", 0, 1, 0, true, &nlSubOctaves, nullptr, false);
+
+    RenderBuffer shapeSub;
+    float phaseLengthSub;
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -216,6 +228,7 @@ class OSC_A : public BaseModule {
     vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> phase;
+    vec<VOICESPERCHIP> oscNote;
 };
 
 class OSC_B : public BaseModule {
@@ -307,29 +320,6 @@ class OSC_B : public BaseModule {
     vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
     vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
     bool newPhase[VOICESPERCHIP] = {false};
-};
-
-class Sub : public BaseModule {
-  public:
-    Sub(const char *name, const char *shortName) : BaseModule(name, shortName) {
-        outputs.push_back(&out);
-        inputs.push_back(&iShape);
-        knobs.push_back(&aShape);
-        switches.push_back(&dOctaveSwitch);
-        renderBuffer.push_back(&shape);
-        moduleType = MODULE_SUB;
-    }
-
-    Output out = Output("OUT");
-    Input iShape = Input("SHAPE", "SHAPE", &shape);
-    Analog aShape = Analog("SHAPE", 0.01f, 1, 0.01f, true, linMap, &iShape);
-
-    Digital dOctaveSwitch = Digital("OscA", 0, 1, 0, true, &nlSubOctaves);
-
-    RenderBuffer shape;
-    vec<VOICESPERCHIP, uint32_t> subWavetable;
-    float phaseLength;
-    vec<VOICESPERCHIP> oscANote;
 };
 
 class Noise : public BaseModule {
@@ -533,6 +523,7 @@ class LFO : public BaseModule {
 
         moduleType = MODULE_LFO;
 
+        // aFreq.quickview = 1;
         aShape.quickview = 1;
     }
     Output out = Output("OUT");

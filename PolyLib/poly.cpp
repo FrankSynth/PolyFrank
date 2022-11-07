@@ -12,9 +12,6 @@ void initPoly() {
     // prep lin2log
     precomputeNoteLin2LogTable();
 
-    // set all Flags to default state
-    FlagHandler::initFlagHandler();
-
     // load knob changed callbacks
     setModuleCallbacks();
 }

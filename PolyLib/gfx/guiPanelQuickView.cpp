@@ -23,8 +23,7 @@ void GUIPanelQuickView::Draw() {
     BaseModule *module = allLayers[quickView.layer]->modules[quickView.modul];
 
     ModuleType type = module->moduleType;
-    if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
-        type == MODULE_ADSR) {
+    if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_LFO || type == MODULE_ADSR) {
 
         drawRectangleFill(cBackground & 0xEFFFFFFF, x, y, width, height); // hide background
 
@@ -38,6 +37,8 @@ void GUIPanelQuickView::Draw() {
         uint32_t xControls = LCDWIDTH / 2 - waveQuickBuffer.width / 2;
         uint32_t wControls = waveQuickBuffer.width;
         uint32_t hControls = 90;
+
+        drawCustomInfo(module, LCDWIDTH / 2 - waveQuickBuffer.width / 2, height / 2 + waveQuickBuffer.height / 2);
 
         switch (type) {
             case MODULE_OSC_A: {

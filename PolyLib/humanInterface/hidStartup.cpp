@@ -54,12 +54,12 @@ void LEDIntroFrame() {
     LEDInput(&allLayers[0]->oscA.iFM, distanceBasedSin(13.5) * fade * LEDBRIGHTNESS_SETTING);
     LEDInput(&allLayers[0]->oscA.iMorph, distanceBasedSin(13) * fade * LEDBRIGHTNESS_SETTING);
     LEDInput(&allLayers[0]->oscA.iEffect, distanceBasedSin(14) * fade * LEDBRIGHTNESS_SETTING);
-    LEDDigital(&allLayers[0]->sub.dOctaveSwitch, 0, distanceBasedSin(14) * fade * LEDBRIGHTNESS_SETTING);
+    LEDDigital(&allLayers[0]->oscA.dOctaveSwitchSub, 0, distanceBasedSin(14) * fade * LEDBRIGHTNESS_SETTING);
 
     LEDInput(&allLayers[1]->oscA.iFM, distanceBasedSin(21) * fade * LEDBRIGHTNESS_SETTING);
     LEDInput(&allLayers[1]->oscA.iMorph, distanceBasedSin(24) * fade * LEDBRIGHTNESS_SETTING);
     LEDInput(&allLayers[1]->oscA.iEffect, distanceBasedSin(26) * fade * LEDBRIGHTNESS_SETTING);
-    LEDDigital(&allLayers[1]->sub.dOctaveSwitch, 0, distanceBasedSin(29) * fade * LEDBRIGHTNESS_SETTING);
+    LEDDigital(&allLayers[1]->oscA.dOctaveSwitchSub, 0, distanceBasedSin(29) * fade * LEDBRIGHTNESS_SETTING);
 
     LEDInput(&allLayers[0]->oscB.iFM, distanceBasedSin(17) * fade * LEDBRIGHTNESS_SETTING);
     LEDInput(&allLayers[0]->oscB.iMorph, distanceBasedSin(16) * fade * LEDBRIGHTNESS_SETTING);
@@ -187,7 +187,7 @@ void LEDIntroFrame() {
 void LEDMappingInit() {
     for (uint8_t i = 0; i < 2; i++) {
 
-        println("INFO | LED Mapping ", i);
+        // println("INFO | LED Mapping ", i);
 
         /////// Inputs
 
@@ -348,9 +348,9 @@ void LEDMappingInit() {
         allLayers[i]->envA.LEDPortID = 1;
 
         /////// Configs
-        allLayers[i]->sub.dOctaveSwitch.configureNumberLEDs(1);
-        allLayers[i]->sub.dOctaveSwitch.LEDPinID[0] = 13;
-        allLayers[i]->sub.dOctaveSwitch.LEDPortID[0] = 0;
+        allLayers[i]->oscA.dOctaveSwitchSub.configureNumberLEDs(1);
+        allLayers[i]->oscA.dOctaveSwitchSub.LEDPinID[0] = 13;
+        allLayers[i]->oscA.dOctaveSwitchSub.LEDPortID[0] = 0;
 
         allLayers[i]->oscB.dSync.configureNumberLEDs(1);
         allLayers[i]->oscB.dSync.LEDPinID[0] = 9;

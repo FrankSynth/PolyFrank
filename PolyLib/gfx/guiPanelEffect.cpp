@@ -2,100 +2,149 @@
 
 #include "guiPanelEffect.hpp"
 
+#include "humanInterface/hid.hpp"
+extern PanelTouch touch;
+
 void GUIPanelEffect::registerElements() {
+    for (uint32_t elementIndex = 0; elementIndex < 2; elementIndex++) {
+        if (!touch.outputPatchActive() && !patch)
+            effectPanelElements[elementIndex].select = true;
 
-    uint32_t entryIndex = 0;
-
-    for (uint32_t elementIndex = 0; elementIndex < LIVEPANELENTRYS; elementIndex++) {
-
-        for (uint32_t x = 0; x < EntrysPerElement; x++) { // start new Element
-
-            if (entryIndex < entrys.size()) { // no more entry available
-                effectPanelElements[elementIndex].addEntry(entrys[entryIndex]);
-            }
-            else {
-                effectPanelElements[elementIndex].addEntry(); // empty entry
-            }
-
-            entryIndex++;
-        }
+        effectPanelElements[elementIndex].addEntry(entrys[elementIndex], elementIndex * 2);
     }
-
-    effectPanelElements[scroll.relPosition].select = 1;
 }
 
-void GUIPanelEffect::updateEntrys(BaseModule *module) {
-    entrys.clear();
+void GUIPanelEffect::updateEntrys() {
 
-    if (effectType == CRUSH) {
-        if (moduleType == OSCA) {
+    if (effectType == PHASE) {
+        switch (scrollDotsPhase.position) {
+            case 0:
+                entrys[0] = nullptr;
+                entrys[1] = &((Phaseshaper *)module)->aPoint1Y;
+                break;
+            case 1:
+                entrys[0] = &((Phaseshaper *)module)->aPoint2X;
+                entrys[1] = &((Phaseshaper *)module)->aPoint2Y;
+                break;
+            case 2:
+                entrys[0] = &((Phaseshaper *)module)->aPoint3X;
+                entrys[1] = &((Phaseshaper *)module)->aPoint3Y;
+                break;
+            case 3:
+                entrys[0] = nullptr;
+                entrys[1] = &((Phaseshaper *)module)->aPoint4Y;
+                break;
 
-            entrys.push_back(&((OSC_A *)module)->aSamplecrusher);
-            entrys.push_back(&((OSC_A *)module)->aBitcrusher);
+            default:
+                entrys[0] = nullptr;
+                entrys[1] = nullptr;
+                break;
         }
-        if (moduleType == OSCB) {
 
-            entrys.push_back(&((OSC_B *)module)->aSamplecrusher);
-            entrys.push_back(&((OSC_B *)module)->aBitcrusher);
-        }
-        if (moduleType == NOISE) {
-            entrys.push_back(&((Noise *)module)->aSamplecrusher);
-        }
+        scrollDotsPhase.entrys = 4;
     }
-    else {
-        if (effectType == PHASE) {
-            entrys.push_back(&((Phaseshaper *)module)->aPoint2X);
-            entrys.push_back(&((Phaseshaper *)module)->aPoint2Y);
-            entrys.push_back(&((Phaseshaper *)module)->aPoint3X);
-            entrys.push_back(&((Phaseshaper *)module)->aPoint3Y);
-            entrys.push_back(&((Phaseshaper *)module)->aPoint1Y);
-            entrys.push_back(&((Phaseshaper *)module)->aPoint4Y);
-            entrys.push_back(&((Phaseshaper *)module)->aDryWet);
-        }
-        else {
-            uint8_t index = 0;
-            for (Analog *a : module->getPotis()) {
-                entrys.push_back(a);
+    else if (effectType == WAVE) {
+        switch (scrollDotsWave.position) {
+            case 0:
+                entrys[0] = &((Waveshaper *)module)->aPoint1X;
+                entrys[1] = &((Waveshaper *)module)->aPoint1Y;
+                break;
+            case 1:
+                entrys[0] = &((Waveshaper *)module)->aPoint2X;
+                entrys[1] = &((Waveshaper *)module)->aPoint2Y;
+                break;
+            case 2:
+                entrys[0] = &((Waveshaper *)module)->aPoint3X;
+                entrys[1] = &((Waveshaper *)module)->aPoint3Y;
+                break;
+            case 3:
+                entrys[0] = nullptr;
+                entrys[1] = &((Waveshaper *)module)->aPoint4Y;
 
-                index++;
+                break;
+
+            default:
+                entrys[0] = nullptr;
+                entrys[1] = nullptr;
+                break;
+        }
+        scrollDotsWave.entrys = 4;
+    }
+    for (uint32_t entryID = 0; entryID < 2; entryID++) { // for poth rows
+        if (entrys[entryID] != nullptr) {
+            if (entrys[entryID]->input->patchesInOut.size() != 0) {
+                scrollPatches[entryID].entrys = entrys[entryID]->input->patchesInOut.size();
+                scrollPatches[entryID].checkScroll();
+
+                uint32_t entryCounter = 0;
+
+                for (uint32_t patchID = scrollPatches[entryID].offset;
+                     patchID < entrys[entryID]->input->patchesInOut.size(); // for each Patch
+                     patchID++) {
+                    if (entryCounter < EFFECTPATCHELEMENTS) { // as long as we have free slots
+                        effectPatchElements[entryID][entryCounter].addEntry(
+                            entrys[entryID]->input->patchesInOut[patchID], 1 + entryID * 2);
+                        entryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (!touch.outputPatchActive()) {
+                    if (patch) {
+                        effectPatchElements[entryID][scrollPatches[entryID].relPosition].select = true;
+                    }
+                }
+            }
+            else {
+                actionHandler.registerActionEncoder(1 + entryID * 2); // clear amount encoder
             }
         }
+        else {
+            actionHandler.registerActionEncoder(1 + entryID * 2); // clear amount encoder
+        }
     }
-    scroll.entrys = ceil(((float)entrys.size() / EntrysPerElement));
-    scroll.checkScroll();
+}
+
+void GUIPanelEffect::togglePatchView() {
+    patch = !patch;
 }
 
 void GUIPanelEffect::registerOverviewEntrys() {
-    entrys.clear();
+    for (uint32_t layer = 0; layer < 2; layer++) {
 
-    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->oscA.aSamplecrusher);
-    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->oscA.aBitcrusher);
-    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->waveshaperA.aDryWet, true);
-    overviewPanelElements[0].addEntry(&allLayers[cachedFocus.layer]->phaseshaperA.aDryWet, true);
+        overviewPanelElements[layer][0].name = "OSC A";
+        overviewPanelElements[layer][1].name = "OSC B";
+        overviewPanelElements[layer][2].name = "NOISE";
 
-    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->oscB.aSamplecrusher);
-    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->oscB.aBitcrusher);
-    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->waveshaperB.aDryWet, true);
-    overviewPanelElements[1].addEntry(&allLayers[cachedFocus.layer]->phaseshaperB.aDryWet, true);
+        overviewPanelElements[layer][0].addEntry(&allLayers[layer]->oscA.aSamplecrusher);
+        overviewPanelElements[layer][0].addEntry(&allLayers[layer]->oscA.aBitcrusher);
+        overviewPanelElements[layer][0].addEntry(&allLayers[layer]->waveshaperA.aDryWet, true);
+        overviewPanelElements[layer][0].addEntry(&allLayers[layer]->phaseshaperA.aDryWet, true);
 
-    overviewPanelElements[2].addEntry(&allLayers[cachedFocus.layer]->noise.aSamplecrusher);
-    overviewPanelElements[2].addEntry(nullptr);
-    overviewPanelElements[2].addEntry(nullptr);
-    overviewPanelElements[2].addEntry(nullptr);
+        overviewPanelElements[layer][1].addEntry(&allLayers[layer]->oscB.aSamplecrusher);
+        overviewPanelElements[layer][1].addEntry(&allLayers[layer]->oscB.aBitcrusher);
+        overviewPanelElements[layer][1].addEntry(&allLayers[layer]->waveshaperB.aDryWet, true);
+        overviewPanelElements[layer][1].addEntry(&allLayers[layer]->phaseshaperB.aDryWet, true);
 
-    overviewPanelElements[0].addEffectAmt(&allLayers[cachedFocus.layer]->oscA.aEffect);
-    overviewPanelElements[1].addEffectAmt(&allLayers[cachedFocus.layer]->oscB.aEffect);
-    overviewPanelElements[2].addEffectAmt(&allLayers[cachedFocus.layer]->noise.aSamplecrusher);
+        overviewPanelElements[layer][2].addEntry(&allLayers[layer]->noise.aSamplecrusher);
+        overviewPanelElements[layer][2].addEntry(nullptr);
+        overviewPanelElements[layer][2].addEntry(nullptr);
+        overviewPanelElements[layer][2].addEntry(nullptr);
 
-    scroll.entrys = 3;
-    scroll.checkScroll();
+        overviewPanelElements[layer][0].addEffectAmt(&allLayers[layer]->oscA.aEffect);
+        overviewPanelElements[layer][1].addEffectAmt(&allLayers[layer]->oscB.aEffect);
+        overviewPanelElements[layer][2].addEffectAmt(&allLayers[layer]->noise.aSamplecrusher);
 
-    overviewPanelElements[scroll.relPosition].select = 1;
+        scrollModule.entrys = 3;
+        scrollModule.checkScroll();
+    }
 }
 
 void GUIPanelEffect::selectModule(moduleSelect module) {
     newModuleType = module;
     updateModule = true;
+    overview = false;
 }
 
 void GUIPanelEffect::selectEffect(effectSelect effect) {
@@ -103,18 +152,14 @@ void GUIPanelEffect::selectEffect(effectSelect effect) {
     updateEffect = true;
 }
 
+void GUIPanelEffect::enableOverview() {
+    overview = true;
+    moduleSelected[0] = false;
+    moduleSelected[1] = false;
+}
+
 void GUIPanelEffect::updateModuleSelection() {
 
-    if (newModuleType == moduleType) {
-        overview = true;
-        moduleSelected[moduleType] = 0;
-        moduleType = NOMODULE;
-        return;
-    }
-    overview = false;
-    if (newModuleType == NOISE) {
-        selectEffect(CRUSH);
-    }
     moduleSelected[moduleType] = 0;
     moduleType = newModuleType;
     moduleSelected[moduleType] = 1;
@@ -138,22 +183,23 @@ void GUIPanelEffect::Draw() {
         updateEffectSelection();
         updateEffect = false;
     }
+    // clear encoder
 
     registerPanelSettings();
 
     if (overview) {
-        registerOverviewEntrys();
+        overviewPanelElements[cachedFocus.layer][scrollModule.relPosition].select = 1;
 
         for (int i = 0; i < LIVEPANELENTRYS; i++) {
-            overviewPanelElements[i].Draw();
+            overviewPanelElements[cachedFocus.layer][i].Draw();
         }
     }
     else {
         // empty waveBuffer
         uint32_t data = 0x00000000;
         fastMemset(&data, (uint32_t *)*(waveBuffer.buffer), (waveBuffer.width * waveBuffer.height) / 2);
-        BaseModule *module = nullptr;
 
+        // Draw Waves
         if (moduleType == OSCA) {
             if (effectType == WAVE) {
                 module = &(allLayers[cachedFocus.layer]->waveshaperA);
@@ -162,10 +208,6 @@ void GUIPanelEffect::Draw() {
             else if (effectType == PHASE) {
                 module = &(allLayers[cachedFocus.layer]->phaseshaperA);
                 drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA, (Phaseshaper *)module);
-            }
-            else if (effectType == CRUSH) {
-                module = &(allLayers[cachedFocus.layer]->oscA);
-                drawCrushPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA);
             }
         }
         else if (moduleType == OSCB) {
@@ -177,33 +219,26 @@ void GUIPanelEffect::Draw() {
                 module = &(allLayers[cachedFocus.layer]->phaseshaperB);
                 drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB, (Phaseshaper *)module);
             }
-            else if (effectType == CRUSH) {
-                module = &(allLayers[cachedFocus.layer]->oscB);
-                drawCrushPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB);
-            }
         }
-
-        else if (moduleType == NOISE) {
-            if (effectType == CRUSH) {
-                module = &(allLayers[cachedFocus.layer]->noise);
-                int8_t wave[100];
-                calculateNoiseWave((Noise *)module, wave, 100);
-                drawCrushPanel(wave);
-            }
-        }
-
         if (module == nullptr)
             return;
 
-        updateEntrys(module);
-        registerElements();
-
         SCB_CleanDCache_by_Addr((uint32_t *)waveBuffer.buffer, waveBuffer.height * waveBuffer.width * 2);
-
         copyWaveBuffer(waveBuffer, panelAbsX, panelAbsY);
 
-        for (int i = 0; i < LIVEPANELENTRYS; i++) {
+        // Register Entrys
+
+        updateEntrys();
+        registerElements();
+
+        for (int i = 0; i < 2; i++) {
             effectPanelElements[i].Draw();
+        }
+
+        for (int rows = 0; rows < 2; rows++) {
+            for (int i = 0; i < EFFECTPATCHELEMENTS; i++) {
+                effectPatchElements[rows][i].Draw();
+            }
         }
     }
 }
@@ -211,14 +246,14 @@ void GUIPanelEffect::Draw() {
 void GUIPanelEffect::drawWaveShaperPanel(int8_t *renderedWave, Waveshaper *module) {
     // drawGrid(waveBuffer, c4444gridcolor);
     drawWave(waveBuffer, renderedWave, 100, 2, c4444wavecolorTrans);
-    drawWaveshaper(waveBuffer, module);
+    drawWaveshaper(waveBuffer, module, scrollDotsWave.position + 1);
     drawFrame(waveBuffer, c4444framecolor);
 }
 
 void GUIPanelEffect::drawPhaseShaperPanel(int8_t *renderedWave, Phaseshaper *module) {
     // drawGrid(waveBuffer, c4444gridcolor);
     drawWave(waveBuffer, renderedWave, 100, 1, c4444wavecolorTrans);
-    drawPhaseshaper(waveBuffer, module);
+    drawPhaseshaper(waveBuffer, module, scrollDotsPhase.position + 1);
     drawFrame(waveBuffer, c4444framecolor);
 }
 
@@ -230,28 +265,26 @@ void GUIPanelEffect::drawCrushPanel(int8_t *renderedWave) {
 
 void GUIPanelEffect::registerPanelSettings() {
 
-    actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scroll), 1), "SCROLL"},
-                                        {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelEffect::enableOverview, this), "OVER"}, &(overview));
 
-    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelEffect::selectModule, this, OSCA), "OSC A"},
+    actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelEffect::selectModule, this, OSCA), "OSC A"},
                                          &(moduleSelected[0]));
 
-    actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelEffect::selectModule, this, OSCB), "OSC B"},
+    actionHandler.registerActionLeftData(2, {std::bind(&GUIPanelEffect::selectModule, this, OSCB), "OSC B"},
                                          &(moduleSelected[1]));
-    actionHandler.registerActionLeftData(2, {std::bind(&GUIPanelEffect::selectModule, this, NOISE), "NOISE"},
-                                         &(moduleSelected[2]));
+
     if (overview == true) {
         actionHandler.registerActionRightData(0);
         actionHandler.registerActionRightData(1);
         actionHandler.registerActionRightData(2);
-    }
-    else if (moduleType == NOISE) {
 
-        actionHandler.registerActionRightData(0);
-        actionHandler.registerActionRightData(1);
-        actionHandler.registerActionRightData(2, {std::bind(&GUIPanelEffect::selectEffect, this, CRUSH), "CRUSH"},
-                                              &(effectSelected[2]));
+        actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scrollModule), 1), "SCROLL"},
+                                            {std::bind(&Scroller::scroll, &(this->scrollModule), -1), "SCROLL"},
+                                            {nullptr, ""});
+
+        actionHandler.registerActionEncoder(5);
     }
+
     else {
 
         actionHandler.registerActionRightData(0, {std::bind(&GUIPanelEffect::selectEffect, this, WAVE), "WAVE"},
@@ -259,12 +292,122 @@ void GUIPanelEffect::registerPanelSettings() {
 
         actionHandler.registerActionRightData(1, {std::bind(&GUIPanelEffect::selectEffect, this, PHASE), "PHASE"},
                                               &(effectSelected[1]));
-        actionHandler.registerActionRightData(2, {std::bind(&GUIPanelEffect::selectEffect, this, CRUSH), "CRUSH"},
-                                              &(effectSelected[2]));
+
+        actionHandler.registerActionRightData(2, {std::bind(&GUIPanelEffect::togglePatchView, this), "PATCHES"},
+                                              &patch);
+        if (effectType == WAVE) {
+            actionHandler.registerActionEncoder(4, {std::bind(&Scroller::scroll, &(this->scrollDotsWave), 1), "SCROLL"},
+                                                {std::bind(&Scroller::scroll, &(this->scrollDotsWave), -1), "SCROLL"},
+                                                {nullptr, ""});
+
+            if (moduleType == OSCA) {
+                actionHandler.registerActionEncoder(
+                    5,
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet), 1),
+                     "SCROLL"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet), 0),
+                     "SCROLL"},
+                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet)), ""});
+            }
+            if (moduleType == OSCB) {
+                actionHandler.registerActionEncoder(
+                    5,
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet), 1),
+                     "SCROLL"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet), 0),
+                     "SCROLL"},
+                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet)), ""});
+            }
+        }
+        else if (effectType == PHASE) {
+            actionHandler.registerActionEncoder(
+                4, {std::bind(&Scroller::scroll, &(this->scrollDotsPhase), 1), "SCROLL"},
+                {std::bind(&Scroller::scroll, &(this->scrollDotsPhase), -1), "SCROLL"}, {nullptr, ""});
+
+            if (moduleType == OSCA) {
+                actionHandler.registerActionEncoder(
+                    5,
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet), 1),
+                     "SCROLL"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet), 0),
+                     "SCROLL"},
+                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet)), ""});
+            }
+            if (moduleType == OSCB) {
+                actionHandler.registerActionEncoder(
+                    5,
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet), 1),
+                     "SCROLL"},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
+                               &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet), 0),
+                     "SCROLL"},
+                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet)), ""});
+            }
+        }
+
+        if (patch) {
+
+            if (touch.outputPatchActive()) { // we are in patching mode
+                actionHandler.registerActionEncoder(
+                    0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[0]->input), "RESET"});
+
+                actionHandler.registerActionEncoder(
+                    2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[1]->input), "RESET"});
+
+                actionHandler.registerActionEncoder(1);
+                actionHandler.registerActionEncoder(3);
+            }
+            else {
+
+                actionHandler.registerActionEncoder(
+                    0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
+                    {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"}, {nullptr, ""});
+                actionHandler.registerActionEncoder(
+                    2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
+                    {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"}, {nullptr, ""});
+            }
+        }
+        else {
+
+            if (touch.outputPatchActive()) { // we are in patching mode
+                actionHandler.registerActionEncoder(
+                    0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[0]->input), "RESET"});
+
+                actionHandler.registerActionEncoder(
+                    2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[1]->input), "RESET"});
+            }
+
+            actionHandler.registerActionEncoder(1);
+            actionHandler.registerActionEncoder(3);
+        }
     }
 }
 
+void GUIPanelEffect::patchToOutput(uint32_t entryID) {
+    touch.externPatchInput(entrys[entryID]->input);
+
+    updateEntrys();
+    patch = true;
+    scrollPatches[entryID].scroll(100); // set scroll to max
+}
+
 void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
+
     panelWidth = width;
     panelHeight = height;
     panelAbsX = x;
@@ -272,32 +415,47 @@ void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t 
     this->pathVisible = pathVisible;
 
     // elements Sizes
-    uint16_t elementWidth = width;
-    uint16_t elementSpace = 2;
-    uint16_t elementHeight = (height - WAVEFORMHEIGHT - (LIVEPANELENTRYS - 2) * elementSpace) / LIVEPANELENTRYS;
+    uint16_t elementWidth = width / 2;
+    // uint16_t elementSpace = 2;
+    uint16_t elementHeight = 60;
 
     // init Elements
-    for (int i = 0; i < LIVEPANELENTRYS; i++) {
-        effectPanelElements[i].init(panelAbsX, panelAbsY + (elementHeight + elementSpace) * i + WAVEFORMHEIGHT,
-                                    elementWidth, elementHeight);
+    for (int i = 0; i < 2; i++) {
+        effectPanelElements[i].init(panelAbsX + i * elementWidth, panelAbsY + WAVEFORMHEIGHT, elementWidth,
+                                    elementHeight);
     }
+    uint16_t PatchElementHeight = (height - WAVEFORMHEIGHT - elementHeight) / EFFECTPATCHELEMENTS;
 
+    // init Elements
+    for (int entryID = 0; entryID < 2; entryID++) {
+
+        for (int i = 0; i < EFFECTPATCHELEMENTS; i++) {
+            effectPatchElements[entryID][i].init(panelAbsX + entryID * elementWidth,
+                                                 panelAbsY + WAVEFORMHEIGHT + elementHeight + i * PatchElementHeight +
+                                                     1,
+                                                 elementWidth, PatchElementHeight - 2);
+        }
+    }
     // elements Sizes
+    elementWidth = width;
+
     elementHeight = 60;
     // init Elements
-    for (int i = 0; i < 3; i++) {
-        overviewPanelElements[i].init(panelAbsX, panelAbsY + (elementHeight + 40) * i + 40, elementWidth,
-                                      elementHeight);
+    for (int layer = 0; layer < 2; layer++) {
+        for (int i = 0; i < 3; i++) {
+            overviewPanelElements[layer][i].init(panelAbsX, panelAbsY + (elementHeight + 40) * i + 40, elementWidth,
+                                                 elementHeight - 1);
+        }
     }
-
-    overviewPanelElements[0].name = "OSC A";
-    overviewPanelElements[1].name = "OSC B";
-    overviewPanelElements[2].name = "NOISE";
+    registerOverviewEntrys();
 
     name = "EFFECT";
 
     selectModule(OSCA);
     selectEffect(WAVE);
+
+    scrollPatches[0].maxEntrysVisible = EFFECTPATCHELEMENTS;
+    scrollPatches[1].maxEntrysVisible = EFFECTPATCHELEMENTS;
 }
 
 #endif

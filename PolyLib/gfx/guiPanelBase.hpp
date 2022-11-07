@@ -26,6 +26,8 @@ extern const GUI_FONTINFO *fontSmall;
 extern const GUI_FONTINFO *fontMedium;
 extern const GUI_FONTINFO *fontBig;
 
+extern const char *unitHertz;
+
 /*Aufbau Data Panel
 
   - GUIPanelData
@@ -45,6 +47,7 @@ extern const GUI_FONTINFO *fontBig;
 
 
 */
+void drawCustomInfo(BaseModule *module, uint32_t posX, uint32_t posY);
 
 void drawCustomDigitalElement(Digital *entry, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
@@ -88,8 +91,8 @@ void calculateNoiseWave(Noise *module, int8_t *renderedWave, uint16_t samples);
 
 void drawADSR(WaveBuffer &buffer, ADSR *module);
 
-void drawPhaseshaper(WaveBuffer &buffer, Phaseshaper *module);
-void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module);
+void drawPhaseshaper(WaveBuffer &buffer, Phaseshaper *module, uint32_t dotSelect = 0);
+void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module, uint32_t dotSelect = 0);
 
 void drawCustomControls(BaseModule *module, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
@@ -386,26 +389,54 @@ class Effect_PanelElement {
     }
     void Draw();
 
-    void addEntry(Analog *data = nullptr) {
-
-        entrys[numberEntrys] = data;
-
-        numberEntrys++;
-        visible = 1;
+    void addEntry(Analog *data, uint8_t encoderID) {
+        entrys = data;
+        this->encoderID = encoderID;
     }
 
     uint8_t select = 0;
-    uint8_t visible = 0;
+    uint8_t encoderID = 0;
 
   private:
-    uint16_t numberEntrys = 0;
     uint16_t panelAbsX;
     uint16_t panelAbsY;
 
     uint16_t entryWidth;
     uint16_t entryHeight;
 
-    Analog *entrys[4];
+    Analog *entrys;
+
+    uint16_t width;
+    uint16_t height;
+};
+
+class Effect_PatchElement {
+  public:
+    void init(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+        this->panelAbsX = x;
+        this->panelAbsY = y;
+        this->width = width;
+        this->height = height;
+        this->select = select;
+    }
+    void Draw();
+
+    void addEntry(PatchElement *data, uint8_t encoderID) {
+        entry = data;
+        this->encoderID = encoderID;
+    }
+
+    uint8_t select = 0;
+    uint8_t encoderID = 0;
+
+  private:
+    uint16_t panelAbsX;
+    uint16_t panelAbsY;
+
+    uint16_t entryWidth;
+    uint16_t entryHeight;
+
+    PatchElement *entry;
 
     uint16_t width;
     uint16_t height;

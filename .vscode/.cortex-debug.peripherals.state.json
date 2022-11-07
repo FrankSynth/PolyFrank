@@ -1,1 +1,1 @@
-[{"node":"GPIOD","expanded":true,"format":0,"pinned":false},{"node":"GPIOD.IDR","expanded":true,"format":0}]
+[{"node":"RCC","expanded":true,"format":0,"pinned":true},{"node":"OTG1_HS_GLOBAL","expanded":true,"format":0,"pinned":false},{"node":"OTG2_HS_GLOBAL","expanded":true,"format":0,"pinned":false},{"node":"OTG2_HS_PWRCLK","expanded":true,"format":0,"pinned":false}]

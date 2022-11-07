@@ -90,13 +90,13 @@
 /* Create buffer for reception and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-volatile uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
+volatile uint8_t UserRxBufferHS[APP_RX_DATA_SIZE];
 
 /** Data to send over USB MIDI are stored in this buffer   */
-volatile uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+volatile uint8_t UserTxBufferHS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
+midiUSB::COMusb MIDIComRead(MIDI_Transmit_HS);
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -108,7 +108,7 @@ midiUSB::COMusb MIDIComRead(MIDI_Transmit_FS);
  * @{
  */
 
-extern USBD_HandleTypeDef hUsbDeviceFS;
+extern USBD_HandleTypeDef hUsbDeviceHS;
 // extern midi::MidiInterface<midiUSB::COMusb> midiDeviceUSB;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
@@ -124,11 +124,11 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
  * @{
  */
 
-static int8_t MIDI_Init_FS(void);
-static int8_t MIDI_DeInit_FS(void);
-static int8_t MIDI_Control_FS(uint8_t cmd, uint8_t *pbuf, uint16_t length);
-static int8_t MIDI_Receive_FS(uint8_t *pbuf, uint32_t *Len);
-static int8_t MIDI_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
+static int8_t MIDI_Init_HS(void);
+static int8_t MIDI_DeInit_HS(void);
+static int8_t MIDI_Control_HS(uint8_t cmd, uint8_t *pbuf, uint16_t length);
+static int8_t MIDI_Receive_HS(uint8_t *pbuf, uint32_t *Len);
+static int8_t MIDI_TransmitCplt_HS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
 
@@ -138,19 +138,19 @@ static int8_t MIDI_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
  * @}
  */
 
-USBD_MIDI_ItfTypeDef USBD_Interface_MIDI_fops_FS = {MIDI_Init_FS, MIDI_DeInit_FS, MIDI_Control_FS, MIDI_Receive_FS,
-                                                    MIDI_TransmitCplt_FS};
+USBD_MIDI_ItfTypeDef USBD_Interface_MIDI_fops_HS = {MIDI_Init_HS, MIDI_DeInit_HS, MIDI_Control_HS, MIDI_Receive_HS,
+                                                    MIDI_TransmitCplt_HS};
 
 /* Private functions ---------------------------------------------------------*/
 /**
  * @brief  Initializes the MIDI media low layer over the FS USB IP
  * @retval USBD_OK if all operations are OK else USBD_FAIL
  */
-static int8_t MIDI_Init_FS(void) {
+static int8_t MIDI_Init_HS(void) {
     /* USER CODE BEGIN 3 */
     /* Set Application Buffers */
-    USBD_MIDI_SetTxBuffer(&hUsbDeviceFS, (uint8_t *)UserTxBufferFS, 0);
-    USBD_MIDI_SetRxBuffer(&hUsbDeviceFS, (uint8_t *)UserRxBufferFS);
+    USBD_MIDI_SetTxBuffer(&hUsbDeviceHS, (uint8_t *)UserTxBufferHS, 0);
+    USBD_MIDI_SetRxBuffer(&hUsbDeviceHS, (uint8_t *)UserRxBufferHS);
     return (USBD_OK);
     /* USER CODE END 3 */
 }
@@ -159,7 +159,7 @@ static int8_t MIDI_Init_FS(void) {
  * @brief  DeInitializes the MIDI media low layer
  * @retval USBD_OK if all operations are OK else USBD_FAIL
  */
-static int8_t MIDI_DeInit_FS(void) {
+static int8_t MIDI_DeInit_HS(void) {
     /* USER CODE BEGIN 4 */
     return (USBD_OK);
     /* USER CODE END 4 */
@@ -172,7 +172,7 @@ static int8_t MIDI_DeInit_FS(void) {
  * @param  length: Number of data to be sent (in bytes)
  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
  */
-static int8_t MIDI_Control_FS(uint8_t cmd, uint8_t *pbuf, uint16_t length) {
+static int8_t MIDI_Control_HS(uint8_t cmd, uint8_t *pbuf, uint16_t length) {
     /* USER CODE BEGIN 5 */
     switch (cmd) {
         case MIDI_SEND_ENCAPSULATED_COMMAND: break;
@@ -232,19 +232,19 @@ static int8_t MIDI_Control_FS(uint8_t cmd, uint8_t *pbuf, uint16_t length) {
  * @param  Len: Number of data received (in bytes)
  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
  */
-static int8_t MIDI_Receive_FS(uint8_t *Buf, uint32_t *Len) {
+static int8_t MIDI_Receive_HS(uint8_t *Buf, uint32_t *Len) {
     /* USER CODE BEGIN 6 */
-    USBD_MIDI_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-    USBD_MIDI_ReceivePacket(&hUsbDeviceFS);
+    USBD_MIDI_SetRxBuffer(&hUsbDeviceHS, &Buf[0]);
+    USBD_MIDI_ReceivePacket(&hUsbDeviceHS);
     // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     MIDIComRead.push(Buf, *Len);
-    // MIDI_Transmit_FS(Buf, *Len);
+    // MIDI_Transmit_HS(Buf, *Len);
     return (USBD_OK);
     /* USER CODE END 6 */
 }
 
 /**
- * @brief  MIDI_Transmit_FS
+ * @brief  MIDI_Transmit_HS
  *         Data to send over USB IN endpoint are sent over MIDI interface
  *         through this function.
  *         @note
@@ -254,21 +254,24 @@ static int8_t MIDI_Receive_FS(uint8_t *Buf, uint32_t *Len) {
  * @param  Len: Number of data to be sent (in bytes)
  * @retval USBD_OK if all operations are OK else USBD_FAIL or USBD_BUSY
  */
-uint8_t MIDI_Transmit_FS(uint8_t *Buf, uint16_t Len) {
+uint8_t MIDI_Transmit_HS(uint8_t *Buf, uint16_t Len) {
     uint8_t result = USBD_OK;
     /* USER CODE BEGIN 7 */
-    USBD_MIDI_HandleTypeDef *hmidi = (USBD_MIDI_HandleTypeDef *)hUsbDeviceFS.pClassData;
+    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED) {
+        return USBD_FAIL;
+    }
+    USBD_MIDI_HandleTypeDef *hmidi = (USBD_MIDI_HandleTypeDef *)hUsbDeviceHS.pClassData;
     if (hmidi->TxState != 0) {
         return USBD_BUSY;
     }
-    USBD_MIDI_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
-    result = USBD_MIDI_TransmitPacket(&hUsbDeviceFS);
+    USBD_MIDI_SetTxBuffer(&hUsbDeviceHS, Buf, Len);
+    result = USBD_MIDI_TransmitPacket(&hUsbDeviceHS);
     /* USER CODE END 7 */
     return result;
 }
 
 /**
- * @brief  MIDI_TransmitCplt_FS
+ * @brief  MIDI_TransmitCplt_HS
  *         Data transmited callback
  *
  *         @note
@@ -279,7 +282,7 @@ uint8_t MIDI_Transmit_FS(uint8_t *Buf, uint16_t Len) {
  * @param  Len: Number of data received (in bytes)
  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
  */
-static int8_t MIDI_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum) {
+static int8_t MIDI_TransmitCplt_HS(uint8_t *Buf, uint32_t *Len, uint8_t epnum) {
     uint8_t result = USBD_OK;
     /* USER CODE BEGIN 13 */
     UNUSED(Buf);

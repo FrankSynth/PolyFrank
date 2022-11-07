@@ -132,8 +132,7 @@ void GUIPanelPatchMatrix::collectOutputs() {
     else if (viewMode == AUDIOVIEW) {
         for (Output *output : allLayers[cachedFocus.layer]->outputs) { // Collect Module if inputs available
             ModuleType moduleType = allLayers[cachedFocus.layer]->modules[output->moduleId]->moduleType;
-            if ((moduleType == MODULE_OSC_A) | (moduleType == MODULE_OSC_B) | (moduleType == MODULE_SUB) |
-                (moduleType == MODULE_NOISE)) {
+            if ((moduleType == MODULE_OSC_A) | (moduleType == MODULE_OSC_B) | (moduleType == MODULE_NOISE)) {
                 if (output->visible) {
                     if (filteredView) {
                         if (output->patchesInOut.size())

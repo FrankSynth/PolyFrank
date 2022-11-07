@@ -3,29 +3,6 @@
 
 namespace FlagHandler {
 
-void initFlagHandler() {
-#ifdef POLYCONTROL
-
-    renderingDoneSwitchBuffer = false;
-
-    HID_Initialized = false;
-    Panel_0_EOC_Interrupt = false;
-    Panel_1_EOC_Interrupt = false;
-
-    Control_Touch_Interrupt = false;
-    Control_Touch_ISR = nullptr;
-
-    Panel_0_Touch_Interrupt = false;
-    Panel_0_Touch_ISR = nullptr;
-
-    Panel_1_Touch_Interrupt = false;
-    Panel_1_Touch_ISR = nullptr;
-
-    readTemperature = false;
-
-#endif
-}
-
 #ifdef POLYCONTROL
 
 // bool receiveDMARunning = false;
@@ -59,9 +36,9 @@ volatile bool USB_HS_CONNECTED = false;
 volatile bool USB_FS_CONNECTED = false;
 
 // Display
-volatile bool renderingDoneSwitchBuffer;
+volatile bool renderingDoneSwitchBuffer = false;
 
-volatile bool readTemperature;
+volatile bool readTemperature = false;
 std::function<void()> readTemperature_ISR = nullptr;
 
 volatile ledDriverState ledDriverATransmit = DRIVER_IDLE;

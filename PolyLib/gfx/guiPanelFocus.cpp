@@ -1,6 +1,7 @@
 #ifdef POLYCONTROL
 
 #include "guiPanelFocus.hpp"
+#include "render/renderCVDef.h"
 
 void GUIPanelFocus::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
     panelWidth = width;
@@ -91,6 +92,10 @@ void GUIPanelFocus::Draw() {
     // resetFocus
     newPanelFocus.type = NOFOCUS;
 
+    uint32_t wavePositionX = LCDWIDTH / 2 - waveBuffer.width / 2;
+
+    uint32_t wavePositionY = HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER;
+
     if (cachedFocus.type == FOCUSMODULE) {
         BaseModule *module = allLayers[cachedFocus.layer]->modules[cachedFocus.modul];
 
@@ -106,8 +111,7 @@ void GUIPanelFocus::Draw() {
 
         ModuleType type = module->moduleType;
 
-        if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_SUB || type == MODULE_LFO ||
-            type == MODULE_ADSR) {
+        if (type == MODULE_OSC_A || type == MODULE_OSC_B || type == MODULE_LFO || type == MODULE_ADSR) {
             entrys = FOCUSPANELENTRYSWAVE;
 
             registerModuleSettings(panelElementsWave);
@@ -119,8 +123,9 @@ void GUIPanelFocus::Draw() {
             drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY + waveBuffer.height, SCROLLBARWIDTH,
                           panelHeight - waveBuffer.height, scroll->offset, scroll->entrys, entrys);
 
-            drawWaveFromModule(waveBuffer, module, LCDWIDTH / 2 - waveBuffer.width / 2,
-                               HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER);
+            drawWaveFromModule(waveBuffer, module, wavePositionX, wavePositionY);
+
+            drawCustomInfo(module, wavePositionX, wavePositionY + WAVEFORMHEIGHTINFO);
         }
         else { // module without wave
 

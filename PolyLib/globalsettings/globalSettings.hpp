@@ -32,12 +32,14 @@ class GlobalSettings {
         __globSettingsSystem.category = "SYSTEM";
         __globSettingsSystem.settings.push_back(&extClockOutLength);
         __globSettingsSystem.settings.push_back(&presetValueHandling);
+        __globSettingsSystem.settings.push_back(&functionButtons);
 
         __globSettingsMIDI.category = "MIDI";
         __globSettingsMIDI.settings.push_back(&midiSource);
         __globSettingsMIDI.settings.push_back(&midiSend);
         __globSettingsMIDI.settings.push_back(&midiLayerAChannel);
         __globSettingsMIDI.settings.push_back(&midiLayerBChannel);
+        __globSettingsMIDI.settings.push_back(&midiPitchBendRange);
 
         __globSettingsDisplay.category = "DISPLAY";
         __globSettingsDisplay.settings.push_back(&dispColor);
@@ -105,23 +107,6 @@ class GlobalSettings {
         }
     }
 
-    // init
-    void initID() {
-        // ID MIDIID;
-        // ID DispID;
-        // ID modID;
-
-        // for (Setting *setting : __globSettingsMIDI) {
-        //     setting->id = modID.getNewId();
-        // }
-        // for (Setting *setting : __globSettingsDisplay) {
-        //     setting->id = modID.getNewId();
-        // }
-        // for (Setting *setting : __globSettingsSystem) {
-        //     setting->id = modID.getNewId();
-        // }
-    }
-
     void setShift(uint8_t shift) { this->shift = shift; }
 
     std::string *statusReport() {
@@ -163,11 +148,13 @@ class GlobalSettings {
 
     Setting extClockOutLength = Setting("EXT CLK. ms.", 2, 1, 50, false, binary);
     Setting presetValueHandling = Setting("PRESET VALUE", 0, 0, 1, false, binary, &presetValueHandlingNameList);
+    Setting functionButtons = Setting("F BUTTON", 0, 0, 1, false, binary, &functionButtonsHandlingNameList);
 
     Setting midiSource = Setting("MIDI", 0, 0, 1, false, binary, &midiTypeNameList);
     Setting midiSend = Setting("SEND", 0, 0, 1, false, binary, &offOnNameList);
     Setting midiLayerAChannel = Setting("Layer A Ch.", 0, 0, 10, false, binary);
     Setting midiLayerBChannel = Setting("Layer B Ch.", 0, 0, 10, false, binary);
+    Setting midiPitchBendRange = Setting("PB Range", 2, 1, 12, false, binary, &pbRangeNameList);
 
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
@@ -183,6 +170,8 @@ class GlobalSettings {
     uint8_t shift = 0;
 
   private:
+    const std::vector<const char *> functionButtonsHandlingNameList = {"SAVE SLOTS", "FUNCTION2"};
+
     const std::vector<const char *> presetValueHandlingNameList = {"OVERWRITE", "GRAB"};
 
     const std::vector<const char *> amountLayerNameList = {"OFF", "ON"};
@@ -192,6 +181,9 @@ class GlobalSettings {
 
     const std::vector<const char *> polyMergeNameList = {"A | B", "A + B"};
     const std::vector<const char *> polySplitNameList = {"1|8", "2|4", "4|2", "8|1", "AUTO"};
+    const std::vector<const char *> pbRangeNameList = {"1 Semitone",  "2 Semitones",  "3 Semitones",  "4 Semitones",
+                                                       "5 Semitones", "6 Semitones",  "7 Semitones",  "8 Semitones",
+                                                       "9 Semitones", "10 Semitones", "11 Semitones", "12 Semitones"};
 };
 
 extern GlobalSettings globalSettings;

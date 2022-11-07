@@ -448,7 +448,7 @@ void LEDAllInputs(uint32_t layerID) {
 
 void LEDModuleSwitch(uint32_t layerID) {
 
-    LEDSingleSetting(&allLayers[layerID]->sub.dOctaveSwitch);
+    LEDSingleSetting(&allLayers[layerID]->oscA.dOctaveSwitchSub);
     LEDSingleSetting(&allLayers[layerID]->oscB.dSync);
 
     LEDSingleSetting(&allLayers[layerID]->lfoA.dAlignLFOs);
@@ -581,6 +581,38 @@ void LEDSingleSetting(Digital *digital) {
 
 //////////// PanelTouch ///////////
 
+RAM1 uint8_t saveSlots[2][3][PRESET_SIZE];
+RAM1 uint8_t tempSaveStorage[PRESET_SIZE];
+
+void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
+    if (event) { // Push Event
+        switch (globalSettings.functionButtons.value) {
+            case 0: {                       // Fast Save Slots
+                if (globalSettings.shift) { // When shift is pressed
+
+                    if (saveSlotState[cachedFocus.layer][buttonID] == SLOTFREE) { // First time only store
+                        saveSlotState[cachedFocus.layer][buttonID] = SLOTUSED;
+                        allLayers[cachedFocus.layer]->collectLayerConfiguration(
+                            (int32_t *)saveSlots[cachedFocus.layer][buttonID],
+                            false); // store current Layer
+                    }
+                    else if (saveSlotState[cachedFocus.layer][buttonID] == SLOTUSED) {
+                        allLayers[cachedFocus.layer]->collectLayerConfiguration((int32_t *)tempSaveStorage,
+                                                                                false); // store current Layer
+                        allLayers[cachedFocus.layer]->writeLayerConfiguration(
+                            (int32_t *)saveSlots[cachedFocus.layer][buttonID], false);
+
+                        memcpy(saveSlots[cachedFocus.layer][buttonID], &tempSaveStorage,
+                               PRESET_SIZE); // Copy preset in Storage}
+                    }
+                }
+            }
+
+            default: break;
+        }
+    }
+};
+
 void PanelTouch::eventLayer(uint8_t layerID, uint16_t touchState, uint8_t port) {
     this->layerID = layerID;
 
@@ -640,7 +672,7 @@ void PanelTouch::evaluateLayer(uint8_t pin, uint8_t port, uint8_t event) {
             case 2: evaluateInput((Input *)&(allLayers[layerID]->oscB.iMorph), event); break;
             case 3: evaluateInput((Input *)&(allLayers[layerID]->oscB.iFM), event); break;
             case 4: evaluateModul((BaseModule *)&(allLayers[layerID]->oscB), event); break;
-            case 5: evaluateSetting((Digital *)&(allLayers[layerID]->sub.dOctaveSwitch), event); break;
+            case 5: evaluateSetting((Digital *)&(allLayers[layerID]->oscA.dOctaveSwitchSub), event); break;
             case 6: evaluateInput((Input *)&(allLayers[layerID]->oscA.iEffect), event); break;
             case 7: evaluateInput((Input *)&(allLayers[layerID]->oscA.iMorph), event); break;
             case 8: evaluateInput((Input *)&(allLayers[layerID]->oscA.iFM), event); break;
@@ -759,9 +791,9 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
             case 2: evaluateModul(&allLayers[cachedFocus.layer]->midi, event); break;
             case 3: evaluateOutput((Output *)&(allLayers[layerID]->midi.oAftertouch), event); break;
             case 4: evaluateOutput((Output *)&(allLayers[layerID]->midi.oPitchbend), event); break;
-            case 5: break; // TODO F1
-            case 6: break; // TODO F2
-            case 7: break; // TODO F3
+            case 5: evaluateFunctionButtons(0, event); break;
+            case 6: evaluateFunctionButtons(1, event); break;
+            case 7: evaluateFunctionButtons(2, event); break;
             case 8: break;
             case 9: evaluateActionButton(&actionHandler.buttonRight[0], event); break;
             case 10: evaluateActionButton(&actionHandler.buttonRight[1], event); break;
@@ -796,6 +828,11 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
 void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
     if (event) { // push Event
         if (activeOutput != nullptr) {
+            if (tempOutputLocation.layer != 0xff) {
+                newFocus = tempOutputLocation;
+                tempOutputLocation.layer = 0xff;
+            }
+
             clearOnReleaseOut = false; // we doing a patch remove clear flag
 
             // MIDI Outputs specialCase -> get LayerID from target and reassign module with corrected layerID
@@ -839,6 +876,7 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
         }
     }
 }
+
 void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
 
     if (event) { // push Event
@@ -881,6 +919,15 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
         if (pOutput == activeOutput) {
 
             activeOutput = nullptr;
+            if (tempOutputLocation.layer != 0xff) {
+                if (externalPatchAction == true) {
+                    externalPatchAction = false;
+                }
+                else {
+                    newFocus = tempOutputLocation;
+                }
+                tempOutputLocation.layer = 0xff;
+            }
         }
         if (clearOnReleaseOut) {
 
@@ -935,7 +982,7 @@ void PanelTouch::setInputFocus(Input *pInput) {
 void PanelTouch::setOutputFocus(Output *pOutput) {
     if (activeInput == nullptr && activeOutput == nullptr) {
         activeOutput = pOutput;
-        newFocus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
+        tempOutputLocation = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
     }
 }
 void PanelTouch::forceSetOutputFocus(Output *pOutput) {
@@ -954,6 +1001,19 @@ void PanelTouch::forceSetInputFocus(Input *pInput) {
 
 void PanelTouch::setModulFocus(BaseModule *pModule) {
     newFocus = {pModule->layerId, pModule->id, 0, FOCUSMODULE};
+}
+
+void PanelTouch::externPatchInput(Input *pInput) {
+    if (activeOutput != nullptr && pInput != nullptr) {
+        allLayers[layerID]->addPatchInOutById(activeOutput->idGlobal, pInput->idGlobal, 0);
+        externalPatchAction = true;
+    }
+}
+void PanelTouch::externPatchRemove(Input *pInput) {
+    if (activeOutput != nullptr && pInput != nullptr) {
+        allLayers[layerID]->removePatchInOutById(activeOutput->idGlobal, pInput->idGlobal);
+        externalPatchAction = true;
+    }
 }
 
 void resetSystem() {

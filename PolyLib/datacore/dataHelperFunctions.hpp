@@ -468,3 +468,79 @@ inline void floatToString2(std::string &buffer, float fValue) {
         buffer += std::to_string(integer) + "." + std::to_string(decimal);
     }
 }
+
+inline void floatToString1(std::string &buffer, float fValue) {
+
+    int32_t integer = int32_t(fValue);
+    int32_t decimal = (abs(fValue) - floor(abs(fValue))) * 10;
+
+    buffer += std::to_string(integer) + "." + std::to_string(decimal);
+}
+
+inline void floatToString(std::string &buffer, float fValue, uint32_t digits) {
+
+    // INTEGER PART
+    uint32_t usedDigits = buffer.size();
+    buffer += std::to_string(int32_t(fValue));
+    usedDigits = buffer.size() - usedDigits;
+
+    // DECIMALS
+    if (usedDigits >= digits) { // check digits left for decimals
+        return;
+    }
+    digits -= usedDigits; // number of decimals left
+
+    buffer += ".";
+
+    uint32_t digit = 0;
+    float decimal;
+    decimal = abs(fValue) - floor(abs(fValue));
+
+    for (size_t d = 0; d < digits; d++) {
+        decimal = (decimal - digit) * 10;
+        digit = (uint32_t)decimal;
+        buffer += std::to_string(digit);
+    }
+}
+
+inline void floatToStringWithUnit(std::string &buffer, float fValue, const char *unit, std::string &prefix,
+                                  uint32_t digits) {
+
+    if (digits == 0) {
+        buffer += std::to_string(int32_t(fValue));
+    }
+    else {
+        floatToString(buffer, fValue, digits);
+    }
+    buffer += " ";
+    buffer += prefix;
+    buffer += unit;
+}
+
+inline void floatToStringWithUnitPrefix(std::string &buffer, float fValue, const char *unit, uint32_t digits) {
+    std::string prefix = "";
+    float scaledValue;
+
+    if (fValue > 1000000.f) {
+        prefix = "M";
+        scaledValue = fValue / 1000000.f;
+    }
+    else if (fValue > 1000.f) {
+        prefix = "k";
+        scaledValue = fValue / 1000.f;
+    }
+    else if (fValue > 1.f) {
+        prefix = "";
+        scaledValue = fValue;
+    }
+    else if (fValue > 0.001f) {
+        prefix = "m";
+        scaledValue = fValue * 1000.f;
+    }
+    else {
+        prefix = "u";
+        scaledValue = fValue * 1000000.f;
+    }
+
+    floatToStringWithUnit(buffer, scaledValue, unit, prefix, digits);
+}

@@ -4,11 +4,13 @@
 #include "datacore/dataHelperFunctions.hpp"
 
 const GUI_FONTINFO *fontSmall = &GUI_FontBahnschrift12_FontInfo;
-
 const GUI_FONTINFO *fontMedium = &GUI_FontBahnschrift24_FontInfo;
 const GUI_FONTINFO *fontBig = &GUI_FontBahnschrift32_FontInfo;
-
 const GUI_FONTINFO *fontConsole = &GUI_FontBahnschrift16_FontInfo;
+
+/////UNITS
+
+const char *unitHertz = "Hz";
 
 void drawConsole(const CircularBuffer<char, 1024> &consoleBuffer, uint16_t rows, uint32_t x, uint32_t y, uint16_t w,
                  uint16_t h) {
@@ -624,6 +626,61 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
     valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
 
     drawRectangleChampfered(cLayer, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+}
+
+void drawEffectPatchElement(PatchElement *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
+
+    if (entry != nullptr) {
+
+        uint32_t nameWidth = 80;
+        std::string text =
+            allLayers[entry->sourceOut->layerId]->getModules()[entry->sourceOut->moduleId]->getShortName();
+
+        // drawRectangleChampfered(cGrey, x, y, w, h, 1);
+        drawString(text, cFont_Deselect, x + 5, y + (-fontMedium->size + h) / 2, fontMedium, LEFT);
+
+        uint32_t xPatch = x + nameWidth;
+        uint32_t yPatch = y;
+        uint32_t width = w - nameWidth;
+        uint32_t height = h;
+
+        if (select) {
+            drawRectangleFill(cHighlight, xPatch, yPatch, width, height);
+            drawRectangleFill(cGrey, xPatch + 1, yPatch + 1, width - 2, height - 2);
+        }
+        else {
+            drawRectangleFill(cGreyLight, xPatch, yPatch, width, height);
+            drawRectangleFill(cGrey, xPatch + 1, yPatch + 1, width - 2, height - 2);
+        }
+
+        uint32_t blockDistance = width / 8;
+        uint8_t barHeigth = 8;
+        uint32_t blockSize = (h - barHeigth - 4);
+
+        float patchAmount = entry->amount;
+
+        for (uint8_t index = 0; index < VOICESPERCHIP; index++) {
+
+            float amount = patchAmount * entry->sourceOut->currentSample[index];
+            amount = abs(testFloat(amount, -1, 1));
+
+            drawRectangleCentered(cHighlight, (blockSize * amount) / 2,
+                                  blockDistance / 2 + xPatch + index * blockDistance, blockDistance / 2 + yPatch);
+        }
+
+        if (patchAmount < 0) {
+            drawRectangleFill(cLayer, xPatch + width / 2 - (width / 2 - 3) * -patchAmount,
+                              yPatch + height - 3 - barHeigth, (width / 2 - 3) * -patchAmount, barHeigth);
+        }
+        else {
+
+            drawRectangleFill(cLayer, xPatch + width / 2, yPatch + height - 3 - barHeigth,
+                              (width / 2 - 3) * patchAmount, barHeigth);
+        }
+    }
+
+    select = 0;
+    entry = nullptr;
 }
 
 void drawModuleElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
@@ -1297,16 +1354,18 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
         drawLine(buffer, 3 * buffer.width / 4, (buffer.height / 3) * 2, 3 * buffer.width / 4, buffer.height,
                  c4444wavecolor);
     }
-    else if (module->id == allLayers[module->layerId]->sub.id) {
-        drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesSub, 100, 2, c4444wavecolor);
-        drawFrame(buffer, c4444framecolor);
-    }
     else if (module->moduleType == MODULE_LFO) {
         int8_t wave[100];
         calculateLFOWave((LFO *)module, wave, 100);
-
+        if (&buffer == &waveBuffer) { // temp custom smaller size for info bar
+            buffer.height = WAVEFORMHEIGHTINFO;
+        }
         drawWave(buffer, wave, 100, 2, c4444wavecolor);
         drawFrame(buffer, c4444framecolor);
+
+        if (&buffer == &waveBuffer) {
+            buffer.height = WAVEFORMHEIGHT;
+        }
     }
     else if (module->moduleType == MODULE_PHASE) {
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 1, c4444wavecolorTrans);
@@ -1314,8 +1373,14 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
         drawFrame(buffer, c4444framecolor);
     }
     else if (module->moduleType == MODULE_ADSR) {
+        if (&buffer == &waveBuffer) { // temp custom smaller size for info bar
+            buffer.height = WAVEFORMHEIGHTINFO;
+        }
         drawADSR(buffer, (ADSR *)module);
         drawFrame(buffer, c4444framecolor);
+        if (&buffer == &waveBuffer) {
+            buffer.height = WAVEFORMHEIGHT;
+        }
     }
     else if (module->moduleType == MODULE_WAVESHAPER) {
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolorTrans);
@@ -1634,35 +1699,40 @@ void drawADSR(WaveBuffer &buffer, ADSR *module) {
     drawFilledCircle(buffer, P[4][0], P[4][1], c4444dot, 8);
 }
 
-void drawPhaseshaper(WaveBuffer &buffer, Phaseshaper *module) {
-    vec<2> P1;
-    vec<2> P2;
-    vec<2> P3;
-    vec<2> P4;
+void drawPhaseshaper(WaveBuffer &buffer, Phaseshaper *module, uint32_t dotSelect) {
+
+    vec<2> P[4];
 
     // Invert/Scale
-    P1[0] = 0;
-    P1[1] = 7 + (1 - module->Point1Y[0]) * (buffer.height - 14);
+    P[0][0] = 0;
+    P[0][1] = 7 + (1 - module->Point1Y[0]) * (buffer.height - 14);
 
-    P2[0] = module->Point2X[0] * (buffer.width - 1);
-    P2[1] = 7 + (1 - module->Point2Y[0]) * (buffer.height - 14);
+    P[1][0] = module->Point2X[0] * (buffer.width - 1);
+    P[1][1] = 7 + (1 - module->Point2Y[0]) * (buffer.height - 14);
 
-    P3[0] = module->Point3X[0] * (buffer.width - 1);
-    P3[1] = 7 + (1 - module->Point3Y[0]) * (buffer.height - 14);
+    P[2][0] = module->Point3X[0] * (buffer.width - 1);
+    P[2][1] = 7 + (1 - module->Point3Y[0]) * (buffer.height - 14);
 
-    P4[0] = buffer.width - 1;
-    P4[1] = 7 + (1 - module->Point4Y[0]) * (buffer.height - 14);
+    P[3][0] = buffer.width - 1;
+    P[3][1] = 7 + (1 - module->Point4Y[0]) * (buffer.height - 14);
 
-    drawLineWidth(buffer, P1[0], P1[1], P2[0], P2[1], 3, c4444wavecolor);
-    drawLineWidth(buffer, P2[0], P2[1], P3[0], P3[1], 3, c4444wavecolor);
-    drawLineWidth(buffer, P3[0], P3[1], P4[0], P4[1], 3, c4444wavecolor);
+    drawLineWidth(buffer, P[0][0], P[0][1], P[1][0], P[1][1], 3, c4444wavecolor);
+    drawLineWidth(buffer, P[1][0], P[1][1], P[2][0], P[2][1], 3, c4444wavecolor);
+    drawLineWidth(buffer, P[2][0], P[2][1], P[3][0], P[3][1], 3, c4444wavecolor);
 
     // Dots
-    drawFilledCircle(buffer, P2[0], P2[1], c4444dot, 8);
-    drawFilledCircle(buffer, P3[0], P3[1], c4444dot, 8);
+
+    for (uint32_t dotID = 0; dotID < 4; dotID++) {
+        if (dotSelect != 0) {
+            if (dotID + 1 == dotSelect) {
+                drawFilledCircle(buffer, P[dotID][0], P[dotID][1], c4444wavecolor, 14);
+            }
+        }
+        drawFilledCircle(buffer, P[dotID][0], P[dotID][1], c4444dot, 8);
+    }
 }
 
-void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module) {
+void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module, uint32_t dotSelect) {
 
     __disable_irq();
 
@@ -1722,10 +1792,15 @@ void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module) {
     // drawCubicSpline(buffer, 3, x, y, c4444wavecolor);
 
     // Dots
-    drawFilledCircle(buffer, xdots[0], ydots[0], c4444dot, 8);
-    drawFilledCircle(buffer, xdots[1], ydots[1], c4444dot, 8);
-    drawFilledCircle(buffer, xdots[2], ydots[2], c4444dot, 8);
-    drawFilledCircle(buffer, xdots[3], ydots[3], c4444dot, 8);
+
+    for (uint32_t dotID = 0; dotID < 4; dotID++) {
+        if (dotSelect != 0) {
+            if (dotID + 1 == dotSelect) {
+                drawFilledCircle(buffer, xdots[dotID], ydots[dotID], c4444wavecolor, 14);
+            }
+        }
+        drawFilledCircle(buffer, xdots[dotID], ydots[dotID], c4444dot, 8);
+    }
 }
 
 void Effect_PanelElement::Draw() {
@@ -1734,38 +1809,21 @@ void Effect_PanelElement::Draw() {
 
     entryHeight = height;
 
-    if (visible) {
-
+    if (entrys != nullptr) {
         if (select) {
-            for (uint8_t i = 0; i < 4; i++) {
-                if (entrys[i] != nullptr) {
-                    actionHandler.registerActionEncoder(
-                        i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), "AMOUNT"},
-                        {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), "AMOUNT"},
-                        {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
-                }
-                else {
-                    actionHandler.registerActionEncoder(i); // clear encoder
-                }
-            }
+
+            actionHandler.registerActionEncoder(
+                encoderID, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 1), entrys->getName()},
+                {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 0), entrys->getName()},
+                {std::bind(&Analog::resetValue, entrys), "RESET"});
         }
 
-        entryWidth = width / numberEntrys;
-
-        for (int i = 0; i < numberEntrys; i++) {
-            if (entrys[i] == nullptr) {
-            }
-            else {
-                drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
-                                       select);
-                entrys[i] = nullptr;
-            }
-
-            relX += entryWidth;
-        }
+        drawSmallAnalogElement(entrys, relX + panelAbsX + 1, relY + panelAbsY, width - 2, entryHeight, select);
     }
 
-    numberEntrys = 0;
+    else {
+        actionHandler.registerActionEncoder(encoderID); // clear encoder
+    }
     select = 0;
 }
 
@@ -1776,19 +1834,13 @@ void EffectAmount_PanelElement::Draw() {
     entryHeight = height;
 
     if (!visible) {
-        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
         return;
     }
 
     entryWidth = width / (numberEntrys + 1);
 
-    // Feld mit GruppenNamen
-
     drawSmallAnalogElement(effect, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, true);
     relX += entryWidth;
-
-    // drawNameElement(&name, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-    // relX += entryWidth;
 
     if (select) {
         for (uint8_t i = 0; i < 4; i++) {
@@ -1810,12 +1862,25 @@ void EffectAmount_PanelElement::Draw() {
         else {
             drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
                                    select, moduleName[i]);
-            entrys[i] = nullptr;
         }
 
         relX += entryWidth;
     }
-    numberEntrys = 0;
+    select = 0;
+}
+
+void Effect_PatchElement::Draw() {
+
+    if (entry != nullptr) {
+        if (select) {
+            actionHandler.registerActionEncoder(
+                encoderID, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 1), "AMOUNT"},
+                {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 0), "AMOUNT"},
+                {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
+        }
+        drawEffectPatchElement(entry, panelAbsX + 1, panelAbsY, width - 2, height, select);
+    }
+    entry = nullptr;
     select = 0;
 }
 
@@ -1925,6 +1990,40 @@ void drawQuickViewDigital(Digital *data, uint32_t x, uint32_t y, uint32_t w, uin
 
     valueBarWidth = (float)w * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
     drawRectangleChampfered(cLayer, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+}
+
+void drawCustomInfo(BaseModule *module, uint32_t posX, uint32_t posY) {
+
+    std::string text;
+    uint8_t color[4];
+    uint32_t outputWidth = 8 * 32;
+    uint32_t blockWidth = (outputWidth) / NUMBERVOICES;
+
+    if (module->moduleType == MODULE_LFO) { // CUSTOM LFO Infos,
+
+        float speedInHz = ((LFO *)module)->speed.currentSample[0]; // * (1 / SECONDSPERCVRENDER);
+        floatToStringWithUnitPrefix(text, speedInHz, unitHertz, 3);
+        drawString(text, cWhite, posX + 20, posY + (CUSTOMINFOHEIGHT - fontBig->size) / 2, fontBig, LEFT);
+
+        for (uint32_t v = 0; v < NUMBERVOICES; v++) {
+            *(uint32_t *)color = cWhite;
+
+            color[3] *= (1 + ((LFO *)module)->currentSampleRAW[v]) / 2;
+
+            drawRectangleChampfered(*(uint32_t *)color, (posX + waveBuffer.width - outputWidth + 4) + blockWidth * v,
+                                    posY + 2, blockWidth - 4, CUSTOMINFOHEIGHT - 4, 1);
+        }
+    }
+    if (module->moduleType == MODULE_ADSR) { // CUSTOM LFO Infos,
+        for (uint32_t v = 0; v < NUMBERVOICES; v++) {
+            *(uint32_t *)color = cWhite;
+
+            color[3] *= abs(((ADSR *)module)->currentSampleRAW[v]);
+
+            drawRectangleChampfered(*(uint32_t *)color, (posX + waveBuffer.width - outputWidth + 4) + blockWidth * v,
+                                    posY + 2, blockWidth - 4, CUSTOMINFOHEIGHT - 4, 1);
+        }
+    }
 }
 
 #endif

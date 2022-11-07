@@ -60,7 +60,7 @@ inline vec<VOICESPERCHIP> accumulateNote() {
     layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));
 
-    layerA.sub.oscANote = note; // to calc subtable
+    layerA.oscA.oscNote = note; // to calc subtable
 
     vec<VOICESPERCHIP> logNote;
 
@@ -68,6 +68,10 @@ inline vec<VOICESPERCHIP> accumulateNote() {
         logNote[i] = fastNoteLin2Log_f32(note[i]);
 
     return logNote;
+}
+
+inline vec<VOICESPERCHIP> accumulateShapeSub() {
+    return clamp(layerA.oscA.iShapeSub + layerA.oscA.aShapeSub, layerA.oscA.aShapeSub.min, layerA.oscA.aShapeSub.max);
 }
 
 void renderOSC_A() {
@@ -90,6 +94,14 @@ void renderOSC_A() {
     layerA.oscA.waveTableSelectionUpper = (layerA.oscA.waveTableSelectionLower + 1u) & 0b11;
 
     layerA.oscA.morphFract = layerA.oscA.morph - floor((vec<VOICESPERCHIP>)layerA.oscA.morph);
+
+    ////// SUB
+    layerA.oscA.shapeSub = accumulateShapeSub();
+    layerA.oscA.phaseLengthSub = 0.5f * !layerA.oscA.dOctaveSwitchSub + 0.25f * layerA.oscA.dOctaveSwitchSub;
+
+    layerA.oscA.subWavetable =
+        clamp(round((layerA.oscA.oscNote - (layerA.oscA.dOctaveSwitchSub + 1)) * ((float)SUBWAVETABLES / 10.0f)), 0.0f,
+              (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
 }
 
 ///////////////////////////// OSC B /////////////////////////////////

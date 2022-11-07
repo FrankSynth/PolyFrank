@@ -38,13 +38,11 @@ template <typename T> void printViaSTLink(T &&arg) {
 #ifdef POLYCONTROL
     appendBuffer(str);
 
-    if (FlagHandler::USB_HS_CONNECTED) {
-        USBHSTIMEOUT = 0;
-        while (CDC_Transmit_HS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_HS_CONNECTED = false;
-                return;
-            }
+    USBHSTIMEOUT = 0;
+    while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
+        if (USBHSTIMEOUT > 5000) {
+            FlagHandler::USB_FS_CONNECTED = false;
+            return;
         }
     }
 #elif POLYRENDER
@@ -79,3 +77,6 @@ template <typename... T> void printlnViaSTLink(T &&...args) {
 #define println(...)
 
 #endif
+
+void jumpToBootloader();
+void rebootToBooloader();
