@@ -596,7 +596,7 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
 
     if (data == nullptr)
         return;
-    uint16_t heightBar = 10;
+    uint16_t valueBarHeigth = 16;
 
     // clear
     drawRectangleChampfered(cGrey, x, y, w, h, 1);
@@ -612,27 +612,104 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
 
     // Draw Name
     if (select) {
-        drawRectangleChampfered(cHighlight, x, y, w, h - heightBar - 2, 1);
+        drawRectangleChampfered(cHighlight, x, y, w, h - valueBarHeigth - 2, 1);
         drawString(text, cFont_Select, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
     else {
-        drawRectangleChampfered(cWhiteDark, x, y, w, h - heightBar - 2, 1);
+        drawRectangleChampfered(cWhiteDark, x, y, w, h - valueBarHeigth - 2, 1);
         drawString(text, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2 - 6, fontMedium, CENTER);
     }
 
     uint16_t valueBarWidth = w;
-    uint16_t valueBarHeigth = heightBar;
-    uint16_t relY = h - heightBar;
+    uint16_t relY = h - valueBarHeigth;
     valueBarWidth = (float)valueBarWidth * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
 
     drawRectangleChampfered(cLayer, x, relY + y, valueBarWidth, valueBarHeigth, 1);
+
+    if (data->input != nullptr && data->input->renderBuffer != nullptr) { // draw real value
+
+        uint32_t marker = 2;
+
+        valueBarWidth = w;
+        uint32_t valuePos = 0;
+
+        for (uint32_t i = 0; i < NUMBERVOICES; i++) {
+            float value = data->input->renderBuffer->currentSample[i];
+            value = testFloat(value, data->min, data->max);
+
+            if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+                uint16_t centerX = x + valueBarWidth / 2;
+
+                if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                    valuePos = centerX + ((float)valueBarWidth * (value - data->min - (data->max - data->min) / 2) /
+                                          (float)((data->max - data->min)));
+                }
+                else { // negative value
+
+                    valuePos = centerX - ((float)valueBarWidth * (((data->max - data->min) / 2) - (value - data->min)) /
+                                          (float)((data->max - data->min)));
+                }
+            }
+            else {
+                valuePos = (float)valueBarWidth * (value - data->min) / (float)(data->max - data->min) + x;
+            }
+
+            drawRectangleFill(cHighlight, valuePos, relY + y, marker, valueBarHeigth);
+        }
+    }
+}
+
+void drawAnalogElementReduced(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
+
+    if (data == nullptr)
+        return;
+
+    // clear
+    drawRectangleChampfered(cGrey, x, y, w, h, 1);
+
+    uint32_t rawValueWidth = (float)w * ((float)data->valueMapped - data->min) / (float)(data->max - data->min);
+
+    drawRectangleChampfered(cLayer, x, y, rawValueWidth, h, 1);
+
+    if (data->input != nullptr && data->input->renderBuffer != nullptr) { // draw real value
+
+        uint32_t marker = 4;
+
+        uint32_t valuePos = 0;
+
+        for (uint32_t i = 0; i < NUMBERVOICES; i++) {
+            float value = data->input->renderBuffer->currentSample[i];
+            value = testFloat(value, data->min, data->max);
+
+            if (data->min < 0) { // Centered ValueBar -> expect symmetric range
+                uint16_t centerX = x + w / 2;
+
+                if (value >= ((int32_t)((data->max - data->min) / 2) + data->min)) { // positive value
+
+                    valuePos = centerX + ((float)w * (value - data->min - (data->max - data->min) / 2) /
+                                          (float)((data->max - data->min)));
+                }
+                else { // negative value
+
+                    valuePos = centerX - ((float)w * (((data->max - data->min) / 2) - (value - data->min)) /
+                                          (float)((data->max - data->min)));
+                }
+            }
+            else {
+                valuePos = (float)w * (value - data->min) / (float)(data->max - data->min) + x;
+            }
+
+            drawRectangleFill(cHighlight, valuePos, y, marker, h);
+        }
+    }
 }
 
 void drawEffectPatchElement(PatchElement *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
 
     if (entry != nullptr) {
 
-        uint32_t nameWidth = 80;
+        uint32_t nameWidth = 100;
         std::string text =
             allLayers[entry->sourceOut->layerId]->getModules()[entry->sourceOut->moduleId]->getShortName();
 
@@ -676,6 +753,17 @@ void drawEffectPatchElement(PatchElement *entry, uint32_t x, uint32_t y, uint16_
 
             drawRectangleFill(cLayer, xPatch + width / 2, yPatch + height - 3 - barHeigth,
                               (width / 2 - 3) * patchAmount, barHeigth);
+        }
+
+        uint8_t barWidth = 3;
+        uint8_t barHeight = 4;
+
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+
+            float amount = testFloat(entry->sourceOut->currentSample[i], -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, x + nameWidth - barWidth * (VOICESPERCHIP - i) - 2, y + offsetY, barWidth,
+                              barHeight);
         }
     }
 

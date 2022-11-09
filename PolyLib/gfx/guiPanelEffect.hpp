@@ -7,6 +7,7 @@ typedef enum { OSCA, OSCB, NOMODULE } moduleSelect;
 typedef enum { WAVE, PHASE, NOEFFECT } effectSelect;
 
 #define EFFECTPATCHELEMENTS 4
+#define DRYWETINFO 20
 
 class GUIPanelEffect : public GUIPanelBase {
   public:
@@ -63,6 +64,7 @@ class GUIPanelEffect : public GUIPanelBase {
 
     bool updateEffect = false;
     bool updateModule = false;
+    bool scrollToPatchMax[2];
 
     Analog *entrys[2];
 

@@ -71,9 +71,14 @@ void GUIPanelEffect::updateEntrys() {
         scrollDotsWave.entrys = 4;
     }
     for (uint32_t entryID = 0; entryID < 2; entryID++) { // for poth rows
+
         if (entrys[entryID] != nullptr) {
             if (entrys[entryID]->input->patchesInOut.size() != 0) {
                 scrollPatches[entryID].entrys = entrys[entryID]->input->patchesInOut.size();
+                if (scrollToPatchMax[entryID]) {
+                    scrollToPatchMax[entryID] = false;
+                    scrollPatches[entryID].scroll(100); // scroll to end
+                }
                 scrollPatches[entryID].checkScroll();
 
                 uint32_t entryCounter = 0;
@@ -222,6 +227,17 @@ void GUIPanelEffect::Draw() {
         }
         if (module == nullptr)
             return;
+
+        // DRY WET bar
+        Analog *dryWet = nullptr;
+        if (module->moduleType == MODULE_WAVESHAPER) {
+            dryWet = &((Waveshaper *)module)->aDryWet;
+        }
+        else if (module->moduleType == MODULE_PHASE) {
+            dryWet = &((Phaseshaper *)module)->aDryWet;
+        }
+        drawAnalogElementReduced(dryWet, panelAbsX, panelAbsY + waveBuffer.height, panelWidth,
+                                 20); // DryWet
 
         SCB_CleanDCache_by_Addr((uint32_t *)waveBuffer.buffer, waveBuffer.height * waveBuffer.width * 2);
         copyWaveBuffer(waveBuffer, panelAbsX, panelAbsY);
@@ -399,11 +415,13 @@ void GUIPanelEffect::registerPanelSettings() {
 }
 
 void GUIPanelEffect::patchToOutput(uint32_t entryID) {
+    if (touch.activeOutput->layerId != cachedFocus.layer) {
+        nextLayer();
+    }
     touch.externPatchInput(entrys[entryID]->input);
 
-    updateEntrys();
     patch = true;
-    scrollPatches[entryID].scroll(100); // set scroll to max
+    scrollToPatchMax[entryID] = true;
 }
 
 void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t y, uint8_t pathVisible) {
@@ -421,18 +439,18 @@ void GUIPanelEffect::init(uint32_t width, uint32_t height, uint32_t x, uint32_t 
 
     // init Elements
     for (int i = 0; i < 2; i++) {
-        effectPanelElements[i].init(panelAbsX + i * elementWidth, panelAbsY + WAVEFORMHEIGHT, elementWidth,
+        effectPanelElements[i].init(panelAbsX + i * elementWidth, panelAbsY + WAVEFORMHEIGHT + DRYWETINFO, elementWidth,
                                     elementHeight);
     }
-    uint16_t PatchElementHeight = (height - WAVEFORMHEIGHT - elementHeight) / EFFECTPATCHELEMENTS;
+    uint16_t PatchElementHeight = (height - WAVEFORMHEIGHT - elementHeight - DRYWETINFO) / EFFECTPATCHELEMENTS;
 
     // init Elements
     for (int entryID = 0; entryID < 2; entryID++) {
 
         for (int i = 0; i < EFFECTPATCHELEMENTS; i++) {
             effectPatchElements[entryID][i].init(panelAbsX + entryID * elementWidth,
-                                                 panelAbsY + WAVEFORMHEIGHT + elementHeight + i * PatchElementHeight +
-                                                     1,
+                                                 panelAbsY + WAVEFORMHEIGHT + DRYWETINFO + elementHeight +
+                                                     i * PatchElementHeight + 1,
                                                  elementWidth, PatchElementHeight - 2);
         }
     }

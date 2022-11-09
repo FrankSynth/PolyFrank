@@ -10,6 +10,7 @@ extern std::vector<Layer *> allLayers;
 struct categoryStruct {
     std::string category;
     std::vector<Setting *> settings;
+    uint32_t storeID;
 };
 
 struct renderStatusStruct {
@@ -23,6 +24,17 @@ struct controlStatusStruct {
     Status usage = Status("Usage", "%", 1);
 };
 
+// Storage Structure
+
+typedef enum { START = 0x1, MODULE = 0x2, STOREID = 0x3, CHECKSUM = 0xF } STORAGETYPE;
+
+typedef struct {
+    uint8_t type;
+    uint8_t id;
+    uint32_t data;
+
+} STORAGEBLOCK;
+
 class GlobalSettings {
   public:
     GlobalSettings() {
@@ -30,11 +42,13 @@ class GlobalSettings {
         // push all settings here
 
         __globSettingsSystem.category = "SYSTEM";
+        __globSettingsSystem.storeID = 0;
         __globSettingsSystem.settings.push_back(&extClockOutLength);
         __globSettingsSystem.settings.push_back(&presetValueHandling);
         __globSettingsSystem.settings.push_back(&functionButtons);
 
         __globSettingsMIDI.category = "MIDI";
+        __globSettingsMIDI.storeID = 1;
         __globSettingsMIDI.settings.push_back(&midiSource);
         __globSettingsMIDI.settings.push_back(&midiSend);
         __globSettingsMIDI.settings.push_back(&midiLayerAChannel);
@@ -42,15 +56,17 @@ class GlobalSettings {
         __globSettingsMIDI.settings.push_back(&midiPitchBendRange);
 
         __globSettingsDisplay.category = "DISPLAY";
+        __globSettingsDisplay.storeID = 2;
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
         __globSettingsDisplay.settings.push_back(&dispLED);
         __globSettingsDisplay.settings.push_back(&dispTemperature);
 
         statusReportString.reserve(1024); // reserve enough space for status report
-        // init setting IDs
-        // initID();
     }
+
+    //////Settings Storage Block/////////    numberSettings(uint16_t) | category ID(uint16_t) | Storage ID(uint16_t) |
+    /// SettingsValue | Checksum
 
     void saveGlobalSettings() {
         uint32_t index = 0;

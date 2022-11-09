@@ -1,1 +1,1 @@
-[{"node":"RCC","expanded":true,"format":0,"pinned":true},{"node":"OTG1_HS_GLOBAL","expanded":true,"format":0,"pinned":false},{"node":"OTG2_HS_GLOBAL","expanded":true,"format":0,"pinned":false},{"node":"OTG2_HS_PWRCLK","expanded":true,"format":0,"pinned":false}]
+[{"node":"RCC","expanded":true,"format":0,"pinned":true},{"node":"OTG2_HS_GLOBAL","expanded":true,"format":0,"pinned":false},{"node":"OTG2_HS_GLOBAL.OTG_HS_GCCFG","expanded":true,"format":0},{"node":"OTG2_HS_GLOBAL.OTG_HS_CID","expanded":true,"format":0}]

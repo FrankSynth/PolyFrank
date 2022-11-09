@@ -499,37 +499,13 @@ void printStatus() {
 void printDeviceManager() {
     println(*deviceManager.report());
 }
-extern USBD_HandleTypeDef hUsbDeviceFS;
-extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-// static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx);
 
-// static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx) {
-//     volatile uint32_t count = 0U;
-
-//     /* Wait for AHB master IDLE state. */
-//     do {
-//         if (++count > 200000U) {
-//             return HAL_TIMEOUT;
-//         }
-//     } while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL) == 0U);
-
-//     /* Core Soft Reset */
-//     count = 0U;
-//     USBx->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
-
-//     do {
-//         if (++count > 200000U) {
-//             return HAL_TIMEOUT;
-//         }
-//     } while ((USBx->GRSTCTL & USB_OTG_GRSTCTL_CSRST) == USB_OTG_GRSTCTL_CSRST);
-
-//     return HAL_OK;
-// }
-
+// extern USBD_HandleTypeDef hUsbDeviceFS;
+// extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern USBD_HandleTypeDef hUsbDeviceHS;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+// extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 void COMmunicateISR() {
     static std::vector<char> data;
     while (comAvailable()) {
@@ -557,13 +533,22 @@ void COMmunicateISR() {
                     // HAL_Delay(10);
 
                     // USB_CoreReset(hpcd_USB_OTG_FS.Instance);
-                    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+                    // __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
+                    // __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
+                    // __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+                    // __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+
+                    // hpcd_USB_OTG_FS.Instance->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
+                    // while (hpcd_USB_OTG_FS.Instance->GRSTCTL & USB_OTG_GRSTCTL_CSRST)
+                    //     ;
+                    // while (!(hpcd_USB_OTG_FS.Instance->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL))
+                    //     ;
+                    // hpcd_USB_OTG_FS.Instance->GINTSTS = 0x04000020; // Reset value
+
+                    // RCC->AHB1ENR = 0x00000000;
 
                     // HAL_Delay(10);
-                    // // RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
+                    // RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
                     // __HAL_RCC_OTGHS_FORCE_RESET();
                     // __HAL_RCC_OTGFS_FORCE_RESET();
 
@@ -571,6 +556,28 @@ void COMmunicateISR() {
 
                     // __HAL_RCC_OTGHS_RELEASE_RESET();
                     // __HAL_RCC_OTGFS_RELEASE_RESET();
+
+                    // hpcd_USB_OTG_FS.Instance->GOTGCTL = 0x00010000;
+                    // hpcd_USB_OTG_FS.Instance->GUSBCFG = 0x00001400;
+                    // hpcd_USB_OTG_FS.Instance->GRSTCTL = 0x00001400;
+
+                    // hpcd_USB_OTG_FS.Instance->CID = 0x00001200;
+                    // hpcd_USB_OTG_FS.Instance->GLPMCFG = 0x00;
+                    // hpcd_USB_OTG_FS.Instance->HPTXFSIZ = 0x02000600;
+
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[0] = 0x02000200;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[1] = 0x02000600;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[2] = 0x02000800;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[3] = 0x02000A00;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[4] = 0x02000C00;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[5] = 0x02000E00;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[6] = 0x02001000;
+                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[7] = 0x02001200;
+
+                    // __HAL_RCC_OTGFS_FORCE_RESET();
+                    // __HAL_RCC_OTGFS_RELEASE_RESET();
+
+                    RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
 
                     HAL_Delay(500);
 

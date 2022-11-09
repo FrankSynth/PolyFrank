@@ -6,10 +6,12 @@ inline vec<VOICESPERCHIP> accumulateValue(const Input &input, const Analog &knob
     return clamp(input + knob, knob.min, knob.max);
 }
 inline vec<VOICESPERCHIP> accumulateX2(const Phaseshaper &phaseshaper) {
-    return clamp(phaseshaper.iPoint2X + phaseshaper.aPoint2X, phaseshaper.aPoint2X.min, phaseshaper.aPoint3X);
+    return clamp(phaseshaper.iPoint2X * (phaseshaper.aPoint3X - phaseshaper.aPoint2X.min) + phaseshaper.aPoint2X,
+                 phaseshaper.aPoint2X.min, phaseshaper.aPoint3X);
 }
 inline vec<VOICESPERCHIP> accumulateX3(const Phaseshaper &phaseshaper) {
-    return clamp(phaseshaper.iPoint3X + phaseshaper.aPoint3X, phaseshaper.aPoint2X, phaseshaper.aPoint3X.max);
+    return clamp(phaseshaper.iPoint3X * (phaseshaper.aPoint3X.max - phaseshaper.aPoint2X) + phaseshaper.aPoint3X,
+                 phaseshaper.aPoint2X, phaseshaper.aPoint3X.max);
 }
 
 void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt) {

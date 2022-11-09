@@ -256,6 +256,9 @@ void rebootToBooloader() { // https://github.com/rusefi/rusefi/pull/2999/files
     // RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
 
     *((unsigned long *)0x2001FFF0) = 0xDEADBEEF; // End of RAM
+
+    HAL_Delay(100);
+
     NVIC_SystemReset();
 }
 

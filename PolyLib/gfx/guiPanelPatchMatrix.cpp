@@ -50,14 +50,16 @@ void GUIPanelPatchMatrix::collectModules() {
 
     for (BaseModule *module : allLayers[cachedFocus.layer]->getModules()) { // Collect Module if inputs available
         uint8_t check = 0;
-        for (Input *input : module->inputs) {
-            if (input->visible) {
-                if (filteredView) {
-                    if (input->patchesInOut.size())
+        if (module->displayVis) {
+            for (Input *input : module->inputs) {
+                if (input->visible) {
+                    if (filteredView) {
+                        if (input->patchesInOut.size())
+                            check = 1;
+                    }
+                    else {
                         check = 1;
-                }
-                else {
-                    check = 1;
+                    }
                 }
             }
         }
@@ -296,17 +298,18 @@ void GUIPanelPatchMatrix::Draw() {
 
 void GUIPanelPatchMatrix::registerPanelSettings() {
 
-    actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatchMatrix::scrollModulePosition, this, 1), "MODULE"},
+    actionHandler.registerActionEncoder(4, {std::bind(&GUIPanelPatchMatrix::scrollModulePosition, this, 1), "MODULE"},
                                         {std::bind(&GUIPanelPatchMatrix::scrollModulePosition, this, -1), "MODULE"},
                                         {std::bind(&GUIPanelPatchMatrix::setFocus, this, FOCUSMODULE), "FOCUS"});
-    actionHandler.registerActionEncoder(1, {std::bind(&GUIPanelPatchMatrix::scrollInPosition, this, 1), "TO"},
-                                        {std::bind(&GUIPanelPatchMatrix::scrollInPosition, this, -1), "TO"},
+    actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelPatchMatrix::scrollInPosition, this, 1), "IN"},
+                                        {std::bind(&GUIPanelPatchMatrix::scrollInPosition, this, -1), "IN"},
                                         {std::bind(&GUIPanelPatchMatrix::setFocus, this, FOCUSINPUT), "FOCUS"});
-    actionHandler.registerActionEncoder(3, {std::bind(&GUIPanelPatchMatrix::scrollOutPosition, this, 1), "FROM"},
-                                        {std::bind(&GUIPanelPatchMatrix::scrollOutPosition, this, -1), "FROM"},
+    actionHandler.registerActionEncoder(3, {std::bind(&GUIPanelPatchMatrix::scrollOutPosition, this, 1), "OUT"},
+                                        {std::bind(&GUIPanelPatchMatrix::scrollOutPosition, this, -1), "OUT"},
                                         {std::bind(&GUIPanelPatchMatrix::setFocus, this, FOCUSOUTPUT), "FOCUS"});
 
     actionHandler.registerActionEncoder(2);
+    actionHandler.registerActionEncoder(1);
 
     actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelPatchMatrix::setEnvView, this), "ENV"}, &(this->isEnv));
     actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelPatchMatrix::setMidiView, this), "MIDI"},
