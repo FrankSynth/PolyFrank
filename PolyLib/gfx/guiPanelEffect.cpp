@@ -97,6 +97,8 @@ void GUIPanelEffect::updateEntrys() {
                 }
                 if (!touch.outputPatchActive()) {
                     if (patch) {
+                        activeEntryPatch[entryID] =
+                            effectPatchElements[entryID][scrollPatches[entryID].relPosition].entry;
                         effectPatchElements[entryID][scrollPatches[entryID].relPosition].select = true;
                     }
                 }
@@ -388,24 +390,24 @@ void GUIPanelEffect::registerPanelSettings() {
 
                 actionHandler.registerActionEncoder(
                     0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
-                    {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"}, {nullptr, ""});
+                    {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"},
+                    {std::bind(&Layer::removePatchInOut, allLayers[cachedFocus.id], *activeEntryPatch[0]), "REMOVE"});
                 actionHandler.registerActionEncoder(
                     2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
-                    {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"}, {nullptr, ""});
+                    {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"},
+                    {std::bind(&Layer::removePatchInOut, allLayers[cachedFocus.id], *activeEntryPatch[1]), "REMOVE"});
             }
         }
         else {
 
             if (touch.outputPatchActive()) { // we are in patching mode
-                actionHandler.registerActionEncoder(
-                    0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
-                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
-                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[0]->input), "RESET"});
+                actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"});
 
-                actionHandler.registerActionEncoder(
-                    2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
-                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
-                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[1]->input), "RESET"});
+                actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"});
             }
 
             actionHandler.registerActionEncoder(1);

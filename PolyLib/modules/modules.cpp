@@ -16,3 +16,5 @@ const std::vector<const char *> nlClockStepsInv = {"4/1",   "2/1.", "4/1T", "2/1
                                                    "1/16.", "1/8T", "1/16", "1/16T", "1/32", "1/32T", "1/64T"};
 const std::vector<const char *> nlSubOctaves = {"/2", "/4"};
 const std::vector<const char *> nlDivSteps = {"/1", "/2", "/4", "/8", "/16"};
+
+const std::vector<const char *> nlWavetableSets = {"SET0", "SET1", "SET2", "SET3", "SET4", "SET5"};

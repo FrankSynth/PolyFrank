@@ -81,12 +81,12 @@ void GUIPanelConfig::registerPanelSettings() {
                                         {std::bind(&Scroller::scroll, &(this->scroll), -1), "SCROLL"}, {nullptr, ""});
 
     // register Panel Seetings Left
-    actionHandler.registerActionLeft(0, {std::bind(&GlobalSettings::saveGlobalSettings, &globalSettings), "SAVE"}, 1);
+    actionHandler.registerActionLeft(0, {std::bind(&GlobalSettings::writeGlobalSettings, &globalSettings), "SAVE"}, 1);
     actionHandler.registerActionLeft(1);
     actionHandler.registerActionLeft(2);
 
     // register Panel Seetings Rigth
-    actionHandler.registerActionRight(0, {std::bind(&GlobalSettings::loadGlobalSettings, &globalSettings), "LOAD"}, 1);
+    actionHandler.registerActionRight(0, {std::bind(readConfig), "LOAD"}, 1);
     actionHandler.registerActionRight(1);
     actionHandler.registerActionRight(2);
 }

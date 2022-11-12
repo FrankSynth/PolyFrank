@@ -17,20 +17,27 @@ extern const std::vector<const char *> extStepNameList;
 void switchLiveMode(int32_t *setting);
 void switchClockSourceCallback(int32_t *setting);
 
-typedef enum { LAYER_A, LAYER_B, LAYER_AB } LayerSelect;
 class LiveData {
   public:
     LiveData() {
-        __liveSettingsLivemode.category = "MODE";
-        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeA);
-        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeVoiceModeB);
-        __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeMergeLayer);
-        // __liveSettingsLivemode.settings.push_back(&voiceHandler.livemodeNumberVoices);
-        __liveSettingsLivemode.settings.push_back(&livemodeKeysplit);
-        __liveSettingsLivemode.settings.push_back(&livemodeClockSource);
-        __liveSettingsLivemode.settings.push_back(&internalClock.clockBPM);
-        // __liveSettingsLivemode.settings.push_back(&livemodeExternalClockMultiplyIn);
-        __liveSettingsLivemode.settings.push_back(&livemodeExternalClockMultiplyOut);
+
+        livemodeKeysplit.storeID = 0x00;
+        livemodeClockSource.storeID = 0x01;
+        internalClock.clockBPM.storeID = 0x02;
+        livemodeExternalClockMultiplyOut.storeID = 0x03;
+
+        voiceHandler.livemodeVoiceModeA.storeID = 0x10;
+        voiceHandler.livemodeVoiceModeB.storeID = 0x11;
+
+        voiceHandler.livemodeMergeLayer.storeable = false;
+
+        __liveSettingsLivemode.push_back(&voiceHandler.livemodeVoiceModeA);
+        __liveSettingsLivemode.push_back(&voiceHandler.livemodeVoiceModeB);
+        __liveSettingsLivemode.push_back(&voiceHandler.livemodeMergeLayer);
+        __liveSettingsLivemode.push_back(&livemodeKeysplit);
+        __liveSettingsLivemode.push_back(&livemodeClockSource);
+        __liveSettingsLivemode.push_back(&internalClock.clockBPM);
+        __liveSettingsLivemode.push_back(&livemodeExternalClockMultiplyOut);
     }
     ~LiveData() {}
 
@@ -61,22 +68,23 @@ class LiveData {
     void calcLFOSnapFreq(LFO &lfo);
     void calcAllLFOSnapFreq();
 
-    void collectLiveConfiguration(int32_t *buffer);
-    void writeLiveConfiguration(int32_t *buffer, LayerSelect layer);
+    // void getLiveConfiguration(int32_t *buffer);
+    // void setLiveConfiguration(int32_t *buffer, LayerSelect layer);
 
     void resetLiveConfig();
     void reset();
+
+    uint32_t writeLive(uint32_t blockStartIndex);
 
     VoiceHandler voiceHandler;
 
     Arpeggiator arps[2] = {Arpeggiator(&voiceHandler, 0), Arpeggiator(&voiceHandler, 1)};
 
-    categoryStruct __liveSettingsLivemode;
+    std::vector<Setting *> __liveSettingsLivemode;
 
     Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList, false);
     Setting livemodeClockSource = Setting("CLK SOURCE", 1, 0, 2, false, binary, &clockSourceList, false);
-    // Setting livemodeExternalClockMultiplyIn = Setting("EXT. CLK IN", 3, 0, 7, false, binary, &extStepNameList,
-    // false);
+
     Setting livemodeExternalClockMultiplyOut = Setting("EXT. CLK OUT", 3, 0, 7, false, binary, &extStepNameList, false);
 
     elapsedMillis extClockLengthTimer;

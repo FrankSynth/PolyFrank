@@ -17,6 +17,7 @@ extern const std::vector<const char *> nlClockStepsInv;
 extern const std::vector<const char *> nlDivSteps;
 extern const std::vector<const char *> nlSubOctaves;
 extern const std::vector<const char *> nlRange;
+extern const std::vector<const char *> nlWavetableSets;
 
 typedef enum {
     MODULE_NOTDEFINED,
@@ -66,6 +67,8 @@ class BaseModule {
 
     const char *name;
     const char *shortName;
+
+    uint8_t storeID = 0xff; // NOT SET
 
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
@@ -152,7 +155,6 @@ class OSC_A : public BaseModule {
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
         knobs.push_back(&aEffect);
-
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
         knobs.push_back(&aShapeSub);
@@ -163,6 +165,7 @@ class OSC_A : public BaseModule {
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
         switches.push_back(&dOctaveSwitchSub);
+        switches.push_back(&dWavetableSet);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&fm);
@@ -178,6 +181,21 @@ class OSC_A : public BaseModule {
 
         aMorph.quickview = 1;
         aMasterTune.quickview = 1;
+
+        aMasterTune.storeID = 0x00;
+        aMorph.storeID = 0x01;
+        aEffect.storeID = 0x02;
+        aBitcrusher.storeID = 0x03;
+        aSamplecrusher.storeID = 0x04;
+        aShapeSub.storeID = 0x05;
+
+        dSample0.storeID = 0x00;
+        dSample1.storeID = 0x01;
+        dSample2.storeID = 0x02;
+        dSample3.storeID = 0x03;
+        dOctave.storeID = 0x04;
+        dOctaveSwitchSub.storeID = 0x05;
+        dWavetableSet.storeID = 0x06;
     }
 
     Output out = Output("OUT");
@@ -201,6 +219,7 @@ class OSC_A : public BaseModule {
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
+    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 0, false, &nlWavetableSets, nullptr, true, false);
 
     Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave, false);
 
@@ -259,6 +278,7 @@ class OSC_B : public BaseModule {
         switches.push_back(&dSample3);
         switches.push_back(&dOctave);
         switches.push_back(&dSync);
+        switches.push_back(&dWavetableSet);
 
         renderBuffer.push_back(&note);
         renderBuffer.push_back(&fm);
@@ -274,6 +294,17 @@ class OSC_B : public BaseModule {
 
         aMorph.quickview = 1;
         aTuning.quickview = 1;
+
+        aBitcrusher.storeID = 0x00;
+        aSamplecrusher.storeID = 0x01;
+        aPhaseoffset.storeID = 0x02;
+
+        dSample0.storeID = 0x00;
+        dSample1.storeID = 0x01;
+        dSample2.storeID = 0x02;
+        dSample3.storeID = 0x03;
+        dOctave.storeID = 0x04;
+        dSync.storeID = 0x05;
     }
 
     Output out = Output("OUT");
@@ -304,6 +335,7 @@ class OSC_B : public BaseModule {
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 9, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 10, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 11, true, &nlWavetable, nullptr, false);
+    Digital dWavetableSet = Digital("Wavetable Set", 1, 5, 0, false, &nlWavetableSets, nullptr, true, false);
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -335,6 +367,8 @@ class Noise : public BaseModule {
 
         moduleType = MODULE_NOISE;
         displayVis = 0;
+
+        aSamplecrusher.storeID = 0x00;
     }
 
     Output out = Output("OUT");
@@ -380,6 +414,16 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&noiseLevel);
 
         moduleType = MODULE_MIX;
+
+        aOSCALevel.storeID = 0x00;
+        aOSCBLevel.storeID = 0x01;
+        aSUBLevel.storeID = 0x02;
+        aNOISELevel.storeID = 0x03;
+
+        dOSCADestSwitch.storeID = 0x00;
+        dOSCBDestSwitch.storeID = 0x01;
+        dSUBDestSwitch.storeID = 0x02;
+        dNOISEDestSwitch.storeID = 0x03;
     }
 
     Input iOSCALevel = Input("OSC A", "OSC A", &oscALevel);
@@ -434,6 +478,13 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&toLadder);
 
         moduleType = MODULE_VCF;
+
+        aCutoff.storeID = 0x00;
+        aResonance.storeID = 0x01;
+        aLevel.storeID = 0x02;
+        aParSer.storeID = 0x03;
+
+        dMode.storeID = 0x00;
     }
     Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
     Input iResonance = Input("RESONANCE", "RES", &resonance);
@@ -463,7 +514,6 @@ class Ladder : public BaseModule {
 
         knobs.push_back(&aCutoff);
         knobs.push_back(&aResonance);
-        // knobs.push_back(&aADSR);
         knobs.push_back(&aLevel);
 
         switches.push_back(&dSlope);
@@ -474,6 +524,12 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&cutoff);
 
         moduleType = MODULE_VCF;
+
+        aCutoff.storeID = 0x00;
+        aResonance.storeID = 0x01;
+        aLevel.storeID = 0x02;
+
+        dSlope.storeID = 0x00;
     }
 
     Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
@@ -525,6 +581,19 @@ class LFO : public BaseModule {
 
         // aFreq.quickview = 1;
         aShape.quickview = 1;
+
+        aShape.storeID = 0x00;
+        aAmount.storeID = 0x01;
+        aFreq.storeID = 0x02;
+
+        dFreq.storeID = 0x00;
+        dFreqSnap.storeID = 0x01;
+        dGateTrigger.storeID = 0x02;
+        dClockTrigger.storeID = 0x03;
+        dClockStep.storeID = 0x04;
+        dEXTDiv.storeID = 0x05;
+        dAlignLFOs.storeID = 0x06;
+        dRange.storeID = 0x07;
     }
     Output out = Output("OUT");
 
@@ -620,6 +689,24 @@ class ADSR : public BaseModule {
         renderBuffer.push_back(&currentSampleRAW);
 
         moduleType = MODULE_ADSR;
+
+        aDelay.storeID = 0x00;
+        aAttack.storeID = 0x01;
+        aDecay.storeID = 0x02;
+        aSustain.storeID = 0x03;
+        aRelease.storeID = 0x04;
+        aAmount.storeID = 0x05;
+        aKeytrack.storeID = 0x06;
+        aVelocity.storeID = 0x07;
+        aShape.storeID = 0x08;
+
+        dLoop.storeID = 0x00;
+        dLatch.storeID = 0x01;
+        dReset.storeID = 0x02;
+        dGateTrigger.storeID = 0x03;
+        dClockTrigger.storeID = 0x04;
+        dClockStep.storeID = 0x05;
+        dEXTDiv.storeID = 0x06;
     }
 
     Output out = Output("OUT");
@@ -762,6 +849,11 @@ class Feel : public BaseModule {
         renderBuffer.push_back(&detune);
 
         moduleType = MODULE_FEEL;
+
+        aGlide.storeID = 0x00;
+        aDetune.storeID = 0x01;
+        aSpread.storeID = 0x02;
+        aImperfection.storeID = 0x03;
     }
 
     Input iGlide = Input("GLIDE", "GLIDE", &glide);
@@ -807,6 +899,27 @@ class Tune : public BaseModule {
 
         moduleType = MODULE_TUNE;
         // displayVis = false;
+
+        tuneS_A.storeID = 0x00;
+        tuneS_B.storeID = 0x01;
+        tuneS_C.storeID = 0x02;
+        tuneS_D.storeID = 0x03;
+        tuneS_E.storeID = 0x04;
+        tuneS_F.storeID = 0x05;
+        tuneS_G.storeID = 0x06;
+        tuneS_H.storeID = 0x07;
+        tuneL_A.storeID = 0x08;
+        tuneL_B.storeID = 0x09;
+        tuneL_C.storeID = 0x0a;
+        tuneL_D.storeID = 0x0b;
+        tuneL_E.storeID = 0x0c;
+        tuneL_F.storeID = 0x0d;
+        tuneL_G.storeID = 0x0e;
+        tuneL_H.storeID = 0x0f;
+        tuneCutoffScaleLadder.storeID = 0x10;
+        tuneResonanceScaleLadder.storeID = 0x11;
+        tuneCutoffScaleSteiner.storeID = 0x12;
+        tuneResonanceScaleSteiner.storeID = 0x13;
     }
 
     Analog tuneS_A = Analog("Steiner Scale A", 0.9, 1.1, 1, true);
@@ -858,6 +971,12 @@ class Out : public BaseModule {
         renderBuffer.push_back(&pan);
 
         moduleType = MODULE_OUT;
+
+        aDistort.storeID = 0x00;
+        aVCA.storeID = 0x01;
+        aPan.storeID = 0x02;
+        aPanSpread.storeID = 0x03;
+        aMaster.storeID = 0x04;
     }
 
     Input iDistort = Input("DRIVE", "DRIVE", &distort);
@@ -930,6 +1049,15 @@ class Waveshaper : public BaseModule {
                                        tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f);
         }
         displayVis = 0;
+
+        aPoint1X.storeID = 0x00;
+        aPoint1Y.storeID = 0x01;
+        aPoint2X.storeID = 0x02;
+        aPoint2Y.storeID = 0x03;
+        aPoint3X.storeID = 0x04;
+        aPoint3Y.storeID = 0x05;
+        aPoint4Y.storeID = 0x06;
+        aDryWet.storeID = 0x07;
     }
 
     Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
@@ -996,6 +1124,14 @@ class Phaseshaper : public BaseModule {
         moduleType = MODULE_PHASE;
 
         displayVis = 0;
+
+        aPoint1Y.storeID = 0x00;
+        aPoint2X.storeID = 0x01;
+        aPoint2Y.storeID = 0x02;
+        aPoint3X.storeID = 0x03;
+        aPoint3Y.storeID = 0x04;
+        aPoint4Y.storeID = 0x05;
+        aDryWet.storeID = 0x06;
     }
 
     Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);

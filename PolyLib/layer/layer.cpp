@@ -9,6 +9,8 @@ extern uint8_t sendDeleteAllPatches(uint8_t layerId);
 
 // uint32_t LayerRenBufferSw = 0;
 
+RAM1 uint8_t tempLayerStorage[LAYER_STORESIZE];
+
 void Layer::initID() {
     ID modID;
     ID outputID;
@@ -217,9 +219,8 @@ void Layer::initLayer() {
 
 #ifdef POLYCONTROL
 
-void Layer::collectLayerConfiguration(int32_t *buffer, bool noFilter) {
-
-    // println("collectConfiguration");
+// TODO GET LAYER Config, check for OVERFLOW!
+void Layer::getLayerConfiguration(int32_t *buffer, bool noFilter) {
     uint32_t index = 0;
 
     for (BaseModule *m : modules) {         //  all modules
@@ -229,12 +230,10 @@ void Layer::collectLayerConfiguration(int32_t *buffer, bool noFilter) {
                     buffer[index] = i->value;
                     index++;
                 }
-                // println("value:  ", buffer[index]);
             }
             for (Digital *i : m->getSwitches()) {
                 buffer[index] = i->valueMapped;
                 index++;
-                // println("value:  ", buffer[index]);
             }
         }
     }
@@ -257,13 +256,8 @@ void Layer::collectLayerConfiguration(int32_t *buffer, bool noFilter) {
 
         index++;
     }
-
-    if ((uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)buffer) > (PRESET_SIZE)) {
-        PolyError_Handler("ERROR | FATAL | LAYER -> SaveLayerToPreset -> Datasize to big!");
-    }
-    println("INFO || Layer Datasize: ", (uint32_t)((uint8_t *)&bufferPatch[index] - (uint8_t *)buffer));
 }
-void Layer::writeLayerConfiguration(int32_t *buffer, bool noFilter) {
+void Layer::setLayerConfigration(int32_t *buffer, bool noFilter) {
     uint32_t index = 0;
 
     for (BaseModule *m : modules) { //  all modules
@@ -307,6 +301,55 @@ void Layer::writeLayerConfiguration(int32_t *buffer, bool noFilter) {
     }
 }
 
+uint32_t Layer::writeLayer(uint32_t blockStartIndex) {
+    StorageBlock *buffer = (StorageBlock *)&(blockBuffer[blockStartIndex]);
+    StorageBlock block;
+
+    uint32_t blockIndex = 0;
+
+    for (BaseModule *m : modules) {
+        if (m != &tune) { // filter tune module
+            block.dataType = STORE_MODULE;
+            block.id = m->storeID | id << 7;
+            block.data.asUInt = 0x00;
+            storeToBlock(buffer, block, blockIndex);
+
+            block.dataType = STORE_DATAANALOG;
+            for (Analog *a : m->knobs) {
+                if (a->storeable) {
+                    block.id = a->storeID;
+                    block.data.asInt = a->value;
+                    storeToBlock(buffer, block, blockIndex);
+                }
+            }
+            block.dataType = STORE_DATADIGITAL;
+            for (Digital *d : m->switches) {
+                if (d->storeable) {
+                    block.id = d->storeID;
+                    block.data.asInt = d->valueMapped;
+                    storeToBlock(buffer, block, blockIndex);
+                }
+            }
+        }
+    }
+
+    patchStorageBlock *bufferPatch = (patchStorageBlock *)&(buffer[blockIndex]);
+
+    uint32_t patchIndex = 0;
+    patchStorageBlock patch;
+    // save Patches
+    patch.dataType = STORE_PATCH;
+    for (PatchElement p : patchesInOut) {
+        patch.sourceID = p.sourceOut->idGlobal;
+        patch.targetID = p.targetIn->idGlobal;
+        patch.amount = p.amount;
+
+        bufferPatch[patchIndex++] = patch;
+    }
+
+    return blockStartIndex + blockIndex * sizeof(StorageBlock) + patchIndex * sizeof(patchStorageBlock);
+}
+
 void Layer::clearPresetLocks() {
     for (BaseModule *m : modules) { //  all modules
 
@@ -321,11 +364,8 @@ void Layer::clearPresetLocks() {
 
 void Layer::resendLayerConfig() {
 
-    int32_t layerCache[PRESET_BLOCKSIZE];
-
-    // reuse the collect and write function for resending layer config
-    collectLayerConfiguration(layerCache, true);
-    writeLayerConfiguration(layerCache, true);
+    getLayerConfiguration((int32_t *)tempLayerStorage, true);
+    setLayerConfigration((int32_t *)tempLayerStorage, true);
 }
 
 #endif

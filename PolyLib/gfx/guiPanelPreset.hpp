@@ -16,7 +16,7 @@ class GUIPanelPreset : public GUIPanelBase {
     void registerPanelSettings();
 
     void saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName, std::string thirdName);
-    void loadPresetToLayer(presetStruct *preset, LayerSelect layer);
+    // void loadPresetToLayer(presetStruct *preset, LayerSelect layer);
 
   private:
     // Boxes

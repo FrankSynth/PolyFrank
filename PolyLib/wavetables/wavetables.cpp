@@ -8,6 +8,14 @@ uint32_t WaveTable::size = MAXWAVETABLELENGTH;
 
 std::vector<const char *> nlWavetable;
 
+const WaveTable *waveTableSets[][4] = {
+    {&wavetable_Sine, &wavetable_Triangle, &wavetable_Saw, &wavetable_Square},
+    {&wavetable_am1, &wavetable_am2, &wavetable_am3, &wavetable_am4},
+    {&wavetable_fm1, &wavetable_fm2, &wavetable_fm3, &wavetable_fm4},
+    {&wavetable_pm1, &wavetable_pm2, &wavetable_pm3, &wavetable_pm4},
+    {&wavetable_FeltPianoLow, &wavetable_GuitarHigh, &wavetable_GuitarLow, &wavetable_Square},
+    {&wavetable_Sine, &wavetable_Triangle, &wavetable_Saw, &wavetable_Square}};
+
 inline void pushWavetable(const WaveTable &wavetable) {
     wavetables.push_back(&wavetable);
     nlWavetable.push_back(wavetable.name);

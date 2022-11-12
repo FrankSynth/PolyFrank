@@ -2,7 +2,7 @@
 
 #include "datacore/datacore.hpp"
 #include "modules/modules.hpp"
-#include "preset/preset.hpp"
+#include "storage/loadStoredData.hpp"
 #include <list>
 #include <string>
 #include <vector>
@@ -11,6 +11,8 @@
 #include "render/renderAudioDef.h"
 #include "render/renderCVDef.h"
 #endif
+
+const uint32_t LAYER_STORESIZE = 4096;
 
 typedef struct {
     uint8_t sourceID;
@@ -28,7 +30,6 @@ class Layer {
         modules.push_back(&phaseshaperA);
         modules.push_back(&waveshaperB);
         modules.push_back(&phaseshaperB);
-        // modules.push_back(&sub);
         modules.push_back(&noise);
         modules.push_back(&mixer);
         modules.push_back(&steiner);
@@ -48,18 +49,27 @@ class Layer {
         adsrs.push_back(&envA);
         adsrs.push_back(&envF);
 
-        // for (size_t i = 0; i < VOICESPERCHIP; i++) {
-        //     std::string name = "L: VOICE " + std::to_string(i);
-        //     LadderTune.push_back(Analog(name.c_str(), 0.9, 1, 1, true));
-        // }
-        // for (size_t i = 0; i < VOICESPERCHIP; i++) {
-        //     std::string name = "S: VOICE " + std::to_string(i);
-        //     SteinerTune.push_back(Analog(name.c_str(), 0.9, 1, 1, true));
-        // }
-
-        // skip layer settings?
-
         initID();
+
+        oscA.storeID = 0x00;
+        oscB.storeID = 0x01;
+        waveshaperA.storeID = 0x02;
+        phaseshaperA.storeID = 0x03;
+        waveshaperB.storeID = 0x04;
+        phaseshaperB.storeID = 0x05;
+        noise.storeID = 0x06;
+        mixer.storeID = 0x07;
+        steiner.storeID = 0x08;
+        ladder.storeID = 0x09;
+        envA.storeID = 0x0A;
+        envF.storeID = 0x0B;
+        lfoA.storeID = 0x0C;
+        lfoB.storeID = 0x0D;
+        out.storeID = 0x0E;
+        midi.storeID = 0x0F;
+        feel.storeID = 0x10;
+        layersettings.storeID = 0x11;
+        tune.storeID = 0x12;
 
 #ifdef POLYCONTROL
         renderedAudioWavesOscA = renderedAudioWaves;
@@ -90,9 +100,11 @@ class Layer {
 
     void resendLayerConfig();
 
-    void collectLayerConfiguration(int32_t *buffer, bool noFilter);
-    void writeLayerConfiguration(int32_t *buffer, bool noFilter);
+    void getLayerConfiguration(int32_t *buffer, bool noFilter);
+    void setLayerConfigration(int32_t *buffer, bool noFilter);
     void clearPresetLocks();
+
+    uint32_t writeLayer(uint32_t blockStartIndex);
 
     int8_t renderedAudioWaves[300];
     int8_t *renderedAudioWavesOscA; // size 100

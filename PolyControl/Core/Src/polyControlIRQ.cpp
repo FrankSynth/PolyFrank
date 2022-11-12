@@ -80,18 +80,18 @@ void polyControlLoop() { // Here the party starts
             // startUsageTimer();
             ui.Draw();
         }
-        if (enableWFI) {
-            __disable_irq();
-            stopUsageTimer();
-            __DSB();
-            __WFI();
-            startUsageTimer();
-            __enable_irq();
-        }
-        else {
-            if (timerWFI > 5000)
-                enableWFI = true;
-        }
+        // if (enableWFI) {
+        //     __disable_irq();
+        //     stopUsageTimer();
+        //     __DSB();
+        //     __WFI();
+        //     startUsageTimer();
+        //     __enable_irq();
+        // }
+        // else {
+        //     if (timerWFI > 5000)
+        //         enableWFI = true;
+        // }
     }
 }
 
@@ -491,6 +491,8 @@ void printHelp() {
     println("-d    hardware info");
     println("-s    status");
     println("-isp  flash all 4 render IC");
+    println("-dfu  enable DFU mode (not working)");
+    println("-EEPROM_CLEAR  enable DFU mode (not working)");
 }
 
 void printStatus() {
@@ -500,18 +502,13 @@ void printDeviceManager() {
     println(*deviceManager.report());
 }
 
-// extern USBD_HandleTypeDef hUsbDeviceFS;
-// extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern USBD_HandleTypeDef hUsbDeviceHS;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-// extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 void COMmunicateISR() {
     static std::vector<char> data;
     while (comAvailable()) {
         data.push_back(comRead());
-        // println(data.back());
-
         if (!data.empty()) {               // data not empty -> decode
             if (data.back() == (char)10) { // if we get a "ENTER" decode the data
                 data.pop_back();
@@ -593,6 +590,10 @@ void COMmunicateISR() {
                     HAL_Delay(10);
 
                     flashRenderMCUSPI();
+                }
+                else if (command.compare("-EEPROM_CLEAR") == 0) {
+                    clearEEPROM();
+                    println("EEPROM Cleared");
                 }
                 else if (command.compare("-h") == 0 || command.compare("-help") == 0) {
                     printHelp();

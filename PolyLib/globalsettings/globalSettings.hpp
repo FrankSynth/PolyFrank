@@ -2,15 +2,17 @@
 
 #include "datacore/datacore.hpp"
 #include "layer/layer.hpp"
-#include "preset/preset.hpp"
+#include "storage/loadStoredData.hpp"
+
 #include <vector>
 
 extern std::vector<Layer *> allLayers;
+extern CRC_HandleTypeDef hcrc;
 
 struct categoryStruct {
     std::string category;
     std::vector<Setting *> settings;
-    uint32_t storeID;
+    uint8_t storeID;
 };
 
 struct renderStatusStruct {
@@ -24,22 +26,31 @@ struct controlStatusStruct {
     Status usage = Status("Usage", "%", 1);
 };
 
-// Storage Structure
-
-typedef enum { START = 0x1, MODULE = 0x2, STOREID = 0x3, CHECKSUM = 0xF } STORAGETYPE;
-
-typedef struct {
-    uint8_t type;
-    uint8_t id;
-    uint32_t data;
-
-} STORAGEBLOCK;
-
 class GlobalSettings {
   public:
     GlobalSettings() {
 
         // push all settings here
+
+        extClockOutLength.storeID = 0;
+        presetValueHandling.storeID = 1;
+        functionButtons.storeID = 2;
+
+        midiSource.storeID = 10;
+        midiSend.storeID = 11;
+        midiLayerAChannel.storeID = 12;
+        midiLayerBChannel.storeID = 13;
+        midiPitchBendRange.storeID = 14;
+
+        dispColor.storeID = 20;
+        dispBrightness.storeID = 21;
+        dispLED.storeID = 22;
+        dispTemperature.storeID = 23;
+
+        /////////
+        __categorys.push_back(&__globSettingsSystem);
+        __categorys.push_back(&__globSettingsMIDI);
+        __categorys.push_back(&__globSettingsDisplay);
 
         __globSettingsSystem.category = "SYSTEM";
         __globSettingsSystem.storeID = 0;
@@ -65,62 +76,52 @@ class GlobalSettings {
         statusReportString.reserve(1024); // reserve enough space for status report
     }
 
-    //////Settings Storage Block/////////    numberSettings(uint16_t) | category ID(uint16_t) | Storage ID(uint16_t) |
-    /// SettingsValue | Checksum
+    void init() {
+        dispBrightness.setValue(10);
+        dispLED.setValue(10);
+        dispColor.setValue(0);
+    };
+    void writeGlobalSettings() {
+        StorageBlock *buffer = (StorageBlock *)blockBuffer;
+        StorageBlock block;
 
-    void saveGlobalSettings() {
-        uint32_t index = 0;
-        int32_t *buffer = (int32_t *)blockBuffer;
+        uint32_t blockIndex = 1;
 
-        for (Setting *i : __globSettingsSystem.settings) {
-            buffer[index++] = i->value;
-        }
-        for (Setting *i : __globSettingsMIDI.settings) {
-            buffer[index++] = i->value;
-        }
-        for (Setting *i : __globSettingsDisplay.settings) {
-            buffer[index++] = i->value;
-        }
+        for (categoryStruct *c : __categorys) {
 
-        // Store Tuning
-        for (Analog *a : allLayers[0]->tune.knobs) {
-            buffer[index++] = a->valueMapped;
-        }
-        for (Analog *a : allLayers[1]->tune.knobs) {
-            buffer[index++] = a->valueMapped;
-        }
+            block.dataType = STORE_CATEGORY;
+            block.id = c->storeID;
+            block.data.asUInt = 0x00;
+            storeToBlock(buffer, block, blockIndex);
 
-        writeConfigBlock();
-
-        if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)blockBuffer) > (CONFIG_BLOCKSIZE)) {
-            PolyError_Handler("ERROR | FATAL | GlobalSettings -> saveGlobalSettings -> BufferOverflow!");
-        }
-        println("INFO || Config Datasize: ", (uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)buffer));
-    }
-
-    void loadGlobalSettings() {
-        uint32_t index = 0;
-        int32_t *buffer = (int32_t *)blockBuffer;
-
-        readConfig();
-
-        for (Setting *s : __globSettingsSystem.settings) {
-            s->setValue(buffer[index++]);
-        }
-        for (Setting *s : __globSettingsMIDI.settings) {
-            s->setValue(buffer[index++]);
-        }
-        for (Setting *s : __globSettingsDisplay.settings) {
-            s->setValue(buffer[index++]);
+            block.dataType = STORE_CONFIGSETTING;
+            for (Setting *d : c->settings) {
+                if (d->storeable) {
+                    block.id = d->storeID;
+                    block.data.asInt = d->value;
+                    storeToBlock(buffer, block, blockIndex);
+                }
+            }
         }
 
         // Store Tuning
-        for (Analog *a : allLayers[0]->tune.knobs) {
-            a->setValueWithoutMapping(buffer[index++]);
+        for (uint8_t layer = 0; layer < 2; layer++) {
+            block.dataType = STORE_MODULE;
+            block.id = allLayers[layer]->tune.storeID | layer << 7;
+            block.data.asUInt = 0x00;
+            storeToBlock(buffer, block, blockIndex);
+
+            block.dataType = STORE_DATAANALOG; // Do not check storable!
+            for (Analog *a : allLayers[layer]->tune.knobs) {
+                if (a->storeable) {
+                    block.id = a->storeID;
+                    block.data.asInt = a->value;
+                    storeToBlock(buffer, block, blockIndex);
+                }
+            }
         }
-        for (Analog *a : allLayers[1]->tune.knobs) {
-            a->setValueWithoutMapping(buffer[index++]);
-        }
+
+        writeConfig(blockIndex);
     }
 
     void setShift(uint8_t shift) { this->shift = shift; }
@@ -153,6 +154,7 @@ class GlobalSettings {
     }
 
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
+    std::vector<categoryStruct *> __categorys;
     categoryStruct __globSettingsSystem;
     categoryStruct __globSettingsMIDI;
     categoryStruct __globSettingsDisplay;

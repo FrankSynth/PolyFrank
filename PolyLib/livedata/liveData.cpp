@@ -415,63 +415,87 @@ void LiveData::clockHandling() {
     clock.ticked = 0;
 }
 
-void LiveData::collectLiveConfiguration(int32_t *buffer) {
-    uint32_t index = 0;
+uint32_t LiveData::writeLive(uint32_t blockStartIndex) {
 
-    for (Setting *s : __liveSettingsLivemode.settings) {
-        if (s->storeable == 1) {
-            buffer[index] = s->value;
-            index++;
+    StorageBlock *buffer = (StorageBlock *)&(blockBuffer[blockStartIndex]);
+    StorageBlock block;
+
+    uint32_t blockIndex = 0;
+
+    block.dataType = STORE_LIVESETTING;
+    for (Setting *i : __liveSettingsLivemode) {
+        if (i->storeable) {
+            block.id = i->storeID;
+            block.data.asInt = i->value;
+            storeToBlock(buffer, block, blockIndex);
         }
     }
-    for (Setting *s : arps[0].__liveSettingsArp.settings) {
-        buffer[index] = s->value;
-        index++;
+    // Store Tuning
+    block.dataType = STORE_ARPSETTING;
+    for (uint8_t layer = 0; layer < 2; layer++) {
+        for (Setting *i : arps[layer].__liveSettingsArp) {
+            if (i->storeable) {
+                block.id = i->storeID | layer << 7;
+                block.data.asInt = i->value;
+                storeToBlock(buffer, block, blockIndex);
+            }
+        }
     }
-    for (Setting *s : arps[1].__liveSettingsArp.settings) {
-        buffer[index] = s->value;
-        index++;
-    }
-
-    if ((uint32_t)((uint8_t *)&buffer[index] - (uint8_t *)buffer) > (LIVEDATA_BLOCKSIZE)) {
-        PolyError_Handler("ERROR | FATAL | LiveDataSettings -> saveLiveDataSettings -> BufferOverflow!");
-    }
-    println("INFO || Live blocksize: ", (uint8_t *)&buffer[index] - (uint8_t *)buffer);
+    return blockStartIndex + blockIndex * sizeof(StorageBlock);
 }
 
-void LiveData::writeLiveConfiguration(int32_t *buffer, LayerSelect layer) {
-    uint32_t index = 0;
+// void LiveData::getLiveConfiguration(int32_t *buffer) {
+//     uint32_t index = 0;
 
-    for (Setting *s : __liveSettingsLivemode.settings) {
-        if (s->storeable == 1) {
-            s->setValue(buffer[index]);
-            index++;
-        }
-    }
+//     for (Setting *s : __liveSettingsLivemode.settings) {
+//         if (s->storeable == 1) {
+//             buffer[index] = s->value;
+//             index++;
+//         }
+//     }
+//     for (Setting *s : arps[0].__liveSettingsArp.settings) {
+//         buffer[index] = s->value;
+//         index++;
+//     }
+//     for (Setting *s : arps[1].__liveSettingsArp.settings) {
+//         buffer[index] = s->value;
+//         index++;
+//     }
+// }
 
-    for (Setting *s : arps[0].__liveSettingsArp.settings) {
-        if (layer == LAYER_AB || layer == LAYER_A) {
-            s->setValue(buffer[index]);
-        }
-        index++;
-    }
-    for (Setting *s : arps[1].__liveSettingsArp.settings) {
-        if (layer == LAYER_AB || layer == LAYER_B) {
-            s->setValue(buffer[index]);
-        }
-        index++;
-    }
-}
+// void LiveData::setLiveConfiguration(int32_t *buffer, LayerSelect layer) {
+//     uint32_t index = 0;
+
+//     for (Setting *s : __liveSettingsLivemode.settings) {
+//         if (s->storeable == 1) {
+//             s->setValue(buffer[index]);
+//             index++;
+//         }
+//     }
+
+//     for (Setting *s : arps[0].__liveSettingsArp.settings) {
+//         if (layer == LAYER_AB || layer == LAYER_A) {
+//             s->setValue(buffer[index]);
+//         }
+//         index++;
+//     }
+//     for (Setting *s : arps[1].__liveSettingsArp.settings) {
+//         if (layer == LAYER_AB || layer == LAYER_B) {
+//             s->setValue(buffer[index]);
+//         }
+//         index++;
+//     }
+// }
 
 void LiveData::resetLiveConfig() {
 
-    for (Setting *s : __liveSettingsLivemode.settings) {
+    for (Setting *s : __liveSettingsLivemode) {
         s->resetValue();
     }
-    for (Setting *s : arps[0].__liveSettingsArp.settings) {
+    for (Setting *s : arps[0].__liveSettingsArp) {
         s->resetValue();
     }
-    for (Setting *s : arps[1].__liveSettingsArp.settings) {
+    for (Setting *s : arps[1].__liveSettingsArp) {
         s->resetValue();
     }
 }

@@ -19,6 +19,15 @@ extern std::vector<const WaveTable *> wavetables;
 // #endif
 extern std::vector<const char *> nlWavetable;
 
+typedef struct {
+    const WaveTable *table0;
+    const WaveTable *table1;
+    const WaveTable *table2;
+    const WaveTable *table3;
+} WAVETABLESET;
+
+extern const WaveTable *waveTableSets[][4];
+
 class WaveTable {
   public:
     static uint32_t size;

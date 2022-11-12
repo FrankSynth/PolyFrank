@@ -19,6 +19,7 @@ enum typeDisplayValue { continuous, binary };
 enum typeLinLog { linMap, logMap, antilogMap };
 
 #ifdef POLYCONTROL
+
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, int32_t amount);
 uint8_t sendSetting(uint8_t layerId, uint8_t moduleId, uint8_t settingsId, float amount);
 uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
@@ -40,6 +41,7 @@ class DataElement {
     uint8_t quickview = 0;
     bool presetLock = 0;
     bool storeable = false;
+    uint8_t storeID = 0xFF; // 0xff == NOTSET
     bool displayVis;
 
     void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
@@ -334,6 +336,8 @@ class Analog : public DataElement {
 
     inline void setValueWithoutMapping(float newValue) {
         valueMapped = newValue;
+
+        // valueMapped = testFloat(newValue, min, max);
         if (valueChangedCallback != nullptr)
             valueChangedCallback();
 #ifdef POLYCONTROL

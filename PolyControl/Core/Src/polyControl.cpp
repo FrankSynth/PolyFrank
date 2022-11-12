@@ -157,6 +157,8 @@ void PolyControlInit() {
 
     initPoly();
 
+    globalSettings.init();
+
     // let the layer start
     HAL_Delay(350);
 
@@ -169,8 +171,8 @@ void PolyControlInit() {
     adcB.setup();
 
     // Preset
-    updatePresetList();                  // read preset List from EEPROM
-    globalSettings.loadGlobalSettings(); // load global Settings
+    updatePresetList(); // read preset List from EEPROM
+    readConfig();       // load global Settings
 
     // CheckLayerStatus
     if (layerCom.chipState[0][0] == CHIP_READY && layerCom.chipState[0][1] == CHIP_READY) { // Layer A alive
@@ -250,10 +252,10 @@ void PolyControlInit() {
 
 void PolyControlRun() { // Here the party starts
 
-    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_DISABLE();
-    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_DISABLE();
-    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
-    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+    // __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_DISABLE();
+    // __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_DISABLE();
+    // __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
+    // __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
     HAL_TIM_Base_Start_IT(&htim16);
 
     polyControlLoop();

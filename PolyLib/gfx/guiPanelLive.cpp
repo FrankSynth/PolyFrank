@@ -49,13 +49,13 @@ void GUIPanelLive::updateEntrys() {
     entryPointer.clear();
 
     if (subPanelSelect == 0) {
-        pCategory = &liveData.__liveSettingsLivemode;
+        settings = &liveData.__liveSettingsLivemode;
     }
     if (subPanelSelect == 1) {
-        pCategory = &liveData.arps[cachedFocus.layer].__liveSettingsArp;
+        settings = &liveData.arps[cachedFocus.layer].__liveSettingsArp;
     }
 
-    for (Setting *s : pCategory->settings) {
+    for (Setting *s : *settings) {
         if (s->displayVis == true) {
             entryPointer.push_back(s);
         }

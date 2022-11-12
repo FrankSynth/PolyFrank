@@ -21,6 +21,7 @@
 #include "main.h"
 #include "adc.h"
 #include "bdma.h"
+#include "crc.h"
 #include "dma.h"
 #include "dma2d.h"
 #include "fmc.h"
@@ -135,6 +136,7 @@ int main(void) {
     MX_ADC3_Init();
 
     MX_TIM16_Init();
+  MX_CRC_Init();
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));

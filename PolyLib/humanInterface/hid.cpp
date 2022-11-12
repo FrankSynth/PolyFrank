@@ -294,53 +294,57 @@ void LEDRender() {
         for (uint32_t x = 0; x < 2; x++) {
             ledDriver[i][x].clearPWMData(); // delete old data
         }
+        if (liveData.voiceHandler.livemodeMergeLayer.value == 0 || i == 0) {
 
-        if (allLayers[i]->layerState.value) {
-            bool patchDraw = false;
+            if (allLayers[i]->layerState.value) {
+                bool patchDraw = false;
 
-            if (ui.activePanel == &ui.guiPanelFocus && cachedFocus.layer == i) { // show patches?
-                // LEDModuleRenderbuffer(i);
-                if (cachedFocus.modul < allLayers[i]->modules.size()) {
-                    if (cachedFocus.type == FOCUSOUTPUT) {
-                        patchDraw = true;
-                        if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getOutputs().size()) {
+                if (ui.activePanel == &ui.guiPanelFocus && cachedFocus.layer == i) { // show patches?
+                    // LEDModuleRenderbuffer(i);
+                    if (cachedFocus.modul < allLayers[i]->modules.size()) {
+                        if (cachedFocus.type == FOCUSOUTPUT) {
+                            patchDraw = true;
+                            if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getOutputs().size()) {
 
-                            Output *output = allLayers[i]->modules[cachedFocus.modul]->getOutputs()[cachedFocus.id];
-                            LEDOutput(output, LEDBRIGHTNESS_PATCHOUT);
+                                Output *output = allLayers[i]->modules[cachedFocus.modul]->getOutputs()[cachedFocus.id];
+                                LEDOutput(output, LEDBRIGHTNESS_PATCHOUT);
 
-                            for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
-                                Input *target = output->getPatchesInOut()[p]->targetIn;
-                                if (allLayers[i]->modules[target->moduleId]->moduleType ==
-                                    MODULE_MIX) { // mixer double use LED
-                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
-                                              breathing);
-                                    LEDSetPWM(ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
-                                              breathing);
-                                }
-                                else {
-                                    LEDInput(target, breathing);
+                                for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
+                                    Input *target = output->getPatchesInOut()[p]->targetIn;
+                                    if (allLayers[i]->modules[target->moduleId]->moduleType ==
+                                        MODULE_MIX) { // mixer double use LED
+                                        LEDSetPWM(
+                                            ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
+                                            breathing);
+                                        LEDSetPWM(
+                                            ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
+                                            breathing);
+                                    }
+                                    else {
+                                        LEDInput(target, breathing);
+                                    }
                                 }
                             }
                         }
-                    }
-                    else if (cachedFocus.type == FOCUSINPUT) {
-                        patchDraw = true;
-                        if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getInputs().size()) {
-                            Input *input = allLayers[i]->modules[cachedFocus.modul]->getInputs()[cachedFocus.id];
-                            LEDInput(input, LEDBRIGHTNESS_PATCHIN);
+                        else if (cachedFocus.type == FOCUSINPUT) {
+                            patchDraw = true;
+                            if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getInputs().size()) {
+                                Input *input = allLayers[i]->modules[cachedFocus.modul]->getInputs()[cachedFocus.id];
+                                LEDInput(input, LEDBRIGHTNESS_PATCHIN);
 
-                            for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
-                                Output *source = input->getPatchesInOut()[p]->sourceOut;
-                                LEDOutput(source, breathing);
+                                for (uint32_t p = 0; p < input->getPatchesInOut().size(); p++) {
+                                    Output *source = input->getPatchesInOut()[p]->sourceOut;
+                                    LEDOutput(source, breathing);
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (patchDraw == false) {
-                LEDAllInputs(i); // drawInputData to LED
-                LEDModuleSwitch(i);
-                LEDModuleOUT(i);
+                if (patchDraw == false) {
+                    LEDAllInputs(i); // drawInputData to LED
+                    LEDModuleSwitch(i);
+                    LEDModuleOUT(i);
+                }
             }
         }
     }
@@ -581,8 +585,8 @@ void LEDSingleSetting(Digital *digital) {
 
 //////////// PanelTouch ///////////
 
-RAM1 uint8_t saveSlots[2][3][PRESET_SIZE];
-RAM1 uint8_t tempSaveStorage[PRESET_SIZE];
+RAM1 uint8_t saveSlots[2][3][LAYER_STORESIZE];
+RAM1 uint8_t tempSaveStorage[LAYER_STORESIZE];
 
 void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
     if (event) { // Push Event
@@ -592,18 +596,18 @@ void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
 
                     if (saveSlotState[cachedFocus.layer][buttonID] == SLOTFREE) { // First time only store
                         saveSlotState[cachedFocus.layer][buttonID] = SLOTUSED;
-                        allLayers[cachedFocus.layer]->collectLayerConfiguration(
+                        allLayers[cachedFocus.layer]->getLayerConfiguration(
                             (int32_t *)saveSlots[cachedFocus.layer][buttonID],
                             false); // store current Layer
                     }
                     else if (saveSlotState[cachedFocus.layer][buttonID] == SLOTUSED) {
-                        allLayers[cachedFocus.layer]->collectLayerConfiguration((int32_t *)tempSaveStorage,
-                                                                                false); // store current Layer
-                        allLayers[cachedFocus.layer]->writeLayerConfiguration(
+                        allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)tempSaveStorage,
+                                                                            false); // store current Layer
+                        allLayers[cachedFocus.layer]->setLayerConfigration(
                             (int32_t *)saveSlots[cachedFocus.layer][buttonID], false);
 
                         memcpy(saveSlots[cachedFocus.layer][buttonID], &tempSaveStorage,
-                               PRESET_SIZE); // Copy preset in Storage}
+                               LAYER_STORESIZE); // Copy preset in Storage}
                     }
                 }
             }
@@ -614,6 +618,10 @@ void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
 };
 
 void PanelTouch::eventLayer(uint8_t layerID, uint16_t touchState, uint8_t port) {
+
+    if (liveData.voiceHandler.livemodeMergeLayer.value == 1 && layerID == 1)
+        return;
+
     this->layerID = layerID;
 
     uint16_t event = pinStateLayer[layerID][port] ^ touchState;
@@ -637,7 +645,6 @@ void PanelTouch::eventLayer(uint8_t layerID, uint16_t touchState, uint8_t port) 
 }
 
 void PanelTouch::eventControl(uint16_t touchState, uint8_t port) {
-
     uint16_t event = pinStateControl[port] ^ touchState;
     uint16_t push = event & touchState;
     uint16_t release = event & (~touchState);
@@ -878,7 +885,6 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
 }
 
 void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
-
     if (event) { // push Event
 
         if (activeInput != nullptr) {
@@ -939,7 +945,6 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
 }
 
 void PanelTouch::evaluateModul(BaseModule *pModule, uint8_t event) {
-
     if (event) { // push Event
         activeOutput = nullptr;
         activeInput = nullptr;
@@ -947,7 +952,6 @@ void PanelTouch::evaluateModul(BaseModule *pModule, uint8_t event) {
     }
 }
 void PanelTouch::evaluateActionButton(ButtonActionHandle *pButton, uint8_t event) {
-
     if (event) { // push Event
         pButton->state = PRESSED;
         if ((pButton->handle.functionPointer != nullptr) && (globalSettings.shift || pButton->unlock))
@@ -959,7 +963,6 @@ void PanelTouch::evaluateActionButton(ButtonActionHandle *pButton, uint8_t event
 }
 
 void PanelTouch::evaluateActionHandle(actionHandle *pAction, uint8_t event) {
-
     if (event) { // push Event
         if (pAction->functionPointer != nullptr)
             pAction->functionPointer();

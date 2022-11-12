@@ -2,6 +2,7 @@
 #include "layer/layer.hpp"
 #include "render/renderAudio.hpp"
 #include "render/renderAudioDef.h"
+#include "wavetables/wavetables.hpp"
 
 extern void setGUIColor(int32_t *colorSelection);
 
@@ -150,6 +151,34 @@ void updateLEDCurrent() {
     FlagHandler::ledDriverUpdateCurrent = true;
 }
 
+void wavetableSetCallbackOSC(uint32_t layerID, uint32_t oscillator, uint32_t *value) {
+
+    uint32_t foundIndex[4] = {0, 0, 0, 0};
+
+    for (uint32_t i = 0; i < 4; i++) {
+        for (uint32_t t = 0; t < wavetables.size(); t++) {
+            if (wavetables[t] == waveTableSets[*value][i]) {
+                foundIndex[i] = t;
+            }
+            /* code */
+        }
+    }
+
+    if (oscillator == 0) { // OSC A
+        allLayers[layerID]->oscA.dSample0.setValueWithoutMapping(foundIndex[0]);
+        allLayers[layerID]->oscA.dSample1.setValueWithoutMapping(foundIndex[1]);
+        allLayers[layerID]->oscA.dSample2.setValueWithoutMapping(foundIndex[2]);
+        allLayers[layerID]->oscA.dSample3.setValueWithoutMapping(foundIndex[3]);
+    }
+
+    else if (oscillator == 1) { // OSC B
+        allLayers[layerID]->oscB.dSample0.setValueWithoutMapping(foundIndex[0]);
+        allLayers[layerID]->oscB.dSample1.setValueWithoutMapping(foundIndex[1]);
+        allLayers[layerID]->oscB.dSample2.setValueWithoutMapping(foundIndex[2]);
+        allLayers[layerID]->oscB.dSample3.setValueWithoutMapping(foundIndex[3]);
+    }
+}
+
 void setModuleCallbacks() {
     allLayers[0]->lfoA.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoA));
     allLayers[0]->lfoB.dFreqSnap.setValueChangedCallback(std::bind(lfoFreqSnap, &allLayers[0]->lfoB));
@@ -252,6 +281,16 @@ void setModuleCallbacks() {
                   &allLayers[1]->tune.tuneResonanceScaleSteiner.valueMapped));
 
     globalSettings.dispLED.setValueChangedCallback(std::bind(updateLEDCurrent));
+
+    allLayers[0]->oscA.dWavetableSet.setValueChangedCallback(
+        std::bind(wavetableSetCallbackOSC, 0, 0, &allLayers[0]->oscA.dWavetableSet));
+    allLayers[0]->oscB.dWavetableSet.setValueChangedCallback(
+        std::bind(wavetableSetCallbackOSC, 0, 1, &allLayers[0]->oscB.dWavetableSet));
+
+    allLayers[1]->oscA.dWavetableSet.setValueChangedCallback(
+        std::bind(wavetableSetCallbackOSC, 1, 0, &allLayers[1]->oscA.dWavetableSet));
+    allLayers[1]->oscB.dWavetableSet.setValueChangedCallback(
+        std::bind(wavetableSetCallbackOSC, 1, 1, &allLayers[1]->oscB.dWavetableSet));
 }
 
 #endif

@@ -10,10 +10,9 @@
 #include "layer/layer.hpp"
 #include "livedata/liveData.hpp"
 #include "poly.hpp"
-#include "preset/preset.hpp"
+#include "storage/loadStoredData.hpp"
 #include <functional>
 #include <string>
-
 #define FOCUSPANELENTRYS 8
 #define FOCUSPANELENTRYSWAVE 6
 
@@ -73,7 +72,6 @@ void drawSmallAnalogElement(Analog *data, uint32_t x, uint32_t y, uint16_t w, ui
                             uint8_t modulename = false);
 
 void drawAnalogElementReduced(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h);
-
 
 void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint32_t y);
 void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t samples, uint32_t repeats, uint16_t color);
@@ -431,6 +429,7 @@ class Effect_PatchElement {
 
     uint8_t select = 0;
     uint8_t encoderID = 0;
+    PatchElement *entry;
 
   private:
     uint16_t panelAbsX;
@@ -438,8 +437,6 @@ class Effect_PatchElement {
 
     uint16_t entryWidth;
     uint16_t entryHeight;
-
-    PatchElement *entry;
 
     uint16_t width;
     uint16_t height;

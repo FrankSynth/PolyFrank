@@ -69,7 +69,11 @@ PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rng_ex.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart_ex.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c \
 PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c \
-PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c 
+PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c  \
+PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_crc.c \
+PolyControl/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_crc_ex.c 
+
+
 
 C_SOURCES += $(wildcard PolyControl/Core/**/*.c)
 C_SOURCES += $(wildcard PolyControl/Middlewares/**/**/**/*.c)

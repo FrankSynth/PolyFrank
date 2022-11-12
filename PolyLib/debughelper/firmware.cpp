@@ -31,7 +31,13 @@ void flashRenderMCUSPI() {
     uint8_t response;
 
     response = ENTERMODE;
-    CDC_Transmit_FS(&response, 1); // READY FOR DATA
+    CDC_Transmit_FS(&response, 1); // READY FOR ERASE
+
+    while (!comAvailable())
+        ;
+
+    if (comRead() != STARTERASE) // START ERASE
+        return;
 
     /////////Clear Polyfrank
     __disable_irq();
@@ -75,7 +81,8 @@ void flashRenderMCUSPI() {
     HAL_GPIO_WritePin(Control_RST_GPIO_Port, Control_RST_Pin, GPIO_PIN_RESET);
 
     /////////INIT Hardware
-    HAL_SPI_MspDeInit(&hspi1);
+    HAL_SPI_Abort(&hspi1);             // Abort pending tranmission/receive
+    HAL_SPI_MspDeInit(&hspi1);         // deinit peripherie
     hspi1.State = HAL_SPI_STATE_RESET; // need to be in reset state to reconfigurate hardware pins
     // __SPI1_FORCE_RESET();
     MX_SPI1_BOOLOADER_Init();
@@ -89,16 +96,19 @@ void flashRenderMCUSPI() {
     // START Bootloader
     HAL_Delay(100);
     HAL_GPIO_WritePin(Layer_Boot_GPIO_Port, Layer_Boot_Pin, GPIO_PIN_SET);
-    HAL_Delay(100);
+    HAL_Delay(250);
     HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
-    HAL_Delay(100);
+    HAL_Delay(250);
 
     /////////INIT Bootloader SPI
 
     // Init all devices
     BL_Init(&hspi1, 0, 0);
+    HAL_Delay(10);
     BL_Init(&hspi1, 0, 1);
+    HAL_Delay(10);
     BL_Init(&hspi1, 1, 0);
+    HAL_Delay(10);
     BL_Init(&hspi1, 1, 1);
 
     HAL_Delay(10);

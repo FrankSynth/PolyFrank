@@ -8,6 +8,8 @@
 #define ENTERMODE 0x04
 #define ERASEDONE 0x05
 #define UPDATEFINISH 0x06
+#define STARTERASE 0x07
+
 // #define HELP 126 // activate DFU MODE
 
 void jumpToBootloader();

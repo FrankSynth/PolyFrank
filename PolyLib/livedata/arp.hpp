@@ -27,18 +27,29 @@ class Arpeggiator {
         this->voiceHandler = voiceHandler;
         this->layerID = layerID;
 
-        __liveSettingsArp.category = "ARP";
-        __liveSettingsArp.settings.push_back(&arpEnable);
-        __liveSettingsArp.settings.push_back(&arpLatch);
-        __liveSettingsArp.settings.push_back(&arpMode);
-        __liveSettingsArp.settings.push_back(&arpOctave);
-        __liveSettingsArp.settings.push_back(&arpPlayedKeysParallel);
-        __liveSettingsArp.settings.push_back(&arpRatched);
-        __liveSettingsArp.settings.push_back(&arpPolyrythm);
-        __liveSettingsArp.settings.push_back(&arpStepsA);
-        __liveSettingsArp.settings.push_back(&arpStepsAExt);
-        __liveSettingsArp.settings.push_back(&arpStepsB);
-        __liveSettingsArp.settings.push_back(&arpStepsBExt);
+        arpEnable.storeID = 0x00;
+        arpLatch.storeID = 0x01;
+        arpMode.storeID = 0x02;
+        arpOctave.storeID = 0x03;
+        arpPlayedKeysParallel.storeID = 0x04;
+        arpRatched.storeID = 0x05;
+        arpPolyrythm.storeID = 0x06;
+        arpStepsA.storeID = 0x07;
+        arpStepsAExt.storeID = 0x08;
+        arpStepsB.storeID = 0x09;
+        arpStepsBExt.storeID = 0xA;
+
+        __liveSettingsArp.push_back(&arpEnable);
+        __liveSettingsArp.push_back(&arpLatch);
+        __liveSettingsArp.push_back(&arpMode);
+        __liveSettingsArp.push_back(&arpOctave);
+        __liveSettingsArp.push_back(&arpPlayedKeysParallel);
+        __liveSettingsArp.push_back(&arpRatched);
+        __liveSettingsArp.push_back(&arpPolyrythm);
+        __liveSettingsArp.push_back(&arpStepsA);
+        __liveSettingsArp.push_back(&arpStepsAExt);
+        __liveSettingsArp.push_back(&arpStepsB);
+        __liveSettingsArp.push_back(&arpStepsBExt);
 
         orderedKeys.reserve(30);
         retriggerKeys.reserve(10);
@@ -114,7 +125,7 @@ class Arpeggiator {
     VoiceHandler *voiceHandler;
     uint32_t layerID = 0;
 
-    categoryStruct __liveSettingsArp;
+    std::vector<Setting *> __liveSettingsArp;
     Setting arpEnable = Setting("ARPEGGIATOR", 0, 0, 1, false, binary, &offOnNameList);
     Setting arpMode = Setting("MODE", 0, 0, 11, false, binary, &arpModeNameList);
     Setting arpLatch = Setting("LATCH", 0, 0, 1, false, binary, &offOnNameList);

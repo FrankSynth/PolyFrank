@@ -85,4 +85,6 @@ class GUIPanelEffect : public GUIPanelBase {
 
     Effect_PanelElement effectPanelElements[2];
     EffectAmount_PanelElement overviewPanelElements[2][3];
+
+    PatchElement *activeEntryPatch[2];
 };

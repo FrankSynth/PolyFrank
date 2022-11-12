@@ -37,7 +37,7 @@ class GUIPanelLive : public GUIPanelBase {
 
     Scroller scroll = Scroller(LIVEPANELENTRYS);
 
-    categoryStruct *pCategory = nullptr;
+    std::vector<Setting *> *settings = nullptr;
     std::vector<Setting *> entryPointer;
     Live_PanelElement panelElements[LIVEPANELENTRYS];
 };

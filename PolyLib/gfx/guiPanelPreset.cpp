@@ -52,28 +52,19 @@ void GUIPanelPreset::registerPanelSettings() {
 
     if (presetsSorted.size()) {
         actionHandler.registerActionRight(
-            0,
-            {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_AB),
-             "LOAD AB"},
-            1);
+            0, {std::bind(&readPreset, presetsSorted[scrollPreset.position]->storageID, LAYER_AB), "LOAD AB"}, 1);
 
         if (cachedFocus.layer == 0) {
             actionHandler.registerActionRight(
-                1,
-                {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_A),
-                 "LOAD A"},
-                1);
+                1, {std::bind(&readPreset, presetsSorted[scrollPreset.position]->storageID, LAYER_A), "LOAD A"}, 1);
         }
         else if (cachedFocus.layer == 1) {
             actionHandler.registerActionRight(
-                1,
-                {std::bind(&GUIPanelPreset::loadPresetToLayer, this, presetsSorted[scrollPreset.position], LAYER_B),
-                 "LOAD B"},
-                1);
+                1, {std::bind(&readPreset, presetsSorted[scrollPreset.position]->storageID, LAYER_B), "LOAD B"}, 1);
         }
 
-        actionHandler.registerActionRight(2, {std::bind(&removePreset, presetsSorted[scrollPreset.position]), "REMOVE"},
-                                          1);
+        actionHandler.registerActionRight(
+            2, {std::bind(&removePresetfromTable, presetsSorted[scrollPreset.position]), "REMOVE"}, 1);
 
         actionHandler.registerActionLeft(
             1,
@@ -104,29 +95,13 @@ void GUIPanelPreset::updateEntrys() {
 
 void GUIPanelPreset::saveLayerToPreset(presetStruct *preset, std::string firstName, std::string secondName,
                                        std::string thirdName) {
+    uint32_t byteIndex = sizeof(StorageBlock);
 
-    allLayers[0]->collectLayerConfiguration((int32_t *)blockBuffer, false);
-    allLayers[1]->collectLayerConfiguration((int32_t *)(blockBuffer + PRESET_SIZE), false);
-    liveData.collectLiveConfiguration((int32_t *)(blockBuffer + PRESET_SIZE + PRESET_SIZE));
+    byteIndex = allLayers[0]->writeLayer(byteIndex);
+    byteIndex = allLayers[1]->writeLayer(byteIndex);
+    byteIndex = liveData.writeLive(byteIndex);
 
-    writePresetBlock(preset, firstName + " " + secondName + " " + thirdName);
-}
-
-void GUIPanelPreset::loadPresetToLayer(presetStruct *preset, LayerSelect layer) {
-
-    readPreset(preset);
-
-    if (preset->usageState != PRESET_USED) {
-        return;
-    }
-
-    if (layer == LAYER_AB || layer == LAYER_A)
-        allLayers[0]->writeLayerConfiguration((int32_t *)blockBuffer, false);
-
-    if (layer == LAYER_AB || layer == LAYER_B)
-        allLayers[1]->writeLayerConfiguration((int32_t *)(blockBuffer + PRESET_SIZE), false);
-
-    liveData.writeLiveConfiguration((int32_t *)(blockBuffer + PRESET_SIZE + PRESET_SIZE), layer);
+    writePreset(byteIndex, preset, firstName + " " + secondName + " " + thirdName);
 }
 
 void GUIPanelPreset::registerElements() {
