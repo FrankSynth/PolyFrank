@@ -386,14 +386,14 @@ busState COMinterChip::beginReceiveTransmission(uint8_t layer, uint8_t chip) {
         if (spi->state != BUS_READY)
             return spi->state;
 
-        if (layerA.layerState.value) {
+        if (layerA.layerState) {
             if (!((chipState[0][0] == CHIP_READY || chipState[0][0] == CHIP_DATAREADY) &&
                   (chipState[0][1] == CHIP_READY || chipState[0][1] == CHIP_DATAREADY))) {
                 return BUS_BUSY;
             }
         }
 
-        if (layerB.layerState.value) {
+        if (layerB.layerState) {
             if (!((chipState[1][0] == CHIP_READY || chipState[1][0] == CHIP_DATAREADY) &&
                   (chipState[1][1] == CHIP_READY || chipState[1][1] == CHIP_DATAREADY))) {
                 return BUS_BUSY;
@@ -581,13 +581,13 @@ busState COMinterChip::beginSendTransmission() {
     }
 
 #ifdef POLYCONTROL
-    if (layerA.layerState.value) {
+    if (layerA.layerState) {
         if ((chipState[0][0] != CHIP_READY) || (chipState[0][1] != CHIP_READY)) {
             return BUS_BUSY;
         }
     }
 
-    if (layerB.layerState.value) {
+    if (layerB.layerState) {
         if ((chipState[1][0] != CHIP_READY) || (chipState[1][1] != CHIP_READY)) {
             return BUS_BUSY;
         }
@@ -595,11 +595,11 @@ busState COMinterChip::beginSendTransmission() {
 
     if (((!(HAL_GPIO_ReadPin(SPI_READY_LAYER_1A_GPIO_Port, SPI_READY_LAYER_1A_Pin) &&
             HAL_GPIO_ReadPin(SPI_READY_LAYER_1B_GPIO_Port, SPI_READY_LAYER_1B_Pin))) &&
-         layerA.layerState.value) ||
+         layerA.layerState) ||
 
         ((!(HAL_GPIO_ReadPin(SPI_READY_LAYER_2A_GPIO_Port, SPI_READY_LAYER_2A_Pin) &&
             HAL_GPIO_ReadPin(SPI_READY_LAYER_2B_GPIO_Port, SPI_READY_LAYER_2B_Pin))) &&
-         layerB.layerState.value)) {
+         layerB.layerState)) {
         if (ErrorMessageSend == false) {
             println("INFO || COM: blocked send...");
             ErrorMessageSend = true;
@@ -637,14 +637,14 @@ busState COMinterChip::startSendDMA() {
 
 #ifdef POLYCONTROL
 
-    if (layerA.layerState.value) {
+    if (layerA.layerState) {
         chipState[0][0] = CHIP_DATASENT;
         chipState[0][1] = CHIP_DATASENT;
         chipStateTimeout[0][0] = 0;
         chipStateTimeout[0][1] = 0;
     }
 
-    if (layerB.layerState.value) {
+    if (layerB.layerState) {
         chipState[1][0] = CHIP_DATASENT;
         chipState[1][1] = CHIP_DATASENT;
         chipStateTimeout[1][0] = 0;
@@ -655,11 +655,11 @@ busState COMinterChip::startSendDMA() {
         chipState[receiveLayer][receiveChip] = CHIP_WAITFORDATA;
     }
 
-    if (layerA.layerState.value) {
+    if (layerA.layerState) {
         HAL_GPIO_WritePin(SPI_CS_Layer_1A_GPIO_Port, SPI_CS_Layer_1A_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(SPI_CS_Layer_1B_GPIO_Port, SPI_CS_Layer_1B_Pin, GPIO_PIN_RESET);
     }
-    if (layerB.layerState.value) {
+    if (layerB.layerState) {
         HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, GPIO_PIN_RESET);
     }
@@ -792,7 +792,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 i += 3; // sizeof(float) - 1
 
                 if (layerID == layerA.id)
-                    layerA.updatePatchInOutByIdWithoutMapping(outputID, inputID, amountFloat);
+                    layerA.updatePatchInOutById(outputID, inputID, amountFloat);
 
                 break;
             }
@@ -1136,10 +1136,10 @@ uint8_t COMinterChip::pushOutBuffer(uint8_t *data, uint32_t length) {
     return 0;
 }
 
-void COMinterChip::resetCom() {
+void COMinterChip::resetCom(){
 
 #ifdef POLYCONTROL
-    PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 1000ms ");
+// PolyError_Handler("ERROR | COMMUNICATION | COM -> TIMEOUT > 1000ms ");
 #endif
 }
 

@@ -911,8 +911,8 @@ void Patch_PanelElement::Draw() {
 
                 if (select) {
                     actionHandler.registerActionEncoder(
-                        5, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        5, {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 0), "AMOUNT"},
                         {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
                 }
                 drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
@@ -1962,8 +1962,8 @@ void Effect_PatchElement::Draw() {
     if (entry != nullptr) {
         if (select) {
             actionHandler.registerActionEncoder(
-                encoderID, {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 1), "AMOUNT"},
-                {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, entry, 0), "AMOUNT"},
+                encoderID, {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 1), "AMOUNT"},
+                {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 0), "AMOUNT"},
                 {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
         }
         drawEffectPatchElement(entry, panelAbsX + 1, panelAbsY, width - 2, height, select);

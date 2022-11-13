@@ -14,7 +14,15 @@ class DUALBU22210 : public baseDevice {
         state = DEVICE_READY;
     }
 
-    // send out 2*10 packages of dac data
+    // send out 2*10 packages of dac data,
+
+    void enableOutputs() {
+
+        enableOutputCommand[0] = 0xB000;
+        enableOutputCommand[1] = 0xB000;
+        busInterface->transmit((uint8_t *)enableOutputCommand, 1);
+    }
+
     void send() { busInterface->transmit((uint8_t *)outBuffer, 10, true); }
 
     void preparePackage() {
@@ -23,6 +31,8 @@ class DUALBU22210 : public baseDevice {
             outBuffer[x] = data[x] | addressPrep[x];
         }
     }
+
+    uint16_t enableOutputCommand[2];
 
     uint16_t data[20];
     spiBus *busInterface;

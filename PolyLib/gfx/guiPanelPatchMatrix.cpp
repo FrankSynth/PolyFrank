@@ -338,10 +338,10 @@ void GUIPanelPatchMatrix::registerPanelSettings() {
 
             actionHandler.registerActionEncoder(
                 5,
-                {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
+                {std::bind(&PatchElement::changeAmountEncoderAccelerated,
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 1),
                  "AMOUNT"},
-                {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped,
+                {std::bind(&PatchElement::changeAmountEncoderAccelerated,
                            panelElementsPatch[scrollOut.relPosition][scrollIn.relPosition].entry, 0),
                  "AMOUNT"},
                 {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
@@ -421,7 +421,7 @@ void GUIPanelPatchMatrix::removeCurrentPatch() {
 }
 
 void GUIPanelPatchMatrix::clearPatches() {
-    allLayers[cachedFocus.layer]->clearPatches();
+    allLayers[cachedFocus.layer]->setClearMarker();
 }
 
 #endif

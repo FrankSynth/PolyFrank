@@ -291,7 +291,7 @@ void LEDRender() {
         }
         if (liveData.voiceHandler.livemodeMergeLayer.value == 0 || i == 0) {
 
-            if (allLayers[i]->layerState.value) {
+            if (allLayers[i]->layerState) {
                 bool patchDraw = false;
 
                 if (ui.activePanel == &ui.guiPanelFocus && cachedFocus.layer == i) { // show patches?
@@ -300,20 +300,21 @@ void LEDRender() {
                         if (cachedFocus.type == FOCUSOUTPUT) {
                             patchDraw = true;
                             if (cachedFocus.id < allLayers[i]->modules[cachedFocus.modul]->getOutputs().size()) {
-
                                 Output *output = allLayers[i]->modules[cachedFocus.modul]->getOutputs()[cachedFocus.id];
                                 LEDOutput(output, LEDBRIGHTNESS_PATCHOUT);
-
                                 for (uint32_t p = 0; p < output->getPatchesInOut().size(); p++) {
                                     Input *target = output->getPatchesInOut()[p]->targetIn;
                                     if (allLayers[i]->modules[target->moduleId]->moduleType ==
                                         MODULE_MIX) { // mixer double use LED
-                                        LEDSetPWM(
-                                            ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
-                                            breathing);
-                                        LEDSetPWM(
-                                            ledDriver[target->layerId][target->LEDPortID2].pwmData[target->LEDPinID2],
-                                            breathing);
+                                        if (target->LEDPinID < 36 && target->LEDPortID < 2)
+                                            LEDSetPWM(
+                                                ledDriver[target->layerId][target->LEDPortID].pwmData[target->LEDPinID],
+                                                breathing);
+
+                                        if (target->LEDPinID2 < 36 && target->LEDPortID2 < 2)
+                                            LEDSetPWM(ledDriver[target->layerId][target->LEDPortID2]
+                                                          .pwmData[target->LEDPinID2],
+                                                      breathing);
                                     }
                                     else {
                                         LEDInput(target, breathing);
@@ -352,16 +353,18 @@ void LEDSetPWM(uint16_t &pwmArrayEntry, uint16_t pwmRAW) {
 }
 void LEDOutput(Output *output, uint16_t brightness) {
     if (output->LEDPortID == 2) { // MIDI MODULE Control
-
-        LEDSetPWM(ledDriverControl.pwmData[output->LEDPinID], brightness);
+        if (output->LEDPinID < 12)
+            LEDSetPWM(ledDriverControl.pwmData[output->LEDPinID], brightness);
     }
     else {
-        LEDSetPWM(ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID], brightness);
+        if (output->LEDPinID < 36 && output->LEDPortID < 2)
+            LEDSetPWM(ledDriver[output->layerId][output->LEDPortID].pwmData[output->LEDPinID], brightness);
     }
 }
 
 void LEDInput(Input *input, uint16_t brightness) {
-    LEDSetPWM(ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID], brightness);
+    if (input->LEDPinID < 36 && input->LEDPortID < 2)
+        LEDSetPWM(ledDriver[input->layerId][input->LEDPortID].pwmData[input->LEDPinID], brightness);
 }
 
 // MODULE LED OUTPUT
@@ -377,28 +380,35 @@ void LEDModule(BaseModule *module) {
         else
             outputData = lfo->currentSampleRAW.currentSample[0];
 
-        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
-                  (outputData + 1) * (float)(LEDBRIGHTNESS_MODULEOUT / 2));
+        if (module->LEDPinID < 36 && module->LEDPortID < 2)
+            LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
+                      (outputData + 1) * (float)(LEDBRIGHTNESS_MODULEOUT / 2));
     }
     else if (module->moduleType == MODULE_ADSR) {
         float outputData =
             ((ADSR *)module)->currentSampleRAW.currentSample[liveData.voiceHandler.lastVoiceID[module->layerId]];
-        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
-                  abs(outputData * (float)(LEDBRIGHTNESS_MODULEOUT)));
+
+        if (module->LEDPinID < 36 && module->LEDPortID < 2)
+            LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID],
+                      abs(outputData * (float)(LEDBRIGHTNESS_MODULEOUT)));
     }
 }
 void LEDModule(BaseModule *module, uint16_t brightness) {
 
     if (module->moduleType == MODULE_LFO) {
-        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
+        if (module->LEDPinID < 36 && module->LEDPortID < 2)
+            LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
     }
     else if (module->moduleType == MODULE_ADSR) {
-        LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
+        if (module->LEDPinID < 36 && module->LEDPortID < 2)
+            LEDSetPWM(ledDriver[module->layerId][module->LEDPortID].pwmData[module->LEDPinID], brightness);
     }
 }
 
 void LEDRenderbuffer(RenderBuffer *rBuffer) { // TODO Check ranges?
-    LEDSetPWM(ledDriver[rBuffer->layerId][rBuffer->LEDPortID].pwmData[rBuffer->LEDPinID], rBuffer->currentSample[0]);
+    if (rBuffer->LEDPinID < 36 && rBuffer->LEDPortID < 2)
+        LEDSetPWM(ledDriver[rBuffer->layerId][rBuffer->LEDPortID].pwmData[rBuffer->LEDPinID],
+                  rBuffer->currentSample[0]);
 }
 
 void LEDModuleOUT(uint32_t layerID) {
@@ -492,7 +502,8 @@ void LEDDigital(Digital *digital, uint8_t id, uint16_t value) {
         uint32_t pin = digital->LEDPinID[id];
         uint32_t port = digital->LEDPortID[id];
 
-        LEDSetPWM(ledDriver[digital->layerId][port].pwmData[pin], value);
+        if (pin < 36 && port < 2)
+            LEDSetPWM(ledDriver[digital->layerId][port].pwmData[pin], value);
     }
 }
 
@@ -584,27 +595,33 @@ RAM1 uint8_t saveSlots[2][3][LAYER_STORESIZE];
 RAM1 uint8_t tempSaveStorage[LAYER_STORESIZE];
 SLOTSTATE saveSlotState[2][3] = {{SLOTFREE, SLOTFREE, SLOTFREE}, {SLOTFREE, SLOTFREE, SLOTFREE}};
 
+void PanelTouch::functionButtonServiceRoutine() {
+    if (slotMarker == true) {
+        slotMarker = false;                                               // Push Event
+        if (saveSlotState[cachedFocus.layer][slotButtonID] == SLOTFREE) { // First time only store
+            saveSlotState[cachedFocus.layer][slotButtonID] = SLOTUSED;
+            allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID],
+                                                                false); // store current Layer
+        }
+        else if (saveSlotState[cachedFocus.layer][slotButtonID] == SLOTUSED) {
+            allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)tempSaveStorage,
+                                                                false); // store current Layer
+            allLayers[cachedFocus.layer]->setLayerConfigration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID],
+                                                               false);
+
+            memcpy(saveSlots[cachedFocus.layer][slotButtonID], &tempSaveStorage,
+                   LAYER_STORESIZE); // Copy preset in Storage}
+        }
+    }
+}
+
 void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
     if (event) { // Push Event
         switch (globalSettings.functionButtons.value) {
             case 0: {                       // Fast Save Slots
                 if (globalSettings.shift) { // When shift is pressed
-
-                    if (saveSlotState[cachedFocus.layer][buttonID] == SLOTFREE) { // First time only store
-                        saveSlotState[cachedFocus.layer][buttonID] = SLOTUSED;
-                        allLayers[cachedFocus.layer]->getLayerConfiguration(
-                            (int32_t *)saveSlots[cachedFocus.layer][buttonID],
-                            false); // store current Layer
-                    }
-                    else if (saveSlotState[cachedFocus.layer][buttonID] == SLOTUSED) {
-                        allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)tempSaveStorage,
-                                                                            false); // store current Layer
-                        allLayers[cachedFocus.layer]->setLayerConfigration(
-                            (int32_t *)saveSlots[cachedFocus.layer][buttonID], false);
-
-                        memcpy(saveSlots[cachedFocus.layer][buttonID], &tempSaveStorage,
-                               LAYER_STORESIZE); // Copy preset in Storage}
-                    }
+                    slotButtonID = buttonID;
+                    slotMarker = true;
                 }
             }
 
@@ -981,7 +998,12 @@ void PanelTouch::setInputFocus(Input *pInput) {
 void PanelTouch::setOutputFocus(Output *pOutput) {
     if (activeInput == nullptr && activeOutput == nullptr) {
         activeOutput = pOutput;
-        tempOutputLocation = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
+        if (ui.activePanel == &ui.guiPanelEffect) {
+            tempOutputLocation = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
+        }
+        else {
+            newFocus = {pOutput->layerId, pOutput->moduleId, pOutput->id, FOCUSOUTPUT};
+        }
     }
 }
 void PanelTouch::forceSetOutputFocus(Output *pOutput) {
@@ -1016,10 +1038,10 @@ void PanelTouch::externPatchRemove(Input *pInput) {
 }
 
 void resetSystem() {
-    allLayers[0]->resetLayer();
+    allLayers[0]->setResetMarker();
     allLayers[0]->clearPresetLocks();
     clearPotiState(0);
-    allLayers[1]->resetLayer();
+    allLayers[1]->setResetMarker();
     allLayers[1]->clearPresetLocks();
     clearPotiState(1);
 

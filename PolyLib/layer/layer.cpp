@@ -5,6 +5,7 @@ extern uint8_t sendCreatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t i
 extern uint8_t sendUpdatePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId, float amount);
 extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
 extern uint8_t sendDeleteAllPatches(uint8_t layerId);
+extern uint8_t sendDeletePatchInOut(uint8_t layerId, uint8_t outputId, uint8_t inputId);
 #endif
 
 // uint32_t LayerRenBufferSw = 0;
@@ -64,6 +65,8 @@ void Layer::initID() {
 
 void Layer::resetLayer() {
 
+    clearPatches();
+
     for (BaseModule *m : modules) { // for all modules
 
         for (Analog *i : m->getPotis()) { // for all Knobs
@@ -72,10 +75,13 @@ void Layer::resetLayer() {
         for (Digital *i : m->getSwitches()) { // for all Knobs
             i->resetValue();
         }
-        // Layer specific settings, not part of modules
     }
-    clearPatches();
+
+#ifdef POLYCONTROL
+
     loadDefaultPatches();
+
+#endif
 
 #ifdef POLYRENDER
     allGatesOff();
@@ -106,11 +112,11 @@ void Layer::addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     addPatchInOut(*(outputs[outputId]), *(inputs[inputId]), amount);
 }
 
-void Layer::updatePatchInOutWithoutMapping(PatchElement &patch, float amount) {
-    patch.setAmountWithoutMapping(amount);
+void Layer::updatePatchInOut(PatchElement &patch, float amount) {
+    patch.setAmount(amount);
 }
 
-void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount) {
+void Layer::updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount) {
     if (outputId >= outputs.size()) {
         println("wrong outputID");
         return;
@@ -124,22 +130,15 @@ void Layer::updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId
     for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
 
         if (p->targetIn == inputs[inputId]) {
-            this->updatePatchInOutWithoutMapping(*p, amount);
+            this->updatePatchInOut(*p, amount);
             return;
         }
     }
 }
 
 void Layer::removePatchInOut(PatchElement &patch) {
-#ifdef POLYCONTROL
-    sendDeletePatchInOut(id, patch.sourceOut->idGlobal, patch.targetIn->idGlobal);
-#endif
-
-    patch.sourceOut->removePatchInOut(patch); // remove sourceOut entry
-    patch.targetIn->removePatchInOut(patch);  // remove targetIn entry
-
-    patch.remove = true;                                             // set remove flag
-    patchesInOut.remove_if([](PatchElement n) { return n.remove; }); // find element and remove from list
+    patch.remove = true; // set remove flag
+    removePatchMarker = true;
 }
 
 void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
@@ -152,6 +151,8 @@ void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
 }
 
 void Layer::clearPatches() {
+    __disable_irq();
+
     for (BaseModule *m : modules) {         // for all modules
         for (Output *o : m->getOutputs()) { // for all Output
             o->clearPatches();
@@ -161,10 +162,21 @@ void Layer::clearPatches() {
         }
     }
     patchesInOut.clear();
+
+    __enable_irq();
+
 #ifdef POLYCONTROL
 
     sendDeleteAllPatches(id);
 #endif
+}
+
+void Layer::setClearMarker() {
+    clearPatchesMarker = true;
+}
+
+void Layer::setResetMarker() {
+    resetMarker = true;
 }
 
 void Layer::loadDefaultPatches() {
@@ -176,7 +188,7 @@ void Layer::loadDefaultPatches() {
 }
 
 #ifdef POLYRENDER
-
+}
 /**
  * @brief load spreading buffer and imperfection base
  *
@@ -366,6 +378,39 @@ void Layer::resendLayerConfig() {
 
     getLayerConfiguration((int32_t *)tempLayerStorage, true);
     setLayerConfigration((int32_t *)tempLayerStorage, true);
+}
+
+void Layer::layerServiceRoutine() {
+
+    if (clearPatchesMarker == true) {
+        clearPatchesMarker = false;
+        clearPatches();
+    }
+
+    if (resetMarker == true) {
+        resetMarker = false;
+        resetLayer();
+    }
+    if (removePatchMarker == true) {
+        removePatchMarker = false;
+
+        __disable_irq();
+        if (!patchesInOut.empty()) {
+            std::list<PatchElement>::iterator patch =
+                std::find_if(patchesInOut.begin(), patchesInOut.end(), [](PatchElement n) { return n.remove == true; });
+
+            if (patch != patchesInOut.end()) {
+
+                sendDeletePatchInOut(id, patch->sourceOut->idGlobal, patch->targetIn->idGlobal);
+
+                patch->sourceOut->removePatchInOut(*patch); // remove sourceOut entry
+                patch->targetIn->removePatchInOut(*patch);  // remove targetIn entry
+
+                patchesInOut.erase(patch);
+            }
+        }
+        __enable_irq();
+    }
 }
 
 #endif

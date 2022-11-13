@@ -70,6 +70,9 @@ void PolyRenderInit() {
     cvDac[0].configurate(&spiBusCVDac[0], cvDacDMABufferA);
     cvDac[1].configurate(&spiBusCVDac[1], cvDacDMABufferB);
 
+    cvDac[0].enableOutputs();
+    cvDac[1].enableOutputs();
+
     initPoly();
 
     // init all Layers

@@ -127,7 +127,10 @@ void layer0PhaseShaperX3(Phaseshaper *phaseshaper) {
 }
 
 void resetVoiceHandler(Arpeggiator *arp) {
-    arp->voiceHandler->reset(arp->layerID);
+    if (arp->wasArpEnabled != arp->arpEnable.value)
+        arp->voiceHandler->reset(arp->layerID);
+
+    arp->wasArpEnabled = arp->arpEnable.value;
 }
 
 void tuneLadderCutoff(float *min, float *max) {

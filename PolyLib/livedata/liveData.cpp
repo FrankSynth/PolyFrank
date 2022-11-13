@@ -330,7 +330,7 @@ void LiveData::externalSyncHandling() {
 
     // Internal Clocking
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->layerState.value == 1) { // check layer state
+        if (allLayers[i]->layerState == true) { // check layer state
 
             // ARP Steps
             if (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value]) ||
@@ -378,7 +378,7 @@ void LiveData::clockHandling() {
 
     // Internal Clocking
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->layerState.value == 1) { // check layer state
+        if (allLayers[i]->layerState == true) { // check layer state
 
             // ARP Steps
             if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||

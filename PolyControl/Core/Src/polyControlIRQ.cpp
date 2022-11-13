@@ -8,6 +8,7 @@
 
 #include "debughelper/firmware.hpp"
 #include "midiInterface/MIDIInterface.h"
+#include "storage/loadStoredData.hpp"
 #include "usbd_midi_if.hpp"
 
 // USB
@@ -51,12 +52,12 @@ uint8_t midiDataInBuffer;
 
 extern elapsedMicros timerFramedraw;
 
-void temperature();
+extern PanelTouch touch;
 
 void polyControlLoop() { // Here the party starts
     // WFI
     // bool enableWFI = false;
-    
+
     elapsedMillis timerWFI;
     elapsedMillis timerUIData;
     elapsedMillis timerStatusUpdate;
@@ -66,6 +67,15 @@ void polyControlLoop() { // Here the party starts
 
     while (1) {
 
+        // Handling critical data in service Routine
+        allLayers[0]->layerServiceRoutine();
+        allLayers[1]->layerServiceRoutine();
+
+        presetServiceRoutine();
+
+        touch.functionButtonServiceRoutine();
+
+        //
         if (timerStatusUpdate >= 1000) {
             timerStatusUpdate = 0;
             globalSettings.controlStatus.usage.value = ReadAndResetUsageTimer();
@@ -109,7 +119,7 @@ void checkLayerRequests() {
     else {
         for (uint32_t layer = 0; layer < 2; layer++)
             for (uint32_t chip = 0; chip < 2; chip++)
-                if (allLayers[layer]->layerState.value) {
+                if (allLayers[layer]->layerState) {
                     if (layerCom.requestState[layer][chip] == RQ_REQUESTDATA) {
                         layerCom.sendRequestUIData(layer, chip);
                         return;
@@ -217,7 +227,7 @@ void sendRequestAllUIData() {
 
     for (int i = 0; i < 2; i++)
         for (int v = 0; v < 2; v++)
-            if (allLayers[i]->layerState.value) {
+            if (allLayers[i]->layerState) {
                 layerCom.requestState[i][v] = RQ_REQUESTDATA;
             }
     layerCom.sentRequestUICommand = true;
@@ -267,11 +277,11 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
         layerCom.spi->callTxComplete();
         // close ChipSelectLine
 
-        if (layerA.layerState.value) {
+        if (layerA.layerState) {
             HAL_GPIO_WritePin(SPI_CS_Layer_1A_GPIO_Port, SPI_CS_Layer_1A_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(SPI_CS_Layer_1B_GPIO_Port, SPI_CS_Layer_1B_Pin, GPIO_PIN_SET);
         }
-        if (layerB.layerState.value) {
+        if (layerB.layerState) {
             HAL_GPIO_WritePin(SPI_CS_Layer_2A_GPIO_Port, SPI_CS_Layer_2A_Pin, GPIO_PIN_SET);
             HAL_GPIO_WritePin(SPI_CS_Layer_2B_GPIO_Port, SPI_CS_Layer_2B_Pin, GPIO_PIN_SET);
         }
@@ -474,11 +484,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 // USB Connect detection
 void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd) {
     if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
-        println("HS USB CONNECTED");
         FlagHandler::USB_HS_CONNECTED = true;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        println("FS USB CONNECTED");
         FlagHandler::USB_FS_CONNECTED = true;
     }
 }
@@ -486,11 +494,9 @@ void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd) {
 // USB Connect detection
 void PolyUSBDisconnectCallback(PCD_HandleTypeDef *hpcd) {
     if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
-        println("HS USB DISCONNECTED");
         FlagHandler::USB_HS_CONNECTED = false;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        println("FS USB DISCONNECTED");
         FlagHandler::USB_FS_CONNECTED = false;
     }
 }

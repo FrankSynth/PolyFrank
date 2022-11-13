@@ -62,7 +62,7 @@ void GUIPanelState::Draw() {
             traffiColor = cBlack;
         }
 
-        copyBitmapToBuffer(bmpUSBLogo, cBlack, relX + panelAbsX + BoxWidth - bmpUSBLogo.XSize - 3, panelAbsY);
+        copyBitmapToBuffer(bmpUSBLogo, traffiColor, relX + panelAbsX + BoxWidth - bmpUSBLogo.XSize - 3, panelAbsY);
 
         relX -= 1;
     }

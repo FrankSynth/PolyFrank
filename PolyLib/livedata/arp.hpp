@@ -124,22 +124,23 @@ class Arpeggiator {
 
     VoiceHandler *voiceHandler;
     uint32_t layerID = 0;
+    int32_t wasArpEnabled = 0;
 
     std::vector<Setting *> __liveSettingsArp;
-    Setting arpEnable = Setting("ARPEGGIATOR", 0, 0, 1, false, binary, &offOnNameList);
-    Setting arpMode = Setting("MODE", 0, 0, 11, false, binary, &arpModeNameList);
-    Setting arpLatch = Setting("LATCH", 0, 0, 1, false, binary, &offOnNameList);
-    Setting arpOctave = Setting("OCTAVE", 0, -3, 3, false, binary, &arpOctaveNameList);
-    Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, false, binary, &arpRatchedNameList);
-    Setting arpPolyrythm = Setting("POLYRYTHM", 0, 0, 1, false, binary, &offOnNameList);
+    Setting arpEnable = Setting("ARPEGGIATOR", 0, 0, 1, &offOnNameList);
+    Setting arpMode = Setting("MODE", 0, 0, 11, &arpModeNameList);
+    Setting arpLatch = Setting("LATCH", 0, 0, 1, &offOnNameList);
+    Setting arpOctave = Setting("OCTAVE", 0, -3, 3, &arpOctaveNameList);
+    Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, &arpRatchedNameList);
+    Setting arpPolyrythm = Setting("POLYRYTHM", 0, 0, 1, &offOnNameList);
 
-    Setting arpStepsA = Setting("STEPA", 9, 0, 22, false, binary, &arpStepNameList, true, true);
-    Setting arpStepsB = Setting("STEPB", 9, 0, 22, false, binary, &arpStepNameList, true, true);
+    Setting arpStepsA = Setting("STEPA", 9, 0, 22, &arpStepNameList, true, true);
+    Setting arpStepsB = Setting("STEPB", 9, 0, 22, &arpStepNameList, true, true);
 
-    Setting arpStepsAExt = Setting("EXT. DIV A", 0, 0, 4, false, binary, &arpEXTDivNameList, true, false);
-    Setting arpStepsBExt = Setting("EXT. DIV B", 0, 0, 4, false, binary, &arpEXTDivNameList, true, false);
+    Setting arpStepsAExt = Setting("EXT. DIV A", 0, 0, 4, &arpEXTDivNameList, true, false);
+    Setting arpStepsBExt = Setting("EXT. DIV B", 0, 0, 4, &arpEXTDivNameList, true, false);
 
-    Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8, false, binary);
+    Setting arpPlayedKeysParallel = Setting("KEYS PARALLEL", 1, 1, 8);
 
     const std::vector<const char *> offOnNameList = {"OFF", "ON"};
 

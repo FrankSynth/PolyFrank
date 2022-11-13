@@ -40,10 +40,9 @@ class VoiceHandler {
 
     uint32_t lastVoiceID[2] = {0, 0};
 
-    Setting livemodeVoiceModeA = Setting("MODE A", 0, 0, 3, false, binary, &polySplitNameList);
-    Setting livemodeVoiceModeB = Setting("MODE B", 0, 0, 3, false, binary, &polySplitNameList);
-    // Setting livemodeNumberVoices = Setting("NUM VOICES", 8, 1, 8, false, binary);
-    Setting livemodeMergeLayer = Setting("MERGE", 0, 0, 1, false, binary, &polyMergeNameList);
+    Setting livemodeVoiceModeA = Setting("MODE A", 0, 0, 3, &polySplitNameList);
+    Setting livemodeVoiceModeB = Setting("MODE B", 0, 0, 3, &polySplitNameList);
+    Setting livemodeMergeLayer = Setting("MERGE", 0, 0, 1, &polyMergeNameList);
 
     const std::vector<const char *> polySplitNameList = {"1|8", "2|4", "4|2", "8|1"};
     const std::vector<const char *> polySplitNameListDual = {"1|16", "2|8", "4|4", "8|2", "16|1"};

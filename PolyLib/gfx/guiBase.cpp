@@ -75,7 +75,7 @@ void setGUIColor(int32_t *colorSelection) {
 
             c4444dot = 0xFfc5;
 
-            c4444wavecolor = 0xFEEE;
+            c4444wavecolor = 0xFDDD;
             c4444wavecolorTrans = 0x8FFF;
 
             c4444gridcolor = 0x3FFF;

@@ -16,6 +16,8 @@ extern LiveData liveData;
 
 volatile LAYER_SELECT layerFilter = LAYER_AB;
 
+volatile bool pendingPresetLoad = false;
+
 void readConfig() {
     readConfigBlock();
     if (checkBuffer())
@@ -27,23 +29,31 @@ bool readPresetTable() {
 };
 
 void readPreset(uint8_t presetID, LAYER_SELECT layer) {
-    layerFilter = layer;
-
     readPresetBlock(presetID);
-    if (checkBuffer()) {
-        switch (layer) {
-            case LAYER_A: allLayers[0]->clearPatches(); break;
-            case LAYER_B: allLayers[1]->clearPatches(); break;
-            case LAYER_AB:
-                allLayers[0]->clearPatches();
-                allLayers[1]->clearPatches();
-                break;
 
-            default: break;
-        }
-        decodeBuffer();
-    }
+    layerFilter = layer;
+    pendingPresetLoad = true;
 };
+
+void presetServiceRoutine() {
+    if (pendingPresetLoad == true) {
+        pendingPresetLoad = false;
+
+        if (checkBuffer()) {
+            switch (layerFilter) {
+                case LAYER_A: allLayers[0]->clearPatches(); break;
+                case LAYER_B: allLayers[1]->clearPatches(); break;
+                case LAYER_AB:
+                    allLayers[0]->clearPatches();
+                    allLayers[1]->clearPatches();
+                    break;
+
+                default: break;
+            }
+            decodeBuffer();
+        }
+    }
+}
 
 ///////PRESET/////////
 
@@ -284,7 +294,7 @@ void loadSettingToLive(uint8_t dataID, int32_t data) {
     for (Setting *s : liveData.__liveSettingsLivemode) {
         if (s->storeID == dataID) {
             if (s->storeable) {
-                s->setValueWithoutMapping(data);
+                s->setValue(data);
                 return;
             }
         }
@@ -299,7 +309,7 @@ void loadSettingToArp(uint8_t layerID, uint8_t dataID, int32_t data) {
     for (Setting *s : liveData.arps[layerID].__liveSettingsArp) {
         if (s->storeID == dataID) {
             if (s->storeable) {
-                s->setValueWithoutMapping(data);
+                s->setValue(data);
                 return;
             }
         }

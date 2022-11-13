@@ -3,6 +3,7 @@
 #include "datacore/datacore.hpp"
 #include "modules/modules.hpp"
 #include "storage/loadStoredData.hpp"
+#include <algorithm>
 #include <list>
 #include <string>
 #include <vector>
@@ -41,7 +42,7 @@ class Layer {
         modules.push_back(&out);
         modules.push_back(&midi);
         modules.push_back(&feel);
-        modules.push_back(&layersettings);
+        // modules.push_back(&layersettings);
         modules.push_back(&tune);
 
         lfos.push_back(&lfoA);
@@ -51,6 +52,7 @@ class Layer {
 
         initID();
 
+#ifdef POLYCONTROL
         oscA.storeID = 0x00;
         oscB.storeID = 0x01;
         waveshaperA.storeID = 0x02;
@@ -68,10 +70,9 @@ class Layer {
         out.storeID = 0x0E;
         midi.storeID = 0x0F;
         feel.storeID = 0x10;
-        layersettings.storeID = 0x11;
+        // layersettings.storeID = 0x11;
         tune.storeID = 0x12;
 
-#ifdef POLYCONTROL
         renderedAudioWavesOscA = renderedAudioWaves;
         renderedAudioWavesOscB = &renderedAudioWaves[100];
         renderedAudioWavesSub = &renderedAudioWaves[200];
@@ -90,19 +91,23 @@ class Layer {
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
-    void updatePatchInOutWithoutMapping(PatchElement &patch, float amount = 0);
-    void updatePatchInOutByIdWithoutMapping(uint8_t outputId, uint8_t inputId, float amount = 0);
+    void updatePatchInOut(PatchElement &patch, float amount = 0);
+    void updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
     void removePatchInOut(PatchElement &patch);
     void removePatchInOutById(uint8_t outputId, uint8_t inputId);
     inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYCONTROL
 
+    void layerServiceRoutine();
     void resendLayerConfig();
 
     void getLayerConfiguration(int32_t *buffer, bool noFilter);
     void setLayerConfigration(int32_t *buffer, bool noFilter);
     void clearPresetLocks();
+
+    void setClearMarker();
+    void setResetMarker();
 
     uint32_t writeLayer(uint32_t blockStartIndex);
 
@@ -171,7 +176,7 @@ class Layer {
     Feel feel = Feel("FEEL", "FEEL");
     Tune tune = Tune("TUNE", "TUNE");
 
-    LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
+    // LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
 
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
@@ -184,10 +189,13 @@ class Layer {
 
     std::list<PatchElement> patchesInOut;
 
+    bool clearPatchesMarker = false;
+    bool resetMarker = true;
+    bool removePatchMarker = true;
     // std::vector<Analog> LadderTune;
     // std::vector<Analog> SteinerTune;
 
-    Setting layerState = Setting("layerState", 0, 1, 0, false, binary);
+    bool layerState = false;
 
   private:
 };

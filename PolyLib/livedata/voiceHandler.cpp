@@ -235,7 +235,7 @@ void VoiceHandler::searchNextVoiceAB() {
 
     // find oldest FREE Voice
     for (uint8_t i = 0; i < 2; i++) {
-        if (allLayers[i]->layerState.value == 1) { // check layerState
+        if (allLayers[i]->layerState == true) { // check layerState
             for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                 if (voices[i][x].status == FREE) {
                     if (nextVoice != nullptr) {
@@ -255,7 +255,7 @@ void VoiceHandler::searchNextVoiceAB() {
     if (nextVoice == nullptr) {
 
         for (uint8_t i = 0; i < 2; i++) {
-            if (allLayers[i]->layerState.value == 1) { // check layerState
+            if (allLayers[i]->layerState == true) { // check layerState
                 // find oldest NOTE
                 for (uint8_t x = 0; x < NUMBERVOICES; x++) {
                     if (voices[i][x].status != SELECT) { // not already selected

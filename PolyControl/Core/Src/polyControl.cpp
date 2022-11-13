@@ -176,7 +176,7 @@ void PolyControlInit() {
 
     // CheckLayerStatus
     if (layerCom.chipState[0][0] == CHIP_READY && layerCom.chipState[0][1] == CHIP_READY) { // Layer A alive
-        layerA.layerState.value = 1;
+        layerA.layerState = true;
     }
     else {
         globalSettings.midiLayerAChannel.disable = 1;
@@ -185,7 +185,7 @@ void PolyControlInit() {
     }
 
     if (layerCom.chipState[1][0] == CHIP_READY && layerCom.chipState[1][1] == CHIP_READY) { // Layer B alive
-        layerB.layerState.value = 1;
+        layerB.layerState = true;
     }
     else {
         globalSettings.midiLayerBChannel.disable = 1;
@@ -193,7 +193,7 @@ void PolyControlInit() {
         layerCom.chipState[1][1] = CHIP_DISABLED;
     }
 
-    if (layerA.layerState.value && layerB.layerState.value) {
+    if (layerA.layerState && layerB.layerState) {
         globalSettings.multiLayer.value = 1;
     }
     else {                                                    // disable multilayerSettings
@@ -201,7 +201,7 @@ void PolyControlInit() {
         liveData.voiceHandler.livemodeMergeLayer.disable = 1; // disable merge Layers
     }
 
-    if (layerA.layerState.value == 0 && layerB.layerState.value == 0) {
+    if (layerA.layerState == false && layerB.layerState == false) {
         PolyError_Handler("ERROR | FATAL | NO Layer Connected!");
     }
 
@@ -211,10 +211,10 @@ void PolyControlInit() {
     HAL_Delay(100);
 
     // User Interface
-    if (layerA.layerState.value == 1) {
+    if (layerA.layerState == true) {
         newFocus = {0, 11, 0, FOCUSMODULE};
     }
-    else if (layerB.layerState.value == 1) {
+    else if (layerB.layerState == true) {
         newFocus = {1, 0, 0, FOCUSMODULE};
     }
 
@@ -231,10 +231,10 @@ void PolyControlInit() {
     // Midi configuration
     midiConfig();
 
-    if (layerA.layerState.value) {
+    if (layerA.layerState) {
         println("INFO || Layer A active");
     }
-    if (layerB.layerState.value) {
+    if (layerB.layerState) {
         println("INFO || Layer B active");
     }
 

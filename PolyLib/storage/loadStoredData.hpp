@@ -56,3 +56,5 @@ void loadSettingToArp(uint8_t layerID, uint8_t dataID, int32_t data);
 void decodeBuffer();
 bool checkBuffer();
 void packBuffer(uint32_t numBytes);
+
+void presetServiceRoutine();

@@ -97,13 +97,15 @@ SECTIONS
     *wavetables.o (.text .text*)
     *polyRenderIRQ.o (.text .text*)
     *device.o (.text .text*)
-    /* *MCP4728.o (.text .text*)  */
     *flagHandler.o (.text .text*) 
     *com.o (.text .text* .rodata .rodata*) 
     *stm32h7xx_it.o (.text .text*)
-    *stm32h7xx_hal_sai.o (.text .text*)
     *DUALBU22210.o (.text .text*)
     *moduleCallbacks.o (.text .text*)
+    *stm32h7xx_hal_spi.o (.text .text*)
+    *stm32h7xx_hal_spi_ex.o (.text .text*)
+    *stm32h7xx_hal.o (.text .text*)
+
 
     
 
@@ -114,7 +116,7 @@ SECTIONS
     *render* (.rodata .rodata*) 
     *spline.o (.rodata .rodata*) 
     *polyMath.o (.rodata .rodata*) 
-    /* *module* (.rodata .rodata*)  */
+    *module* (.rodata .rodata*) 
     *layer* (.rodata .rodata*) 
     *datacore* (.rodata .rodata*) 
     *wavetables.o (.rodata .rodata*) 

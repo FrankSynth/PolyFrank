@@ -440,7 +440,7 @@ void LEDMappingInit() {
 
 void potiMapping() {
     for (uint32_t i = 0; i < 2; i++) { // register potis for both layer
-        if (allLayers[i]->layerState.value == 1) {
+        if (allLayers[i]->layerState == true) {
 
             potiFunctionPointer[i][0][0] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->steiner.aParSer), std::placeholders::_1),

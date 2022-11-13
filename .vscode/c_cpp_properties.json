@@ -34,7 +34,7 @@
                 "PolyLib/modules",
                 "PolyLib/math",
                 "PolyLib/debughelper",
-                "PolyLib/preset",
+                "PolyLib/storage",
                 "PolyLib/wavetables",
                 "PolyLib/livedata",
                 "PolyLib/render",

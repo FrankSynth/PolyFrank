@@ -114,6 +114,7 @@ class PanelTouch {
     void forceSetInputFocus(Input *pInput);
 
     void setModulFocus(BaseModule *pModule);
+    void functionButtonServiceRoutine();
 
     bool outputPatchActive() {
         if (activeOutput == nullptr)
@@ -126,7 +127,8 @@ class PanelTouch {
     Input *activeInput = nullptr;
 
     location tempOutputLocation;
-
+    bool slotMarker = false;
+    uint32_t slotButtonID = 0;
     uint16_t pinStateLayer[2][8];
     uint16_t pinStateControl[8];
 

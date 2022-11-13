@@ -369,7 +369,8 @@ void GUIPanelPatch::removeCurrentPatch() {
 }
 
 void GUIPanelPatch::clearPatches() {
-    allLayers[cachedFocus.layer]->clearPatches();
+
+    allLayers[cachedFocus.layer]->clearPatchesMarker = true;
 }
 
 #endif

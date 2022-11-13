@@ -34,7 +34,6 @@ vec<VOICESPERCHIP, float> noteConverted;
 inline vec<VOICESPERCHIP> accumulateNote() {
 
     noteConverted = (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
-    noteConverted += layerA.oscA.fm;
 
     static vec<VOICESPERCHIP> currentNote;
     static vec<VOICESPERCHIP> desiredNote;
@@ -44,7 +43,7 @@ inline vec<VOICESPERCHIP> accumulateNote() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
-    desiredNote += accumulateOctave();
+    desiredNote += accumulateOctave() + layerA.oscA.fm;
 
     // // TODO check glide, plus glide settings, i.e. CT & CR
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -53,9 +52,9 @@ inline vec<VOICESPERCHIP> accumulateNote() {
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
-    vec<VOICESPERCHIP> note = currentNote + (layerA.oscA.iFM * 0.25f);
+    vec<VOICESPERCHIP> note = currentNote + (layerA.oscB.iFM * 0.25f);
 
-    note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
+    // note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
 
     layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));
@@ -140,7 +139,7 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         desiredNote[i] += layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
 
-    desiredNote += layerA.oscA.fm;
+    desiredNote += layerA.oscA.fm + layerA.oscB.fm;
     desiredNote += accumulateOctaveOscB();
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
@@ -149,9 +148,7 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
-    vec<VOICESPERCHIP> note = currentNote + layerA.oscB.fm;
-
-    note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
+    vec<VOICESPERCHIP> note = currentNote;
 
     layerA.oscB.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));

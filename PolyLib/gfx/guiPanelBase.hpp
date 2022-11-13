@@ -220,8 +220,8 @@ class Data_PanelElement {
                         nullptr,
                         patch,
                         nullptr,
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 0), "AMOUNT"},
                         {std::bind(&PatchElement::setAmount, patch, 0), "RESET"}};
 
         numberEntrys++;
@@ -246,8 +246,8 @@ class Data_PanelElement {
                         nullptr,
                         patch,
                         nullptr,
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 1), "AMOUNT"},
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerationMapped, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 0), "AMOUNT"},
                         {std::bind(&PatchElement::setAmount, patch, 0), "RESET"}};
 
         numberEntrys++;

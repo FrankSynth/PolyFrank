@@ -42,24 +42,28 @@ typedef enum {
 class BaseModule {
   public:
     BaseModule(const char *name, const char *shortName) {
+#if POLYCONTROL
         this->name = name;
         this->shortName = shortName;
+#endif
     }
-
-    inline const char *getName() { return name; }
-    inline const char *getShortName() { return shortName; }
 
     inline std::vector<Output *> &getOutputs() { return outputs; }
     inline std::vector<Input *> &getInputs() { return inputs; }
     inline std::vector<Analog *> &getPotis() { return knobs; }
     inline std::vector<Digital *> &getSwitches() { return switches; }
-    inline std::vector<Setting *> &getSettings() { return settings; }
+    // inline std::vector<Setting *> &getSettings() { return settings; }
     inline std::vector<RenderBuffer *> &getRenderBuffer() { return renderBuffer; }
 
     uint8_t id;
     uint8_t layerId;
-    uint8_t displayVis = 1;
 
+#if POLYCONTROL
+
+    inline const char *getName() { return name; }
+    inline const char *getShortName() { return shortName; }
+
+    uint8_t displayVis = 1;
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
 
@@ -69,12 +73,13 @@ class BaseModule {
     const char *shortName;
 
     uint8_t storeID = 0xff; // NOT SET
+#endif
 
     std::vector<Output *> outputs;
     std::vector<Input *> inputs;
     std::vector<Analog *> knobs;
     std::vector<Digital *> switches;
-    std::vector<Setting *> settings;
+    // std::vector<Setting *> settings;
     std::vector<RenderBuffer *> renderBuffer;
 
     ModuleType moduleType = MODULE_NOTDEFINED;
@@ -105,8 +110,9 @@ class Midi : public BaseModule {
 
         for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
             rawNote[voice] = 21;
-
+#ifdef POLYCONTROL
         displayVis = 0;
+#endif
     }
 
     Output oMod = Output("MOD", "MOD");
@@ -179,6 +185,7 @@ class OSC_A : public BaseModule {
 
         moduleType = MODULE_OSC_A;
 
+#if POLYCONTROL
         aMorph.quickview = 1;
         aMasterTune.quickview = 1;
 
@@ -196,6 +203,7 @@ class OSC_A : public BaseModule {
         dOctave.storeID = 0x04;
         dOctaveSwitchSub.storeID = 0x05;
         dWavetableSet.storeID = 0x06;
+#endif
     }
 
     Output out = Output("OUT");
@@ -208,7 +216,7 @@ class OSC_A : public BaseModule {
     Input iOctave = Input("OCTAVE", "OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
 
-    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, linMap, &iFM);
+    Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aEffect = Analog("EFFECT ", 0, 1, 0, true, linMap, &iEffect);
 
@@ -292,6 +300,7 @@ class OSC_B : public BaseModule {
 
         moduleType = MODULE_OSC_B;
 
+#if POLYCONTROL
         aMorph.quickview = 1;
         aTuning.quickview = 1;
 
@@ -305,6 +314,7 @@ class OSC_B : public BaseModule {
         dSample3.storeID = 0x03;
         dOctave.storeID = 0x04;
         dSync.storeID = 0x05;
+#endif
     }
 
     Output out = Output("OUT");
@@ -319,7 +329,7 @@ class OSC_B : public BaseModule {
     Input iPhaseOffset = Input("PHASE", "PH OFF+", &phaseoffset);
 
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
-    Analog aTuning = Analog("TUNING", -0.5, 0.5, 0, true, linMap, &iFM);
+    Analog aTuning = Analog("TUNING", -1, 1, 0, true, logMap, &iFM);
     Analog aEffect = Analog("EFFECT ", 0, 1, 0, true, linMap, &iEffect);
 
     Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
@@ -327,7 +337,7 @@ class OSC_B : public BaseModule {
     Analog aPhaseoffset = Analog("PHASE OFFSET", -1, 1, 0, true, linMap, &iPhaseOffset);
 
     // Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr);
-    Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave);
+    Digital dOctave = Digital("OCT", -3, 3, 0, true, nullptr, &iOctave, false);
 
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff, nullptr, false);
 
@@ -366,9 +376,11 @@ class Noise : public BaseModule {
         renderBuffer.push_back(&samplecrusher);
 
         moduleType = MODULE_NOISE;
+#if POLYCONTROL
         displayVis = 0;
 
         aSamplecrusher.storeID = 0x00;
+#endif
     }
 
     Output out = Output("OUT");
@@ -414,7 +426,8 @@ class Mixer : public BaseModule {
         renderBuffer.push_back(&noiseLevel);
 
         moduleType = MODULE_MIX;
-
+#ifdef POLYCONTROL
+#
         aOSCALevel.storeID = 0x00;
         aOSCBLevel.storeID = 0x01;
         aSUBLevel.storeID = 0x02;
@@ -424,6 +437,7 @@ class Mixer : public BaseModule {
         dOSCBDestSwitch.storeID = 0x01;
         dSUBDestSwitch.storeID = 0x02;
         dNOISEDestSwitch.storeID = 0x03;
+#endif
     }
 
     Input iOSCALevel = Input("OSC A", "OSC A", &oscALevel);
@@ -478,13 +492,14 @@ class Steiner : public BaseModule {
         renderBuffer.push_back(&toLadder);
 
         moduleType = MODULE_VCF;
-
+#ifdef POLYCONTROL
         aCutoff.storeID = 0x00;
         aResonance.storeID = 0x01;
         aLevel.storeID = 0x02;
         aParSer.storeID = 0x03;
 
         dMode.storeID = 0x00;
+#endif
     }
     Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
     Input iResonance = Input("RESONANCE", "RES", &resonance);
@@ -524,12 +539,13 @@ class Ladder : public BaseModule {
         renderBuffer.push_back(&cutoff);
 
         moduleType = MODULE_VCF;
-
+#ifdef POLYCONTROL
         aCutoff.storeID = 0x00;
         aResonance.storeID = 0x01;
         aLevel.storeID = 0x02;
 
         dSlope.storeID = 0x00;
+#endif
     }
 
     Input iCutoff = Input("CUTOFF", "CUTOFF", &cutoff);
@@ -578,7 +594,7 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&currentSampleRAW);
 
         moduleType = MODULE_LFO;
-
+#ifdef POLYCONTROL
         // aFreq.quickview = 1;
         aShape.quickview = 1;
 
@@ -594,6 +610,7 @@ class LFO : public BaseModule {
         dEXTDiv.storeID = 0x05;
         dAlignLFOs.storeID = 0x06;
         dRange.storeID = 0x07;
+#endif
     }
     Output out = Output("OUT");
 
@@ -689,7 +706,7 @@ class ADSR : public BaseModule {
         renderBuffer.push_back(&currentSampleRAW);
 
         moduleType = MODULE_ADSR;
-
+#ifdef POLYCONTROL
         aDelay.storeID = 0x00;
         aAttack.storeID = 0x01;
         aDecay.storeID = 0x02;
@@ -707,6 +724,7 @@ class ADSR : public BaseModule {
         dClockTrigger.storeID = 0x04;
         dClockStep.storeID = 0x05;
         dEXTDiv.storeID = 0x06;
+#endif
     }
 
     Output out = Output("OUT");
@@ -849,11 +867,12 @@ class Feel : public BaseModule {
         renderBuffer.push_back(&detune);
 
         moduleType = MODULE_FEEL;
-
+#ifdef POLYCONTROL
         aGlide.storeID = 0x00;
         aDetune.storeID = 0x01;
         aSpread.storeID = 0x02;
         aImperfection.storeID = 0x03;
+#endif
     }
 
     Input iGlide = Input("GLIDE", "GLIDE", &glide);
@@ -899,7 +918,7 @@ class Tune : public BaseModule {
 
         moduleType = MODULE_TUNE;
         // displayVis = false;
-
+#ifdef POLYCONTROL
         tuneS_A.storeID = 0x00;
         tuneS_B.storeID = 0x01;
         tuneS_C.storeID = 0x02;
@@ -920,6 +939,7 @@ class Tune : public BaseModule {
         tuneResonanceScaleLadder.storeID = 0x11;
         tuneCutoffScaleSteiner.storeID = 0x12;
         tuneResonanceScaleSteiner.storeID = 0x13;
+#endif
     }
 
     Analog tuneS_A = Analog("Steiner Scale A", 0.9, 1.1, 1, true);
@@ -971,12 +991,13 @@ class Out : public BaseModule {
         renderBuffer.push_back(&pan);
 
         moduleType = MODULE_OUT;
-
+#ifdef POLYCONTROL
         aDistort.storeID = 0x00;
         aVCA.storeID = 0x01;
         aPan.storeID = 0x02;
         aPanSpread.storeID = 0x03;
         aMaster.storeID = 0x04;
+#endif
     }
 
     Input iDistort = Input("DRIVE", "DRIVE", &distort);
@@ -1048,6 +1069,8 @@ class Waveshaper : public BaseModule {
             wavespline[i] = tk::spline(splineX[i], splineY[i], tk::spline::cspline_hermite, false,
                                        tk::spline::second_deriv, 0.0f, tk::spline::second_deriv, 0.0f);
         }
+
+#ifdef POLYCONTROL
         displayVis = 0;
 
         aPoint1X.storeID = 0x00;
@@ -1058,6 +1081,7 @@ class Waveshaper : public BaseModule {
         aPoint3Y.storeID = 0x05;
         aPoint4Y.storeID = 0x06;
         aDryWet.storeID = 0x07;
+#endif
     }
 
     Input iPoint1X = Input("P1 X", "P1 X", &Point1X);
@@ -1122,7 +1146,7 @@ class Phaseshaper : public BaseModule {
         renderBuffer.push_back(&DryWet);
 
         moduleType = MODULE_PHASE;
-
+#ifdef POLYCONTROL
         displayVis = 0;
 
         aPoint1Y.storeID = 0x00;
@@ -1132,6 +1156,7 @@ class Phaseshaper : public BaseModule {
         aPoint3Y.storeID = 0x04;
         aPoint4Y.storeID = 0x05;
         aDryWet.storeID = 0x06;
+#endif
     }
 
     Input iPoint1Y = Input("P1 Y", "P1 Y", &Point1Y);
@@ -1159,12 +1184,12 @@ class Phaseshaper : public BaseModule {
     RenderBuffer DryWet;
 };
 
-class LayerSetting : public BaseModule {
+// class LayerSetting : public BaseModule {
 
-  public:
-    LayerSetting(const char *name, const char *shortName) : BaseModule(name, shortName) {
-        switches.push_back(&dPitchbendRange);
-    }
+//   public:
+//     LayerSetting(const char *name, const char *shortName) : BaseModule(name, shortName) {
+//         switches.push_back(&dPitchbendRange);
+//     }
 
-    Digital dPitchbendRange = Digital("PITCHBEND RANGE", 1, 24, 1, true, nullptr, nullptr);
-};
+//     Digital dPitchbendRange = Digital("PITCHBEND RANGE", 1, 24, 1, true, nullptr, nullptr);
+// };

@@ -160,21 +160,21 @@ class GlobalSettings {
     std::string statusReportString;
 
     // all Settings, don't forget to push to __globSettings vector of this class
-    Setting multiLayer = Setting("LAYER", 0, 0, 1, false, binary, &amountLayerNameList);
+    Setting multiLayer = Setting("LAYER", 0, 0, 1, &amountLayerNameList);
 
-    Setting extClockOutLength = Setting("EXT CLK. ms.", 2, 1, 50, false, binary);
-    Setting presetValueHandling = Setting("PRESET VALUE", 0, 0, 1, false, binary, &presetValueHandlingNameList);
-    Setting functionButtons = Setting("F BUTTON", 0, 0, 1, false, binary, &functionButtonsHandlingNameList);
+    Setting extClockOutLength = Setting("EXT CLK. ms.", 2, 1, 50);
+    Setting presetValueHandling = Setting("PRESET VALUE", 0, 0, 1, &presetValueHandlingNameList);
+    Setting functionButtons = Setting("F BUTTON", 0, 0, 1, &functionButtonsHandlingNameList);
 
-    Setting midiSource = Setting("MIDI", 0, 0, 1, false, binary, &midiTypeNameList);
-    Setting midiSend = Setting("SEND", 0, 0, 1, false, binary, &offOnNameList);
-    Setting midiLayerAChannel = Setting("Layer A Ch.", 0, 0, 10, false, binary);
-    Setting midiLayerBChannel = Setting("Layer B Ch.", 0, 0, 10, false, binary);
-    Setting midiPitchBendRange = Setting("PB Range", 2, 1, 12, false, binary, &pbRangeNameList);
+    Setting midiSource = Setting("MIDI", 0, 0, 1, &midiTypeNameList);
+    Setting midiSend = Setting("SEND", 0, 0, 1, &offOnNameList);
+    Setting midiLayerAChannel = Setting("Layer A Ch.", 0, 0, 10);
+    Setting midiLayerBChannel = Setting("Layer B Ch.", 0, 0, 10);
+    Setting midiPitchBendRange = Setting("PB Range", 2, 1, 12, &pbRangeNameList);
 
-    Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
-    Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
-    Setting dispLED = Setting("LED", 5, 1, 20, false, binary);
+    Setting dispColor = Setting("COLOR", 0, 0, 1, &colorThemeNameList);
+    Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10);
+    Setting dispLED = Setting("LED", 5, 1, 20);
 
     Error error;
 

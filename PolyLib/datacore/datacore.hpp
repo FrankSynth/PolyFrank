@@ -12,11 +12,11 @@
 #include <vector>
 
 extern float ROTARYENCODERACCELERATION;
-// extern uint32_t LayerRenBufferSw;
 
-// only two (binary) or more options (continuous)
-enum typeDisplayValue { continuous, binary };
-enum typeLinLog { linMap, logMap, antilogMap };
+enum typeLinLog { linMap, logMap };
+
+class Input;
+class RenderBuffer;
 
 #ifdef POLYCONTROL
 
@@ -30,33 +30,412 @@ class DataElement {
     DataElement() {}
     ~DataElement() {}
 
-    const char *getName();
-
-    typeDisplayValue getType();
+    void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
 
     uint8_t id;
     uint8_t layerId;
     uint8_t moduleId;
 
-    uint8_t quickview = 0;
-    bool presetLock = 0;
-    bool storeable = false;
-    uint8_t storeID = 0xFF; // 0xff == NOTSET
-    bool displayVis;
-
-    void setValueChangedCallback(std::function<void()> fptr) { valueChangedCallback = fptr; }
-
-  protected:
     std::function<void()> valueChangedCallback = nullptr;
-    typeDisplayValue type;
 
-    uint8_t sendOutViaCom;
-
-    const char *name;
 #ifdef POLYCONTROL
+
+    inline const char *getName() { return name; }
+
+    // Marker
+    bool quickview = false;
+    bool presetLock = false;
+    bool storeable = false;
+    uint8_t storeID = 0xFF; // 0xff == NOT SET
+    bool displayVis = false;
+    uint8_t sendOutViaCom;
+    const char *name;
     std::string valueName; // value as string
 #endif
 };
+
+#ifdef POLYCONTROL
+
+// Settings element for PolyControl
+class Setting : public DataElement {
+  public:
+    Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1,
+            const std::vector<const char *> *valueNameList = nullptr, bool storeable = true, bool displayVis = true) {
+
+        this->value = value;
+        this->defaultValue = value;
+        this->min = min;
+        this->max = max;
+
+        this->name = name;
+        this->valueNameList = valueNameList;
+
+        this->storeable = storeable;
+        this->displayVis = displayVis;
+
+        if (valueNameList == nullptr)
+            valueName = std::to_string(value);
+    }
+
+    // Data Functions
+
+    inline void setValue(int32_t newValue) {
+        value = std::clamp(newValue, min, max);
+        presetLock = 0;
+
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+        if (valueNameList == nullptr)
+            valueName = std::to_string(value);
+    }
+
+    inline int32_t getValue() { return value; }
+    inline void resetValue() { setValue(defaultValue); }
+
+    inline void increase(int32_t amount = 1) {
+        if (useAcceleration) {
+            setValue(changeInt(
+                value, std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                min, max));
+        }
+        else {
+            setValue(changeInt(value, amount, min, max));
+        }
+    }
+
+    inline void decrease(int32_t amount = -1) {
+        if (useAcceleration) {
+            setValue(changeInt(
+                value, -std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
+                min, max));
+        }
+        else {
+            setValue(changeInt(value, amount, min, max));
+        }
+    }
+
+    inline const std::string &getValueAsString() {
+        if (valueNameList == nullptr) {
+            return valueName;
+        }
+        else {
+            if ((int32_t)valueNameList->size() == (max - min + 1)) {
+                valueName = (*valueNameList)[value - min];
+                return valueName;
+            }
+            else {
+                PolyError_Handler("ERROR | Configuration | Setting -> NameList wrong lenght");
+                return valueName;
+            }
+        }
+    }
+
+    // Data
+    int32_t value;
+    int32_t defaultValue; // init value
+    int32_t min;
+    int32_t max;
+
+    // GUI | HID
+    uint8_t disable;
+    bool useAcceleration = false;
+
+    const std::vector<const char *> *valueNameList; // custom Name List for different Values
+};
+
+#endif
+
+// derived class Analog
+class Analog : public DataElement {
+  public:
+    Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
+
+        this->min = min;
+        this->max = max;
+        this->valueMapped = defaultValue;
+        this->input = input;
+
+#ifdef POLYCONTROL
+        this->minInputValue = MIN_VALUE_12BIT;
+        this->maxInputValue = MAX_VALUE_12BIT;
+
+        this->outputRange = max - min;
+        this->mapping = mapping;
+        this->defaultValueMapped = defaultValue;
+
+        this->name = name;
+        this->sendOutViaCom = sendOutViaCom;
+        this->displayVis = displayVis;
+
+        this->inputRange = this->maxInputValue - this->minInputValue;
+
+        this->value = reverseMapping(defaultValue);
+        this->valueMapped = defaultValue; // need to be set again!
+        this->storeable = storeable;
+#endif
+    }
+
+    Analog(const char *name, float min = 0, float max = 1, int32_t minInputValue = MIN_VALUE_12BIT,
+           int32_t maxInputValue = MAX_VALUE_12BIT, float defaultValue = 0, bool sendOutViaCom = true,
+           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
+
+        this->min = min;
+        this->max = max;
+        this->valueMapped = defaultValue;
+        this->input = input;
+        this->defaultValueMapped = defaultValue;
+
+#ifdef POLYCONTROL
+
+        this->minInputValue = minInputValue;
+        this->maxInputValue = maxInputValue;
+
+        this->outputRange = max - min;
+
+        this->mapping = mapping;
+
+        this->name = name;
+        this->sendOutViaCom = sendOutViaCom;
+        this->displayVis = displayVis;
+
+        this->inputRange = this->maxInputValue - this->minInputValue;
+
+        this->value = reverseMapping(defaultValue);
+        this->storeable = storeable;
+
+#endif
+    }
+
+#ifdef POLYCONTROL
+
+    void setValue(int32_t newValue);
+    void setValueInversePoti(int32_t newValue);
+    void resetValue() {
+        defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
+        setValue(defaultValue);
+        presetLock = 0;
+    }
+
+    void setNewRange(float min, float max) {
+        int32_t rawValue = reverseMapping(valueMapped);
+
+        this->min = min;
+        this->max = max;
+        this->outputRange = max - min;
+
+        setValue(rawValue);
+    }
+
+    static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
+
+    int32_t reverseMapping(float newValue);
+
+    inline void changeValue(int32_t change) { setValue(value + change); }
+
+    inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
+        if (direction == 0) {
+            setValue(value - (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
+                                      maxInputValue))); // use Acellaration and test for min step of 1 -> for low
+                                                        // resolution analog inputs
+        }
+        if (direction == 1) {
+            setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
+        }
+    }
+
+    inline void setValueWithoutMapping(float newValue) {
+        valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+        valueName = std::to_string(valueMapped);
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, valueMapped);
+        }
+    }
+
+    inline const std::string &getValueAsString() { return valueName; }
+    std::string valueName;
+
+#endif
+
+#ifdef POLYRENDER
+
+    void resetValue() {
+        valueMapped = defaultValueMapped; // reverse mapping of the default value
+    }
+
+    inline void setValueWithoutMapping(float newValue) {
+        valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
+#endif
+
+    // DATA
+    float valueMapped;
+    float min;
+    float max;
+    Input *input = nullptr;
+    float defaultValueMapped;
+
+// POLYCONTROL ONLY
+#ifdef POLYCONTROL
+
+    int32_t value;
+    int32_t defaultValue = 0;
+    float outputRange;
+
+    int32_t minInputValue;
+    int32_t maxInputValue;
+    uint32_t inputRange;
+
+    typeLinLog mapping;
+#endif
+
+    operator float &() { return valueMapped; }
+    operator const float &() const { return valueMapped; }
+};
+
+// derived class Poti
+class Digital : public DataElement {
+  public:
+    Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
+            const std::vector<const char *> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true,
+            bool storeable = true) {
+
+        this->valueMapped = defaultValue;
+        this->input = input;
+        this->defaultValue = defaultValue;
+        this->min = min;
+        this->max = max;
+#ifdef POLYCONTROL
+
+        this->value = MIN_VALUE_12BIT;
+
+        this->outputRange = max - min;
+
+        this->name = name;
+        this->valueNameList = valueNameList;
+        this->displayVis = displayVis;
+        this->storeable = storeable;
+
+        this->sendOutViaCom = sendOutViaCom;
+
+#endif
+    }
+#ifdef POLYCONTROL
+
+    void setValue(int32_t newValue);
+    inline void resetValue() { setValueWithoutMapping(defaultValue); }
+
+    void setValueRange(int32_t newValue, int32_t min, int32_t max);
+    void nextValue();
+    void nextValueLoop();
+
+    void previousValue();
+
+    static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
+
+    inline void setValueWithoutMapping(int32_t newValue) {
+        valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+        valueName = std::to_string(valueMapped);
+        if (sendOutViaCom) {
+            sendSetting(layerId, moduleId, id, valueMapped);
+        }
+    }
+
+    std::vector<uint8_t> LEDPortID;
+    std::vector<uint8_t> LEDPinID;
+
+    void configureNumberLEDs(uint8_t numLEDs) {
+        for (uint32_t i = 0; i < numLEDs; i++) {
+
+            LEDPortID.push_back(0xff);
+            LEDPinID.push_back(0xff);
+        }
+    }
+
+    int32_t value;
+    std::string valueName;
+    int32_t outputRange;
+
+    typeLinLog mapping;
+
+    const std::string &getValueAsString();
+    const std::vector<const char *> *valueNameList; // custom Name List for different Values
+
+#endif
+
+#ifdef POLYRENDER
+
+    inline void resetValue() { valueMapped = defaultValue; }
+
+    inline void setValueWithoutMapping(int32_t newValue) {
+        valueMapped = newValue;
+        if (valueChangedCallback != nullptr)
+            valueChangedCallback();
+    }
+
+#endif
+    Input *input;
+
+    int32_t valueMapped;
+    int32_t min;
+    int32_t max;
+    int32_t defaultValue = 0;
+
+    operator int32_t &() { return valueMapped; }
+    operator const int32_t &() const { return valueMapped; }
+
+    explicit operator float() { return (float)valueMapped; }
+    explicit operator float() const { return (float)valueMapped; }
+};
+
+///////////////////RENDER//////////////////
+
+/**
+ * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is
+ * used
+ *
+ */
+class RenderBuffer {
+  public:
+    RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
+
+    uint8_t id;
+    uint8_t layerId;
+    uint8_t moduleId;
+
+    uint8_t LEDPortID = 0xff;
+    uint8_t LEDPinID = 0xff;
+
+    bool sendOutViaCom;
+
+    vec<VOICESPERCHIP> currentSample;
+
+    operator float *() { return currentSample; }
+    operator const float *() const { return currentSample; }
+
+    // returns from currentSample
+    float &operator[](int i) { return (currentSample)[i]; }
+    const float &operator[](int i) const { return (currentSample)[i]; }
+
+    operator vec<VOICESPERCHIP> &() { return (currentSample); }
+    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
+
+    // assigns to nextSample
+    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return currentSample = other; }
+
+    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
+    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
+    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
+    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
+};
+
+///////////////////SYSTEM//////////////////
 
 // Error element
 class Error {
@@ -90,74 +469,6 @@ class Error {
 };
 
 // basic data element
-class Setting : public DataElement {
-  public:
-    Setting(const char *name, int32_t value = 0, int32_t min = 0, int32_t max = 1, bool sendOutViaCom = true,
-            typeDisplayValue type = continuous, const std::vector<const char *> *valueNameList = nullptr,
-            bool storeable = true, bool displayVis = true) {
-
-        this->value = value;
-        this->defaultValue = value;
-        this->valueToggle = value;
-        this->min = min;
-        this->max = max;
-
-        this->type = type;
-
-        this->name = name;
-        this->valueNameList = valueNameList;
-
-        this->storeable = storeable;
-
-        this->displayVis = displayVis;
-
-#ifdef POLYCONTROL
-        if (valueNameList == nullptr)
-            valueName = std::to_string(value);
-        if (sendOutViaCom) {
-            sendSetting(layerId, moduleId, id, value);
-        }
-#endif
-    }
-
-    int32_t value;
-    int32_t valueToggle;  // short push toggles between two values
-    int32_t defaultValue; // init value
-    int32_t min;
-    int32_t max;
-    uint8_t disable;
-    uint8_t useAcceleration = 0;
-
-    static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
-
-    const std::vector<const char *> *valueNameList; // custom Name List for different Values
-
-    int32_t getValue();
-    void setValue(int32_t newValue);
-    void resetValue() { setValue(defaultValue); }
-
-    inline void setValueWithoutMapping(int32_t newValue) {
-        value = newValue;
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-    }
-    inline void setValueWithoutMapping(uint8_t *newValue) {
-        value = *(int32_t *)newValue;
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-    }
-    void increase(int32_t amount = 1);
-    void decrease(int32_t amount = -1);
-    void push();
-    void pushAndHold();
-
-    void reset();
-#ifdef POLYCONTROL
-    const std::string &getValueAsString();
-#endif
-};
-
-// basic data element
 class Status {
   public:
     Status(const char *name, const char *unitName = nullptr, bool displayVis = true) {
@@ -167,7 +478,6 @@ class Status {
     }
 
     void appendValueAsString(std::string &buffer, bool withName = true, bool withUnit = true, bool withReturn = true) {
-
         if (withName) {
             buffer += name;
             buffer += " ";
@@ -186,314 +496,21 @@ class Status {
     }
 
     float value;
-
     const char *name;     // custom Name List for different Values
     const char *unitName; // custom Name List for different Values
     bool displayVis = false;
 };
 
-/**
- * @brief a renderbuffer similar to output modules, used where no visible output module with patchability is used
- *
- */
-class RenderBuffer {
-  public:
-    RenderBuffer(bool sendOutViaCom = true) { this->sendOutViaCom = sendOutViaCom; }
-
-    // void updateToNextSample() {
-    // vec<VOICESPERCHIP> temp = currentSample;
-    // currentSample = nextSample;
-    // nextSample = temp;
-    // }
-
-    uint8_t id;
-    uint8_t layerId;
-    uint8_t moduleId;
-
-    uint8_t LEDPortID = 0xff;
-    uint8_t LEDPinID = 0xff;
-
-    bool sendOutViaCom;
-
-    // vec<VOICESPERCHIP> sample[2];
-    vec<VOICESPERCHIP> currentSample;
-    // vec<VOICESPERCHIP> nextSample;
-
-    operator float *() { return currentSample; }
-    operator const float *() const { return currentSample; }
-
-    // returns from currentSample
-    float &operator[](int i) { return (currentSample)[i]; }
-    const float &operator[](int i) const { return (currentSample)[i]; }
-
-    operator vec<VOICESPERCHIP> &() { return (currentSample); }
-    operator const vec<VOICESPERCHIP> &() const { return (currentSample); }
-
-    // assigns to nextSample
-    template <typename T> vec<VOICESPERCHIP> &operator=(const T &other) { return currentSample = other; }
-
-    template <typename T> vec<VOICESPERCHIP> operator+(const T &other) const { return currentSample + other; }
-    template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
-    template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
-    template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
-};
-
-class Input;
-
-// derived class Poti
-class Analog : public DataElement {
-  public:
-    Analog(const char *name, float min = 0, float max = 1, float defaultValue = 0, bool sendOutViaCom = true,
-           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
-
-        this->min = min;
-        this->max = max;
-        this->minInputValue = MIN_VALUE_12BIT;
-        this->maxInputValue = MAX_VALUE_12BIT;
-
-        this->minMaxDifference = max - min;
-        this->mapping = mapping;
-        this->defaultValueMapped = defaultValue;
-
-        this->name = name;
-        this->sendOutViaCom = sendOutViaCom;
-        this->displayVis = displayVis;
-
-        this->input = input;
-
-        this->inputRange = this->maxInputValue - this->minInputValue;
-
-        this->value = reverseMapping(defaultValue);
-        this->valueMapped = defaultValue;
-        this->storeable = storeable;
-    }
-
-    Analog(const char *name, float min = 0, float max = 1,
-           int32_t minInputValue = MIN_VALUE_12BIT, // contructor for MIDI
-           int32_t maxInputValue = MAX_VALUE_12BIT, float defaultValue = 0, bool sendOutViaCom = true,
-           typeLinLog mapping = linMap, Input *input = nullptr, bool displayVis = true, bool storeable = true) {
-
-        this->min = min;
-        this->max = max;
-        this->minInputValue = minInputValue;
-        this->maxInputValue = maxInputValue;
-
-        this->minMaxDifference = max - min;
-        this->mapping = mapping;
-        this->defaultValueMapped = defaultValue;
-
-        this->name = name;
-        this->sendOutViaCom = sendOutViaCom;
-        this->displayVis = displayVis;
-
-        this->input = input;
-
-        this->inputRange = this->maxInputValue - this->minInputValue;
-
-        this->value = reverseMapping(defaultValue);
-        this->valueMapped = defaultValue;
-        this->storeable = storeable;
-    }
-
-    void setValue(int32_t newValue);
-    void setValueInversePoti(int32_t newValue);
-    void resetValue() {
-        defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
-        setValue(defaultValue);
-        presetLock = 0;
-    }
-
-    void setNewRange(float min, float max) {
-
-        // println("min: ", min, "  max: ", max);
-        // println("oldvalue: ", valueMapped);
-        int32_t rawValue = reverseMapping(valueMapped);
-        // println("rawValue: ", rawValue);
-
-        this->min = min;
-        this->max = max;
-
-        setValue(rawValue);
-        // println("newValue: ", valueMapped);
-    }
-
-    static std::function<uint8_t(uint8_t, uint8_t, float)> sendViaChipCom;
-
-    int32_t reverseMapping(float newValue);
-
-    inline void changeValue(int32_t change) { setValue(value + change); }
-
-    inline void changeValueWithEncoderAcceleration(bool direction) { // direction 0 -> negative | 1 -> positive
-        if (direction == 0) {
-            setValue(value - (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1,
-                                      maxInputValue))); // use Acellaration and test for min step of 1 -> for low
-                                                        // resolution analog inputs
-        }
-        if (direction == 1) {
-            setValue(value + (testInt((float)inputRange / 2.0f * ROTARYENCODERACCELERATION, 1, maxInputValue)));
-        }
-    }
-
-    inline void setValueWithoutMapping(float newValue) {
-        valueMapped = newValue;
-
-        // valueMapped = testFloat(newValue, min, max);
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-#ifdef POLYCONTROL
-        valueName = std::to_string(valueMapped);
-        if (sendOutViaCom) {
-            sendSetting(layerId, moduleId, id, valueMapped);
-        }
-#endif
-    }
-
-#ifdef POLYCONTROL
-    const std::string &getValueAsString();
-    std::string valueName;
-#endif
-
-    int32_t value;
-    float valueMapped;
-
-    int32_t defaultValue = 0;
-    float defaultValueMapped;
-
-    float min;
-    float max;
-    float minMaxDifference;
-
-    int32_t minInputValue;
-    int32_t maxInputValue;
-    uint32_t inputRange;
-
-    Input *input = nullptr;
-
-    operator float &() { return valueMapped; }
-    operator const float &() const { return valueMapped; }
-
-  protected:
-    typeLinLog mapping;
-};
-
-// derived class Poti
-class Digital : public DataElement {
-  public:
-    Digital(const char *name, int32_t min = 0, int32_t max = 1, int32_t defaultValue = 0, bool sendOutViaCom = true,
-            const std::vector<const char *> *valueNameList = nullptr, Input *input = nullptr, bool displayVis = true,
-            bool storeable = true) {
-
-        this->value = MIN_VALUE_12BIT;
-
-        this->min = min;
-        this->max = max;
-        this->minMaxDifference = max - min;
-        this->defaultValue = defaultValue;
-        this->valueMapped = defaultValue;
-
-        this->name = name;
-        this->sendOutViaCom = sendOutViaCom;
-
-        this->displayVis = displayVis;
-
-        this->valueNameList = valueNameList;
-
-        this->input = input;
-        this->storeable = storeable;
-    }
-
-    std::vector<uint8_t> LEDPortID;
-    std::vector<uint8_t> LEDPinID;
-
-    void configureNumberLEDs(uint8_t numLEDs) {
-        for (uint32_t i = 0; i < numLEDs; i++) {
-
-            LEDPortID.push_back(0xff);
-            LEDPinID.push_back(0xff);
-        }
-        // println("size:  ", LEDPortID.size());
-    }
-    // Inputs range must be from 0 -> MAX_VALUE_12BIT
-    void setValue(int32_t newValue);
-
-    void setValueRange(int32_t newValue, int32_t min, int32_t max);
-    void nextValue();
-    void nextValueLoop();
-
-    void previousValue();
-    inline void resetValue() { setValueWithoutMapping(defaultValue); }
-
-    static std::function<uint8_t(uint8_t, uint8_t, int32_t)> sendViaChipCom;
-
-    inline void setValueWithoutMapping(int32_t newValue) {
-        valueMapped = newValue;
-        if (valueChangedCallback != nullptr)
-            valueChangedCallback();
-#ifdef POLYCONTROL
-        valueName = std::to_string(valueMapped);
-        if (sendOutViaCom) {
-            sendSetting(layerId, moduleId, id, valueMapped);
-        }
-#endif
-    }
-    // inline void setValueWithoutMapping(uint8_t *newValue) {
-    //     valueMapped = *(int32_t *)newValue;
-
-    //     if (valueChangedCallback != nullptr)
-    //         valueChangedCallback();
-    // }
-
-    const std::string &getValueAsString();
-    const std::vector<const char *> *valueNameList; // custom Name List for different Values
-
-    int32_t defaultValue = 0;
-
-    int32_t value;
-    int32_t valueMapped;
-#ifdef POLYCONTROL
-    std::string valueName;
-#endif
-    int32_t min;
-    int32_t max;
-    int32_t minMaxDifference;
-
-    Input *input;
-
-    operator int32_t &() { return valueMapped; }
-    operator const int32_t &() const { return valueMapped; }
-
-    explicit operator float() { return (float)valueMapped; }
-    explicit operator float() const { return (float)valueMapped; }
-
-  protected:
-    typeLinLog mapping;
-};
-
-// Name Base
-class NameElement {
-  public:
-    NameElement(const char *name) { this->name = name; }
-    ~NameElement() {}
-
-    inline void setName(const char *name) { this->name = name; }
-
-    inline const std::string &getName() { return name; }
-
-  private:
-    std::string name;
-};
+///////////////////PATCHES//////////////////
 
 class PatchElement; // forward declaration necessary
 
-// input patchesInOut
 class BasePatch {
   public:
-    void clearPatches();
+    inline void clearPatches() { patchesInOut.clear(); }
+    inline void addPatchInOut(PatchElement &patch) { patchesInOut.push_back(&patch); }
 
-    void addPatchInOut(PatchElement &patch);
-    // void addPatchOutOut(PatchElementOutOut &patch);
     void removePatchInOut(PatchElement &patch);
-    // void removePatchOutOut(PatchElementOutOut &patch);
     bool findPatchInOut(uint8_t output, uint8_t input);
 
     inline const char *getName() { return name; };
@@ -563,9 +580,7 @@ class Output : public BasePatch {
   public:
     Output(const char *name, const char *shortName = nullptr, uint8_t visible = 1) {
         this->name = name;
-
         if (shortName == nullptr) {
-
             this->shortName = name;
         }
         else {
@@ -573,7 +588,6 @@ class Output : public BasePatch {
         }
 
         patchesInOut.reserve(VECTORDEFAULTINITSIZE);
-
         this->visible = visible;
     }
 
@@ -613,140 +627,27 @@ class PatchElement {
     }
 
     void setAmount(float amount);
-    void setAmountWithoutMapping(float amount);
-    void changeAmount(float change);
-    void changeAmountEncoderAccelerationMapped(bool direction); // create Mapped
 
-    float offset;
+#ifdef POLYCONTROL
+    void changeAmountEncoderAccelerated(bool direction); // create Mapped
+    inline void changeAmount(float change) {
+        setAmount(amount + change);
+        sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
+    }
+#endif
+
+    // float offset;
     float amount;
 
     bool remove = false;
     Output *sourceOut;
     Input *targetIn;
-    float amountRaw = 0;
 };
 
 class ID {
   public:
-    uint8_t getNewId();
+    inline uint8_t getNewId() { return idCounter++; }
 
   private:
     uint8_t idCounter = 0;
 };
-
-class I2CBuffer {
-  public:
-    I2CBuffer() {
-        // currentSample = bufferCurrentSample;
-        // nextSample = bufferNextSample;
-    }
-
-    // set next calculatedSample as current sample
-    // inline void updateToNextSample() {
-    //     uint16_t *tempPointer = currentSample;
-    //     currentSample = nextSample;
-    //     nextSample = tempPointer;
-    // }
-
-    uint16_t currentSample[VOICESPERCHIP];
-    // uint16_t *nextSample;
-
-    //   private:
-    //     uint16_t bufferCurrentSample[VOICESPERCHIP] = {0, 0, 0, 0};
-    //     uint16_t bufferNextSample[VOICESPERCHIP] = {0, 0, 0, 0};
-};
-
-//////////////////////////////// INLINE FUNCTIONS /////////////////////////////////
-
-inline void PatchElement::changeAmount(float change) {
-    setAmount(amount + change);
-#ifdef POLYCONTROL
-    sendUpdatePatchInOut(layerId, sourceOut->idGlobal, targetIn->idGlobal, this->amount);
-#endif
-}
-
-inline void BasePatch::clearPatches() {
-    patchesInOut.clear();
-}
-
-inline void BasePatch::addPatchInOut(PatchElement &patch) {
-    patchesInOut.push_back(&patch);
-}
-
-inline void Setting::reset() {
-    value = defaultValue;
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
-}
-#ifdef POLYCONTROL
-inline const std::string &Analog::getValueAsString() {
-    return valueName;
-}
-#endif
-inline void Setting::increase(int32_t amount) {
-    if (useAcceleration) {
-        value = changeInt(value,
-                          std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
-                          min, max);
-    }
-    else {
-        value = changeInt(value, amount, min, max);
-    }
-#ifdef POLYCONTROL
-    if (valueNameList == nullptr)
-        valueName = std::to_string(value);
-        // if (sendOutViaCom) {
-        //     sendSetting(layerId, moduleId, id, value);
-        // }
-#endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
-}
-
-inline void Setting::decrease(int32_t amount) {
-    if (useAcceleration) {
-        value = changeInt(value,
-                          -std::clamp((int32_t)((max - min) / 2 * ROTARYENCODERACCELERATION), (int32_t)1, (int32_t)max),
-                          min, max);
-    }
-    else {
-        value = changeInt(value, amount, min, max);
-    }
-#ifdef POLYCONTROL
-    if (valueNameList == nullptr)
-        valueName = std::to_string(value);
-        // if (sendOutViaCom) {
-        //     sendSetting(layerId, moduleId, id, value);
-        // }
-#endif
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
-}
-
-inline void Setting::push() {
-    int32_t temp = value;
-    value = valueToggle;
-    valueToggle = temp;
-    if (valueChangedCallback != nullptr)
-        valueChangedCallback();
-}
-
-inline void Setting::pushAndHold() {
-    reset();
-}
-
-inline const char *DataElement::getName() {
-    return name;
-}
-
-inline typeDisplayValue DataElement::getType() {
-    return type;
-}
-
-inline int32_t Setting::getValue() {
-    return value;
-}
-
-inline uint8_t ID::getNewId() {
-    return idCounter++;
-}

@@ -82,10 +82,10 @@ class LiveData {
 
     std::vector<Setting *> __liveSettingsLivemode;
 
-    Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, false, binary, &offOnNameList, false);
-    Setting livemodeClockSource = Setting("CLK SOURCE", 1, 0, 2, false, binary, &clockSourceList, false);
+    Setting livemodeKeysplit = Setting("KEYSPLIT", 0, 0, 1, &offOnNameList, false);
+    Setting livemodeClockSource = Setting("CLK SOURCE", 1, 0, 2, &clockSourceList, false);
 
-    Setting livemodeExternalClockMultiplyOut = Setting("EXT. CLK OUT", 3, 0, 7, false, binary, &extStepNameList, false);
+    Setting livemodeExternalClockMultiplyOut = Setting("EXT. CLK OUT", 3, 0, 7, &extStepNameList, false);
 
     elapsedMillis extClockLengthTimer;
     elapsedSeconds extClockTimeout = 301;
