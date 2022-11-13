@@ -294,20 +294,20 @@ void switchClockSourceCallback(int32_t *setting) {
             // allLayers[0]->lfoA.dEXTDiv.displayVis = false;
             // allLayers[0]->lfoB.dEXTDiv.displayVis = false;
 
-            allLayers[0]->envA.dClockStep.displayVis = true;
-            allLayers[0]->envF.dClockStep.displayVis = true;
-            allLayers[0]->envA.dEXTDiv.displayVis = false;
-            allLayers[0]->envF.dEXTDiv.displayVis = false;
+            // allLayers[0]->envA.dClockStep.displayVis = true;
+            // allLayers[0]->envF.dClockStep.displayVis = true;
+            // allLayers[0]->envA.dEXTDiv.displayVis = false;
+            // allLayers[0]->envF.dEXTDiv.displayVis = false;
 
             // allLayers[1]->lfoA.dClockStep.displayVis = true;
             // allLayers[1]->lfoB.dClockStep.displayVis = true;
             // allLayers[1]->lfoA.dEXTDiv.displayVis = false;
             // allLayers[1]->lfoB.dEXTDiv.displayVis = false;
 
-            allLayers[1]->envA.dClockStep.displayVis = true;
-            allLayers[1]->envF.dClockStep.displayVis = true;
-            allLayers[1]->envA.dEXTDiv.displayVis = false;
-            allLayers[1]->envF.dEXTDiv.displayVis = false;
+            // allLayers[1]->envA.dClockStep.displayVis = true;
+            // allLayers[1]->envF.dClockStep.displayVis = true;
+            // allLayers[1]->envA.dEXTDiv.displayVis = false;
+            // allLayers[1]->envF.dEXTDiv.displayVis = false;
 
             liveData.livemodeExternalClockMultiplyOut.disable = false;
             break;

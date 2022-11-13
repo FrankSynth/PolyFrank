@@ -45,7 +45,6 @@ class GlobalSettings {
         dispColor.storeID = 20;
         dispBrightness.storeID = 21;
         dispLED.storeID = 22;
-        dispTemperature.storeID = 23;
 
         /////////
         __categorys.push_back(&__globSettingsSystem);
@@ -71,7 +70,6 @@ class GlobalSettings {
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
         __globSettingsDisplay.settings.push_back(&dispLED);
-        __globSettingsDisplay.settings.push_back(&dispTemperature);
 
         statusReportString.reserve(1024); // reserve enough space for status report
     }
@@ -177,8 +175,6 @@ class GlobalSettings {
     Setting dispColor = Setting("COLOR", 0, 0, 1, false, binary, &colorThemeNameList);
     Setting dispBrightness = Setting("BRIGHTNESS", 10, 2, 10, false, binary);
     Setting dispLED = Setting("LED", 5, 1, 20, false, binary);
-
-    Setting dispTemperature = Setting("TEMPERATURE", 0, 0, 1, false, binary, &amountLayerNameList);
 
     Error error;
 

@@ -136,6 +136,10 @@ extern "C" {
 #define USBD_DbgLog(...)
 #endif
 
+extern void PolyUSBDisconnectCallback(PCD_HandleTypeDef *hpcd);
+extern void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd);
+
+
 /**
  * @}
  */

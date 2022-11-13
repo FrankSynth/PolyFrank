@@ -36,15 +36,10 @@ extern GUI ui;
 // Touch
 PanelTouch touch;
 
-// number layer, number multiplex, number channels
-typedef enum { VALUEBELOW, VALUEABOVE, VALUEGRABED } presetGrabState;
-
-potiFunctionStruct potiFunctionPointer[2][4][12];
-uint16_t panelADCStates[2][4][12];
-
-presetGrabState panelGrab[2][4][12];
-
-float panelADCInterpolate[2][4][12];
+extern potiFunctionStruct potiFunctionPointer[2][4][12];
+extern uint16_t panelADCStates[2][4][12];
+extern presetGrabState panelGrab[2][4][12];
+extern float panelADCInterpolate[2][4][12];
 
 //////////// ENCODER ///////////
 void processEncoder() {
@@ -587,6 +582,7 @@ void LEDSingleSetting(Digital *digital) {
 
 RAM1 uint8_t saveSlots[2][3][LAYER_STORESIZE];
 RAM1 uint8_t tempSaveStorage[LAYER_STORESIZE];
+SLOTSTATE saveSlotState[2][3] = {{SLOTFREE, SLOTFREE, SLOTFREE}, {SLOTFREE, SLOTFREE, SLOTFREE}};
 
 void PanelTouch::evaluateFunctionButtons(uint32_t buttonID, uint32_t event) {
     if (event) { // Push Event

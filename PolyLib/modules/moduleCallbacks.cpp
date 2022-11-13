@@ -151,7 +151,7 @@ void updateLEDCurrent() {
     FlagHandler::ledDriverUpdateCurrent = true;
 }
 
-void wavetableSetCallbackOSC(uint32_t layerID, uint32_t oscillator, uint32_t *value) {
+void wavetableSetCallbackOSC(uint32_t layerID, uint32_t oscillator, int32_t *value) {
 
     uint32_t foundIndex[4] = {0, 0, 0, 0};
 
@@ -160,7 +160,6 @@ void wavetableSetCallbackOSC(uint32_t layerID, uint32_t oscillator, uint32_t *va
             if (wavetables[t] == waveTableSets[*value][i]) {
                 foundIndex[i] = t;
             }
-            /* code */
         }
     }
 
@@ -283,14 +282,14 @@ void setModuleCallbacks() {
     globalSettings.dispLED.setValueChangedCallback(std::bind(updateLEDCurrent));
 
     allLayers[0]->oscA.dWavetableSet.setValueChangedCallback(
-        std::bind(wavetableSetCallbackOSC, 0, 0, &allLayers[0]->oscA.dWavetableSet));
+        std::bind(wavetableSetCallbackOSC, 0, 0, &(allLayers[0]->oscA.dWavetableSet.valueMapped)));
     allLayers[0]->oscB.dWavetableSet.setValueChangedCallback(
-        std::bind(wavetableSetCallbackOSC, 0, 1, &allLayers[0]->oscB.dWavetableSet));
+        std::bind(wavetableSetCallbackOSC, 0, 1, &(allLayers[0]->oscB.dWavetableSet.valueMapped)));
 
     allLayers[1]->oscA.dWavetableSet.setValueChangedCallback(
-        std::bind(wavetableSetCallbackOSC, 1, 0, &allLayers[1]->oscA.dWavetableSet));
+        std::bind(wavetableSetCallbackOSC, 1, 0, &(allLayers[1]->oscA.dWavetableSet.valueMapped)));
     allLayers[1]->oscB.dWavetableSet.setValueChangedCallback(
-        std::bind(wavetableSetCallbackOSC, 1, 1, &allLayers[1]->oscB.dWavetableSet));
+        std::bind(wavetableSetCallbackOSC, 1, 1, &(allLayers[1]->oscB.dWavetableSet.valueMapped)));
 }
 
 #endif

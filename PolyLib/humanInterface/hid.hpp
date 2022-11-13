@@ -40,6 +40,9 @@ typedef enum {
     TOUCH_IO_PIN_11,
 } TOUCH_IO_PIN;
 
+// number layer, number multiplex, number channels
+typedef enum { VALUEBELOW, VALUEABOVE, VALUEGRABED } presetGrabState;
+
 typedef struct {
     std::function<void(uint16_t amount)> function;
     DataElement *data;
@@ -126,8 +129,6 @@ class PanelTouch {
 
     uint16_t pinStateLayer[2][8];
     uint16_t pinStateControl[8];
-
-    SLOTSTATE saveSlotState[2][3] = {{SLOTFREE, SLOTFREE, SLOTFREE}, {SLOTFREE, SLOTFREE, SLOTFREE}};
 
     uint8_t layerID;
 

@@ -16,7 +16,10 @@ extern TS3A5017D multiplexer;
 extern rotary encoders[NUMBERENCODERS];
 extern tactileSwitch switches[NUMBERENCODERS];
 
-extern potiFunctionStruct potiFunctionPointer[2][4][12];
+potiFunctionStruct potiFunctionPointer[2][4][12];
+uint16_t panelADCStates[2][4][12];
+presetGrabState panelGrab[2][4][12];
+float panelADCInterpolate[2][4][12];
 
 inline float distanceBasedSin(float distance) {
     static elapsedMillis timer = 0;
@@ -645,8 +648,22 @@ void HIDConfig() {
 
     FlagHandler::ledDriverUpdateCurrent_ISR = std::bind(updateLEDDriverCurrent);
 
-    potiMapping();
     LEDMappingInit();
+
+    // clear all poti Register
+
+    for (size_t a = 0; a < 2; a++) {
+        for (size_t b = 0; b < 4; b++) {
+            for (size_t c = 0; c < 12; c++) {
+                potiFunctionPointer[a][b][c] = {nullptr, nullptr};
+                panelADCStates[a][b][c] = 0;
+                panelGrab[a][b][c] = VALUEGRABED;
+                panelADCInterpolate[a][b][c] = 0;
+            }
+        }
+    }
+
+    potiMapping();
 
     // activate FlagHandling for HID ICs
     FlagHandler::HID_Initialized = true;

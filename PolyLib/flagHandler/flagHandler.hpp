@@ -49,6 +49,10 @@ extern std::function<void()> Panel_1_RXTX_ISR;
 extern volatile bool USB_HS_CONNECTED;
 extern volatile bool USB_FS_CONNECTED;
 
+extern volatile bool MIDI_USB_TRAFFIC;
+extern volatile bool MIDI_DIN_TRAFFIC;
+extern volatile bool COM_USB_TRAFFIC;
+
 // Display
 extern volatile bool renderingDoneSwitchBuffer;
 

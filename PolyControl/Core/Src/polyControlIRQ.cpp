@@ -55,7 +55,8 @@ void temperature();
 
 void polyControlLoop() { // Here the party starts
     // WFI
-    bool enableWFI = false;
+    // bool enableWFI = false;
+    
     elapsedMillis timerWFI;
     elapsedMillis timerUIData;
     elapsedMillis timerStatusUpdate;
@@ -471,8 +472,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 }
 
 // USB Connect detection
-void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
-    /* Prevent unused argument(s) compilation warning */
+void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd) {
     if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
         println("HS USB CONNECTED");
         FlagHandler::USB_HS_CONNECTED = true;
@@ -483,16 +483,28 @@ void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd) {
     }
 }
 
+// USB Connect detection
+void PolyUSBDisconnectCallback(PCD_HandleTypeDef *hpcd) {
+    if (hpcd->Instance == hpcd_USB_OTG_HS.Instance) { // HS Connected
+        println("HS USB DISCONNECTED");
+        FlagHandler::USB_HS_CONNECTED = false;
+    }
+    else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
+        println("FS USB DISCONNECTED");
+        FlagHandler::USB_FS_CONNECTED = false;
+    }
+}
+
 void printHelp() {
     println("Hello Frank here!");
     println("Here some help for you:");
     println("-h    help");
     println("-r    system reset");
-    println("-d    hardware info");
-    println("-s    status");
-    println("-isp  flash all 4 render IC");
+    println("-d    hardware report");
+    println("-s    status report");
+    println("-isp  flash all 4 render uC (COMmunicate)");
     println("-dfu  enable DFU mode (not working)");
-    println("-EEPROM_CLEAR  enable DFU mode (not working)");
+    println("-EEPROM_CLEAR  clear EEPROM IC");
 }
 
 void printStatus() {
@@ -508,6 +520,11 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 void COMmunicateISR() {
     static std::vector<char> data;
     while (comAvailable()) {
+        FlagHandler::COM_USB_TRAFFIC = true;
+
+        if (data.size() > 50) { // take care we are not flooding our memory
+            data.clear();
+        }
         data.push_back(comRead());
         if (!data.empty()) {               // data not empty -> decode
             if (data.back() == (char)10) { // if we get a "ENTER" decode the data
@@ -654,10 +671,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
         COMmunicateISR();
 
         if (globalSettings.midiSource.getValue() == 0) { // if midi USB
-            midiDeviceUSB.read();
+            if (midiDeviceUSB.read()) {
+                FlagHandler::MIDI_USB_TRAFFIC = true;
+            }
         }
         else { // DIN MIDI
-            midiDeviceDIN.read();
+            if (midiDeviceDIN.read()) {
+                FlagHandler::MIDI_DIN_TRAFFIC = true;
+            }
         }
 
         liveData.serviceRoutine();

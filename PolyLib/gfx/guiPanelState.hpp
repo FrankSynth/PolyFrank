@@ -9,6 +9,9 @@ class GUIPanelState {
 
   private:
     // Boxes
+    elapsedMillis midiTraffic;
+    elapsedMillis comTraffic;
+
     uint16_t panelWidth = 0;
     uint16_t panelHeight = 0;
     uint16_t panelAbsX = 0;

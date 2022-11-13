@@ -12,5 +12,5 @@ typedef struct {
 
 #define GUI_CONST_STORAGE const
 
-extern const GUI_BITMAP bmstartscreen01;
-extern const GUI_BITMAP bmcircle;
+extern const GUI_BITMAP bmpUSBLogo;
+extern const GUI_BITMAP bmpDINLogo;

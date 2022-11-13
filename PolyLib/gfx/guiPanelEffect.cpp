@@ -71,6 +71,7 @@ void GUIPanelEffect::updateEntrys() {
         scrollDotsWave.entrys = 4;
     }
     for (uint32_t entryID = 0; entryID < 2; entryID++) { // for poth rows
+        activeEntryPatch[entryID] = nullptr;
 
         if (entrys[entryID] != nullptr) {
             if (entrys[entryID]->input->patchesInOut.size() != 0) {
@@ -373,29 +374,45 @@ void GUIPanelEffect::registerPanelSettings() {
         if (patch) {
 
             if (touch.outputPatchActive()) { // we are in patching mode
-                actionHandler.registerActionEncoder(
-                    0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
-                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
-                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[0]->input), "RESET"});
+                actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"});
 
-                actionHandler.registerActionEncoder(
-                    2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
-                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
-                    {std::bind(&PanelTouch::externPatchRemove, &touch, entrys[1]->input), "RESET"});
+                actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"});
 
                 actionHandler.registerActionEncoder(1);
                 actionHandler.registerActionEncoder(3);
             }
             else {
+                if (activeEntryPatch[0] != nullptr) {
+                    actionHandler.registerActionEncoder(
+                        0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
+                        {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"},
+                        {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
+                                   activeEntryPatch[0]->sourceOut->idGlobal, activeEntryPatch[0]->targetIn->idGlobal),
+                         "REMOVE"});
+                }
+                else {
+                    actionHandler.registerActionEncoder(
+                        0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
+                        {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"}, {nullptr, ""});
+                }
+                if (activeEntryPatch[1] != nullptr) {
 
-                actionHandler.registerActionEncoder(
-                    0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
-                    {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"},
-                    {std::bind(&Layer::removePatchInOut, allLayers[cachedFocus.id], *activeEntryPatch[0]), "REMOVE"});
-                actionHandler.registerActionEncoder(
-                    2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
-                    {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"},
-                    {std::bind(&Layer::removePatchInOut, allLayers[cachedFocus.id], *activeEntryPatch[1]), "REMOVE"});
+                    actionHandler.registerActionEncoder(
+                        2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
+                        {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"},
+                        {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
+                                   activeEntryPatch[1]->sourceOut->idGlobal, activeEntryPatch[1]->targetIn->idGlobal),
+                         "REMOVE"});
+                }
+                else {
+                    actionHandler.registerActionEncoder(
+                        2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
+                        {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"}, {nullptr, ""});
+                }
             }
         }
         else {
@@ -403,7 +420,7 @@ void GUIPanelEffect::registerPanelSettings() {
             if (touch.outputPatchActive()) { // we are in patching mode
                 actionHandler.registerActionEncoder(0, {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
                                                     {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"},
-                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"});
+                                                    {std::bind(&GUIPanelEffect::patchToOutput, this, 0), "PATCH"});
 
                 actionHandler.registerActionEncoder(2, {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
                                                     {std::bind(&GUIPanelEffect::patchToOutput, this, 1), "PATCH"},
