@@ -38,17 +38,14 @@ inline void datasizeAsString(std::string &buffer, uint32_t counter) {
 // SPI bus class
 class spiBus : public busInterface {
   public:
-    spiBus() {
-        type = SPI;
-        status.reserve(128);
-    };
+    spiBus() { type = SPI; };
     void connectToInterface(SPI_HandleTypeDef *hspi) {
         this->hspi = hspi;
         state = BUS_READY;
     }
 
-    std::string *report() {
-        status = "SPI";
+    void report(std::string &status) {
+        status += "SPI";
 
         // DMA
         if ((hspi->hdmarx != nullptr) | (hspi->hdmatx != nullptr)) {
@@ -84,22 +81,13 @@ class spiBus : public busInterface {
         datasizeAsString(status, txCounter);
 
         status += "\r\n";
-
-        return &status;
     }
 
     uint8_t checkState() {
-        // if (state == BUS_READY) {
-        // return 0;
-        // }
         if (state == BUS_ERROR) {
             PolyError_Handler("SPI  | bus in BUS_error state");
-            // return 2;
         }
-        // if (state == BUS_BUSY) {
-        // PolyError_Handler("SPI  | bus in use");
-        // return 1;
-        // }
+
         return state;
     }
 
@@ -245,18 +233,15 @@ class spiBus : public busInterface {
 // I2C bus class
 class i2cBus : public busInterface {
   public:
-    i2cBus() {
-        type = I2C;
-        status.reserve(128);
-    };
+    i2cBus() { type = I2C; };
 
     void connectToInterface(I2C_HandleTypeDef *hi2c) {
         this->hi2c = hi2c;
         state = BUS_READY;
     }
 
-    std::string *report() {
-        status = "I2C";
+    void report(std::string &status) {
+        status += "I2C";
 
         // DMA
         if ((hi2c->hdmarx != nullptr) | (hi2c->hdmatx != nullptr)) {
@@ -292,8 +277,6 @@ class i2cBus : public busInterface {
         datasizeAsString(status, txCounter);
 
         status += "\r\n";
-
-        return &status;
     }
 
     uint8_t checkState() {
@@ -449,7 +432,6 @@ class i2cVirtualBus : public busInterface {
     i2cVirtualBus() {
         type = VIRTUALI2C;
         state = BUS_READY;
-        status.reserve(128);
     }
 
     void connectToMultiplexer(PCA9548 *busMultiplexer, uint8_t virtualBusAddress) {
@@ -458,11 +440,9 @@ class i2cVirtualBus : public busInterface {
     }
     void connectToBus(i2cBus *busi2c) { this->busi2c = busi2c; }
 
-    std::string *report() {
+    void report(std::string &status) {
 
-        status.clear();
-
-        status = "VI2C Bus | SubID: ";
+        status += "VI2C Bus | SubID: ";
         status += std::to_string(virtualBusAddress);
         status += "\r\n";
         // DATA
@@ -473,10 +453,6 @@ class i2cVirtualBus : public busInterface {
         datasizeAsString(status, VirtualTxCounter);
 
         status += "\r\n";
-
-        // return &status;
-
-        return &status;
     }
 
     busState transmit(uint16_t address, uint8_t *data, uint16_t size, bool enableDMA = false) {

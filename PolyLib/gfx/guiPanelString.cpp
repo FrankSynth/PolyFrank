@@ -14,6 +14,8 @@ void GUIPanelString::init(uint32_t width, uint32_t height, uint32_t x, uint32_t 
     panelAbsY = y;
 
     name = "DEBUG";
+
+    reportString.reserve(2048);
 }
 
 void GUIPanelString::registerPanelSettings() {
@@ -42,14 +44,18 @@ void GUIPanelString::Draw() {
 
     registerPanelSettings();
 
-    if (subPanelID == 0)
-        drawConsoleString(deviceManager.report(), 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+    if (subPanelID == 0) {
+        deviceManager.report(reportString);
+        drawConsoleString(&reportString, 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+    }
 
     if (subPanelID == 1)
         drawConsole(consoleBuffer, 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
 
-    if (subPanelID == 2)
-        drawConsoleString(globalSettings.statusReport(), 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+    if (subPanelID == 2) {
+        globalSettings.statusReport(reportString);
+        drawConsoleString(&reportString, 3, panelAbsX, panelAbsY, panelWidth, panelHeight);
+    }
 }
 
 void GUIPanelString::setPanel(uint8_t subPanelID) {

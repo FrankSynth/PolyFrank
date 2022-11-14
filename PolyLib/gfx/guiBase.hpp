@@ -39,7 +39,28 @@ extern uint16_t c4444gridcolor;
 extern uint16_t c4444framecolor;
 
 extern PatchElement *selectedPatch;
+extern std::vector<Layer *> allLayers;
 
+// LOCATION
+typedef enum {
+    FOCUSLAYER,
+    FOCUSMODULE,
+    FOCUSCONFIG,
+    FOCUSINPUT,
+    FOCUSOUTPUT,
+    NOFOCUS
+
+} FOCUSMODE;
+
+typedef struct {
+    uint8_t layer = 0xff;
+    uint8_t modul = 0xff;
+    uint8_t id = 0xff;
+    FOCUSMODE type;
+
+} location;
+
+extern location cachedFocus;
 // responsive sizes
 #define HEADERHEIGHT 34
 #define FOOTERHEIGHT 34
@@ -54,16 +75,6 @@ extern PatchElement *selectedPatch;
 #define CENTERHEIGHT LCDHEIGHT - HEADERHEIGHT - FOOTERHEIGHT - FOCUSHEIGHT - SPACER - SPACER - SPACER
 
 typedef enum {
-    FOCUSLAYER,
-    FOCUSMODULE,
-    FOCUSCONFIG,
-    FOCUSINPUT,
-    FOCUSOUTPUT,
-    NOFOCUS
-
-} FOCUSMODE;
-
-typedef enum {
     ANALOG,
     DIGITAL,
     MODULE,
@@ -74,13 +85,6 @@ typedef enum {
     SETTING
 
 } DATAELEMENTTYPE;
-typedef struct {
-    uint8_t layer = 0xff;
-    uint8_t modul = 0xff;
-    uint8_t id = 0xff;
-    FOCUSMODE type;
-
-} location;
 
 typedef struct {
     uint8_t layer = 0xff;
@@ -106,17 +110,6 @@ typedef struct {
     PatchElement *patch = nullptr;
 
 } patchEntryStruct;
-
-uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
-                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer = 0,
-                         FONTALIGN alignment = CENTER);
-
-uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
-                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
-                                 uint32_t space, uint32_t champfer, FONTALIGN alignment);
-
-void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
-                   uint32_t viewable);
 
 class GUIPanelBase {
   public:
@@ -149,7 +142,6 @@ class Scroller {
         offset = 0;
     };
 
-    // TODO these give comparison warnings, can they ever be negative? Should be uint maybe
     int32_t position = 0;
     int32_t offset = 0;
     uint32_t entrys = 0;
@@ -157,6 +149,41 @@ class Scroller {
     int32_t relPosition = 0;
 };
 
+inline Layer *getCachedLayer() {
+    return allLayers[cachedFocus.layer];
+}
+
+inline std::vector<BaseModule *> &getCachedModules() {
+    return allLayers[cachedFocus.layer]->modules;
+}
+
+inline BaseModule *getCachedModule() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul];
+}
+
+inline std::vector<Analog *> &getCachedAnalog() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->knobs;
+}
+
+inline std::vector<Digital *> &getCachedDigital() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->switches;
+}
+
+inline std::vector<PatchElement *> &getCachedInputs() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->inputs[cachedFocus.id]->patchesInOut;
+}
+
+inline std::vector<PatchElement *> &getCachedOutputs() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs[cachedFocus.id]->patchesInOut;
+}
+
+inline uint32_t getCachedOutputsSize() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs.size();
+}
+
+inline uint32_t getCachedInputsSize() {
+    return allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->inputs.size();
+}
 // PanelSelect
 void setPanelActive(uint8_t panelID);
 void nextLayer();

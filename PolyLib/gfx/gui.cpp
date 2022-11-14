@@ -40,15 +40,6 @@ void GUI::Init() { // add settings pointer
     guiPanelVoice[1].init(1, CENTERWIDTH, VOICEHEIGHT / 2 - 1, BOARDERWIDTH,
                           HEADERHEIGHT + SPACER + FOCUSHEIGHT + SPACER + CENTERHEIGHT - VOICEHEIGHT + VOICEHEIGHT / 2);
 
-    panels.push_back(&guiPanelLiveData);
-    panels.push_back(&guiPanelArp);
-    panels.push_back(&guiPanelPatch);
-    panels.push_back(&guiPanelEffect);
-    panels.push_back(&guiPanelConfig);
-    panels.push_back(&guiPanelPreset);
-    panels.push_back(&guiPanelFocus);
-    panels.push_back(&guiPanelDebug);
-
     // init Header
     guiHeader.init(&panels, &activePanelID, LCDWIDTH - 2 * BOARDERWIDTH, HEADERHEIGHT, BOARDERWIDTH);
 
@@ -72,26 +63,34 @@ void GUI::Init() { // add settings pointer
 
     guiPanelStart.init(LCDWIDTH, LCDHEIGHT, 0, 0);
 
-    Clear();
+    panels.push_back(&guiPanelLiveData);
+    panels.push_back(&guiPanelArp);
+    panels.push_back(&guiPanelPatch);
+    panels.push_back(&guiPanelEffect);
+    panels.push_back(&guiPanelConfig);
+    panels.push_back(&guiPanelPreset);
+    panels.push_back(&guiPanelFocus);
+    panels.push_back(&guiPanelDebug);
+
+    clear();
     checkFocusChange();
     setPanelActive(0);
 
     // Set Focus for test
 }
 
-void GUI::Clear() {
+void GUI::clear() {
     // clear
 
     drawRectangleFill(0xFF000000, 0, 0, LCDWIDTH, LCDHEIGHT);
 }
 
 void GUI::Draw() {
+    setRenderState(RENDER_PROGRESS);
 
     // setDisplayBrightness
     __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
                           globalSettings.dispBrightness.getValue() * 1000); // 6553* 1-10 -> 65530
-
-    setRenderState(RENDER_PROGRESS);
 
     static bool introFrame = true;
     static elapsedMillis timerIntroScreen;
@@ -109,7 +108,9 @@ void GUI::Draw() {
 
         if (panelChanged) {
             activePanel = panels[activePanelID];
+            actionHandler.clear();
             activePanel->activate();
+
             panelChanged = 0;
         }
 

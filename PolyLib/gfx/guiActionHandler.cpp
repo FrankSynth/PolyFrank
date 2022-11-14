@@ -58,4 +58,28 @@ void actionMapping::callActionEncoder_Push(uint8_t index) {
         encoder[index].handle_PUSH.functionPointer();
 }
 
+void actionMapping::clear() {
+
+    for (uint32_t i = 0; i < NUMBUTTONSIDE; i++) {
+        buttonLeft[i].handle = {nullptr, ""};
+        buttonLeft[i].data = nullptr;
+        buttonLeft[i].unlock = 0;
+
+        buttonRight[i].handle = {nullptr, ""};
+        buttonRight[i].data = nullptr;
+        buttonRight[i].unlock = 0;
+    }
+    for (uint32_t i = 0; i < NUMBUTTONTOP; i++) {
+        buttonFooter[i] = {nullptr, ""};
+    }
+    for (uint32_t i = 0; i < NUMBUTTONBOTTOM; i++) {
+        buttonHeader[i] = {nullptr, ""};
+    }
+    for (uint32_t i = 0; i < NUMENCODER; i++) {
+        encoder[i].handle_CW = {nullptr, ""};
+        encoder[i].handle_CCW = {nullptr, ""};
+        encoder[i].handle_PUSH = {nullptr, ""};
+    }
+}
+
 #endif

@@ -124,43 +124,6 @@ void setGUIColor(int32_t *colorSelection) {
 
 bool layerMergeMode = false;
 
-uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
-                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer,
-                         FONTALIGN alignment) {
-    uint32_t width = getStringWidth(text, font) + space; // text witdh + space
-
-    drawRectangleChampfered(colorBox, x, y, width, heigth, champfer); // draw Box
-    drawString(text, colorText, x + space / 2, y + (-(font->size) + heigth) / 2, font,
-               LEFT); // draw text, height centered
-
-    return width;
-}
-uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
-                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
-                                 uint32_t space, uint32_t champfer, FONTALIGN alignment) {
-
-    drawRectangleChampfered(colorBox, x - width, y, width, heigth, champfer); // draw Box
-    drawString(text, colorText, x + space / 2 - width, y + (-(font->size) + heigth) / 2, font,
-               LEFT); // draw text, height centered
-
-    return width;
-}
-void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
-                   uint32_t viewable) {
-
-    if (viewable >= entrys) {
-        return;
-    }
-    drawRectangleChampfered(cGreyLight, x, y, width, heigth, 1); // draw Box
-    float entryHeight = heigth / (float)entrys;
-    uint32_t scrollBarHeight = entryHeight * viewable;
-    uint32_t scrollBarPositionY = entryHeight * scroll;
-
-    drawRectangleChampfered(cWhite, x, y + scrollBarPositionY, width, scrollBarHeight, 1); // draw Box
-}
-
-void Todo(){};
-
 void nextLayer() {
     if (layerMergeMode) {
         currentFocus.layer = 0;
@@ -210,6 +173,28 @@ void focusPatch(location focus) {
 
     setPanelActive(2);
 }
+
+///////////// PanelSelect ////////////////
+
+uint8_t activePanelID = 0;
+uint8_t oldActivePanelID = 0;
+uint8_t panelChanged = 0;
+
+void setPanelActive(uint8_t panelID) {
+
+    // zurück zum letzen panel
+    if (activePanelID == panelID) {
+        activePanelID = oldActivePanelID;
+    }
+    else {
+        oldActivePanelID = activePanelID;
+        activePanelID = panelID;
+    }
+
+    panelChanged = 1;
+}
+
+///////////// SCOLLER ////////////////
 
 void Scroller::scroll(int32_t change) {
 
@@ -268,25 +253,4 @@ void Scroller::setScroll(int32_t scrollPosition) {
 
     relPosition = position - offset;
 }
-
-// PanelSelect
-
-uint8_t activePanelID = 0;
-uint8_t oldActivePanelID = 0;
-uint8_t panelChanged = 0;
-
-void setPanelActive(uint8_t panelID) {
-
-    // zurück zum letzen panel
-    if (activePanelID == panelID) {
-        activePanelID = oldActivePanelID;
-    }
-    else {
-        oldActivePanelID = activePanelID;
-        activePanelID = panelID;
-    }
-
-    panelChanged = 1;
-}
-
 #endif

@@ -2,8 +2,7 @@
 
 #include "gfx.hpp"
 #include "datacore/datalocation.hpp"
-
-#include <algorithm> // std::max
+#include <algorithm>
 
 volatile FRAMEBUFFER_A ALIGN_32BYTES(uint8_t FrameBufferA[FRAMEBUFFERSIZE]);
 volatile FRAMEBUFFER_B ALIGN_32BYTES(uint8_t FrameBufferB[FRAMEBUFFERSIZE]);
@@ -104,7 +103,7 @@ void TransferComplete(DMA2D_HandleTypeDef *hdma2d) {
     callNextTask();
 }
 
-////// Draw Functions//////
+////////////GFX////////////
 
 void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int height) {
     renderTask task;
@@ -403,7 +402,7 @@ uint32_t getStringWidth(const std::string &text, const GUI_FONTINFO *font) {
     return offset;
 }
 
-// uint32_t maxCalls = 0;
+////////////DMA2D////////////
 
 void addToRenderQueue(renderTask &task) {
 
@@ -417,7 +416,6 @@ void addToRenderQueue(renderTask &task) {
         && (renderQueue.size() < MAXDRAWCALLS)) { // in render region and width and height not 0
 
         renderQueue.push_back(task);
-        // maxCalls++;
 
         if (HAL_DMA2D_GetState(&hdma2d) == HAL_DMA2D_STATE_READY)
             callNextTask();
@@ -563,6 +561,8 @@ void callNextTask() {
     }
 }
 
+////////////Software GFX ////////////
+
 inline void drawPixel(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color) {
     if (x < buffer.width && y < buffer.height) // check boundaries
         (*buffer.buffer)[y][x] = color;        // simple "blend"
@@ -594,12 +594,6 @@ inline void drawPixelBlend(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t 
 
         (*buffer.buffer)[y][x] = mixedColor;
     }
-}
-
-inline void drawPixelBlendFast(WaveBuffer &buffer, uint32_t x, uint32_t y, uint16_t color) {
-
-    if (x < buffer.width && y < buffer.height) // check boundaries
-        (*buffer.buffer)[y][x] |= color;       // simple "blend"
 }
 
 void drawLine(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color) {
@@ -822,182 +816,6 @@ void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float 
     }
 }
 
-void plotCubicBezierSeg(WaveBuffer &buffer, int x0, int y0, float x1, float y1, float x2, float y2, int x3, int y3,
-                        uint16_t color) { /* plot limited cubic Bezier segment */
-    int f, fx, fy, leg = 1;
-    int sx = x0 < x3 ? 1 : -1, sy = y0 < y3 ? 1 : -1; /* step direction */
-    float xc = -fabs(x0 + x1 - x2 - x3), xa = xc - 4 * sx * (x1 - x2), xb = sx * (x0 - x1 - x2 + x3);
-    float yc = -fabs(y0 + y1 - y2 - y3), ya = yc - 4 * sy * (y1 - y2), yb = sy * (y0 - y1 - y2 + y3);
-    double ab, ac, bc, cb, xx, xy, yy, dx, dy, ex, *pxy, EP = 0.01;
-
-    if (xa == 0 && ya == 0) { /* quadratic Bezier */
-        sx = floor((3 * x1 - x0 + 1) / 2);
-        sy = floor((3 * y1 - y0 + 1) / 2); /* new midpoint */
-        return plotQuadBezierSeg(buffer, x0, y0, sx, sy, x3, y3, color);
-    }
-    x1 = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + 1; /* line lengths */
-    x2 = (x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3) + 1;
-    do { /* loop over both ends */
-        ab = xa * yb - xb * ya;
-        ac = xa * yc - xc * ya;
-        bc = xb * yc - xc * yb;
-        ex = ab * (ab + ac - 3 * bc) + ac * ac; /* P0 part of self-intersection loop? */
-        f = ex > 0 ? 1 : sqrt(1 + 1024 / x1);   /* calculate resolution */
-        ab *= f;
-        ac *= f;
-        bc *= f;
-        ex *= f * f; /* increase resolution */
-        xy = 9 * (ab + ac + bc) / 8;
-        cb = 8 * (xa - ya); /* init differences of 1st degree */
-        dx = 27 * (8 * ab * (yb * yb - ya * yc) + ex * (ya + 2 * yb + yc)) / 64 - ya * ya * (xy - ya);
-        dy = 27 * (8 * ab * (xb * xb - xa * xc) - ex * (xa + 2 * xb + xc)) / 64 - xa * xa * (xy + xa);
-        /* init differences of 2nd degree */
-        xx = 3 * (3 * ab * (3 * yb * yb - ya * ya - 2 * ya * yc) - ya * (3 * ac * (ya + yb) + ya * cb)) / 4;
-        yy = 3 * (3 * ab * (3 * xb * xb - xa * xa - 2 * xa * xc) - xa * (3 * ac * (xa + xb) + xa * cb)) / 4;
-        xy = xa * ya * (6 * ab + 6 * ac - 3 * bc + cb);
-        ac = ya * ya;
-        cb = xa * xa;
-        xy = 3 * (xy + 9 * f * (cb * yb * yc - xb * xc * ac) - 18 * xb * yb * ab) / 8;
-
-        if (ex < 0) { /* negate values if inside self-intersection loop */
-            dx = -dx;
-            dy = -dy;
-            xx = -xx;
-            yy = -yy;
-            xy = -xy;
-            ac = -ac;
-            cb = -cb;
-        } /* init differences of 3rd degree */
-        ab = 6 * ya * ac;
-        ac = -6 * xa * ac;
-        bc = 6 * ya * cb;
-        cb = -6 * xa * cb;
-        dx += xy;
-        ex = dx + dy;
-        dy += xy; /* error of 1st step */
-
-        for (pxy = &xy, fx = fy = f; x0 != x3 && y0 != y3;) {
-            drawPixelThick(buffer, x0, y0, color); /* plot curve */
-            do {                                   /* move sub-steps of one pixel */
-                if (dx > *pxy || dy < *pxy)
-                    goto exit;      /* confusing values */
-                y1 = 2 * ex - dy;   /* save value for test of y step */
-                if (2 * ex >= dx) { /* x sub-step */
-                    fx--;
-                    ex += dx += xx;
-                    dy += xy += ac;
-                    yy += bc;
-                    xx += ab;
-                }
-                if (y1 <= 0) { /* y sub-step */
-                    fy--;
-                    ex += dy += yy;
-                    dx += xy += bc;
-                    xx += ac;
-                    yy += cb;
-                }
-            } while (fx > 0 && fy > 0); /* pixel complete? */
-            if (2 * fx <= f) {
-                x0 += sx;
-                fx += f;
-            } /* x step */
-            if (2 * fy <= f) {
-                y0 += sy;
-                fy += f;
-            } /* y step */
-            if (pxy == &xy && dx < 0 && dy > 0)
-                pxy = &EP; /* pixel ahead valid */
-        }
-    exit:
-        xx = x0;
-        x0 = x3;
-        x3 = xx;
-        sx = -sx;
-        xb = -xb; /* swap legs */
-        yy = y0;
-        y0 = y3;
-        y3 = yy;
-        sy = -sy;
-        yb = -yb;
-        x1 = x2;
-    } while (leg--);                              /* try other end */
-    drawLineThick(buffer, x0, y0, x3, y3, color); /* remaining part in case of cusp or crunode */
-}
-
-void plotCubicBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3,
-                     uint16_t color) { /* plot any cubic Bezier curve */
-    int n = 0, i = 0;
-    long xc = x0 + x1 - x2 - x3, xa = xc - 4 * (x1 - x2);
-    long xb = x0 - x1 - x2 + x3, xd = xb + 4 * (x1 + x2);
-    long yc = y0 + y1 - y2 - y3, ya = yc - 4 * (y1 - y2);
-    long yb = y0 - y1 - y2 + y3, yd = yb + 4 * (y1 + y2);
-    float fx0 = x0, fx1, fx2, fx3, fy0 = y0, fy1, fy2, fy3;
-    double t1 = xb * xb - xa * xc, t2, t[5];
-    /* sub-divide curve at gradient sign changes */
-    if (xa == 0) { /* horizontal */
-        if (abs(xc) < 2 * abs(xb))
-            t[n++] = xc / (2.0 * xb); /* one change */
-    }
-    else if (t1 > 0.0) { /* two changes */
-        t2 = sqrt(t1);
-        t1 = (xb - t2) / xa;
-        if (fabs(t1) < 1.0)
-            t[n++] = t1;
-        t1 = (xb + t2) / xa;
-        if (fabs(t1) < 1.0)
-            t[n++] = t1;
-    }
-    t1 = yb * yb - ya * yc;
-    if (ya == 0) { /* vertical */
-        if (abs(yc) < 2 * abs(yb))
-            t[n++] = yc / (2.0 * yb); /* one change */
-    }
-    else if (t1 > 0.0) { /* two changes */
-        t2 = sqrt(t1);
-        t1 = (yb - t2) / ya;
-        if (fabs(t1) < 1.0)
-            t[n++] = t1;
-        t1 = (yb + t2) / ya;
-        if (fabs(t1) < 1.0)
-            t[n++] = t1;
-    }
-    for (i = 1; i < n; i++) /* bubble sort of 4 points */
-        if ((t1 = t[i - 1]) > t[i]) {
-            t[i - 1] = t[i];
-            t[i] = t1;
-            i = 0;
-        }
-
-    t1 = -1.0;
-    t[n] = 1.0;                /* begin / end point */
-    for (i = 0; i <= n; i++) { /* plot each segment separately */
-        t2 = t[i];             /* sub-divide at t[i-1], t[i] */
-        fx1 = (t1 * (t1 * xb - 2 * xc) - t2 * (t1 * (t1 * xa - 2 * xb) + xc) + xd) / 8 - fx0;
-        fy1 = (t1 * (t1 * yb - 2 * yc) - t2 * (t1 * (t1 * ya - 2 * yb) + yc) + yd) / 8 - fy0;
-        fx2 = (t2 * (t2 * xb - 2 * xc) - t1 * (t2 * (t2 * xa - 2 * xb) + xc) + xd) / 8 - fx0;
-        fy2 = (t2 * (t2 * yb - 2 * yc) - t1 * (t2 * (t2 * ya - 2 * yb) + yc) + yd) / 8 - fy0;
-        fx0 -= fx3 = (t2 * (t2 * (3 * xb - t2 * xa) - 3 * xc) + xd) / 8;
-        fy0 -= fy3 = (t2 * (t2 * (3 * yb - t2 * ya) - 3 * yc) + yd) / 8;
-        x3 = floor(fx3 + 0.5);
-        y3 = floor(fy3 + 0.5); /* scale bounds to int */
-        if (fx0 != 0.0) {
-            fx1 *= fx0 = (x0 - x3) / fx0;
-            fx2 *= fx0;
-        }
-        if (fy0 != 0.0) {
-            fy1 *= fy0 = (y0 - y3) / fy0;
-            fy2 *= fy0;
-        }
-        if (x0 != x3 || y0 != y3) /* segment t1 - t2 */
-            plotCubicBezierSeg(buffer, x0, y0, x0 + fx1, y0 + fy1, x0 + fx2, y0 + fy2, x3, y3, color);
-        x0 = x3;
-        y0 = y3;
-        fx0 = fx3;
-        fy0 = fy3;
-        t1 = t2;
-    }
-}
-
 void plotQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2,
                     uint16_t color) { /* plot any quadratic Bezier curve */
     int x = x0 - x1, y = y0 - y1;
@@ -1039,79 +857,5 @@ void plotQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, 
     }
     plotQuadBezierSeg(buffer, x0, y0, x1, y1, x2, y2, color); /* remaining part */
 }
-
-void drawCubicSpline(WaveBuffer &buffer, int n, int x[], int y[],
-                     uint16_t color) { /* plot cubic spline, destroys input arrays x,y */
-#define M_MAX 6
-    float mi = 0.25, m[M_MAX]; /* diagonal constants of matrix */
-    int x3 = x[n - 1], y3 = y[n - 1], x4 = x[n], y4 = y[n];
-    int i, x0, y0, x1, y1, x2, y2;
-
-    x[1] = x0 = 12 * x[1] - 3 * x[0]; /* first row of matrix */
-    y[1] = y0 = 12 * y[1] - 3 * y[0];
-
-    for (i = 2; i < n; i++) { /* foreward sweep */
-        if (i - 2 < M_MAX)
-            m[i - 2] = mi = 0.25 / (2.0 - mi);
-        x[i] = x0 = floor(12 * x[i] - 2 * x0 * mi + 0.5);
-        y[i] = y0 = floor(12 * y[i] - 2 * y0 * mi + 0.5);
-    }
-    x2 = floor((x0 - 3 * x4) / (7 - 4 * mi) + 0.5); /* correct last row */
-    y2 = floor((y0 - 3 * y4) / (7 - 4 * mi) + 0.5);
-    plotCubicBezier(buffer, x3, y3, (x2 + x4) / 2, (y2 + y4) / 2, x4, y4, x4, y4, color);
-
-    if (n - 3 < M_MAX)
-        mi = m[n - 3];
-    x1 = floor((x[n - 2] - 2 * x2) * mi + 0.5);
-    y1 = floor((y[n - 2] - 2 * y2) * mi + 0.5);
-    for (i = n - 3; i > 0; i--) { /* back substitution */
-        if (i <= M_MAX)
-            mi = m[i - 1];
-        x0 = floor((x[i] - 2 * x1) * mi + 0.5);
-        y0 = floor((y[i] - 2 * y1) * mi + 0.5);
-        x4 = floor((x0 + 4 * x1 + x2 + 3) / 6.0); /* reconstruct P[i] */
-        y4 = floor((y0 + 4 * y1 + y2 + 3) / 6.0);
-        plotCubicBezier(buffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
-                        floor((x1 + 2 * x2) / 3 + 0.5), floor((y1 + 2 * y2) / 3 + 0.5), x3, y3, color);
-        x3 = x4;
-        y3 = y4;
-        x2 = x1;
-        y2 = y1;
-        x1 = x0;
-        y1 = y0;
-    }
-    x0 = x[0];
-    x4 = floor((3 * x0 + 7 * x1 + 2 * x2 + 6) / 12.0); /* reconstruct P[1] */
-    y0 = y[0];
-    y4 = floor((3 * y0 + 7 * y1 + 2 * y2 + 6) / 12.0);
-    plotCubicBezier(buffer, x4, y4, floor((2 * x1 + x2) / 3 + 0.5), floor((2 * y1 + y2) / 3 + 0.5),
-                    floor((x1 + 2 * x2) / 3 + 0.5), floor((y1 + 2 * y2) / 3 + 0.5), x3, y3, color);
-    plotCubicBezier(buffer, x0, y0, x0, y0, (x0 + x1) / 2, (y0 + y1) / 2, x4, y4, color);
-}
-
-// post effects
-
-// void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur) { // blurwidth=  2^blur
-//     uint16_t *kernel = (uint16_t *)pFrameBuffer;
-//     uint32_t colorSum[3];
-//     uint32_t colorValue[3];
-//     for (uint32_t i = 0; i < 100; i++) {
-
-//         // println(index);
-//         // colorSum[0] = kernel[index] >> 11;                     // Red
-//         // colorSum[1] = kernel[index] & 0b0000011111100000 >> 5; // Green
-//         // colorSum[2] = kernel[index] & 0b0000000000011111;      // Blur
-
-//         // colorValue[0] = colorSum[0] >> blur;
-//         // colorValue[1] = colorSum[1] >> blur;
-//         // colorValue[2] = colorSum[2] >> blur;
-
-//         // kernel[index] = colorValue[0] << 11 & colorValue[1] << 8 & colorValue[2]; // back to rgb565 format
-
-//         // println((uint32_t)&pFrameBuffer[index]);
-
-//         pFrameBuffer[i] = kernel[i]; // back to rgb565 format
-//     }
-// }
 
 #endif // ifdef POLYCONTROL

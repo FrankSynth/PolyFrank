@@ -22,10 +22,7 @@ typedef enum {
 // Base bus Class
 class busInterface {
   public:
-    virtual std::string *report() {
-        status = "undefined bus interface \n\r";
-        return &status;
-    };
+    virtual void report(std::string &status) { status += "undefined bus interface \n\r"; };
     inline void callRxComplete() { state = BUS_READY; };
     inline void callTxComplete() { state = BUS_READY; };
     inline void callError() { state = BUS_ERROR; };
@@ -34,7 +31,6 @@ class busInterface {
     // std::function<void()> txCompleteFunction = nullptr;
     // std::function<void()> BUS_errorFunction = nullptr;
 
-    std::string status;
     volatile busState state = BUS_NOTINIT;
 
     busType type = UNDEFINED;

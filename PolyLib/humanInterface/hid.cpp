@@ -434,7 +434,7 @@ void LEDModuleRenderbuffer(uint32_t layerID) {
 void LEDAllInputs(uint32_t layerID) {
 
     for (BaseModule *m : allLayers[layerID]->getModules()) {
-        for (Analog *a : m->getPotis()) {
+        for (Analog *a : m->getAnalog()) {
             if (a->input != nullptr) {
                 if (a->input->LEDPortID != 0xFF) {
                     // active LED
@@ -498,7 +498,7 @@ void LEDModuleSwitch(uint32_t layerID) {
 }
 
 void LEDDigital(Digital *digital, uint8_t id, uint16_t value) {
-    if (id < digital->LEDPinID.size()) {
+    if (id < digital->numLEDs) {
         uint32_t pin = digital->LEDPinID[id];
         uint32_t port = digital->LEDPortID[id];
 
@@ -600,14 +600,13 @@ void PanelTouch::functionButtonServiceRoutine() {
         slotMarker = false;                                               // Push Event
         if (saveSlotState[cachedFocus.layer][slotButtonID] == SLOTFREE) { // First time only store
             saveSlotState[cachedFocus.layer][slotButtonID] = SLOTUSED;
-            allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID],
-                                                                false); // store current Layer
+            getCachedLayer()->getLayerConfiguration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID],
+                                                    false); // store current Layer
         }
         else if (saveSlotState[cachedFocus.layer][slotButtonID] == SLOTUSED) {
-            allLayers[cachedFocus.layer]->getLayerConfiguration((int32_t *)tempSaveStorage,
-                                                                false); // store current Layer
-            allLayers[cachedFocus.layer]->setLayerConfigration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID],
-                                                               false);
+            getCachedLayer()->getLayerConfiguration((int32_t *)tempSaveStorage,
+                                                    false); // store current Layer
+            getCachedLayer()->setLayerConfigration((int32_t *)saveSlots[cachedFocus.layer][slotButtonID], false);
 
             memcpy(saveSlots[cachedFocus.layer][slotButtonID], &tempSaveStorage,
                    LAYER_STORESIZE); // Copy preset in Storage}
@@ -808,7 +807,7 @@ void PanelTouch::evaluateControl(uint8_t pin, uint8_t port, uint8_t event) {
         switch (pin) {
             case 0: evaluateOutput((Output *)&(allLayers[layerID]->midi.oVelocity), event); break;
             case 1: evaluateOutput((Output *)&(allLayers[layerID]->midi.oNote), event); break;
-            case 2: evaluateModul(&allLayers[cachedFocus.layer]->midi, event); break;
+            case 2: evaluateModul(&getCachedLayer()->midi, event); break;
             case 3: evaluateOutput((Output *)&(allLayers[layerID]->midi.oAftertouch), event); break;
             case 4: evaluateOutput((Output *)&(allLayers[layerID]->midi.oPitchbend), event); break;
             case 5: evaluateFunctionButtons(0, event); break;
@@ -875,10 +874,8 @@ void PanelTouch::evaluateInput(Input *pInput, uint8_t event) {
         }
         else {
             if (cachedFocus.type == FOCUSINPUT && ui.activePanel == &ui.guiPanelFocus) {
-                if (pInput->layerId == cachedFocus.layer && pInput->idGlobal == allLayers[cachedFocus.layer]
-                                                                                    ->modules[cachedFocus.modul]
-                                                                                    ->inputs[cachedFocus.id]
-                                                                                    ->idGlobal) { // already selected
+                if (pInput->layerId == cachedFocus.layer &&
+                    pInput->idGlobal == getCachedModule()->inputs[cachedFocus.id]->idGlobal) { // already selected
                     clearOnReleaseIn = true;
                 }
             }
@@ -923,10 +920,8 @@ void PanelTouch::evaluateOutput(Output *pOutput, uint8_t event) {
 
         else {
             if (cachedFocus.type == FOCUSOUTPUT && ui.activePanel == &ui.guiPanelFocus) {
-                if (pOutput->layerId == cachedFocus.layer && pOutput->idGlobal == allLayers[cachedFocus.layer]
-                                                                                      ->modules[cachedFocus.modul]
-                                                                                      ->outputs[cachedFocus.id]
-                                                                                      ->idGlobal) { // already selected
+                if (pOutput->layerId == cachedFocus.layer &&
+                    pOutput->idGlobal == getCachedModule()->outputs[cachedFocus.id]->idGlobal) { // already selected
                     clearOnReleaseOut = true;
                 }
             }

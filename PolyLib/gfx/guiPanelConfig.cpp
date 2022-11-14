@@ -71,9 +71,6 @@ void GUIPanelConfig::Draw() {
     for (int i = 0; i < CONFIGPANELENTRYS; i++) {
         panelElements[i].Draw();
     }
-
-    // drawScrollBar(panelAbsX + panelWidth - SCROLLBARWIDTH, panelAbsY, SCROLLBARWIDTH, panelHeight, scroll.offset,
-    //               entrys, CONFIGPANELENTRYS);
 }
 
 void GUIPanelConfig::registerPanelSettings() {

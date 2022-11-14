@@ -54,6 +54,8 @@ class actionMapping {
     void callActionEncoder_CCW(uint8_t index);
     void callActionEncoder_Push(uint8_t index);
 
+    void clear();
+
     actionHandle buttonFooter[NUMBUTTONBOTTOM];
     actionHandle buttonHeader[NUMBUTTONTOP];
 

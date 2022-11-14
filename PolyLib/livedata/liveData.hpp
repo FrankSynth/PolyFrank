@@ -74,6 +74,7 @@ class LiveData {
     void resetLiveConfig();
     void reset();
 
+
     uint32_t writeLive(uint32_t blockStartIndex);
 
     VoiceHandler voiceHandler;

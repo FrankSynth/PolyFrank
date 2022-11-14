@@ -105,7 +105,7 @@ void GUIPanelLive::registerPanelSettings() {
     actionHandler.registerActionRightData(2);
 
     actionHandler.registerActionLeft(0, {std::bind(&pullFrontValues, cachedFocus.layer), "FRONT"}, true);
-    actionHandler.registerActionLeft(1);
+    actionHandler.registerActionLeft(1, {std::bind(&LiveData::reset, &liveData), "RESET"}, true);
     actionHandler.registerActionLeft(2);
 }
 

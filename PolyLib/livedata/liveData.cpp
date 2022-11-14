@@ -500,4 +500,11 @@ void LiveData::resetLiveConfig() {
     }
 }
 
+void LiveData::reset() {
+    voiceHandler.reset(0);
+    voiceHandler.reset(1);
+    arps[0].reset();
+    arps[1].reset();
+}
+
 #endif

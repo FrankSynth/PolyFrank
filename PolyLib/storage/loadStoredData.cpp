@@ -260,7 +260,7 @@ void loadAnalogDatablockToModule(uint8_t layerID, uint8_t moduleID, uint8_t data
         return;
     for (BaseModule *m : allLayers[layerID]->getModules()) {
         if (m->storeID == moduleID) {
-            for (Analog *a : m->getPotis()) {
+            for (Analog *a : m->getAnalog()) {
                 if (a->storeID == dataID) {
 
                     // println("A | Module ID: ", moduleID, "  DataID: ", dataID, "  Data: ", data);
@@ -278,7 +278,7 @@ void loadDigitalDatablockToModule(uint8_t layerID, uint8_t moduleID, uint8_t dat
         return;
     for (BaseModule *m : allLayers[layerID]->getModules()) {
         if (m->storeID == moduleID) {
-            for (Digital *d : m->getSwitches()) {
+            for (Digital *d : m->getDigital()) {
 
                 if (d->storeID == dataID) {
                     // println("D | Module ID: ", moduleID, "  DataID: ", dataID, "  Data: ", data);

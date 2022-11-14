@@ -50,9 +50,8 @@ class BaseModule {
 
     inline std::vector<Output *> &getOutputs() { return outputs; }
     inline std::vector<Input *> &getInputs() { return inputs; }
-    inline std::vector<Analog *> &getPotis() { return knobs; }
-    inline std::vector<Digital *> &getSwitches() { return switches; }
-    // inline std::vector<Setting *> &getSettings() { return settings; }
+    inline std::vector<Analog *> &getAnalog() { return knobs; }
+    inline std::vector<Digital *> &getDigital() { return switches; }
     inline std::vector<RenderBuffer *> &getRenderBuffer() { return renderBuffer; }
 
     uint8_t id;
@@ -79,7 +78,6 @@ class BaseModule {
     std::vector<Input *> inputs;
     std::vector<Analog *> knobs;
     std::vector<Digital *> switches;
-    // std::vector<Setting *> settings;
     std::vector<RenderBuffer *> renderBuffer;
 
     ModuleType moduleType = MODULE_NOTDEFINED;
@@ -224,9 +222,9 @@ class OSC_A : public BaseModule {
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
 
     Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 1, true, &nlWavetable, nullptr, false);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 2, true, &nlWavetable, nullptr, false);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 3, true, &nlWavetable, nullptr, false);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 0, false, &nlWavetableSets, nullptr, true, false);
 
     Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave, false);
@@ -341,11 +339,11 @@ class OSC_B : public BaseModule {
 
     Digital dSync = Digital("SYNC", 0, 1, 0, true, &nlOnOff, nullptr, false);
 
-    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 8, true, &nlWavetable, nullptr, false);
-    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 9, true, &nlWavetable, nullptr, false);
-    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 10, true, &nlWavetable, nullptr, false);
-    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 11, true, &nlWavetable, nullptr, false);
-    Digital dWavetableSet = Digital("Wavetable Set", 1, 5, 0, false, &nlWavetableSets, nullptr, true, false);
+    Digital dSample0 = Digital("WAVE 1", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
+    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 1, false, &nlWavetableSets, nullptr, true, false);
 
     RenderBuffer note;
     RenderBuffer fm;

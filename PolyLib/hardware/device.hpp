@@ -20,9 +20,6 @@
 class devManager {
   public:
     devManager() { // bus initialization
-
-        // reserve memory for status
-        status.reserve(2048);
     }
 
     void addBus(busInterface *bus) {
@@ -33,7 +30,7 @@ class devManager {
         devices.push_back(device);
         // println("add Device");
     };
-    std::string *report() { // return status of all devices
+    void report(std::string &status) { // return status of all devices
         status.clear();
 
         status += "INFO || Interfaces\r\n";
@@ -41,23 +38,21 @@ class devManager {
         // collect interface status
         for (busInterface *interface : interfaces) {
             if (interface->type == UNDEFINED)
-                status += *interface->report();
+                interface->report(status);
             if (interface->type == I2C)
-                status += *((i2cBus *)interface)->report();
+                ((i2cBus *)interface)->report(status);
             if (interface->type == SPI)
-                status += *((spiBus *)interface)->report();
+                ((spiBus *)interface)->report(status);
             if (interface->type == VIRTUALI2C)
-                status += *((i2cVirtualBus *)interface)->report();
+                ((i2cVirtualBus *)interface)->report(status);
         }
 
         // collect device status
         status += "\nINFO || Devices : \r\n";
 
         for (baseDevice *device : devices) {
-            status += *device->report();
+            device->report(status);
         }
-
-        return &status; // return status report;
     }
 
     void registerCallback(); // register callbacks
@@ -65,5 +60,4 @@ class devManager {
   private:
     std::vector<busInterface *> interfaces;
     std::vector<baseDevice *> devices;
-    std::string status;
 };

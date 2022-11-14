@@ -81,7 +81,7 @@ void GUIPanelPreset::registerPanelSettings() {
         actionHandler.registerActionLeft(1);
     }
 
-    actionHandler.registerActionLeft(2, {std::bind(resetSystem), "RST ALL"}, true);
+    actionHandler.registerActionLeft(2, {std::bind(resetSystem), "RESET"}, true);
 }
 
 void GUIPanelPreset::updateEntrys() {

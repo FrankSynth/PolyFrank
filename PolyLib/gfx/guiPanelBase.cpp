@@ -142,7 +142,7 @@ void drawConsoleString(std::string *string, uint16_t rows, uint32_t x, uint32_t 
     }
 }
 
-void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
+void drawPatchElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t w, uint16_t h, uint8_t select) {
     // PatchElementOutOut *dataOutOut = nullptr;
     PatchElement *data = nullptr;
     // uint8_t outOutFlag = 0;
@@ -160,7 +160,7 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
     std::string text;
     // get text
     if (entry->type == PATCHOUTPUT) {
-        text = allLayers[cachedFocus.layer]->getModules()[data->sourceOut->moduleId]->getShortName();
+        text = getCachedModules()[data->sourceOut->moduleId]->getShortName();
 
         // Draw Name
         if (select) {
@@ -173,7 +173,7 @@ void drawPatchInOutElement(entryStruct *entry, uint32_t x, uint32_t y, uint16_t 
         }
     }
     else {
-        text = allLayers[cachedFocus.layer]->getModules()[data->targetIn->moduleId]->getShortName();
+        text = getCachedModules()[data->targetIn->moduleId]->getShortName();
         text.append(" ");
         std::string text2 = "| ";
         text2.append(data->targetIn->getShortName());
@@ -813,465 +813,6 @@ void drawPresetElement(presetStruct *element, uint32_t x, uint32_t y, uint16_t w
         drawString(name, cFont_Deselect, x + w / 2, y + (-fontMedium->size + h) / 2, fontMedium, CENTER);
     }
 }
-void Data_PanelElement::setName(std::string *name) {
-    this->panelElementName = name;
-}
-
-void Data_PanelElement::Draw() {
-    uint16_t relX = 0;
-    uint16_t relY = 0;
-
-    entryHeight = height;
-
-    if (!visible) {
-        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
-        return;
-    }
-
-    // wir nehmen an das wenn das erste element ein Setting ist, alle elemente Settings sind
-    if (entrys[0].type == SETTING) {
-
-        if (select) {
-            actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-            actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-            actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-            actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
-            actionHandler.registerActionEncoder(5);
-        }
-
-        uint32_t nameFieldWidth = 148;
-
-        entryWidth = (width - nameFieldWidth + 2) / numberEntrys;
-
-        // Feld mit GruppenNamen
-        drawNameElement(panelElementName, relX + panelAbsX, relY + panelAbsY, nameFieldWidth - 2, entryHeight, select);
-        relX += nameFieldWidth;
-
-        for (int x = 0; x < numberEntrys; x++) {
-            if (entrys[x].type == EMPTY) {
-            }
-            else {
-                drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select);
-            }
-
-            relX += entryWidth;
-            entrys[x].functionCW = {nullptr, ""};
-            entrys[x].functionCCW = {nullptr, ""};
-            entrys[x].functionPush = {nullptr, ""};
-        }
-    }
-
-    else {
-        if (select) {
-            actionHandler.registerActionEncoder(5, entrys[0].functionCW, entrys[0].functionCCW,
-                                                entrys[0].functionPush); // amount
-        }
-        entryWidth = width / numberEntrys;
-        for (int x = 0; x < numberEntrys; x++) {
-            if (entrys[x].type == EMPTY) {
-            }
-
-            else if (entrys[x].type == ANALOG) {
-                drawAnalogElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
-            else if (entrys[x].type == DIGITAL) {
-                drawDigitalElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
-
-            else if (entrys[x].type == PATCHOUTPUT || entrys[x].type == PATCHINPUT) {
-                drawPatchInOutElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
-
-            else if (entrys[x].type == MODULE) {
-                drawModuleElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
-            }
-
-            entrys[x].functionCW = {nullptr, ""};
-            entrys[x].functionCCW = {nullptr, ""};
-            entrys[x].functionPush = {nullptr, ""};
-
-            relX += entryWidth;
-        }
-    }
-
-    numberEntrys = 0;
-    select = 0;
-}
-
-void Patch_PanelElement::Draw() {
-    if (entry != nullptr) {
-
-        if (active) {
-
-            if (patch == nullptr) {
-                drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
-                                     showModuleName);
-            }
-            else {
-
-                if (select) {
-                    actionHandler.registerActionEncoder(
-                        5, {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 1), "AMOUNT"},
-                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 0), "AMOUNT"},
-                        {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
-                }
-                drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
-                                     showModuleName);
-            }
-        }
-    }
-    // reset Marker
-    select = 0;
-    active = 0;
-    patched = 0;
-    patch = nullptr;
-    // entry = nullptr;
-}
-
-void Module_PanelElement::Draw() {
-    if (entry != nullptr) {
-
-        if (!active) {
-            return;
-        }
-        if (select) {
-            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
-            // entrys[2].functionPush);
-        }
-
-        drawModuleElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
-
-        // reset Marker
-        select = 0;
-        active = 0;
-        patched = 0;
-        //    entry = nullptr;
-    }
-}
-
-void Preset_PanelElement::Draw() {
-    if (entry != nullptr) {
-
-        if (!active) {
-            return;
-        }
-        if (select) {
-            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
-            // entrys[2].functionPush);
-        }
-
-        drawPresetElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select);
-
-        // reset Marker
-        select = 0;
-        active = 0;
-    }
-}
-
-void Live_PanelElement::Draw() {
-    uint16_t relX = 0;
-    uint16_t relY = 0;
-
-    entryHeight = height;
-
-    if (!visible) {
-        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
-        return;
-    }
-
-    if (select) {
-        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
-        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
-        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
-        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
-    }
-    entryWidth = (width + 2) / (numberEntrys);
-
-    for (int x = 0; x < numberEntrys; x++) {
-        if (entrys[x].type != EMPTY) {
-            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select,
-                               keyColor);
-        }
-
-        relX += entryWidth;
-        entrys[x].functionCW = {nullptr, ""};
-        entrys[x].functionCCW = {nullptr, ""};
-        entrys[x].functionPush = {nullptr, ""};
-    }
-
-    numberEntrys = 0;
-    select = 0;
-}
-
-const char *valueToNote(const byte &noteIn) {
-
-    byte note;
-    note = noteIn % 12;
-    switch (note) {
-        case 0:
-        case 1: return "C";
-        case 2:
-        case 3: return "D";
-        case 4: return "E";
-        case 5:
-        case 6: return "F";
-        case 7:
-        case 8: return "G";
-        case 9:
-        case 10: return "A";
-        case 11: return "B";
-    }
-    return "";
-}
-
-const char *valueToOctave(const byte &noteIn) {
-
-    byte octave;
-    octave = noteIn / 12;
-
-    switch (octave) {
-        case 0: return "-2";
-        case 1: return "-1";
-        case 2: return "0";
-        case 3: return "1";
-        case 4: return "2";
-        case 5: return "3";
-        case 6: return "4";
-        case 7: return "5";
-        case 8: return "6";
-        case 9: return "7";
-        case 10: return "8";
-        case 11: return "9";
-        case 12: return "10";
-    }
-    return "";
-}
-
-const char *valueToSharp(const byte &noteIn) {
-    byte note;
-    note = noteIn % 12;
-
-    if (note == 1 || note == 3 || note == 6 || note == 8 || note == 10) {
-        return "#";
-    }
-
-    return "";
-}
-
-const char *tuningToChar(const byte &tuning) {
-
-    switch (tuning) {
-        case 1: return "C";
-        case 2: return "C#";
-        case 3: return "D";
-        case 4: return "D#";
-        case 5: return "E";
-        case 6: return "F";
-        case 7: return "F#";
-        case 8: return "G";
-        case 9: return "G#";
-        case 10: return "A";
-        case 11: return "A#";
-        case 12: return "B";
-        case 13: return "F";
-        default: return "-";
-    }
-}
-
-// Patchmatrix
-
-void MatrixPatch_PanelElement::Draw() {
-
-    if (!visible) {
-        return;
-    }
-
-    if (select) {
-        drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
-    }
-    else {
-        drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
-    }
-
-    if (entry != nullptr) {
-
-        uint32_t blocksize = (width - 2) / 4;
-
-        uint8_t barHeigth = 8;
-        // uint8_t barHeight = 4;
-
-        // uint8_t color[4];
-        float patchAmount = entry->amount;
-
-        if (patchAmount < 0) {
-            drawRectangleFill(cLayer, panelAbsX + width / 2 - (width / 2 - 3) * -patchAmount,
-                              panelAbsY + height - 3 - barHeigth, (width / 2 - 3) * -patchAmount, barHeigth);
-        }
-        else {
-
-            drawRectangleFill(cLayer, panelAbsX + width / 2, panelAbsY + height - 3 - barHeigth,
-                              (width / 2 - 3) * patchAmount, barHeigth);
-        }
-
-        for (uint8_t y = 0; y < VOICESPERCHIP / 4; y++) {
-            for (uint8_t x = 0; x < VOICESPERCHIP / 2; x++) {
-
-                uint32_t index = x + y * 4;
-
-                float amount = patchAmount * entry->sourceOut->currentSample[index];
-                amount = abs(testFloat(amount, -1, 1));
-
-                drawRectangleCentered(cHighlight, (blocksize * amount) / 2,
-                                      blocksize / 2 + panelAbsX + x * blocksize + 2,
-                                      blocksize / 2 + panelAbsY + y * blocksize + 2);
-            }
-        }
-    }
-
-    select = 0;
-    visible = 0;
-    entry = nullptr;
-}
-
-void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
-
-    this->entry = entry;
-    visible = 1;
-}
-
-void MatrixIn_PanelElement::Draw() {
-
-    uint8_t barWidth = 3;
-    uint8_t barHeight = 4;
-
-    if (!visible) {
-        return;
-    }
-    if (entry != nullptr) {
-
-        if (select) {
-            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-
-            drawString(entry->input->shortName, cFont_Select, panelAbsX + 2,
-                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
-        }
-        else {
-            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + 2,
-                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
-        }
-        if (entry->input->renderBuffer != nullptr) {
-            // uint8_t color[4];
-
-            // entry->
-
-            for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
-                float amount = entry->input->renderBuffer->currentSample[i];
-
-                amount -= entry->min;
-                amount /= entry->max - entry->min;
-
-                amount = testFloat(amount, 0, 1);
-
-                int16_t offsetY = (int16_t)(height - barHeight) * (1 - amount);
-                drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
-                                  barWidth, barHeight);
-            }
-        }
-    }
-    select = 0;
-    visible = 0;
-    entry = nullptr;
-}
-
-void MatrixIn_PanelElement::addEntry(Analog *entry) {
-
-    this->entry = entry;
-    visible = 1;
-}
-
-void MatrixOut_PanelElement::Draw() {
-    uint8_t barWidth = 3; // oder so
-    uint8_t barHeight = 4;
-
-    // uint8_t color[4];
-
-    if (!visible) {
-        return;
-    }
-    if (entry != nullptr) {
-
-        const char *name;
-
-        if (entry->moduleId == allLayers[entry->layerId]->midi.id) {
-            name = entry->shortName;
-        }
-        else {
-            name = allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
-        }
-
-        if (select) {
-            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
-                       LEFT);
-        }
-        else {
-            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
-                       LEFT);
-        }
-
-        float amount;
-
-        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
-
-            amount = testFloat(entry->currentSample[i], -1, 1);
-            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
-            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
-                              barWidth, barHeight);
-        }
-    }
-    select = 0;
-    visible = 0;
-    entry = nullptr;
-}
-
-void MatrixOut_PanelElement::addEntry(Output *entry) {
-
-    this->entry = entry;
-    visible = 1;
-}
-
-void MatrixModule_PanelElement::Draw() {
-    if (!visible) {
-        return;
-    }
-    if (entry != nullptr) {
-        const char *name = entry->shortName;
-
-        if (select) {
-            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Select, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
-                       LEFT);
-        }
-        else {
-            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
-            drawString(name, cFont_Deselect, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
-                       LEFT);
-        }
-    }
-    select = 0;
-    visible = 0;
-    entry = nullptr;
-}
-
-void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
-
-    this->entry = entry;
-    visible = 1;
-}
 
 void registerDigitalElement(uint32_t index, Digital *data) {
 
@@ -1557,46 +1098,6 @@ void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t x_offset
     }
 }
 
-void drawVecWave(WaveBuffer &buffer, vec<2> *renderedWave, uint16_t samples) {
-
-    vec<2> p1;
-    vec<2> p2;
-
-    int16_t x1;
-    int16_t y1;
-    int16_t x2;
-    int16_t y2;
-    // Grid
-
-    uint8_t grid = 12;
-
-    for (uint16_t i = 1; i < grid; i++) {
-        drawLine(buffer, i * ((float)buffer.width / grid), 0, i * ((float)buffer.width / grid), buffer.height - 1,
-                 c4444gridcolor);
-    }
-    drawLine(buffer, 0, buffer.height / 2, buffer.width - 1, buffer.height / 2, c4444framecolor);
-
-    // Frame
-    drawLine(buffer, 0, 0, buffer.width - 1, 0, c4444framecolor);
-    drawLine(buffer, 0, buffer.height - 1, buffer.width - 1, buffer.height - 1, c4444framecolor);
-    drawLine(buffer, 0, 0, 0, buffer.height - 1, c4444framecolor);
-    drawLine(buffer, buffer.width - 1, 0, buffer.width - 1, buffer.height - 1, c4444framecolor);
-
-    for (uint16_t i = 0; i < (samples - 1); i++) {
-        // load Wave
-        p1 = renderedWave[i];
-        p2 = renderedWave[i + 1];
-
-        // Check range
-        x1 = testInt((int32_t)p1[0], 0, buffer.width - 1);
-        y1 = testInt((int32_t)p1[1], 0, buffer.height - 1);
-        x2 = testInt((int32_t)p2[0], 0, buffer.width - 1);
-        y2 = testInt((int32_t)p2[1], 0, buffer.height - 1);
-
-        drawLineWidth(buffer, x1, y1, x2, y2, 4, c4444wavecolor);
-    }
-}
-
 #include "render/renderLFO.cpp"
 
 void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
@@ -1877,8 +1378,6 @@ void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module, uint32_t dotSelect) 
         previousYInt = yInt;
     }
 
-    // drawCubicSpline(buffer, 3, x, y, c4444wavecolor);
-
     // Dots
 
     for (uint32_t dotID = 0; dotID < 4; dotID++) {
@@ -1889,87 +1388,6 @@ void drawWaveshaper(WaveBuffer &buffer, Waveshaper *module, uint32_t dotSelect) 
         }
         drawFilledCircle(buffer, xdots[dotID], ydots[dotID], c4444dot, 8);
     }
-}
-
-void Effect_PanelElement::Draw() {
-    uint16_t relX = 0;
-    uint16_t relY = 0;
-
-    entryHeight = height;
-
-    if (entrys != nullptr) {
-        if (select) {
-
-            actionHandler.registerActionEncoder(
-                encoderID, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 1), entrys->getName()},
-                {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 0), entrys->getName()},
-                {std::bind(&Analog::resetValue, entrys), "RESET"});
-        }
-
-        drawSmallAnalogElement(entrys, relX + panelAbsX + 1, relY + panelAbsY, width - 2, entryHeight, select);
-    }
-
-    else {
-        actionHandler.registerActionEncoder(encoderID); // clear encoder
-    }
-    select = 0;
-}
-
-void EffectAmount_PanelElement::Draw() {
-    uint16_t relX = 0;
-    uint16_t relY = 0;
-
-    entryHeight = height;
-
-    if (!visible) {
-        return;
-    }
-
-    entryWidth = width / (numberEntrys + 1);
-
-    drawSmallAnalogElement(effect, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, true);
-    relX += entryWidth;
-
-    if (select) {
-        for (uint8_t i = 0; i < 4; i++) {
-            if (entrys[i] != nullptr) {
-                actionHandler.registerActionEncoder(
-                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), entrys[i]->getName()},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), entrys[i]->getName()},
-                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
-            }
-            else {
-                actionHandler.registerActionEncoder(i); // clear encoder
-            }
-        }
-    }
-
-    for (int i = 0; i < numberEntrys; i++) {
-        if (entrys[i] == nullptr) {
-        }
-        else {
-            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
-                                   select, moduleName[i]);
-        }
-
-        relX += entryWidth;
-    }
-    select = 0;
-}
-
-void Effect_PatchElement::Draw() {
-
-    if (entry != nullptr) {
-        if (select) {
-            actionHandler.registerActionEncoder(
-                encoderID, {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 1), "AMOUNT"},
-                {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 0), "AMOUNT"},
-                {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
-        }
-        drawEffectPatchElement(entry, panelAbsX + 1, panelAbsY, width - 2, height, select);
-    }
-    entry = nullptr;
-    select = 0;
 }
 
 void drawQuickViewAnalog(Analog *data, uint32_t x, uint32_t y, uint16_t w, uint16_t h) {
@@ -2112,6 +1530,583 @@ void drawCustomInfo(BaseModule *module, uint32_t posX, uint32_t posY) {
                                     posY + 2, blockWidth - 4, CUSTOMINFOHEIGHT - 4, 1);
         }
     }
+}
+
+uint32_t drawBoxWithText(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox, uint32_t colorText,
+                         uint32_t x, uint32_t y, uint32_t heigth, uint32_t space, uint32_t champfer,
+                         FONTALIGN alignment) {
+    uint32_t width = getStringWidth(text, font) + space; // text witdh + space
+
+    drawRectangleChampfered(colorBox, x, y, width, heigth, champfer); // draw Box
+    drawString(text, colorText, x + space / 2, y + (-(font->size) + heigth) / 2, font,
+               LEFT); // draw text, height centered
+
+    return width;
+}
+uint32_t drawBoxWithTextFixWidth(const std::string &text, const GUI_FONTINFO *font, uint32_t colorBox,
+                                 uint32_t colorText, uint32_t x, uint32_t y, uint32_t width, uint32_t heigth,
+                                 uint32_t space, uint32_t champfer, FONTALIGN alignment) {
+
+    drawRectangleChampfered(colorBox, x - width, y, width, heigth, champfer); // draw Box
+    drawString(text, colorText, x + space / 2 - width, y + (-(font->size) + heigth) / 2, font,
+               LEFT); // draw text, height centered
+
+    return width;
+}
+void drawScrollBar(uint32_t x, uint32_t y, uint32_t width, uint32_t heigth, uint32_t scroll, uint32_t entrys,
+                   uint32_t viewable) {
+
+    if (viewable >= entrys) {
+        return;
+    }
+    drawRectangleChampfered(cGreyLight, x, y, width, heigth, 1); // draw Box
+    float entryHeight = heigth / (float)entrys;
+    uint32_t scrollBarHeight = entryHeight * viewable;
+    uint32_t scrollBarPositionY = entryHeight * scroll;
+
+    drawRectangleChampfered(cWhite, x, y + scrollBarPositionY, width, scrollBarHeight, 1); // draw Box
+}
+
+/////// Conversion FUNCTIONS
+
+const char *valueToNote(const byte &noteIn) {
+
+    byte note;
+    note = noteIn % 12;
+    switch (note) {
+        case 0:
+        case 1: return "C";
+        case 2:
+        case 3: return "D";
+        case 4: return "E";
+        case 5:
+        case 6: return "F";
+        case 7:
+        case 8: return "G";
+        case 9:
+        case 10: return "A";
+        case 11: return "B";
+    }
+    return "";
+}
+
+const char *valueToOctave(const byte &noteIn) {
+
+    byte octave;
+    octave = noteIn / 12;
+
+    switch (octave) {
+        case 0: return "-2";
+        case 1: return "-1";
+        case 2: return "0";
+        case 3: return "1";
+        case 4: return "2";
+        case 5: return "3";
+        case 6: return "4";
+        case 7: return "5";
+        case 8: return "6";
+        case 9: return "7";
+        case 10: return "8";
+        case 11: return "9";
+        case 12: return "10";
+    }
+    return "";
+}
+
+const char *valueToSharp(const byte &noteIn) {
+    byte note;
+    note = noteIn % 12;
+
+    if (note == 1 || note == 3 || note == 6 || note == 8 || note == 10) {
+        return "#";
+    }
+
+    return "";
+}
+
+const char *tuningToChar(const byte &tuning) {
+
+    switch (tuning) {
+        case 1: return "C";
+        case 2: return "C#";
+        case 3: return "D";
+        case 4: return "D#";
+        case 5: return "E";
+        case 6: return "F";
+        case 7: return "F#";
+        case 8: return "G";
+        case 9: return "G#";
+        case 10: return "A";
+        case 11: return "A#";
+        case 12: return "B";
+        case 13: return "F";
+        default: return "-";
+    }
+}
+
+/////// CLASS FUNCTIONS
+void Effect_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (entrys != nullptr) {
+        if (select) {
+
+            actionHandler.registerActionEncoder(
+                encoderID, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 1), entrys->getName()},
+                {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys, 0), entrys->getName()},
+                {std::bind(&Analog::resetValue, entrys), "RESET"});
+        }
+
+        drawSmallAnalogElement(entrys, relX + panelAbsX + 1, relY + panelAbsY, width - 2, entryHeight, select);
+    }
+
+    else {
+        actionHandler.registerActionEncoder(encoderID); // clear encoder
+    }
+    select = 0;
+}
+
+void EffectAmount_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        return;
+    }
+
+    entryWidth = width / (numberEntrys + 1);
+
+    drawSmallAnalogElement(effect, relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select, true);
+    relX += entryWidth;
+
+    if (select) {
+        for (uint8_t i = 0; i < 4; i++) {
+            if (entrys[i] != nullptr) {
+                actionHandler.registerActionEncoder(
+                    i, {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 1), entrys[i]->getName()},
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, entrys[i], 0), entrys[i]->getName()},
+                    {std::bind(&Analog::resetValue, entrys[i]), "RESET"});
+            }
+            else {
+                actionHandler.registerActionEncoder(i); // clear encoder
+            }
+        }
+    }
+
+    for (int i = 0; i < numberEntrys; i++) {
+        if (entrys[i] == nullptr) {
+        }
+        else {
+            drawSmallAnalogElement(entrys[i], relX + panelAbsX + 1, relY + panelAbsY, entryWidth - 2, entryHeight,
+                                   select, moduleName[i]);
+        }
+
+        relX += entryWidth;
+    }
+    select = 0;
+}
+
+void Effect_PatchElement::Draw() {
+
+    if (entry != nullptr) {
+        if (select) {
+            actionHandler.registerActionEncoder(
+                encoderID, {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 1), "AMOUNT"},
+                {std::bind(&PatchElement::changeAmountEncoderAccelerated, entry, 0), "AMOUNT"},
+                {std::bind(&PatchElement::setAmount, entry, 0), "RESET"});
+        }
+        drawEffectPatchElement(entry, panelAbsX + 1, panelAbsY, width - 2, height, select);
+    }
+    entry = nullptr;
+    select = 0;
+}
+
+void MatrixPatch_PanelElement::Draw() {
+
+    if (!visible) {
+        return;
+    }
+
+    if (select) {
+        drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+    }
+    else {
+        drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+        drawRectangleFill(cGrey, panelAbsX + 1, panelAbsY + 1, width - 2, height - 2);
+    }
+
+    if (entry != nullptr) {
+
+        uint32_t blocksize = (width - 2) / 4;
+
+        uint8_t barHeigth = 8;
+        // uint8_t barHeight = 4;
+
+        // uint8_t color[4];
+        float patchAmount = entry->amount;
+
+        if (patchAmount < 0) {
+            drawRectangleFill(cLayer, panelAbsX + width / 2 - (width / 2 - 3) * -patchAmount,
+                              panelAbsY + height - 3 - barHeigth, (width / 2 - 3) * -patchAmount, barHeigth);
+        }
+        else {
+
+            drawRectangleFill(cLayer, panelAbsX + width / 2, panelAbsY + height - 3 - barHeigth,
+                              (width / 2 - 3) * patchAmount, barHeigth);
+        }
+
+        for (uint8_t y = 0; y < VOICESPERCHIP / 4; y++) {
+            for (uint8_t x = 0; x < VOICESPERCHIP / 2; x++) {
+
+                uint32_t index = x + y * 4;
+
+                float amount = patchAmount * entry->sourceOut->currentSample[index];
+                amount = abs(testFloat(amount, -1, 1));
+
+                drawRectangleCentered(cHighlight, (blocksize * amount) / 2,
+                                      blocksize / 2 + panelAbsX + x * blocksize + 2,
+                                      blocksize / 2 + panelAbsY + y * blocksize + 2);
+            }
+        }
+    }
+
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixPatch_PanelElement::addEntry(PatchElement *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixIn_PanelElement::Draw() {
+
+    uint8_t barWidth = 3;
+    uint8_t barHeight = 4;
+
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+
+            drawString(entry->input->shortName, cFont_Select, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(entry->input->shortName, cFont_Deselect, panelAbsX + 2,
+                       panelAbsY + (height - fontMedium->size) / 2, fontMedium, LEFT);
+        }
+        if (entry->input->renderBuffer != nullptr) {
+            // uint8_t color[4];
+
+            // entry->
+
+            for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+                float amount = entry->input->renderBuffer->currentSample[i];
+
+                amount -= entry->min;
+                amount /= entry->max - entry->min;
+
+                amount = testFloat(amount, 0, 1);
+
+                int16_t offsetY = (int16_t)(height - barHeight) * (1 - amount);
+                drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                                  barWidth, barHeight);
+            }
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixIn_PanelElement::addEntry(Analog *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixOut_PanelElement::Draw() {
+    uint8_t barWidth = 3; // oder so
+    uint8_t barHeight = 4;
+
+    // uint8_t color[4];
+
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+
+        const char *name;
+
+        if (entry->moduleId == allLayers[entry->layerId]->midi.id) {
+            name = entry->shortName;
+        }
+        else {
+            name = allLayers[entry->layerId]->getModules()[entry->moduleId]->shortName;
+        }
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Select, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Deselect, panelAbsX + 5, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+
+        float amount;
+
+        for (uint8_t i = 0; i < VOICESPERCHIP; i++) {
+
+            amount = testFloat(entry->currentSample[i], -1, 1);
+            int16_t offsetY = ((int16_t)(height - barHeight) / 2) * (-amount) + (height - barHeight) / 2;
+            drawRectangleFill(cWhite, panelAbsX + width - barWidth * (VOICESPERCHIP - i) - 2, panelAbsY + offsetY,
+                              barWidth, barHeight);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixOut_PanelElement::addEntry(Output *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void MatrixModule_PanelElement::Draw() {
+    if (!visible) {
+        return;
+    }
+    if (entry != nullptr) {
+        const char *name = entry->shortName;
+
+        if (select) {
+            drawRectangleFill(cHighlight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Select, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+        else {
+            drawRectangleFill(cGreyLight, panelAbsX, panelAbsY, width, height);
+            drawString(name, cFont_Deselect, panelAbsX + 3, panelAbsY + (height - fontMedium->size) / 2, fontMedium,
+                       LEFT);
+        }
+    }
+    select = 0;
+    visible = 0;
+    entry = nullptr;
+}
+
+void MatrixModule_PanelElement::addEntry(BaseModule *entry) {
+
+    this->entry = entry;
+    visible = 1;
+}
+
+void Data_PanelElement::setName(std::string *name) {
+    this->panelElementName = name;
+}
+
+void Data_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    // wir nehmen an das wenn das erste element ein Setting ist, alle elemente Settings sind
+    if (entrys[0].type == SETTING) {
+
+        if (select) {
+            actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+            actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+            actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+            actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
+            actionHandler.registerActionEncoder(5);
+        }
+
+        uint32_t nameFieldWidth = 148;
+
+        entryWidth = (width - nameFieldWidth + 2) / numberEntrys;
+
+        // Feld mit GruppenNamen
+        drawNameElement(panelElementName, relX + panelAbsX, relY + panelAbsY, nameFieldWidth - 2, entryHeight, select);
+        relX += nameFieldWidth;
+
+        for (int x = 0; x < numberEntrys; x++) {
+            if (entrys[x].type == EMPTY) {
+            }
+            else {
+                drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select);
+            }
+
+            relX += entryWidth;
+            entrys[x].functionCW = {nullptr, ""};
+            entrys[x].functionCCW = {nullptr, ""};
+            entrys[x].functionPush = {nullptr, ""};
+        }
+    }
+
+    else {
+        if (select) {
+            actionHandler.registerActionEncoder(5, entrys[0].functionCW, entrys[0].functionCCW,
+                                                entrys[0].functionPush); // amount
+        }
+        entryWidth = width / numberEntrys;
+        for (int x = 0; x < numberEntrys; x++) {
+            if (entrys[x].type == EMPTY) {
+            }
+
+            else if (entrys[x].type == ANALOG) {
+                drawAnalogElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+            }
+            else if (entrys[x].type == DIGITAL) {
+                drawDigitalElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+            }
+
+            else if (entrys[x].type == PATCHOUTPUT || entrys[x].type == PATCHINPUT) {
+                drawPatchElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+            }
+
+            else if (entrys[x].type == MODULE) {
+                drawModuleElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth, entryHeight, select);
+            }
+
+            entrys[x].functionCW = {nullptr, ""};
+            entrys[x].functionCCW = {nullptr, ""};
+            entrys[x].functionPush = {nullptr, ""};
+
+            relX += entryWidth;
+        }
+    }
+
+    numberEntrys = 0;
+    select = 0;
+}
+
+void Patch_PanelElement::Draw() {
+    if (entry != nullptr) {
+
+        if (active) {
+
+            if (patch == nullptr) {
+                drawBasePatchElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
+                                     showModuleName);
+            }
+            else {
+
+                if (select) {
+                    actionHandler.registerActionEncoder(
+                        5, {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 1), "AMOUNT"},
+                        {std::bind(&PatchElement::changeAmountEncoderAccelerated, patch, 0), "AMOUNT"},
+                        {std::bind(&PatchElement::setAmount, patch, 0), "RESET"});
+                }
+                drawBasePatchElement(entry, patch, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched,
+                                     showModuleName);
+            }
+        }
+    }
+    // reset Marker
+    select = 0;
+    active = 0;
+    patched = 0;
+    patch = nullptr;
+    // entry = nullptr;
+}
+
+void Module_PanelElement::Draw() {
+    if (entry != nullptr) {
+
+        if (!active) {
+            return;
+        }
+        if (select) {
+            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
+            // entrys[2].functionPush);
+        }
+
+        drawModuleElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select, patched);
+
+        // reset Marker
+        select = 0;
+        active = 0;
+        patched = 0;
+        //    entry = nullptr;
+    }
+}
+
+void Preset_PanelElement::Draw() {
+    if (entry != nullptr) {
+
+        if (!active) {
+            return;
+        }
+        if (select) {
+            // actionHandler.registerActionEncoder4(entrys[2].functionCW, entrys[2].functionCCW,
+            // entrys[2].functionPush);
+        }
+
+        drawPresetElement(entry, panelAbsX, panelAbsY, entryWidth, entryHeight, select);
+
+        // reset Marker
+        select = 0;
+        active = 0;
+    }
+}
+
+void Live_PanelElement::Draw() {
+    uint16_t relX = 0;
+    uint16_t relY = 0;
+
+    entryHeight = height;
+
+    if (!visible) {
+        // drawRectangleFill(cClear, panelAbsX, panelAbsY, width, height);
+        return;
+    }
+
+    if (select) {
+        actionHandler.registerActionEncoder(0, entrys[0].functionCW, entrys[0].functionCCW, entrys[0].functionPush);
+        actionHandler.registerActionEncoder(1, entrys[1].functionCW, entrys[1].functionCCW, entrys[1].functionPush);
+        actionHandler.registerActionEncoder(2, entrys[2].functionCW, entrys[2].functionCCW, entrys[2].functionPush);
+        actionHandler.registerActionEncoder(3, entrys[3].functionCW, entrys[3].functionCCW, entrys[3].functionPush);
+    }
+    entryWidth = (width + 2) / (numberEntrys);
+
+    for (int x = 0; x < numberEntrys; x++) {
+        if (entrys[x].type != EMPTY) {
+            drawSettingElement(&entrys[x], relX + panelAbsX, relY + panelAbsY, entryWidth - 2, entryHeight, select,
+                               keyColor);
+        }
+
+        relX += entryWidth;
+        entrys[x].functionCW = {nullptr, ""};
+        entrys[x].functionCCW = {nullptr, ""};
+        entrys[x].functionPush = {nullptr, ""};
+    }
+
+    numberEntrys = 0;
+    select = 0;
 }
 
 #endif

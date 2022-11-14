@@ -27,12 +27,12 @@ void Layer::initID() {
         ID inputLocalID;
         ID outputLocalID;
 
-        for (Analog *i : m->getPotis()) { // for all Knobs
+        for (Analog *i : m->getAnalog()) { // for all Knobs
             i->id = analogID.getNewId();
             i->moduleId = m->id;
             i->layerId = this->id;
         }
-        for (Digital *i : m->getSwitches()) { // for all Knobs
+        for (Digital *i : m->getDigital()) { // for all Knobs
             i->id = digitalID.getNewId();
             i->moduleId = m->id;
             i->layerId = this->id;
@@ -69,10 +69,10 @@ void Layer::resetLayer() {
 
     for (BaseModule *m : modules) { // for all modules
 
-        for (Analog *i : m->getPotis()) { // for all Knobs
+        for (Analog *i : m->getAnalog()) { // for all Knobs
             i->resetValue();
         }
-        for (Digital *i : m->getSwitches()) { // for all Knobs
+        for (Digital *i : m->getDigital()) { // for all Knobs
             i->resetValue();
         }
     }
@@ -170,6 +170,7 @@ void Layer::clearPatches() {
     sendDeleteAllPatches(id);
 #endif
 }
+#ifdef POLYCONTROL
 
 void Layer::setClearMarker() {
     clearPatchesMarker = true;
@@ -187,8 +188,9 @@ void Layer::loadDefaultPatches() {
     addPatchInOut(envF.out, ladder.iCutoff, 1.0f);
 }
 
+#endif
+
 #ifdef POLYRENDER
-}
 /**
  * @brief load spreading buffer and imperfection base
  *
@@ -237,13 +239,13 @@ void Layer::getLayerConfiguration(int32_t *buffer, bool noFilter) {
 
     for (BaseModule *m : modules) {         //  all modules
         if (m->moduleType != MODULE_TUNE) { // exlude module Tune
-            for (Analog *i : m->getPotis()) {
+            for (Analog *i : m->getAnalog()) {
                 if (i->storeable || noFilter) {
                     buffer[index] = i->value;
                     index++;
                 }
             }
-            for (Digital *i : m->getSwitches()) {
+            for (Digital *i : m->getDigital()) {
                 buffer[index] = i->valueMapped;
                 index++;
             }
@@ -275,7 +277,7 @@ void Layer::setLayerConfigration(int32_t *buffer, bool noFilter) {
     for (BaseModule *m : modules) { //  all modules
         if (m->moduleType != MODULE_TUNE) {
 
-            for (Analog *i : m->getPotis()) {
+            for (Analog *i : m->getAnalog()) {
                 if (i->storeable || noFilter) {
                     i->setValue(buffer[index]);
                     i->presetLock = true;
@@ -284,7 +286,7 @@ void Layer::setLayerConfigration(int32_t *buffer, bool noFilter) {
                 }
             }
 
-            for (Digital *i : m->getSwitches()) {
+            for (Digital *i : m->getDigital()) {
 
                 i->setValueWithoutMapping(buffer[index]);
                 index++;
@@ -365,10 +367,10 @@ uint32_t Layer::writeLayer(uint32_t blockStartIndex) {
 void Layer::clearPresetLocks() {
     for (BaseModule *m : modules) { //  all modules
 
-        for (Analog *i : m->getPotis()) {
+        for (Analog *i : m->getAnalog()) {
             i->presetLock = false;
         }
-        for (Digital *i : m->getSwitches()) {
+        for (Digital *i : m->getDigital()) {
             i->presetLock = false;
         }
     }

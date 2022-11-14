@@ -210,22 +210,22 @@ void GUIPanelEffect::Draw() {
         // Draw Waves
         if (moduleType == OSCA) {
             if (effectType == WAVE) {
-                module = &(allLayers[cachedFocus.layer]->waveshaperA);
-                drawWaveShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA, (Waveshaper *)module);
+                module = &(getCachedLayer()->waveshaperA);
+                drawWaveShaperPanel(getCachedLayer()->renderedAudioWavesOscA, (Waveshaper *)module);
             }
             else if (effectType == PHASE) {
-                module = &(allLayers[cachedFocus.layer]->phaseshaperA);
-                drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscA, (Phaseshaper *)module);
+                module = &(getCachedLayer()->phaseshaperA);
+                drawPhaseShaperPanel(getCachedLayer()->renderedAudioWavesOscA, (Phaseshaper *)module);
             }
         }
         else if (moduleType == OSCB) {
             if (effectType == WAVE) {
-                module = &(allLayers[cachedFocus.layer]->waveshaperB);
-                drawWaveShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB, (Waveshaper *)module);
+                module = &(getCachedLayer()->waveshaperB);
+                drawWaveShaperPanel(getCachedLayer()->renderedAudioWavesOscB, (Waveshaper *)module);
             }
             else if (effectType == PHASE) {
-                module = &(allLayers[cachedFocus.layer]->phaseshaperB);
-                drawPhaseShaperPanel(allLayers[cachedFocus.layer]->renderedAudioWavesOscB, (Phaseshaper *)module);
+                module = &(getCachedLayer()->phaseshaperB);
+                drawPhaseShaperPanel(getCachedLayer()->renderedAudioWavesOscB, (Phaseshaper *)module);
             }
         }
         if (module == nullptr)
@@ -284,7 +284,7 @@ void GUIPanelEffect::drawCrushPanel(int8_t *renderedWave) {
 
 void GUIPanelEffect::registerPanelSettings() {
 
-    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelEffect::enableOverview, this), "OVER"}, &(overview));
+    actionHandler.registerActionLeftData(0, {std::bind(&GUIPanelEffect::enableOverview, this), "DRY/WET"}, &(overview));
 
     actionHandler.registerActionLeftData(1, {std::bind(&GUIPanelEffect::selectModule, this, OSCA), "OSC A"},
                                          &(moduleSelected[0]));
@@ -322,24 +322,24 @@ void GUIPanelEffect::registerPanelSettings() {
             if (moduleType == OSCA) {
                 actionHandler.registerActionEncoder(
                     5,
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet), 1),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->waveshaperA.aDryWet),
+                               1),
                      "SCROLL"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet), 0),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->waveshaperA.aDryWet),
+                               0),
                      "SCROLL"},
-                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->waveshaperA.aDryWet)), ""});
+                    {std::bind(&Analog::resetValue, &(getCachedLayer()->waveshaperA.aDryWet)), ""});
             }
             if (moduleType == OSCB) {
                 actionHandler.registerActionEncoder(
                     5,
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet), 1),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->waveshaperB.aDryWet),
+                               1),
                      "SCROLL"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet), 0),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->waveshaperB.aDryWet),
+                               0),
                      "SCROLL"},
-                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->waveshaperB.aDryWet)), ""});
+                    {std::bind(&Analog::resetValue, &(getCachedLayer()->waveshaperB.aDryWet)), ""});
             }
         }
         else if (effectType == PHASE) {
@@ -350,24 +350,24 @@ void GUIPanelEffect::registerPanelSettings() {
             if (moduleType == OSCA) {
                 actionHandler.registerActionEncoder(
                     5,
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet), 1),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->phaseshaperA.aDryWet),
+                               1),
                      "SCROLL"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet), 0),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->phaseshaperA.aDryWet),
+                               0),
                      "SCROLL"},
-                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->phaseshaperA.aDryWet)), ""});
+                    {std::bind(&Analog::resetValue, &(getCachedLayer()->phaseshaperA.aDryWet)), ""});
             }
             if (moduleType == OSCB) {
                 actionHandler.registerActionEncoder(
                     5,
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet), 1),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->phaseshaperB.aDryWet),
+                               1),
                      "SCROLL"},
-                    {std::bind(&Analog::changeValueWithEncoderAcceleration,
-                               &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet), 0),
+                    {std::bind(&Analog::changeValueWithEncoderAcceleration, &(getCachedLayer()->phaseshaperB.aDryWet),
+                               0),
                      "SCROLL"},
-                    {std::bind(&Analog::resetValue, &(allLayers[cachedFocus.layer]->phaseshaperB.aDryWet)), ""});
+                    {std::bind(&Analog::resetValue, &(getCachedLayer()->phaseshaperB.aDryWet)), ""});
             }
         }
 
@@ -390,7 +390,7 @@ void GUIPanelEffect::registerPanelSettings() {
                     actionHandler.registerActionEncoder(
                         0, {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), 1), "SCROLL"},
                         {std::bind(&Scroller::scroll, &(this->scrollPatches[0]), -1), "SCROLL"},
-                        {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
+                        {std::bind(&Layer::removePatchInOutById, getCachedLayer(),
                                    activeEntryPatch[0]->sourceOut->idGlobal, activeEntryPatch[0]->targetIn->idGlobal),
                          "REMOVE"});
                 }
@@ -404,7 +404,7 @@ void GUIPanelEffect::registerPanelSettings() {
                     actionHandler.registerActionEncoder(
                         2, {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), 1), "SCROLL"},
                         {std::bind(&Scroller::scroll, &(this->scrollPatches[1]), -1), "SCROLL"},
-                        {std::bind(&Layer::removePatchInOutById, allLayers[cachedFocus.layer],
+                        {std::bind(&Layer::removePatchInOutById, getCachedLayer(),
                                    activeEntryPatch[1]->sourceOut->idGlobal, activeEntryPatch[1]->targetIn->idGlobal),
                          "REMOVE"});
                 }

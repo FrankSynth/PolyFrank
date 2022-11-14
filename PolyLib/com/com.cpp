@@ -887,7 +887,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 i += 3; // sizeof(int32_t) - 1
 
                 if (layerID == layerA.id) {
-                    layerA.getModules()[module]->getSwitches()[setting]->setValueWithoutMapping(amountInt);
+                    layerA.getModules()[module]->getDigital()[setting]->setValueWithoutMapping(amountInt);
                 }
 
                 break;
@@ -905,7 +905,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
 
                 if (layerID == layerA.id) {
 
-                    layerA.getModules()[module]->getPotis()[setting]->setValueWithoutMapping(amountFloat);
+                    layerA.getModules()[module]->getAnalog()[setting]->setValueWithoutMapping(amountFloat);
                 }
 
                 break;

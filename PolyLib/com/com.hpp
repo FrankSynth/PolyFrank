@@ -17,8 +17,8 @@
 #include <vector>
 
 #ifdef POLYCONTROL
-#define INPUTBUFFERSIZE 512
-#define OUTPUTBUFFERSIZE 512
+#define INPUTBUFFERSIZE 256
+#define OUTPUTBUFFERSIZE 256
 #endif
 
 #define INTERCHIPBUFFERSIZE 2560
@@ -346,11 +346,6 @@ class COMinterChip {
 
   public:
     COMinterChip(spiBus *spi, uint8_t *dmaInBuffer, uint8_t *dmaOutBuffer) {
-        // inBufferPointer[0] = inBuffer;
-        // inBufferPointer[1] = inBuffer + INTERCHIPBUFFERSIZE + 4;
-
-        // outBuffer[0].reserve(INTERCHIPBUFFERSIZE + 4);
-        // outBuffer[1].reserve(INTERCHIPBUFFERSIZE + 4);
 
         messagebuffer.reserve(100);
 
@@ -398,11 +393,7 @@ class COMinterChip {
 
     uint8_t *dmaOutBufferPointer[2];
     uint16_t dmaOutCurrentBufferSize[2];
-    // std::vector<uint8_t> outBuffer[2];
-
-    // uint8_t *inBufferPointer[2];
     uint8_t *dmaInBufferPointer[2];
-    // uint8_t inBuffer[(INTERCHIPBUFFERSIZE + 4) * 2];
 
     uint32_t currentInBufferSelect = 0;
     uint32_t currentOutBufferSelect = 0;

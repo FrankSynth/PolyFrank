@@ -9,14 +9,13 @@ typedef enum { DEVICE_READY, DEVICE_BUSY, DEVICE_ERROR, DEVICE_NOTINIT } deviceS
 // base driver class for all device driver
 class baseDevice {
   public:
-    std::string *report() { // return status for device
-        status.clear();
-        status = deviceName;
+    std::string *report(std::string &status) { // return status for device
+        status += deviceName;
 
-        status += " STATE:  ";
+        status += " S:  ";
 
         if (state == DEVICE_NOTINIT) {
-            status += "not init";
+            status += "init";
         }
         else if (state == DEVICE_READY) {
             status += "ready";
@@ -35,7 +34,6 @@ class baseDevice {
 
     deviceState state = DEVICE_NOTINIT;
 
-    std::string status;
     std::string deviceName;
 
   private:

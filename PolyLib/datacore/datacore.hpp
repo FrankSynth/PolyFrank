@@ -347,16 +347,19 @@ class Digital : public DataElement {
         }
     }
 
-    std::vector<uint8_t> LEDPortID;
-    std::vector<uint8_t> LEDPinID;
+    uint8_t LEDPortID[4];
+    uint8_t LEDPinID[4];
 
     void configureNumberLEDs(uint8_t numLEDs) {
+        this->numLEDs = numLEDs;
         for (uint32_t i = 0; i < numLEDs; i++) {
 
-            LEDPortID.push_back(0xff);
-            LEDPinID.push_back(0xff);
+            LEDPortID[i] = 0xff;
+            LEDPinID[i] = 0xff;
         }
     }
+
+    uint32_t numLEDs = 0;
 
     int32_t value;
     std::string valueName;
@@ -550,7 +553,7 @@ class Input : public BasePatch {
             this->shortName = shortName;
         }
         this->mapping = mapping;
-        patchesInOut.reserve(VECTORDEFAULTINITSIZE);
+        patchesInOut.reserve(3);
         this->visible = visible;
 
         this->renderBuffer = renderBuffer;
@@ -587,7 +590,7 @@ class Output : public BasePatch {
             this->shortName = shortName;
         }
 
-        patchesInOut.reserve(VECTORDEFAULTINITSIZE);
+        patchesInOut.reserve(5);
         this->visible = visible;
     }
 

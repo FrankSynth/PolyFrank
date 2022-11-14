@@ -62,56 +62,48 @@ extern CircularBuffer<renderTask, MAXDRAWCALLS> renderQueue;
 extern WaveBuffer waveBuffer;
 extern WaveBuffer waveQuickBuffer;
 
-// extern uint8_t FrameBuffer[BUFFERSIZE];
-
-void setRenderState(RENDERSTATE state);
-RENDERSTATE getRenderState();
+////////////GFX INIT////////////
 
 void GFX_Init();
-void SwitchFrameBuffer();
 
+////////////LTDC | DMA2D////////////
 void DMA2D_DefaultConfig(int colorMode);
 void IRQHandler(void);
+void SwitchFrameBuffer();
 
-// draw functions
-void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int height);
-
-// callbacks
+////////////callbacks////////////
 void TransferError(DMA2D_HandleTypeDef *hdma2d);
 void TransferComplete(DMA2D_HandleTypeDef *hdma2d);
 void HAL_LTDC_LineEventCallback(LTDC_HandleTypeDef *hltdc);
 void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc);
 
+void setRenderState(RENDERSTATE state);
+RENDERSTATE getRenderState();
+
 void addToRenderQueue(renderTask &task);
 void callNextTask();
 
+////////////GFX////////////
+void drawRectangleFill(uint32_t color, uint32_t x, uint32_t y, int width, int height);
 void drawString(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
 void drawString(const char *text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                 FONTALIGN alignment);
 void drawStringVertical(const std::string &text, uint32_t color, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont,
                         FONTALIGN alignment = CENTER);
-
 void drawRectangleCentered(uint32_t color, uint32_t radius, uint32_t x, uint32_t y);
-
 void drawRectangleChampfered(uint32_t color, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t radius);
 uint32_t getStringWidth(const std::string &text, const GUI_FONTINFO *font);
-
 void copyWaveBuffer(WaveBuffer &buffer, uint32_t x, uint32_t y);
+void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y);
 
-/////Software GFX Functions////////
+////////////Software GFX ////////////
+void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float r);
+
 void drawLine(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
 void drawLineThick(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
 void drawLineWidth(WaveBuffer &buffer, int x0, int y0, int x1, int y1, float wd, uint16_t color);
-
-void drawLineAA(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
 void drawQuadBezier(WaveBuffer &buffer, int x0, int y0, int x1, int y1, int x2, int y2, uint16_t color);
-
-void drawCubicSpline(WaveBuffer &buffer, int n, int x[], int y[], uint16_t color);
-
-void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y);
-
-void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float r);
 
 inline void drawPixelThick(WaveBuffer &buffer, int32_t x0, int32_t y0, uint16_t color) {
 
@@ -126,5 +118,3 @@ inline void drawPixelThick(WaveBuffer &buffer, int32_t x0, int32_t y0, uint16_t 
         }
     }
 }
-
-void directionalBlur(uint8_t *pFrameBuffer, uint32_t blur);

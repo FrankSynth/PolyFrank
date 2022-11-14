@@ -97,7 +97,7 @@ void GUIPanelFocus::Draw() {
     uint32_t wavePositionY = HEADERHEIGHT + FOCUSHEIGHT + SPACER + SPACER;
 
     if (cachedFocus.type == FOCUSMODULE) {
-        BaseModule *module = allLayers[cachedFocus.layer]->modules[cachedFocus.modul];
+        BaseModule *module = getCachedModule();
 
         if (lastModuleFocus.modul != cachedFocus.modul ||
             lastModuleFocus.layer != cachedFocus.layer) { // check last module id and load position if needed
@@ -193,10 +193,7 @@ void GUIPanelFocus::collectEntrys() {
     if (cachedFocus.type == FOCUSINPUT) {
         patch.clear();
 
-        for (PatchElement *p : allLayers[cachedFocus.layer]
-                                   ->getModules()[cachedFocus.modul]
-                                   ->getInputs()[cachedFocus.id]
-                                   ->getPatchesInOut()) {
+        for (PatchElement *p : getCachedInputs()) {
             patch.push_back(p);
         }
 
@@ -205,10 +202,7 @@ void GUIPanelFocus::collectEntrys() {
     else if (cachedFocus.type == FOCUSOUTPUT) {
         patch.clear();
 
-        for (PatchElement *p : allLayers[cachedFocus.layer]
-                                   ->getModules()[cachedFocus.modul]
-                                   ->getOutputs()[cachedFocus.id]
-                                   ->getPatchesInOut()) {
+        for (PatchElement *p : getCachedOutputs()) {
             patch.push_back(p);
         }
         scroll->entrys = patch.size();
@@ -218,12 +212,12 @@ void GUIPanelFocus::collectEntrys() {
         analog.clear();
         digital.clear();
 
-        for (Analog *a : allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getPotis()) {
+        for (Analog *a : getCachedAnalog()) {
             if (a->displayVis) { // filter Display Visibility
                 analog.push_back(a);
             }
         }
-        for (Digital *d : allLayers[cachedFocus.layer]->getModules()[cachedFocus.modul]->getSwitches()) {
+        for (Digital *d : getCachedDigital()) {
             if (d->displayVis) { // filter Display Visibility
                 digital.push_back(d);
             }
@@ -233,7 +227,7 @@ void GUIPanelFocus::collectEntrys() {
     }
     else if (cachedFocus.type == FOCUSLAYER) {
         module.clear();
-        for (BaseModule *m : allLayers[cachedFocus.layer]->getModules()) {
+        for (BaseModule *m : getCachedModules()) {
             if (m->displayVis) { // filter Display Visibility
                 module.push_back(m);
             }
@@ -325,7 +319,7 @@ void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements)
     }
 
     dataPanelElements[scroll->relPosition].select = 1;
-    if (allLayers[cachedFocus.layer]->modules[cachedFocus.modul]->outputs.size()) {
+    if (getCachedOutputsSize()) {
         actionHandler.registerActionRight(
             1, {std::bind(focusPatch, location(cachedFocus.layer, cachedFocus.modul, cachedFocus.id, FOCUSOUTPUT)),
                 "OUT"});

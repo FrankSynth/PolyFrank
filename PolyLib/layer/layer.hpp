@@ -83,11 +83,9 @@ class Layer {
 
     // init Layer
     void initID();
-
     void resetLayer();
 
     // patch stuff
-    void loadDefaultPatches();
     void clearPatches();
     void addPatchInOut(Output &sourceOut, Input &targetIn, float amount = 0);
     void addPatchInOutById(uint8_t outputId, uint8_t inputId, float amount = 0);
@@ -98,6 +96,7 @@ class Layer {
     inline std::list<PatchElement> &getPatchesInOut() { return patchesInOut; }
 
 #ifdef POLYCONTROL
+    void loadDefaultPatches();
 
     void layerServiceRoutine();
     void resendLayerConfig();
@@ -176,14 +175,11 @@ class Layer {
     Feel feel = Feel("FEEL", "FEEL");
     Tune tune = Tune("TUNE", "TUNE");
 
-    // LayerSetting layersettings = LayerSetting("LAYERSETTINGS", "LYRSET");
-
     std::vector<BaseModule *> modules; //  vector of all modules
     std::vector<Input *> inputs;       //  vector of all inputs
     std::vector<Output *> outputs;     //  vector of all outputs
 
     // for clocking purposes
-
     std::vector<ADSR *> adsrs;
     std::vector<LFO *> lfos;
 
@@ -192,9 +188,6 @@ class Layer {
     bool clearPatchesMarker = false;
     bool resetMarker = true;
     bool removePatchMarker = true;
-    // std::vector<Analog> LadderTune;
-    // std::vector<Analog> SteinerTune;
-
     bool layerState = false;
 
   private:

@@ -514,10 +514,14 @@ void printHelp() {
 }
 
 void printStatus() {
-    println(*globalSettings.statusReport());
+    std::string report;
+    globalSettings.statusReport(report);
+    println(report);
 }
 void printDeviceManager() {
-    println(*deviceManager.report());
+    std::string report;
+    deviceManager.report(report);
+    println(report);
 }
 
 extern USBD_HandleTypeDef hUsbDeviceHS;

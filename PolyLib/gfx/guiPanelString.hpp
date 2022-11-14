@@ -18,4 +18,6 @@ class GUIPanelString : public GUIPanelBase {
     uint16_t panelAbsY = 0;
 
     uint8_t subPanelID = 0;
+
+    std::string reportString;
 };

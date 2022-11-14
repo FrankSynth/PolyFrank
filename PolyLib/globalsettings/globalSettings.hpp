@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include <malloc.h>
+
 extern std::vector<Layer *> allLayers;
 extern CRC_HandleTypeDef hcrc;
 
@@ -70,8 +72,6 @@ class GlobalSettings {
         __globSettingsDisplay.settings.push_back(&dispColor);
         __globSettingsDisplay.settings.push_back(&dispBrightness);
         __globSettingsDisplay.settings.push_back(&dispLED);
-
-        statusReportString.reserve(1024); // reserve enough space for status report
     }
 
     void init() {
@@ -124,31 +124,36 @@ class GlobalSettings {
 
     void setShift(uint8_t shift) { this->shift = shift; }
 
-    std::string *statusReport() {
-
-        statusReportString.clear();
+    void statusReport(std::string &status) {
+        status.clear();
 
         // control
-        statusReportString += "Control Status: \n\r";
-        controlStatus.temperature.appendValueAsString(statusReportString);
-        controlStatus.usage.appendValueAsString(statusReportString);
+        status += "Control Status: \n\r";
+        controlStatus.temperature.appendValueAsString(status);
+        controlStatus.usage.appendValueAsString(status);
+
+        struct mallinfo mi;
+
+        mi = mallinfo();
+
+        status += ("Total non-mmapped bytes  ") + std::to_string(mi.arena) + "\n\r";
+        status += ("Total allocated space    ") + std::to_string(mi.uordblks) + "\n\r";
+        status += ("Total free space         ") + std::to_string(mi.fordblks) + "\n\r";
 
         for (uint32_t layer = 0; layer < 2; layer++) {
-            statusReportString += "\f";
+            status += "\f";
 
             for (uint32_t chip = 0; chip < 2; chip++) {
 
-                statusReportString += "Render Status " + std::to_string(layer) + std::to_string(chip) + "\n\r";
+                status += "Render Status " + std::to_string(layer) + std::to_string(chip) + "\n\r";
 
-                renderStatus[layer][chip].temperature.appendValueAsString(statusReportString);
-                renderStatus[layer][chip].usage.appendValueAsString(statusReportString);
-                renderStatus[layer][chip].timeCV.appendValueAsString(statusReportString);
-                renderStatus[layer][chip].timeAudio.appendValueAsString(statusReportString);
-                statusReportString += "\n\r";
+                renderStatus[layer][chip].temperature.appendValueAsString(status);
+                renderStatus[layer][chip].usage.appendValueAsString(status);
+                renderStatus[layer][chip].timeCV.appendValueAsString(status);
+                renderStatus[layer][chip].timeAudio.appendValueAsString(status);
+                status += "\n\r";
             }
         }
-
-        return &statusReportString;
     }
 
     // beim Hinzufuegen von neuen Katergorien mussa auch im Save und Load die Kategorie eingepflegt werden
@@ -156,8 +161,6 @@ class GlobalSettings {
     categoryStruct __globSettingsSystem;
     categoryStruct __globSettingsMIDI;
     categoryStruct __globSettingsDisplay;
-
-    std::string statusReportString;
 
     // all Settings, don't forget to push to __globSettings vector of this class
     Setting multiLayer = Setting("LAYER", 0, 0, 1, &amountLayerNameList);
