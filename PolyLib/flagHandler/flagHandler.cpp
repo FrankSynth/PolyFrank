@@ -124,9 +124,8 @@ void handleFlags() {
             Panel_0_EOC_Interrupt = 0;
             Panel_1_EOC_Interrupt = 0;
 
-            if (Panel_nextChannel_ISR != nullptr) {
+            if (Panel_nextChannel_ISR != nullptr)
                 Panel_nextChannel_ISR();
-            }
 
             if (Panel_0_EOC_ISR != nullptr) {
                 Panel_0_EOC_ISR();

@@ -1002,14 +1002,14 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
         drawFrame(buffer, c4444framecolor);
     }
     else if (module->moduleType == MODULE_ADSR) {
-        if (&buffer == &waveBuffer) { // temp custom smaller size for info bar
-            buffer.height = WAVEFORMHEIGHTINFO;
-        }
+        // if (&buffer == &waveBuffer) { // temp custom smaller size for info bar
+        //     buffer.height = WAVEFORMHEIGHTINFO;
+        // }
         drawADSR(buffer, (ADSR *)module);
         drawFrame(buffer, c4444framecolor);
-        if (&buffer == &waveBuffer) {
-            buffer.height = WAVEFORMHEIGHT;
-        }
+        // if (&buffer == &waveBuffer) {
+        //     buffer.height = WAVEFORMHEIGHT;
+        // }
     }
     else if (module->moduleType == MODULE_WAVESHAPER) {
         drawWave(buffer, allLayers[module->layerId]->renderedAudioWavesOscA, 100, 2, c4444wavecolorTrans);

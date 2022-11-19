@@ -20,7 +20,7 @@ TARGET = PolyControl
 # building variabless
 ######################################
 # debug build?
-DEBUG = 1
+DEBUG = 0
 DISASSEMBLY = 0
 # optimization
 OPT = -O2

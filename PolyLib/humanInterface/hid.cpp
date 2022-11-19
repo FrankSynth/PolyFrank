@@ -127,6 +127,9 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
     uint32_t multiplex = (multiplexer.currentChannel + 3) % 4;
 
     for (uint32_t channel = 0; channel < 12; channel++) { // for all Channels
+
+        // if (channel == 11 & multiplex == 2 & layer == 1)
+        //     println(((adcData[channel] >> 1) & 0xFFF));
         if (potiFunctionPointer[layer][multiplex][channel].data != nullptr) {
 
             uint16_t potiData = ((adcData[channel] >> 1) & 0xFFF);
@@ -208,13 +211,13 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                         if (difference >> 3 || (difference >> 1 && (quickViewTimer < quickViewTimeout))) {
                             if ((layerSendMode == SINGLELAYER) ||
                                 (layer != 1)) { // only layer 0 when dual mode is active
-
                                 quickView.modul = potiFunctionPointer[layer][multiplex][channel].data->moduleId;
                                 quickView.layer = layer;
                                 quickViewTimer = 0;
                             }
                         }
                     }
+
                     panelADCStates[layer][multiplex][channel] =
                         (uint16_t)panelADCInterpolate[layer][multiplex][channel];
                     potiFunctionPointer[layer][multiplex][channel].function(panelADCStates[layer][multiplex][channel]);

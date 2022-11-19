@@ -734,7 +734,7 @@ class ADSR : public BaseModule {
     Analog aDecay = Analog("DECAY", 0.0005, 30, 0.5, true, logMap, nullptr, false);
     Analog aSustain = Analog("SUSTAIN", 0, 1, 0.6, true, linMap, nullptr, false);
     Analog aRelease = Analog("RELEASE", 0.0005, 30, 0.5, true, logMap, nullptr, false);
-    Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, false);
+    Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, true);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
     Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);

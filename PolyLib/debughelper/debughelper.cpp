@@ -24,7 +24,7 @@ void printViaSTLink(const char *arg) {
 
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -45,7 +45,7 @@ void printViaSTLink(const unsigned char *arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -67,7 +67,7 @@ void printViaSTLink(char *arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -88,7 +88,7 @@ void printViaSTLink(unsigned char *arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -107,7 +107,7 @@ void printViaSTLink(const std::string &arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -126,7 +126,7 @@ void printViaSTLink(std::string &arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
@@ -145,7 +145,7 @@ void printViaSTLink(std::string &&arg) {
     if (FlagHandler::USB_FS_CONNECTED) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
-            if (USBHSTIMEOUT > 1000) {
+            if (USBHSTIMEOUT > 5000) {
                 FlagHandler::USB_FS_CONNECTED = false;
                 return;
             }
