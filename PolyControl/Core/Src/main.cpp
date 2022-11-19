@@ -136,7 +136,7 @@ int main(void) {
     MX_ADC3_Init();
 
     MX_TIM16_Init();
-  MX_CRC_Init();
+    MX_CRC_Init();
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
@@ -342,6 +342,9 @@ void Error_Handler() {
     /* User can add his own implementation to report the HAL error return state */
 
     PolyError_Handler("Unknown / HAL Error");
+    while (true)
+        ;
+
     /* USER CODE END Error_Handler_Debug */
 }
 

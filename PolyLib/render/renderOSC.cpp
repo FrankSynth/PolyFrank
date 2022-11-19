@@ -54,8 +54,6 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     vec<VOICESPERCHIP> note = currentNote + (layerA.oscB.iFM * 0.25f);
 
-    // note += layerA.midi.oPitchbend * layerA.layersettings.dPitchbendRange;
-
     layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));
 
@@ -74,10 +72,10 @@ inline vec<VOICESPERCHIP> accumulateShapeSub() {
 }
 
 void renderOSC_A() {
-    layerA.oscA.fm = layerA.oscA.iFM + layerA.feel.detune + layerA.oscA.aMasterTune;
+    layerA.oscA.fm = layerA.oscA.iFM + layerA.feel.detune + layerA.oscA.aMasterTune + layerA.midi.oPitchbend;
 
     layerA.oscA.note = accumulateNote();
-    layerA.oscA.morphRAW = accumulateMorph();
+    layerA.oscA.morphRAW = accumulateMorph(); 
     layerA.oscA.morphRAW = layerA.oscA.morphRAW - floor((vec<VOICESPERCHIP>)layerA.oscA.morphRAW);
 
     layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE));

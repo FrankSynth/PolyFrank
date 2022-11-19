@@ -1079,7 +1079,7 @@ void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t x_offset
 
     int16_t x2;
     int16_t y2;
-    uint32_t step = 4;
+    uint32_t step = 1;
 
     for (uint16_t i = 0; i < samples * repeats - step; i += step) {
         x1 = ((float)width / ((float)samples * repeats - 1)) * i;
@@ -1094,7 +1094,7 @@ void drawWaveTable(WaveBuffer &buffer, const float *wavetable, uint16_t x_offset
         x2 = testInt(x2, 0, width - 1);
         y2 = testInt(y2, 0, heigth - 2);
 
-        drawLineThick(buffer, x_offset + x1, y_offset + y1, x_offset + x2, y_offset + y2, color);
+        drawLine(buffer, x_offset + x1, y_offset + y1, x_offset + x2, y_offset + y2, color);
     }
 }
 
@@ -1511,6 +1511,10 @@ void drawCustomInfo(BaseModule *module, uint32_t posX, uint32_t posY) {
         floatToStringWithUnitPrefix(text, speedInHz, unitHertz, 3);
         drawString(text, cWhite, posX + 20, posY + (CUSTOMINFOHEIGHT - fontBig->size) / 2, fontBig, LEFT);
 
+        if (((LFO *)module)->dFreqSnap.valueMapped == true) { // show step if step ist active
+            text = ((LFO *)module)->dFreq.getValueAsString();
+            drawString(text, cWhite, posX + 20 + 130, posY + (CUSTOMINFOHEIGHT - fontBig->size) / 2, fontBig, LEFT);
+        }
         for (uint32_t v = 0; v < NUMBERVOICES; v++) {
             *(uint32_t *)color = cWhite;
 

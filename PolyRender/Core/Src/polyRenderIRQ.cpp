@@ -196,13 +196,14 @@ void sendDACs() {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
     if (htim == &htim15) {
-        sendDACs();
 
-        if (FlagHandler::renderNewCV == true) {
-            println("CV rendering not done");
+        if (FlagHandler::renderNewCV == false) {
+            FlagHandler::renderNewCV = true;
+            sendDACs();
         }
-        FlagHandler::renderNewCV = true;
-
+        else {
+            // println("CV rendering not done");
+        }
         EXTI->SWIER1 |= 0x01;
     }
 }

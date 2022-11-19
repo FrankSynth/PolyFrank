@@ -51,6 +51,8 @@ void switchOscAWavetable(uint32_t position, const WaveTable *wavetable) {
 
         default: PolyError_Handler("renderAudio | switchOscAWavetable | illegal position"); break;
     }
+    while (mdmaHandle->State != HAL_MDMA_STATE_READY)
+        ;
 
     HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)(wavetable->data), (uint32_t)oscAwavetableRAM[position],
                       WaveTable::size * 4, 1);
@@ -79,7 +81,8 @@ void switchOscBWavetable(uint32_t position, const WaveTable *wavetable) {
 
         default: PolyError_Handler("renderAudio | switchOscBWavetable | illegal position"); break;
     }
-
+    while (mdmaHandle->State != HAL_MDMA_STATE_READY)
+        ;
     HAL_MDMA_Start_IT(mdmaHandle, (uint32_t)(wavetable->data), (uint32_t)oscBwavetableRAM[position],
                       WaveTable::size * 4, 1);
 }

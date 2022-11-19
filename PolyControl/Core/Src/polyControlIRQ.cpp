@@ -172,7 +172,7 @@ void midiControlChange(uint8_t channel, uint8_t cc, uint8_t value) {
     liveData.controlChange(channel, cc, value);
 }
 void midiPitchBend(uint8_t channel, int value) {
-    liveData.controlChange(channel, midi::PitchBend, value / 12 * globalSettings.midiPitchBendRange.value);
+    liveData.controlChange(channel, midi::PitchBend, ((float)value / 12.f) * globalSettings.midiPitchBendRange.value);
 }
 
 void midiAfterTouch(uint8_t channel, byte value) {
@@ -609,7 +609,7 @@ void COMmunicateISR() {
                     break;
                 }
                 else if (command.compare("-isp") == 0) {
-
+                    FlagHandler::COM_USB_TRAFFIC = false; // disable print;
                     __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
                     __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
                     __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();

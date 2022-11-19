@@ -68,11 +68,11 @@ extern midi::MidiInterface<COMdin> midiDeviceDIN;
 
 void lfoFreqSnap(LFO *lfo) {
     if (lfo->dFreqSnap) {
-        lfo->dFreq.displayVis = true;
+        // lfo->dFreq.displayVis = true;
         // lfo->aFreq.displayVis = false;
     }
     else {
-        lfo->dFreq.displayVis = false;
+        // lfo->dFreq.displayVis = false;
         // lfo->aFreq.displayVis = true;
     }
 }
@@ -156,12 +156,12 @@ void updateLEDCurrent() {
 
 void wavetableSetCallbackOSC(uint32_t layerID, uint32_t oscillator, int32_t *value) {
 
-    uint32_t foundIndex[4] = {0, 0, 0, 0};
+    int32_t foundIndex[4] = {0, 0, 0, 0};
 
     for (uint32_t i = 0; i < 4; i++) {
         for (uint32_t t = 0; t < wavetables.size(); t++) {
             if (wavetables[t] == waveTableSets[*value][i]) {
-                foundIndex[i] = t;
+                foundIndex[i] = (int32_t)t;
             }
         }
     }

@@ -40,7 +40,7 @@ template <typename T> void printViaSTLink(T &&arg) {
 
     USBHSTIMEOUT = 0;
     while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
-        if (USBHSTIMEOUT > 5000) {
+        if (USBHSTIMEOUT > 1000) {
             FlagHandler::USB_FS_CONNECTED = false;
             return;
         }

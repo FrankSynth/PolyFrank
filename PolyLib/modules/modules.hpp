@@ -621,7 +621,7 @@ class LFO : public BaseModule {
     Analog aAmount = Analog("AMOUNT", -1, 1, 0, true, linMap, &iAmount);
 
     // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
-    Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv);
+    Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv, nullptr, false);
     Digital dFreqSnap = Digital("SNAP FREQ", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dGateTrigger = Digital("GATE RESET", 0, 1, 0, true, &nlOnOff, nullptr, false);
     Digital dClockTrigger = Digital("CLOCK RESET", 0, 1, 0, false, &nlOnOff, nullptr, false);

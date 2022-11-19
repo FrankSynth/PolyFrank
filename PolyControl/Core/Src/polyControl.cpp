@@ -132,10 +132,9 @@ void deviceConfig();
 
 void PolyControlInit() {
 
-    HAL_Delay(800); // wait 200ms for system stabilisation
+    HAL_Delay(200); // wait 200ms for system stabilisation
 
     // Say hello
-    println("\n\nINFO || Hi, Frank here! Lets get everything ready...");
 
     // Enable Layer Board
     HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
@@ -208,7 +207,7 @@ void PolyControlInit() {
     FlagHandler::readTemperature_ISR = temperature; // registerFunction pointer to ISR
 
     // Init Encoder, Touchbuttons,..
-    HAL_Delay(100);
+    // HAL_Delay(100);
 
     // User Interface
     if (layerA.layerState == true) {
@@ -225,11 +224,18 @@ void PolyControlInit() {
         l->resetLayer();
     }
 
+    for (Layer *l : allLayers) {
+        l->oscA.dWavetableSet.setValueWithoutMapping(0);
+        l->oscB.dWavetableSet.setValueWithoutMapping(1);
+    }
+
     // Graphical User Interface
     ui.Init();
 
     // Midi configuration
     midiConfig();
+
+    println("\n\nINFO || Hi, Frank here! Lets get everything ready...");
 
     if (layerA.layerState) {
         println("INFO || Layer A active");
@@ -237,11 +243,10 @@ void PolyControlInit() {
     if (layerB.layerState) {
         println("INFO || Layer B active");
     }
-
     println("INFO || ... everything looks fine! Let the party start");
     println("INFO || For help type -h");
 
-    HAL_Delay(50);
+    // HAL_Delay(50);
     // And turn the Display on
     HAL_GPIO_WritePin(Display_EN_GPIO_Port, Display_EN_Pin, GPIO_PIN_SET);
     // turn sound on

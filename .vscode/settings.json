@@ -66,7 +66,7 @@
     "todo-tree.tree.showBadges": true,
     "cortex-debug.openocdPath": "C:\\PROGRAM FILES\\OPENOCD\\BIN\\OPENOCD.EXE",
     "C_Cpp.errorSquiggles": "Enabled",
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cortex-debug.variableUseNaturalFormat": false,
     "disasexpl.associations": {
         "**/*.c": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s",
         "**/*.cpp": "C:/Users/lukas/Documents/GitHub/PolyFrank/PolyRender/build/${fileBasenameNoExtension}.s"

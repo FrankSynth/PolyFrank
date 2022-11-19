@@ -14,7 +14,7 @@ static uint8_t xor_checksum(const uint8_t pData[], uint8_t len);
  *               the configuration information for SPI module.
  * @retval None
  */
-void BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
+uint8_t BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
     uint8_t sync_byte = BL_SPI_SOF;
     uint8_t receive_byte;
 
@@ -28,11 +28,12 @@ void BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
     setCSLine(layer, chip, GPIO_PIN_SET);
 
     if (receive_byte != 0xA5) {
-        Error_Handler();
+        return 1;
     }
 
     /* Get SYNC Byte ACK*/
     wait_for_ack(layer, chip);
+    return 0;
 }
 
 /**

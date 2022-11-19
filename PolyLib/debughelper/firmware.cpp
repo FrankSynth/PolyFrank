@@ -30,15 +30,6 @@ uint8_t checkDataValid() { // wait for data
 void flashRenderMCUSPI() {
     uint8_t response;
 
-    response = ENTERMODE;
-    CDC_Transmit_FS(&response, 1); // READY FOR ERASE
-
-    while (!comAvailable())
-        ;
-
-    if (comRead() != STARTERASE) // START ERASE
-        return;
-
     /////////Clear Polyfrank
     __disable_irq();
 
@@ -81,37 +72,50 @@ void flashRenderMCUSPI() {
     HAL_GPIO_WritePin(Control_RST_GPIO_Port, Control_RST_Pin, GPIO_PIN_RESET);
 
     /////////INIT Hardware
-    HAL_SPI_Abort(&hspi1);             // Abort pending tranmission/receive
+    if (hspi1.State != HAL_SPI_STATE_READY) {
+        HAL_SPI_Abort(&hspi1); // Abort pending tranmission/receive
+    }
     HAL_SPI_MspDeInit(&hspi1);         // deinit peripherie
     hspi1.State = HAL_SPI_STATE_RESET; // need to be in reset state to reconfigurate hardware pins
     // __SPI1_FORCE_RESET();
     MX_SPI1_BOOLOADER_Init();
 
-    // clear CS lines
-    setCSLine(0, 0, GPIO_PIN_SET);
-    setCSLine(1, 0, GPIO_PIN_SET);
-    setCSLine(0, 1, GPIO_PIN_SET);
-    setCSLine(1, 1, GPIO_PIN_SET);
+    uint8_t error = 1;
 
-    // START Bootloader
-    HAL_Delay(100);
-    HAL_GPIO_WritePin(Layer_Boot_GPIO_Port, Layer_Boot_Pin, GPIO_PIN_SET);
-    HAL_Delay(250);
-    HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
-    HAL_Delay(250);
+    do {
+        // clear CS lines
+        setCSLine(0, 0, GPIO_PIN_SET);
+        setCSLine(1, 0, GPIO_PIN_SET);
+        setCSLine(0, 1, GPIO_PIN_SET);
+        setCSLine(1, 1, GPIO_PIN_SET);
 
-    /////////INIT Bootloader SPI
+        // START Bootloader
+        HAL_Delay(100);
+        HAL_GPIO_WritePin(Layer_Boot_GPIO_Port, Layer_Boot_Pin, GPIO_PIN_SET);
+        HAL_Delay(250);
+        HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
+        HAL_Delay(250);
 
-    // Init all devices
-    BL_Init(&hspi1, 0, 0);
-    HAL_Delay(10);
-    BL_Init(&hspi1, 0, 1);
-    HAL_Delay(10);
-    BL_Init(&hspi1, 1, 0);
-    HAL_Delay(10);
-    BL_Init(&hspi1, 1, 1);
+        /////////INIT Bootloader SPI
 
-    HAL_Delay(10);
+        // Init all devices
+        for (size_t d = 0; d < 4; d++) {
+            HAL_Delay(10);
+            error = BL_Init(&hspi1, d & 0x02, d & 0x01);
+
+            if (error)
+                break;
+        }
+    } while (error == 1);
+
+    response = ENTERMODE;
+    CDC_Transmit_FS(&response, 1); // READY FOR ERASE
+
+    while (!comAvailable())
+        ;
+
+    if (comRead() != STARTERASE) // START ERASE
+        return;
 
     /////////Erase all
     BL_MassErase_Command_all();
