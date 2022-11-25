@@ -13,7 +13,7 @@ void renderWaveshaper(Waveshaper &waveshaper, RenderBuffer &effectAmt, uint8_t v
  * @param layer current layer
  * @return vec<VOICESPERCHIP>
  */
-inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input, const Waveshaper &waveshaper) {
+inline void renderWaveshaperSample(vec<VOICESPERCHIP> &input, const Waveshaper &waveshaper) {
     vec<VOICESPERCHIP> inputAbs = fabs(input);
 
     vec<VOICESPERCHIP> sample;
@@ -23,7 +23,7 @@ inline vec<VOICESPERCHIP> renderWaveshaperSample(const vec<VOICESPERCHIP> &input
     }
     sample *= getSign(input);
 
-    return (sample * waveshaper.DryWet) + (input * (((vec<VOICESPERCHIP>)waveshaper.DryWet * (-1.0f)) + 1.0f));
+    input = (sample * waveshaper.DryWet) + (input * (((vec<VOICESPERCHIP>)waveshaper.DryWet * (-1.0f)) + 1.0f));
 }
 
 #endif

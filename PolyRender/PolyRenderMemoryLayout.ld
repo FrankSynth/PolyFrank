@@ -102,8 +102,8 @@ SECTIONS
     *stm32h7xx_it.o (.text .text*)
     *DUALBU22210.o (.text .text*)
     *moduleCallbacks.o (.text .text*)
-    *stm32h7xx_hal_spi.o (.text .text*)
-    *stm32h7xx_hal_spi_ex.o (.text .text*)
+    /* *stm32h7xx_hal_spi.o (.text .text*) */
+    /* *stm32h7xx_hal_spi_ex.o (.text .text*) */
     *stm32h7xx_hal.o (.text .text*)
 
 
@@ -124,7 +124,7 @@ SECTIONS
     *device.o (.rodata .rodata*) 
     *stm32h7xx_it.o (.rodata .rodata*) 
     *flagHandler.o (.rodata .rodata*) 
-    *DUALBU22210.o (.rodata .rodata*) 
+    /* *DUALBU22210.o (.rodata .rodata*)  */
     . = ALIGN(4); 
     _eITCM = .;        
    

@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#define MAXSUBWAVETABLELENGTH 2048
+
 #define MAXWAVETABLELENGTH 9216
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4

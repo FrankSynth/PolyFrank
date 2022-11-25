@@ -11,7 +11,7 @@ LogCurve volumeAntiLog(64, 0.970);  //-3db bei 0.5
 inline vec<VOICESPERCHIP> accumulatePan(const Out &out) {
     vec<VOICESPERCHIP> pan = out.iPan + out.aPan;
     vec<VOICESPERCHIP> sign = getSign(layerA.spreadValues);
-    pan = fast_lerp_f32(pan, sign, sign * out.aPanSpread * layerA.spreadValues);
+    pan = faster_lerp_f32(pan, sign, sign * out.aPanSpread * layerA.spreadValues);
     return pan;
 }
 

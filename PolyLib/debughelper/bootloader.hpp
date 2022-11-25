@@ -26,7 +26,7 @@
 
 extern void setCSLine(uint8_t layer, uint8_t chip, GPIO_PinState state);
 
-uint8_t BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip);
+void BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip);
 void BL_ReadMemory_Command(uint32_t address, uint8_t nob, uint8_t *pData, uint32_t layer, uint32_t chip);
 void BL_WriteMemory_Command(uint32_t address, uint8_t nob, uint8_t *pData, uint32_t layer, uint32_t chip);
 void BL_EraseMemory_Command(uint16_t nb, uint8_t code, uint32_t layer, uint32_t chip);

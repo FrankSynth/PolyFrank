@@ -66,6 +66,8 @@ void MPU_Config(void);
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+extern void flashRenderMCUSPI();
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -86,6 +88,22 @@ int main(void) {
     // __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
     // __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
     // __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
+
+    if (*((unsigned long *)0x2001FFEC) == 0xBBEEFFFF) {
+        *((unsigned long *)0x2001FFEC) = 0x00;
+
+        MPU_Config();
+        SCB_EnableICache();
+        SCB_EnableDCache();
+        HAL_Init();
+        SystemClock_Config();
+        MX_GPIO_Init();
+        HAL_Delay(100);
+        MX_USB_DEVICE_Init();
+        HAL_Delay(2000); // wait for reconnect
+
+        flashRenderMCUSPI();
+    }
 
     /* MPU  Configuration--------------------------------------------------------*/
     MPU_Config();

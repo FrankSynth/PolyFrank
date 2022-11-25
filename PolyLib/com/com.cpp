@@ -546,7 +546,7 @@ uint8_t COMinterChip::sendAudioBuffer(int8_t *audioData) {
     dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] =
         (uint8_t)UPDATEAUDIOBUFFER;
 
-    for (uint32_t i = 0; i < 300; i++) {
+    for (uint32_t i = 0; i < 200; i++) {
         dmaOutBufferPointer[currentOutBufferSelect][dmaOutCurrentBufferSize[currentOutBufferSelect]++] =
             *(uint8_t *)&audioData[i];
     }
@@ -1004,7 +1004,7 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
             }
             case UPDATEAUDIOBUFFER: {
 
-                for (uint32_t k = 0; k < 300; k++) {
+                for (uint32_t k = 0; k < 200; k++) {
                     allLayers[receiveLayer]->renderedAudioWaves[k] =
                         *(int8_t *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
                 }

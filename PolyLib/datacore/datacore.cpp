@@ -11,17 +11,20 @@ void Analog::setValue(int32_t newValue) {
     value = std::clamp(newValue, minInputValue, maxInputValue);
 
     if (mapping == linMap) {
-        valueMapped = fast_lerp_f32(min, max, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
+        valueMapped =
+            faster_lerp_f32(min, max, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
     }
     else if (mapping == logMap) {
         if (min < 0) { // we expect an symmetrical value{
             float valueFloat = 0;
-            valueFloat = fast_lerp_f32(-1, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
+            valueFloat =
+                faster_lerp_f32(-1, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
 
             valueMapped = logMapping.mapValueSigned(valueFloat) * (outputRange / 2);
         }
         else { // we expect an symmetrical value{
-            valueMapped = fast_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
+            valueMapped =
+                faster_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
             valueMapped = logMapping.mapValueSigned(valueMapped) * (max - min) + min;
         }
     }
@@ -92,7 +95,7 @@ const std::string &Digital::getValueAsString() {
 
 void Digital::setValue(int32_t newValue) {
     this->value = newValue;
-    valueMapped = std::round(fast_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
+    valueMapped = std::round(faster_lerp_f32(min, max + 1, (float)newValue / (float)MAX_VALUE_12BIT));
 
     if (valueChangedCallback != nullptr)
         valueChangedCallback();
@@ -105,7 +108,7 @@ void Digital::setValue(int32_t newValue) {
 
 void Digital::setValueRange(int32_t newValue, int32_t inputMin, int32_t inputMax) {
     this->value = newValue;
-    valueMapped = std::round(fast_lerp_f32(min, max, (float)(newValue - inputMin) / (float)(inputMax - inputMin)));
+    valueMapped = std::round(faster_lerp_f32(min, max, (float)(newValue - inputMin) / (float)(inputMax - inputMin)));
 
     if (valueChangedCallback != nullptr)
         valueChangedCallback();

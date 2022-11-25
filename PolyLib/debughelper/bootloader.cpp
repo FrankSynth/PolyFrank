@@ -14,7 +14,7 @@ static uint8_t xor_checksum(const uint8_t pData[], uint8_t len);
  *               the configuration information for SPI module.
  * @retval None
  */
-uint8_t BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
+void BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
     uint8_t sync_byte = BL_SPI_SOF;
     uint8_t receive_byte;
 
@@ -28,12 +28,11 @@ uint8_t BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
     setCSLine(layer, chip, GPIO_PIN_SET);
 
     if (receive_byte != 0xA5) {
-        return 1;
+        return;
     }
 
     /* Get SYNC Byte ACK*/
     wait_for_ack(layer, chip);
-    return 0;
 }
 
 /**
@@ -220,16 +219,28 @@ void BL_MassErase_Command_all() {
     data_frame[2] = data_frame[0] ^ data_frame[1];
 
     BL_Send_CommandACK(3u, cmd_frame, 0, 0);
+    HAL_Delay(10);
+
     BL_Send_Command(3u, data_frame, 0, 0);
+    HAL_Delay(10);
 
     BL_Send_CommandACK(3u, cmd_frame, 0, 1);
+    HAL_Delay(10);
+
     BL_Send_Command(3u, data_frame, 0, 1);
+    HAL_Delay(10);
 
     BL_Send_CommandACK(3u, cmd_frame, 1, 0);
+    HAL_Delay(10);
+
     BL_Send_Command(3u, data_frame, 1, 0);
+    HAL_Delay(10);
 
     BL_Send_CommandACK(3u, cmd_frame, 1, 1);
+    HAL_Delay(10);
+
     BL_Send_Command(3u, data_frame, 1, 1);
+    HAL_Delay(10);
 
     wait_for_ack(0, 0);
     wait_for_ack(0, 1);

@@ -75,7 +75,6 @@ class Layer {
 
         renderedAudioWavesOscA = renderedAudioWaves;
         renderedAudioWavesOscB = &renderedAudioWaves[100];
-        renderedAudioWavesSub = &renderedAudioWaves[200];
 #endif
     }
 
@@ -110,10 +109,9 @@ class Layer {
 
     uint32_t writeLayer(uint32_t blockStartIndex);
 
-    int8_t renderedAudioWaves[300];
+    int8_t renderedAudioWaves[200];
     int8_t *renderedAudioWavesOscA; // size 100
     int8_t *renderedAudioWavesOscB; // size 100
-    int8_t *renderedAudioWavesSub;  // size 100
 
 #endif
 

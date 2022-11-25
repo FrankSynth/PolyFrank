@@ -159,7 +159,7 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
             else {
                 // interpolation
 
-                panelADCInterpolate[layer][multiplex][channel] = fast_lerp_f32(
+                panelADCInterpolate[layer][multiplex][channel] = faster_lerp_f32(
                     panelADCInterpolate[layer][multiplex][channel], (float)((adcData[channel] >> 1) & 0xFFF), 0.25);
 
                 uint16_t difference = std::abs(panelADCStates[layer][multiplex][channel] - potiData);

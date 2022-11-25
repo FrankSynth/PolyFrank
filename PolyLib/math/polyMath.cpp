@@ -41,7 +41,7 @@ float fast_sin_f32(float x) {
 
     /* Linear interpolation process */
     // sinVal = (1.0f - fract) * a + fract * b;
-    sinVal = fast_lerp_f32(a, b, fract);
+    sinVal = faster_lerp_f32(a, b, fract);
 
     /* Return the output value */
     return (sinVal);
@@ -124,7 +124,7 @@ float fastNoteLin2Log_f32(float x) {
     b = noteLin2LogTable_f32[index + 1];
 
     /* Linear interpolation process */
-    ret = fast_lerp_f32(a, b, fract);
+    ret = faster_lerp_f32(a, b, fract);
 
     /* Return the output value */
     return (ret);
@@ -166,7 +166,7 @@ float LogCurve::mapValue(float value) {
     b = logTable[index + 1];
 
     /* Linear interpolation process */
-    ret = fast_lerp_f32(a, b, fract);
+    ret = faster_lerp_f32(a, b, fract);
 
     /* Return the output value */
 
@@ -209,7 +209,7 @@ float LogCurve::mapValueSigned(float value) {
     b = logTable[index + 1];
 
     /* Linear interpolation process */
-    ret = fast_lerp_f32(a, b, fract);
+    ret = faster_lerp_f32(a, b, fract);
 
     /* Return the output value */
     if (sign == 0) {

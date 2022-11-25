@@ -30,83 +30,35 @@ uint8_t checkDataValid() { // wait for data
 void flashRenderMCUSPI() {
     uint8_t response;
 
-    /////////Clear Polyfrank
-    __disable_irq();
-
-    HAL_NVIC_DisableIRQ(DMA1_Stream0_IRQn);
-    HAL_NVIC_DisableIRQ(DMA1_Stream1_IRQn);
-    HAL_NVIC_DisableIRQ(DMA2_Stream3_IRQn);
-    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
-    HAL_NVIC_DisableIRQ(DMA2_Stream1_IRQn);
-
-    HAL_NVIC_DisableIRQ(DMA2D_IRQn);
-
-    HAL_NVIC_DisableIRQ(EXTI2_IRQn);
-    HAL_NVIC_DisableIRQ(EXTI3_IRQn);
-    HAL_NVIC_DisableIRQ(EXTI4_IRQn);
-    HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
-    HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-
-    HAL_NVIC_DisableIRQ(I2C3_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C3_ER_IRQn);
-    HAL_NVIC_DisableIRQ(I2C4_EV_IRQn);
-    HAL_NVIC_DisableIRQ(I2C4_ER_IRQn);
-
-    HAL_NVIC_DisableIRQ(LTDC_IRQn);
-    HAL_NVIC_DisableIRQ(LTDC_ER_IRQn);
-
-    // HAL_NVIC_DisableIRQ(SPI1_IRQn);
-    HAL_NVIC_DisableIRQ(SPI2_IRQn);
-    HAL_NVIC_DisableIRQ(SPI6_IRQn);
-
-    HAL_NVIC_DisableIRQ(UART5_IRQn);
-
-    HAL_NVIC_DisableIRQ(TIM3_IRQn);
-    HAL_NVIC_DisableIRQ(TIM4_IRQn);
-    HAL_NVIC_DisableIRQ(TIM16_IRQn);
-
-    __enable_irq();
-
     HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(Panel_RST_GPIO_Port, Panel_RST_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(Control_RST_GPIO_Port, Control_RST_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Layer_Boot_GPIO_Port, Layer_Boot_Pin, GPIO_PIN_SET);
 
-    /////////INIT Hardware
-    if (hspi1.State != HAL_SPI_STATE_READY) {
-        HAL_SPI_Abort(&hspi1); // Abort pending tranmission/receive
-    }
-    HAL_SPI_MspDeInit(&hspi1);         // deinit peripherie
-    hspi1.State = HAL_SPI_STATE_RESET; // need to be in reset state to reconfigurate hardware pins
-    // __SPI1_FORCE_RESET();
     MX_SPI1_BOOLOADER_Init();
 
-    uint8_t error = 1;
+    // clear CS lines
+    setCSLine(0, 0, GPIO_PIN_SET);
+    setCSLine(1, 0, GPIO_PIN_SET);
+    setCSLine(0, 1, GPIO_PIN_SET);
+    setCSLine(1, 1, GPIO_PIN_SET);
 
-    do {
-        // clear CS lines
-        setCSLine(0, 0, GPIO_PIN_SET);
-        setCSLine(1, 0, GPIO_PIN_SET);
-        setCSLine(0, 1, GPIO_PIN_SET);
-        setCSLine(1, 1, GPIO_PIN_SET);
+    // START Bootloader
+    HAL_Delay(1000);
+    HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
+    HAL_Delay(250);
 
-        // START Bootloader
-        HAL_Delay(100);
-        HAL_GPIO_WritePin(Layer_Boot_GPIO_Port, Layer_Boot_Pin, GPIO_PIN_SET);
-        HAL_Delay(250);
-        HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_SET);
-        HAL_Delay(250);
+    /////////INIT Bootloader SPI
 
-        /////////INIT Bootloader SPI
-
-        // Init all devices
-        for (size_t d = 0; d < 4; d++) {
-            HAL_Delay(10);
-            error = BL_Init(&hspi1, d & 0x02, d & 0x01);
-
-            if (error)
-                break;
-        }
-    } while (error == 1);
+    // Init all devices
+    BL_Init(&hspi1, 0, 0);
+    HAL_Delay(10);
+    BL_Init(&hspi1, 0, 1);
+    HAL_Delay(10);
+    BL_Init(&hspi1, 1, 0);
+    HAL_Delay(10);
+    BL_Init(&hspi1, 1, 1);
+    HAL_Delay(10);
 
     response = ENTERMODE;
     CDC_Transmit_FS(&response, 1); // READY FOR ERASE

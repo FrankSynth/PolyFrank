@@ -155,6 +155,9 @@ class OSC_A : public BaseModule {
         inputs.push_back(&iBitcrusher);
         inputs.push_back(&iSamplecrusher);
         inputs.push_back(&iShapeSub);
+        inputs.push_back(&iRippleAmount);
+        inputs.push_back(&iRippleRatio);
+        inputs.push_back(&iRippleDamp);
 
         knobs.push_back(&aMasterTune);
         knobs.push_back(&aMorph);
@@ -162,6 +165,9 @@ class OSC_A : public BaseModule {
         knobs.push_back(&aBitcrusher);
         knobs.push_back(&aSamplecrusher);
         knobs.push_back(&aShapeSub);
+        knobs.push_back(&aRippleAmount);
+        knobs.push_back(&aRippleRatio);
+        knobs.push_back(&aRippleDamp);
 
         switches.push_back(&dSample0);
         switches.push_back(&dSample1);
@@ -180,6 +186,9 @@ class OSC_A : public BaseModule {
         renderBuffer.push_back(&samplecrusher);
         renderBuffer.push_back(&effect);
         renderBuffer.push_back(&shapeSub);
+        renderBuffer.push_back(&RippleAmount);
+        renderBuffer.push_back(&RippleRatio);
+        renderBuffer.push_back(&RippleDamp);
 
         moduleType = MODULE_OSC_A;
 
@@ -193,6 +202,10 @@ class OSC_A : public BaseModule {
         aBitcrusher.storeID = 0x03;
         aSamplecrusher.storeID = 0x04;
         aShapeSub.storeID = 0x05;
+
+        aRippleAmount.storeID = 0x06;
+        aRippleRatio.storeID = 0x07;
+        aRippleDamp.storeID = 0x08;
 
         dSample0.storeID = 0x00;
         dSample1.storeID = 0x01;
@@ -213,10 +226,17 @@ class OSC_A : public BaseModule {
     Input iBitcrusher = Input("BITCRUSH", "BCRUSH", &bitcrusher);
     Input iOctave = Input("OCTAVE", "OCTAVE");
     Input iSamplecrusher = Input("SAMPLECRUSH", "SCRUSH", &samplecrusher);
+    Input iRippleAmount = Input("RIPPLE AMT", "R AMT", &RippleAmount);
+    Input iRippleRatio = Input("RIPPLE RATIO", "R RATIO", &RippleRatio);
+    Input iRippleDamp = Input("RIPPLE DAMP", "R DAMP", &RippleDamp);
 
     Analog aMasterTune = Analog("MASTERTUNE", -1, 1, 0, true, logMap, &iFM);
     Analog aMorph = Analog("MORPH", 0, 1, 0, true, linMap, &iMorph);
     Analog aEffect = Analog("EFFECT ", 0, 1, 0, true, linMap, &iEffect);
+
+    Analog aRippleAmount = Analog("RIPPLE AMT", 0, 1, 0, true, linMap, &iRippleAmount);  // Amount Coeff
+    Analog aRippleRatio = Analog("RIPPLE RATIO", 0, 24, 4, true, linMap, &iRippleRatio); // Repetition Coeff
+    Analog aRippleDamp = Analog("RIPPLE DAMP", 0, 6, 1, true, linMap, &iRippleDamp);     // damping Coeff
 
     Analog aBitcrusher = Analog("BITCRUSH", 1.0f / 8388607.0f, 1, 1.0f / 8388607.0f, true, linMap, &iBitcrusher, false);
     Analog aSamplecrusher = Analog("SAMPLECRUSH", 0, 1, 0, true, linMap, &iSamplecrusher, false);
@@ -247,6 +267,10 @@ class OSC_A : public BaseModule {
     RenderBuffer bitcrusher;
     RenderBuffer bitcrusherInv;
     RenderBuffer samplecrusher;
+
+    RenderBuffer RippleAmount;
+    RenderBuffer RippleRatio;
+    RenderBuffer RippleDamp;
 
     vec<VOICESPERCHIP, uint32_t> subWavetable;
     vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;

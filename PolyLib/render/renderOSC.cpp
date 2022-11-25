@@ -8,6 +8,21 @@
 extern Layer layerA;
 
 // TODO Accumulate ohne input raus
+
+inline vec<VOICESPERCHIP> accumulateRippleAmount() {
+    return clamp(layerA.oscA.iRippleAmount + layerA.oscA.aRippleAmount, layerA.oscA.aRippleAmount.min,
+                 layerA.oscA.aRippleAmount.max);
+}
+
+inline vec<VOICESPERCHIP> accumulateRippleRatio() {
+    return clamp(layerA.oscA.iRippleRatio * layerA.oscA.aRippleRatio.outputRange + layerA.oscA.aRippleRatio,
+                 layerA.oscA.aRippleRatio.min, layerA.oscA.aRippleRatio.max);
+}
+inline vec<VOICESPERCHIP> accumulateRippleDamp() {
+    return clamp(layerA.oscA.iRippleDamp * layerA.oscA.aRippleRatio.outputRange + layerA.oscA.aRippleDamp,
+                 layerA.oscA.aRippleDamp.min, layerA.oscA.aRippleDamp.max);
+}
+
 inline vec<VOICESPERCHIP> accumulateBitcrusher() {
     return clamp(layerA.oscA.effect * (layerA.oscA.iBitcrusher + layerA.oscA.aBitcrusher), layerA.oscA.aBitcrusher.min,
                  layerA.oscA.aBitcrusher.max);
@@ -52,7 +67,7 @@ inline vec<VOICESPERCHIP> accumulateNote() {
         else
             currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
-    vec<VOICESPERCHIP> note = currentNote + (layerA.oscB.iFM * 0.25f);
+    vec<VOICESPERCHIP> note = currentNote;
 
     layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
                                                                    (float)(SUBWAVETABLES - 1));
@@ -75,7 +90,7 @@ void renderOSC_A() {
     layerA.oscA.fm = layerA.oscA.iFM + layerA.feel.detune + layerA.oscA.aMasterTune + layerA.midi.oPitchbend;
 
     layerA.oscA.note = accumulateNote();
-    layerA.oscA.morphRAW = accumulateMorph(); 
+    layerA.oscA.morphRAW = accumulateMorph();
     layerA.oscA.morphRAW = layerA.oscA.morphRAW - floor((vec<VOICESPERCHIP>)layerA.oscA.morphRAW);
 
     layerA.oscA.morph = ((layerA.oscA.morphRAW) * (float)(WAVETABLESPERVOICE));
@@ -87,7 +102,6 @@ void renderOSC_A() {
     layerA.oscA.samplecrusher = accumulateSamplecrusher();
 
     layerA.oscA.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscA.morph));
-
     layerA.oscA.waveTableSelectionUpper = (layerA.oscA.waveTableSelectionLower + 1u) & 0b11;
 
     layerA.oscA.morphFract = layerA.oscA.morph - floor((vec<VOICESPERCHIP>)layerA.oscA.morph);
@@ -99,6 +113,11 @@ void renderOSC_A() {
     layerA.oscA.subWavetable =
         clamp(round((layerA.oscA.oscNote - (layerA.oscA.dOctaveSwitchSub + 1)) * ((float)SUBWAVETABLES / 10.0f)), 0.0f,
               (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
+
+    ////// Ripple
+    layerA.oscA.RippleAmount = accumulateRippleAmount();
+    layerA.oscA.RippleRatio = accumulateRippleRatio();
+    layerA.oscA.RippleDamp = accumulateRippleDamp();
 }
 
 ///////////////////////////// OSC B /////////////////////////////////
@@ -164,20 +183,15 @@ void renderOSC_B() {
     layerA.oscB.effect = accumulateEffectOscB();
     layerA.oscB.morphRAW = accumulateMorphOscB();
     layerA.oscB.morphRAW = layerA.oscB.morphRAW - floor((vec<VOICESPERCHIP>)layerA.oscB.morphRAW);
-
     layerA.oscB.morph = ((layerA.oscB.morphRAW) * (float)(WAVETABLESPERVOICE));
-
     layerA.oscB.fm = layerA.oscB.iFM + layerA.oscB.aTuning;
     layerA.oscB.bitcrusher = accumulateBitcrusherOscB();
     layerA.oscB.bitcrusherInv = 1.0f / layerA.oscB.bitcrusher.currentSample;
     layerA.oscB.samplecrusher = accumulateSamplecrusherOscB();
     layerA.oscB.phaseoffset = accumulatePhaseoffsetOscB();
     layerA.oscB.note = accumulateNoteOscB();
-
     layerA.oscB.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscB.morph));
-
     layerA.oscB.waveTableSelectionUpper = (layerA.oscB.waveTableSelectionLower + 1u) & 0b11;
-
     layerA.oscB.morphFract = layerA.oscB.morph - floor((vec<VOICESPERCHIP>)layerA.oscB.morph);
 }
 

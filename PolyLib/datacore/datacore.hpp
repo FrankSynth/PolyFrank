@@ -155,12 +155,12 @@ class Analog : public DataElement {
         this->max = max;
         this->valueMapped = defaultValue;
         this->input = input;
+        this->outputRange = max - min;
 
 #ifdef POLYCONTROL
         this->minInputValue = MIN_VALUE_12BIT;
         this->maxInputValue = MAX_VALUE_12BIT;
 
-        this->outputRange = max - min;
         this->mapping = mapping;
         this->defaultValueMapped = defaultValue;
 
@@ -185,13 +185,12 @@ class Analog : public DataElement {
         this->valueMapped = defaultValue;
         this->input = input;
         this->defaultValueMapped = defaultValue;
+        this->outputRange = max - min;
 
 #ifdef POLYCONTROL
 
         this->minInputValue = minInputValue;
         this->maxInputValue = maxInputValue;
-
-        this->outputRange = max - min;
 
         this->mapping = mapping;
 
@@ -278,13 +277,13 @@ class Analog : public DataElement {
     float max;
     Input *input = nullptr;
     float defaultValueMapped;
+    float outputRange;
 
 // POLYCONTROL ONLY
 #ifdef POLYCONTROL
 
     int32_t value;
     int32_t defaultValue = 0;
-    float outputRange;
 
     int32_t minInputValue;
     int32_t maxInputValue;

@@ -92,67 +92,67 @@ inline void collectAllCurrentInputs() {
 
 inline void writeDataToDACBuffer() {
 
-    cvDac[0].data[0] = (1.0f - layerA.out.right[0]) * 4095.0f;
-    cvDac[0].data[1] = (1.0f - layerA.steiner.resonance[1]) * 4095.0f;
+    cvDac[0].data[0] = 4095.0f - layerA.out.right[0] * 4095.0f;
+    cvDac[0].data[1] = 4095.0f - layerA.steiner.resonance[1] * 4095.0f;
 
     cvDac[0].data[2] = layerA.steiner.cutoff[0] * 4095.0f;
-    cvDac[0].data[3] = (1.0f - layerA.steiner.toLadder[1]) * 4095.0f;
+    cvDac[0].data[3] = 4095.0f - layerA.steiner.toLadder[1] * 4095.0f;
 
-    cvDac[0].data[4] = (1.0f - layerA.ladder.level[0]) * 4095.0f;
-    cvDac[0].data[5] = (1.0f - layerA.out.distort[1]) * 4095.0f;
+    cvDac[0].data[4] = 4095.0f - layerA.ladder.level[0] * 4095.0f;
+    cvDac[0].data[5] = 4095.0f - layerA.out.distort[1] * 4095.0f;
 
-    cvDac[0].data[6] = (1.0f - layerA.steiner.level[0]) * 4095.0f;
-    cvDac[0].data[7] = (1.0f - layerA.out.left[0]) * 4095.0f;
+    cvDac[0].data[6] = 4095.0f - layerA.steiner.level[0] * 4095.0f;
+    cvDac[0].data[7] = 4095.0f - layerA.out.left[0] * 4095.0f;
 
-    cvDac[0].data[8] = (1.0f - layerA.steiner.resonance[0]) * 4095.0f;
-    cvDac[0].data[9] = (1.0f - layerA.ladder.cutoff[0]) * 4095.0f;
+    cvDac[0].data[8] = 4095.0f - layerA.steiner.resonance[0] * 4095.0f;
+    cvDac[0].data[9] = 4095.0f - layerA.ladder.cutoff[0] * 4095.0f;
 
     cvDac[0].data[10] = layerA.steiner.cutoff[1] * 4095.0f;
-    cvDac[0].data[11] = (1.0f - layerA.ladder.resonance[1]) * 4095.0f;
+    cvDac[0].data[11] = 4095.0f - layerA.ladder.resonance[1] * 4095.0f;
 
-    cvDac[0].data[12] = (1.0f - layerA.ladder.level[1]) * 4095.0f;
-    cvDac[0].data[13] = (1.0f - layerA.out.right[1]) * 4095.0f;
+    cvDac[0].data[12] = 4095.0f - layerA.ladder.level[1] * 4095.0f;
+    cvDac[0].data[13] = 4095.0f - layerA.out.right[1] * 4095.0f;
 
-    cvDac[0].data[14] = (1.0f - layerA.steiner.toLadder[0]) * 4095.0f;
-    cvDac[0].data[15] = (1.0f - layerA.out.left[1]) * 4095.0f;
+    cvDac[0].data[14] = 4095.0f - layerA.steiner.toLadder[0] * 4095.0f;
+    cvDac[0].data[15] = 4095.0f - layerA.out.left[1] * 4095.0f;
 
-    cvDac[0].data[16] = (1.0f - layerA.out.distort[0]) * 4095.0f;
-    cvDac[0].data[17] = (1.0f - layerA.ladder.cutoff[1]) * 4095.0f;
+    cvDac[0].data[16] = 4095.0f - layerA.out.distort[0] * 4095.0f;
+    cvDac[0].data[17] = 4095.0f - layerA.ladder.cutoff[1] * 4095.0f;
 
-    cvDac[0].data[18] = (1.0f - layerA.ladder.resonance[0]) * 4095.0f;
-    cvDac[0].data[19] = (1.0f - layerA.steiner.level[1]) * 4095.0f;
+    cvDac[0].data[18] = 4095.0f - layerA.ladder.resonance[0] * 4095.0f;
+    cvDac[0].data[19] = 4095.0f - layerA.steiner.level[1] * 4095.0f;
 
     cvDac[0].preparePackage();
 
-    cvDac[1].data[0] = (1.0f - layerA.out.right[2]) * 4095.0f;
-    cvDac[1].data[1] = (1.0f - layerA.steiner.resonance[3]) * 4095.0f;
+    cvDac[1].data[0] = 4095.0f - layerA.out.right[2] * 4095.0f;
+    cvDac[1].data[1] = 4095.0f - layerA.steiner.resonance[3] * 4095.0f;
 
-    cvDac[1].data[2] = (layerA.steiner.cutoff[2]) * 4095.0f;
-    cvDac[1].data[3] = (1.0f - layerA.steiner.toLadder[3]) * 4095.0f;
+    cvDac[1].data[2] = layerA.steiner.cutoff[2] * 4095.0f;
+    cvDac[1].data[3] = 4095.0f - layerA.steiner.toLadder[3] * 4095.0f;
 
-    cvDac[1].data[4] = (1.0f - layerA.ladder.level[2]) * 4095.0f;
-    cvDac[1].data[5] = (1.0f - layerA.out.distort[3]) * 4095.0f;
+    cvDac[1].data[4] = 4095.0f - layerA.ladder.level[2] * 4095.0f;
+    cvDac[1].data[5] = 4095.0f - layerA.out.distort[3] * 4095.0f;
 
-    cvDac[1].data[6] = (1.0f - layerA.steiner.level[2]) * 4095.0f;
-    cvDac[1].data[7] = (1.0f - layerA.out.left[2]) * 4095.0f;
+    cvDac[1].data[6] = 4095.0f - layerA.steiner.level[2] * 4095.0f;
+    cvDac[1].data[7] = 4095.0f - layerA.out.left[2] * 4095.0f;
 
-    cvDac[1].data[8] = (1.0f - layerA.steiner.resonance[2]) * 4095.0f;
-    cvDac[1].data[9] = (1.0f - layerA.ladder.cutoff[2]) * 4095.0f;
+    cvDac[1].data[8] = 4095.0f - layerA.steiner.resonance[2] * 4095.0f;
+    cvDac[1].data[9] = 4095.0f - layerA.ladder.cutoff[2] * 4095.0f;
 
-    cvDac[1].data[10] = (layerA.steiner.cutoff[3]) * 4095.0f;
-    cvDac[1].data[11] = (1.0f - layerA.ladder.resonance[3]) * 4095.0f;
+    cvDac[1].data[10] = layerA.steiner.cutoff[3] * 4095.0f;
+    cvDac[1].data[11] = 4095.0f - layerA.ladder.resonance[3] * 4095.0f;
 
-    cvDac[1].data[12] = (1.0f - layerA.ladder.level[3]) * 4095.0f;
-    cvDac[1].data[13] = (1.0f - layerA.out.right[3]) * 4095.0f;
+    cvDac[1].data[12] = 4095.0f - layerA.ladder.level[3] * 4095.0f;
+    cvDac[1].data[13] = 4095.0f - layerA.out.right[3] * 4095.0f;
 
-    cvDac[1].data[14] = (1.0f - layerA.steiner.toLadder[2]) * 4095.0f;
-    cvDac[1].data[15] = (1.0f - layerA.out.left[3]) * 4095.0f;
+    cvDac[1].data[14] = 4095.0f - layerA.steiner.toLadder[2] * 4095.0f;
+    cvDac[1].data[15] = 4095.0f - layerA.out.left[3] * 4095.0f;
 
-    cvDac[1].data[16] = (1.0f - layerA.out.distort[2]) * 4095.0f;
-    cvDac[1].data[17] = (1.0f - layerA.ladder.cutoff[3]) * 4095.0f;
+    cvDac[1].data[16] = 4095.0f - layerA.out.distort[2] * 4095.0f;
+    cvDac[1].data[17] = 4095.0f - layerA.ladder.cutoff[3] * 4095.0f;
 
-    cvDac[1].data[18] = (1.0f - layerA.ladder.resonance[2]) * 4095.0f;
-    cvDac[1].data[19] = (1.0f - layerA.steiner.level[3]) * 4095.0f;
+    cvDac[1].data[18] = 4095.0f - layerA.ladder.resonance[2] * 4095.0f;
+    cvDac[1].data[19] = 4095.0f - layerA.steiner.level[3] * 4095.0f;
 
     cvDac[1].preparePackage();
 }
@@ -193,7 +193,6 @@ void renderCVs() {
     renderPhaseshaper(layerA.phaseshaperA, layerA.oscA.effect);
     renderPhaseshaper(layerA.phaseshaperB, layerA.oscB.effect);
 
-    // updateAllOutputSamples();
     writeDataToDACBuffer();
 
     setSwitches();

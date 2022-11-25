@@ -1120,7 +1120,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
         float fract = shape - std::floor(shape);
 
         if (shape < 1) {
-            index = fast_lerp_f32(calcSin(phase), calcInvRamp(phase), fract);
+            index = faster_lerp_f32(calcSin(phase), calcInvRamp(phase), fract);
         }
         // else if (shape < 2) {
         //     index = calcRampTriangle(phase, shape);
@@ -1134,16 +1134,16 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             uint16_t randPhase = randPhasef;
             float randPhaseFrac = randPhasef - std::floor(randPhasef);
 
-            index = fast_lerp_f32(calcRamp(phase),
+            index = faster_lerp_f32(calcRamp(phase),
 
-                                  fast_lerp_f32(
+                                    faster_lerp_f32(
 
-                                      random[changeIntLoop(randPhase, -1, 0, 3)],
+                                        random[changeIntLoop(randPhase, -1, 0, 3)],
 
-                                      random[randPhase],
+                                        random[randPhase],
 
-                                      randPhaseFrac),
-                                  fract);
+                                        randPhaseFrac),
+                                    fract);
         }
         else if (shape < 5) {
 
@@ -1151,7 +1151,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             uint16_t randPhase = randPhasef;
             float randPhaseFrac = std::clamp((randPhasef - std::floor(randPhasef)) * 1.0f / (1.0f - fract), 0.0f, 1.0f);
 
-            index = fast_lerp_f32(random[changeIntLoop(randPhase, -1, 0, 3)], random[randPhase], randPhaseFrac);
+            index = faster_lerp_f32(random[changeIntLoop(randPhase, -1, 0, 3)], random[randPhase], randPhaseFrac);
         }
 
         else if (shape < 6) {
@@ -1159,7 +1159,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
             float randPhasef = phase * 3.999f;
             uint16_t randPhase = randPhasef;
 
-            index = fast_lerp_f32(random[randPhase], calcSquare(phase, shape), fract);
+            index = faster_lerp_f32(random[randPhase], calcSquare(phase, shape), fract);
         }
 
         else {
@@ -1248,7 +1248,7 @@ void drawADSR(WaveBuffer &buffer, ADSR *module) {
     A2[0] = P[1][0];
     A2[1] = P[2][1];
 
-    A = fast_lerp_f32(A1, A2, shape);
+    A = faster_lerp_f32(A1, A2, shape);
 
     // shape Decay
 
@@ -1260,7 +1260,7 @@ void drawADSR(WaveBuffer &buffer, ADSR *module) {
     D2[0] = P[2][0];
     D2[1] = P[3][1];
 
-    D = fast_lerp_f32(D1, D2, shape);
+    D = faster_lerp_f32(D1, D2, shape);
 
     // shape Release
 
@@ -1272,7 +1272,7 @@ void drawADSR(WaveBuffer &buffer, ADSR *module) {
     R2[0] = P[4][0];
     R2[1] = P[5][1];
 
-    R = fast_lerp_f32(R1, R2, shape);
+    R = faster_lerp_f32(R1, R2, shape);
 
     // Draw Wave
     drawLineThick(buffer, P[0][0], P[0][1], P[1][0], P[1][1], c4444wavecolor);

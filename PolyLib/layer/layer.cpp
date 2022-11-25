@@ -68,12 +68,13 @@ void Layer::resetLayer() {
     clearPatches();
 
     for (BaseModule *m : modules) { // for all modules
-
-        for (Analog *i : m->getAnalog()) { // for all Knobs
-            i->resetValue();
-        }
-        for (Digital *i : m->getDigital()) { // for all Knobs
-            i->resetValue();
+        if (m != &tune) {
+            for (Analog *i : m->getAnalog()) { // for all Knobs
+                i->resetValue();
+            }
+            for (Digital *i : m->getDigital()) { // for all Knobs
+                i->resetValue();
+            }
         }
     }
 

@@ -608,15 +608,58 @@ void COMmunicateISR() {
                     rebootToBooloader();
                     break;
                 }
-                else if (command.compare("-isp") == 0) {
-                    FlagHandler::COM_USB_TRAFFIC = false; // disable print;
-                    __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
-                    __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
-                    HAL_Delay(10);
+                else if (command.compare("-isp") == 0) { // make a restart to ISP
 
-                    flashRenderMCUSPI();
+                    /////////Clear Polyfrank
+                    __disable_irq();
+
+                    HAL_NVIC_DisableIRQ(DMA1_Stream0_IRQn);
+                    HAL_NVIC_DisableIRQ(DMA1_Stream1_IRQn);
+                    HAL_NVIC_DisableIRQ(DMA2_Stream3_IRQn);
+                    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
+                    HAL_NVIC_DisableIRQ(DMA2_Stream1_IRQn);
+
+                    HAL_NVIC_DisableIRQ(DMA2D_IRQn);
+
+                    HAL_NVIC_DisableIRQ(EXTI2_IRQn);
+                    HAL_NVIC_DisableIRQ(EXTI3_IRQn);
+                    HAL_NVIC_DisableIRQ(EXTI4_IRQn);
+                    HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+                    HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+
+                    HAL_NVIC_DisableIRQ(I2C3_EV_IRQn);
+                    HAL_NVIC_DisableIRQ(I2C3_ER_IRQn);
+                    HAL_NVIC_DisableIRQ(I2C4_EV_IRQn);
+                    HAL_NVIC_DisableIRQ(I2C4_ER_IRQn);
+
+                    HAL_NVIC_DisableIRQ(LTDC_IRQn);
+                    HAL_NVIC_DisableIRQ(LTDC_ER_IRQn);
+
+                    // HAL_NVIC_DisableIRQ(SPI1_IRQn);
+                    HAL_NVIC_DisableIRQ(SPI2_IRQn);
+                    HAL_NVIC_DisableIRQ(SPI6_IRQn);
+
+                    HAL_NVIC_DisableIRQ(UART5_IRQn);
+
+                    HAL_NVIC_DisableIRQ(TIM3_IRQn);
+                    HAL_NVIC_DisableIRQ(TIM4_IRQn);
+                    HAL_NVIC_DisableIRQ(TIM16_IRQn);
+
+                    __enable_irq();
+
+                    HAL_GPIO_WritePin(Layer_RST_GPIO_Port, Layer_RST_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(Panel_RST_GPIO_Port, Panel_RST_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(Control_RST_GPIO_Port, Control_RST_Pin, GPIO_PIN_RESET);
+
+                    /////////INIT Hardware
+                    if (hspi1.State != HAL_SPI_STATE_READY) {
+                        HAL_SPI_Abort(&hspi1); // Abort pending tranmission/receive
+                    }
+                    HAL_SPI_MspDeInit(&hspi1); // deinit peripherie
+
+                    *((unsigned long *)0x2001FFEC) = 0xBBEEFFFF; // End of RAM
+                    HAL_Delay(100);
+                    NVIC_SystemReset();
                 }
                 else if (command.compare("-EEPROM_CLEAR") == 0) {
                     clearEEPROM();

@@ -50,7 +50,7 @@ float renderPhaseshaperSample(float input, const Phaseshaper &phaseshaper) {
         lerpAmount = (input - phaseshaper.Point3X[0]) / (1.0f - phaseshaper.Point3X[0]);
     }
 
-    float sample = fast_lerp_f32(lowerBoundY, upperBoundY, lerpAmount);
+    float sample = faster_lerp_f32(lowerBoundY, upperBoundY, lerpAmount);
 
     return (sample * phaseshaper.DryWet[0]) + (input * (1.0f - phaseshaper.DryWet[0]));
 }

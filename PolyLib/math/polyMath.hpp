@@ -56,6 +56,18 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
 }
 
 /**
+ * @brief faster lerp with float
+ *
+ * @param a value a
+ * @param b value a
+ * @param f fraction between a and b
+ * @return
+ */
+ALWAYS_INLINE inline float faster_lerp_f32(float a, float b, float f) {
+    return a + (b - a) * f;
+}
+
+/**
  * @brief returns -1 for val>0 and 1 for val<=0
  *
  * @tparam T
@@ -253,7 +265,7 @@ class LogCurve {
         }
 
         /* Linear interpolation process */
-        ret = fast_lerp_f32(a, b, fract);
+        ret = faster_lerp_f32(a, b, fract);
 
         /* Return the output value */
 
