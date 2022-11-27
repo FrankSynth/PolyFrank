@@ -74,7 +74,7 @@ void renderADSR(ADSR &adsr) {
     // adsr.sustain = accumulateSustain(adsr);
     adsr.amount = accumulateAmount(adsr);
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
 
         float &level = adsr.level[voice];
         float &currentTime = adsr.currentTime[voice];

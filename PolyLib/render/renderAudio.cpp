@@ -227,10 +227,8 @@ inline void getRippleSample(vec<VOICESPERCHIP> &sampleRipple, vec<VOICESPERCHIP>
     rippleDamp = rippleDamp - phaseProgress * layerA.oscA.RippleDamp;
 
     // limit Ripple
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-        rippleDamp[i] = fmaxf(rippleDamp[i], 0.0f);
-        ripplePhase[i] = ripplePhase[i] - floorf(ripplePhase[i]);
-    }
+    rippleDamp = max(rippleDamp, 0.0f);
+    ripplePhase = ripplePhase - floor(ripplePhase);
 
     // sample Sinus Wave
     vec<VOICESPERCHIP> stepWavetable;
@@ -353,9 +351,9 @@ inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
 
 inline vec<VOICESPERCHIP> getOscASample() {
     static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
 
     vec<VOICESPERCHIP> newSample;
-    vec<VOICESPERCHIP> sampleRipple;
     vec<VOICESPERCHIP> shapedPhase;
 
     vec<VOICESPERCHIP> &phase = layerA.oscA.phase;
@@ -384,13 +382,11 @@ inline vec<VOICESPERCHIP> getOscASample() {
     bitcrush(bitcrusher, bitcrusherInv, newSample);
 
     // SampleCrush Effect
-    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
+
     vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > (samplecrusher * 960.f);
-    vec<VOICESPERCHIP> NotsampleCrushNow = !sampleCrushNow;
+    sampleCrushCount *= !sampleCrushNow;
 
-    sampleCrushCount *= NotsampleCrushNow;
-
-    sample = (newSample * sampleCrushNow) + (sample * NotsampleCrushNow);
+    sample = (newSample * sampleCrushNow) + (sample * !sampleCrushNow);
 
     // sum sample
 
@@ -400,6 +396,8 @@ inline vec<VOICESPERCHIP> getOscASample() {
 vec<VOICESPERCHIP> getOscBSample() {
 
     static vec<VOICESPERCHIP> sample;
+    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
+
     vec<VOICESPERCHIP> newSample;
 
     vec<VOICESPERCHIP> shapedPhase;
@@ -439,12 +437,10 @@ vec<VOICESPERCHIP> getOscBSample() {
     bitcrush(bitcrusher, bitcrusherInv, newSample);
 
     // SampleCrush Effect
-    static vec<VOICESPERCHIP, uint32_t> sampleCrushCount = 0;
     vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > (samplecrusher * 960.f);
-    vec<VOICESPERCHIP> NotsampleCrushNow = !sampleCrushNow;
 
-    sampleCrushCount *= NotsampleCrushNow;
-    sample = (newSample * sampleCrushNow) + (sample * NotsampleCrushNow);
+    sampleCrushCount *= !sampleCrushNow;
+    sample = (newSample * sampleCrushNow) + (sample * !sampleCrushNow);
 
     // sum sample
     return sample;
@@ -491,21 +487,6 @@ inline float softLimit(float &inputSample) {
     return fminf(sample, 1.0f) * getSign(inputSample);
 }
 
-// inline float softLimitE(float &inputSample) {
-//     static float threshold = 0.8f;
-//     static float factor = -1.0f / (1.0f - threshold);
-
-//     float absInput = fabsf(inputSample);
-
-//     if (absInput <= threshold)
-//         return inputSample;
-
-//     float x = (absInput - threshold) * factor;
-//     float limitInput = fminf(absInput, threshold);
-
-//     return (limitInput + 1 - expf(fmaxf(x, 0.0f))) * getSign(inputSample);
-// }
-
 /**
  * @brief render all Audio Samples
  *
@@ -544,8 +525,8 @@ void renderAudio(volatile int32_t *renderDest) {
         }
 
         // 1pole filter
-        sampleSteinerAcc += 0.06151176F * ((sampleSteiner)-sampleSteinerAcc);
-        sampleLadderAcc += 0.06151176F * ((sampleLadder)-sampleLadderAcc);
+        sampleSteinerAcc += 0.06151176F * (sampleSteiner - sampleSteinerAcc);
+        sampleLadderAcc += 0.06151176F * (sampleLadder - sampleLadderAcc);
 
         // limit and scale
         renderDest[sample * AUDIOCHANNELS + 1 * 2] = softLimit(sampleLadderAcc[0]) * 8388607.0f;

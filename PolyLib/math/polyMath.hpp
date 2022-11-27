@@ -63,7 +63,15 @@ ALWAYS_INLINE inline float fast_lerp_f32(float a, float b, float f) {
  * @param f fraction between a and b
  * @return
  */
-ALWAYS_INLINE inline float faster_lerp_f32(float a, float b, float f) {
+ALWAYS_INLINE inline float faster_lerp_f32(float &a, float &b, float &f) {
+    return a + (b - a) * f;
+}
+
+ALWAYS_INLINE inline float faster_lerp_f32(const float &a, const float &b, const float &f) {
+    return a + (b - a) * f;
+}
+
+ALWAYS_INLINE inline float faster_lerp_f32(float &a, float &b, const float &f) {
     return a + (b - a) * f;
 }
 

@@ -112,7 +112,7 @@ void renderLFO(LFO &lfo) {
     }
     else {
 
-        for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
             uint32_t snapper = std::round(speedRAW[voice] * lfo.dFreq.max);
             speed[voice] = layerA.bpm * multTime[snapper] / 60.0f;
             speedRAW[voice] = (float)snapper / (float)lfo.dFreq.max;
@@ -123,7 +123,7 @@ void renderLFO(LFO &lfo) {
 
     shape = shapeRAW * 7;
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++)
         if (newPhase[voice] == false) {
             phase[voice] += speed[voice] * SECONDSPERCVRENDER;
             newPhase[voice] = phase[voice] > 1.0f;
@@ -134,7 +134,7 @@ void renderLFO(LFO &lfo) {
 
     fract = shape - floor(shape);
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
         if (shape[voice] < 1) {
             sample[voice] = faster_lerp_f32(calcSin(phase[voice]), calcInvRamp(phase[voice]), fract[voice]);
         }
@@ -178,7 +178,7 @@ void renderLFO(LFO &lfo) {
             break;
     }
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++)
         newPhase[voice] = false;
 
     if (layerA.chipID == 0) { // chip A
@@ -198,10 +198,10 @@ void renderLFO(LFO &lfo) {
     for (uint32_t otherVoice = 1; otherVoice < VOICESPERCHIP; otherVoice++)
         lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++)
         sampleRAW[voice] = sample[voice];
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++)
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++)
         sample[voice] = sample[voice] * amount[voice];
 
     lfo.out = sample;

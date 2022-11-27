@@ -1204,6 +1204,9 @@ class Phaseshaper : public BaseModule {
     RenderBuffer Point3Y;
     RenderBuffer Point4Y;
     RenderBuffer DryWet;
+
+    RenderBuffer slope[3];
+    RenderBuffer offset;
 };
 
 // class LayerSetting : public BaseModule {

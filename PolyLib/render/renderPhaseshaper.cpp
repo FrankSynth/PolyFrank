@@ -23,6 +23,11 @@ void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt) {
     phaseshaper.Point3Y = accumulateValue(phaseshaper.iPoint3Y, phaseshaper.aPoint3Y);
     phaseshaper.Point4Y = accumulateValue(phaseshaper.iPoint4Y, phaseshaper.aPoint4Y);
 
+    phaseshaper.slope[0] = (phaseshaper.Point2Y - phaseshaper.Point1Y) / phaseshaper.Point2X;
+    phaseshaper.slope[1] = (phaseshaper.Point3Y - phaseshaper.Point2Y) / (phaseshaper.Point3X - phaseshaper.Point2X);
+    phaseshaper.slope[2] =
+        (phaseshaper.Point4Y - phaseshaper.Point3Y) / ((vec<VOICESPERCHIP>)1.0f - phaseshaper.Point3X);
+
     phaseshaper.DryWet = clamp((phaseshaper.iDryWet + phaseshaper.aDryWet) * effectAmt, phaseshaper.aDryWet.min,
                                phaseshaper.aDryWet.max);
 }

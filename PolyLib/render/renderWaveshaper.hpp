@@ -18,7 +18,7 @@ inline void renderWaveshaperSample(vec<VOICESPERCHIP> &input, const Waveshaper &
 
     vec<VOICESPERCHIP> sample;
 
-    for (uint32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
         sample[voice] = waveshaper.wavespline[voice].getValueWithoutExtrapolation(inputAbs[voice]);
     }
     sample *= getSign(input);
