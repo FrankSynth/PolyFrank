@@ -63,9 +63,9 @@ inline vec<VOICESPERCHIP> accumulateNote() {
     // // TODO check glide, plus glide settings, i.e. CT & CR
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
-            currentNote[i] = std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
+            currentNote[i] = fminf(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
         else
-            currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
+            currentNote[i] = fmaxf(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
     vec<VOICESPERCHIP> note = currentNote;
 
@@ -161,9 +161,9 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
-            currentNote[i] = std::min(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
+            currentNote[i] = fminf(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
         else
-            currentNote[i] = std::max(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
+            currentNote[i] = fmaxf(currentNote[i] - SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
 
     vec<VOICESPERCHIP> note = currentNote;
 

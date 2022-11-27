@@ -498,14 +498,14 @@ template <uint32_t Size, typename A = float> class vec {
         vec newVector;
 #pragma GCC unroll 8
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = std::min(a[i], b[i]);
+            newVector[i] = fminf(a[i], b[i]);
         return newVector;
     }
     friend inline vec min(const vec &a, A b) {
         vec newVector;
 #pragma GCC unroll 8
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = std::min(a[i], b);
+            newVector[i] = fminf(a[i], b);
         return newVector;
     }
 
@@ -513,14 +513,14 @@ template <uint32_t Size, typename A = float> class vec {
         vec newVector;
 #pragma GCC unroll 8
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = std::max(a[i], b[i]);
+            newVector[i] = fmaxf(a[i], b[i]);
         return newVector;
     }
     friend inline vec max(const vec &a, A b) {
         vec newVector;
 #pragma GCC unroll 8
         for (uint32_t i = 0; i < Size; i++)
-            newVector[i] = std::max(a[i], b);
+            newVector[i] = fmaxf(a[i], b);
         return newVector;
     }
 

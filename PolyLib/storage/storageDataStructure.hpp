@@ -30,8 +30,10 @@ typedef struct {
 
 typedef struct {
     StoreTYPE dataType;
-    uint8_t sourceID;
-    uint8_t targetID;
+    uint8_t sourceModuleID;
+    uint8_t sourceOutputID;
+    uint8_t targetModuleID;
+    uint8_t targetInputID;
     float amount;
 } patchStorageBlock;
 

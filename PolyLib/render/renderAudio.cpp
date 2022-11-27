@@ -491,25 +491,19 @@ inline float softLimit(float &inputSample) {
     return fminf(sample, 1.0f) * getSign(inputSample);
 }
 
-// float gain = 0.001023217638470900374761396456335660332f;
+// inline float softLimitE(float &inputSample) {
+//     static float threshold = 0.8f;
+//     static float factor = -1.0f / (1.0f - threshold);
 
-// float sos[2][3] = {{1.f, 2.f, 1.f},
-//                    {1.f, -1.907501626046076426135300607711542397738f, 0.911594496599959946969704560615355148911f}};
-// vec<VOICESPERCHIP> bufferX[2];
-// vec<VOICESPERCHIP> bufferY[2];
+//     float absInput = fabsf(inputSample);
 
-// inline void biquad(vec<VOICESPERCHIP> &input, vec<VOICESPERCHIP> &output) {
+//     if (absInput <= threshold)
+//         return inputSample;
 
-//     input *= gain;
+//     float x = (absInput - threshold) * factor;
+//     float limitInput = fminf(absInput, threshold);
 
-//     output = (sos[0][0] * input) + (sos[0][1] * bufferX[0]) + (sos[0][2] * bufferX[1]) + (sos[1][1] * bufferY[0]) +
-//              (sos[1][2] * bufferY[1]);
-
-//     bufferX[1] = bufferX[0];
-//     bufferX[0] = input;
-
-//     bufferY[1] = bufferY[0];
-//     bufferY[0] = output;
+//     return (limitInput + 1 - expf(fmaxf(x, 0.0f))) * getSign(inputSample);
 // }
 
 /**

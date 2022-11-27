@@ -419,3 +419,7 @@ ALWAYS_INLINE inline vec<2, float> bezier2D(const vec<2, float> &p0, const vec<2
 ALWAYS_INLINE inline vec<2, float> simpleBezier2D(const vec<2, float> &p1, const float t) {
     return (vec<2, float>)((2.0f * (1.0f - t) * t) * p1 + (t * t));
 }
+
+//////////////////////Optimized functions for stm32h7 fpu instruction set
+
+// ALWAYS_INLINE void stm32Ceil(const float &input) {}

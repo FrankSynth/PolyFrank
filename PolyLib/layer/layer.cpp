@@ -98,7 +98,6 @@ void Layer::addPatchInOut(Output &sourceOut, Input &targetIn, float amount) {
         if (p->targetIn == &targetIn)
             return;
     }
-
     patchesInOut.push_back(PatchElement(sourceOut, targetIn, id));
     sourceOut.addPatchInOut(patchesInOut.back());
     targetIn.addPatchInOut(patchesInOut.back());
@@ -360,8 +359,10 @@ uint32_t Layer::writeLayer(uint32_t blockStartIndex) {
     // save Patches
     patch.dataType = STORE_PATCH;
     for (PatchElement p : patchesInOut) {
-        patch.sourceID = p.sourceOut->idGlobal;
-        patch.targetID = p.targetIn->idGlobal;
+        patch.sourceOutputID = p.sourceOut->id;
+        patch.targetInputID = p.targetIn->id;
+        patch.sourceModuleID = p.sourceOut->moduleId;
+        patch.targetModuleID = p.targetIn->moduleId;
         patch.amount = p.amount;
 
         bufferPatch[patchIndex++] = patch;

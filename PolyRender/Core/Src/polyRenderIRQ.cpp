@@ -45,15 +45,15 @@ float temperature() {
 
 void polyRenderLoop() {
 
-    elapsedMillis timerWFI;
+    // elapsedMillis timerWFI;
     elapsedMillis timerStatusUpdate;
 
     elapsedMillis runningLED;
 
     GPIO_PinState ledState = GPIO_PIN_RESET;
 
-    bool enableWFI = false;
-    initUsageTimer(); // timer for mcu usage
+    // bool enableWFI = false;
+    // initUsageTimer(); // timer for mcu usage
 
     while (true) {
 
@@ -77,18 +77,18 @@ void polyRenderLoop() {
 
         FlagHandler::handleFlags();
 
-        if (enableWFI) {
-            __disable_irq();
-            stopUsageTimer();
-            __DSB();
-            __WFI();
-            startUsageTimer();
-            __enable_irq();
-        }
-        else {
-            if (timerWFI > 5000)
-                enableWFI = true;
-        }
+        // if (enableWFI) {
+        //     __disable_irq();
+        //     stopUsageTimer();
+        //     __DSB();
+        //     __WFI();
+        //     startUsageTimer();
+        //     __enable_irq();
+        // }
+        // else {
+        //     if (timerWFI > 5000)
+        //         enableWFI = true;
+        // }
     }
 }
 

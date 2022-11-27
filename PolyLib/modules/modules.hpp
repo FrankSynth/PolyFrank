@@ -905,7 +905,7 @@ class Feel : public BaseModule {
     Analog aGlide = Analog("GLIDE", 0.0001, 2, 0, true, linMap, &iGlide);
     Analog aDetune = Analog("DETUNE", 0, 1, .03, true, linMap, &iDetune);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
-    Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.1, true, linMap);
+    Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.01, true, linMap);
 
     RenderBuffer glide;
     RenderBuffer detune;

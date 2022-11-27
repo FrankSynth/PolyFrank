@@ -248,11 +248,25 @@ void loadSettingToGlobalSetting(uint8_t categoryID, uint8_t dataID, uint32_t dat
     println("INFO | DecodeBuffer | read->Depreceated Setting -> Skip");
 }
 
-void loadPatchDatablockToLayer(uint8_t layerID, uint8_t sourceID, uint8_t targetID, float amount) {
+void loadPatchDatablockToLayer(uint8_t layerID, patchStorageBlock data) {
     if ((layerID > 1) | ((layerID != layerFilter) & (layerFilter != LAYER_AB)))
         return;
     // println("P | Source ID: ", sourceID, "  Target ID: ", targetID, "  Amount: ", amount);
-    allLayers[layerID]->addPatchInOutById(sourceID, targetID, amount);
+
+    if (data.sourceModuleID < allLayers[layerID]->getModules().size() &&
+        data.targetModuleID < allLayers[layerID]->getModules().size()) {
+
+        if (data.sourceOutputID < allLayers[layerID]->getModules()[data.sourceModuleID]->getOutputs().size() &&
+            data.targetInputID < allLayers[layerID]->getModules()[data.targetModuleID]->getInputs().size()) {
+
+            uint8_t sourceID =
+                allLayers[layerID]->getModules()[data.sourceModuleID]->getOutputs()[data.sourceOutputID]->idGlobal;
+            uint8_t targetID =
+                allLayers[layerID]->getModules()[data.targetModuleID]->getInputs()[data.targetInputID]->idGlobal;
+
+            allLayers[layerID]->addPatchInOutById(sourceID, targetID, data.amount);
+        }
+    }
 }
 
 void loadAnalogDatablockToModule(uint8_t layerID, uint8_t moduleID, uint8_t dataID, int32_t data) {
@@ -378,7 +392,7 @@ void decodeBuffer() {
 
             pBlock = *(patchStorageBlock *)&(buffer[byteIndex]);
 
-            loadPatchDatablockToLayer(layerID, pBlock.sourceID, pBlock.targetID, pBlock.amount);
+            loadPatchDatablockToLayer(layerID, pBlock);
             byteIndex += sizeof(patchStorageBlock);
         }
         else {
@@ -404,7 +418,7 @@ void decodeBuffer() {
                     loadSettingToArp(layerID, sBlock.id & 0x7F, sBlock.data.asInt);
                     break;
 
-                case STORE_CHECKSUM: println("Blockend reached -> exit decoding"); return;
+                case STORE_CHECKSUM: println("Checksum reached -> exit decoding"); return;
 
                 default: println("INFO | DecodeBuffer | read->Depreceated Block -> Skip"); break;
             }
