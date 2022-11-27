@@ -274,9 +274,7 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
     vec<VOICESPERCHIP> sampleB;
     vec<VOICESPERCHIP> sampleBb;
 
-    uint32_t i;
-
-    for (i = 0; i < VOICESPERCHIP; i++)
+    for (int i = 0; i < VOICESPERCHIP; i++)
         stepWavetableLower[i] = phase[i] * WaveTable::subSize[subWavetable[i]];
 
     positionA = stepWavetableLower;
@@ -284,7 +282,7 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
 
     interSamplePos = stepWavetableLower - positionA;
 
-    for (i = 0; i < VOICESPERCHIP; i++) {
+    for (int i = 0; i < VOICESPERCHIP; i++) {
         uint32_t subWavetableIndex = subWavetable[i];
 
         positionAb[i] = positionAb[i] * (positionAb[i] != WaveTable::subSize[subWavetableIndex]);
@@ -320,9 +318,7 @@ inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
     vec<VOICESPERCHIP> sampleB;
     vec<VOICESPERCHIP> sampleBb;
 
-    uint32_t i;
-
-    for (i = 0; i < VOICESPERCHIP; i++)
+    for (int i = 0; i < VOICESPERCHIP; i++)
         stepWavetableLower[i] = phase[i] * WaveTable::subSize[subWavetable[i]];
 
     positionA = stepWavetableLower;
@@ -330,7 +326,7 @@ inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
 
     interSamplePos = stepWavetableLower - positionA;
 
-    for (i = 0; i < VOICESPERCHIP; i++) {
+    for (int i = 0; i < VOICESPERCHIP; i++) {
         uint32_t subWavetableIndex = subWavetable[i];
 
         positionAb[i] = positionAb[i] * (positionAb[i] != WaveTable::subSize[subWavetableIndex]);

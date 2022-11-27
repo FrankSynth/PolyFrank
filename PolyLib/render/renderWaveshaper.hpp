@@ -23,7 +23,7 @@ inline void renderWaveshaperSample(vec<VOICESPERCHIP> &input, const Waveshaper &
     }
     sample *= getSign(input);
 
-    input = (sample * waveshaper.DryWet) + (input * (((vec<VOICESPERCHIP>)waveshaper.DryWet * (-1.0f)) + 1.0f));
+    input = faster_lerp_f32(input, sample, waveshaper.DryWet);
 }
 
 #endif

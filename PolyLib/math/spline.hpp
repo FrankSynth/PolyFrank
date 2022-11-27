@@ -147,37 +147,34 @@ class spline {
         return m_x.back();
     }
 
-    float getValueWithoutExtrapolation(float x) const {
+    float getValueWithoutExtrapolation(float &x) const {
         // polynomial evaluation using Horner's scheme
         // TODO: consider more numerically accurate algorithms, e.g.:
         //   - Clenshaw
         //   - Even-Odd method by A.C.R. Newbery
         //   - Compensated Horner Scheme
         // size_t n = m_x.size();
-        size_t idx = find_closest_polyfrank(x);
+
+        size_t idx = 0;
+        while (m_x[idx] < x) {
+            idx++;
+        }
+        idx--;
 
         float h = x - m_x[idx];
-        float interpol;
-        // if (x < m_x[0]) {
-        //     // extrapolation to the left
-        //     interpol = (m_c0 * h + m_b[0]) * h + m_y[0];
-        // }
-        // else if (x > m_x[n - 1]) {
-        //     // extrapolation to the right
-        //     interpol = (m_c[n - 1] * h + m_b[n - 1]) * h + m_y[n - 1];
-        // }
-        // else {
-        //     // interpolation
-        interpol = ((m_d[idx] * h + m_c[idx]) * h + m_b[idx]) * h + m_y[idx];
-        // }
-        return interpol;
+        return ((m_d[idx] * h + m_c[idx]) * h + m_b[idx]) * h + m_y[idx];
     }
     // return the closest idx so that m_x[idx] <= x (return 0 if x<m_x[0])
     size_t find_closest_polyfrank(float x) const {
-        std::vector<float>::const_iterator it;
-        it = std::upper_bound(m_x.begin(), m_x.end(), x); // *it > x
-        size_t idx = int(it - m_x.begin()) - 1;           // m_x[idx] <= x
-        return idx;
+        // std::vector<float>::const_iterator it;
+        // it = std::upper_bound(m_x.begin(), m_x.end(), x); // *it > x
+        // size_t idx = int(it - m_x.begin()) - 1;           // m_x[idx] <= x
+        // return idx;
+        size_t index = 0;
+        while (m_x[index] < x) {
+            index++;
+        }
+        return index - 1;
     }
     inline void set_coeffs_from_b_polyfrank() {
 
