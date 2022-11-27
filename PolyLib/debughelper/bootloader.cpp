@@ -5,6 +5,8 @@
 
 SPI_HandleTypeDef *SpiHandle;
 
+extern void ISP_ErrorHandler();
+
 static uint8_t xor_checksum(const uint8_t pData[], uint8_t len);
 
 /**
@@ -25,14 +27,15 @@ void BL_Init(SPI_HandleTypeDef *hspi, uint32_t layer, uint32_t chip) {
 
     setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_TransmitReceive(SpiHandle, &sync_byte, &receive_byte, 1U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     if (receive_byte != 0xA5) {
         return;
     }
 
     /* Get SYNC Byte ACK*/
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
+
+    setCSLine(layer, chip, GPIO_PIN_SET);
 }
 
 /**
@@ -115,10 +118,9 @@ void BL_WriteMemory_Command(uint32_t address, uint8_t nob, uint8_t *pData, uint3
 
     setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, cmd_frame, 3U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     /* Wait for ACK or NACK frame */
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
 
     /* Send data frame: Write Memory start address (4 Bytes) + Checksum (1 Byte) */
     addr_frame[0] = ((uint8_t)(address >> 24) & 0xFFU);
@@ -127,20 +129,18 @@ void BL_WriteMemory_Command(uint32_t address, uint8_t nob, uint8_t *pData, uint3
     addr_frame[3] = ((uint8_t)address & 0xFFU);
     addr_frame[4] = xor_checksum(addr_frame, 4U);
 
-    setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, addr_frame, 5U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     /* Wait for ACK or NACK frame */
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
 
     /* Send data frame: N number of Bytes to be written (1 Byte),
        N + 1 data Bytes and a checksum (1 Byte) */
 
-    setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, &n, 1U, 1000U);
     HAL_SPI_Transmit(SpiHandle, pData, (uint16_t)nob, 1000U);
     HAL_SPI_Transmit(SpiHandle, &checksum, 1U, 1000U);
+
     setCSLine(layer, chip, GPIO_PIN_SET);
 
     /* Wait for ACK or NACK frame */
@@ -169,10 +169,9 @@ void BL_EraseMemory_Command(uint16_t nb, uint8_t code, uint32_t layer, uint32_t 
 
     setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, cmd_frame, 3U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     /* Wait for ACK or NACK frame */
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
 
     /* Send data frame: nb (2 Bytes), the number of pages or sectors to be
        erased + checksum (1 Byte)*/
@@ -180,12 +179,10 @@ void BL_EraseMemory_Command(uint16_t nb, uint8_t code, uint32_t layer, uint32_t 
     data_frame[1] = (uint8_t)nb & 0xFFU;
     data_frame[2] = data_frame[0] ^ data_frame[1];
 
-    setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, data_frame, 3U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     /* Wait for ACK or NACK frame */
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
 
     /* If non-special erase, send page number (2 Bytes) + checksum (1 Byte)*/
     if ((nb >> 4) != 0xFFF) {
@@ -193,13 +190,13 @@ void BL_EraseMemory_Command(uint16_t nb, uint8_t code, uint32_t layer, uint32_t 
         data_frame[1] = code & 0xFFU;
         data_frame[2] = data_frame[0] ^ data_frame[1];
 
-        setCSLine(layer, chip, GPIO_PIN_RESET);
         HAL_SPI_Transmit(SpiHandle, data_frame, 3U, 1000U);
-        setCSLine(layer, chip, GPIO_PIN_SET);
 
         /* Wait for ACK or NACK frame */
-        wait_for_ack(layer, chip);
+        wait_for_ack_WithoutCS();
     }
+
+    setCSLine(layer, chip, GPIO_PIN_SET);
 }
 
 void BL_MassErase_Command_all() {
@@ -219,28 +216,28 @@ void BL_MassErase_Command_all() {
     data_frame[2] = data_frame[0] ^ data_frame[1];
 
     BL_Send_CommandACK(3u, cmd_frame, 0, 0);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_Command(3u, data_frame, 0, 0);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_CommandACK(3u, cmd_frame, 0, 1);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_Command(3u, data_frame, 0, 1);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_CommandACK(3u, cmd_frame, 1, 0);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_Command(3u, data_frame, 1, 0);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_CommandACK(3u, cmd_frame, 1, 1);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     BL_Send_Command(3u, data_frame, 1, 1);
-    HAL_Delay(10);
+    HAL_Delay(1);
 
     wait_for_ack(0, 0);
     wait_for_ack(0, 1);
@@ -259,11 +256,11 @@ void BL_Send_CommandACK(uint16_t nb, uint8_t *data, uint32_t layer, uint32_t chi
 
     setCSLine(layer, chip, GPIO_PIN_RESET);
     HAL_SPI_Transmit(SpiHandle, data, nb, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
-
     /* Wait for ACK or NACK frame */
-    wait_for_ack(layer, chip);
+    wait_for_ack_WithoutCS();
+    setCSLine(layer, chip, GPIO_PIN_SET);
 }
+
 void wait_for_ack(uint32_t layer, uint32_t chip) {
     uint8_t resp;
     uint8_t dummy = 0x00U;
@@ -271,31 +268,62 @@ void wait_for_ack(uint32_t layer, uint32_t chip) {
     uint32_t ack_received = 0U;
 
     setCSLine(layer, chip, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(SpiHandle, &dummy, 1U, 1000U);
-    setCSLine(layer, chip, GPIO_PIN_SET);
 
     while (ack_received != 1U) {
 
-        setCSLine(layer, chip, GPIO_PIN_RESET);
         HAL_SPI_TransmitReceive(SpiHandle, &dummy, &resp, 1U, 1000U);
-        setCSLine(layer, chip, GPIO_PIN_SET);
 
         if (resp == BL_ACK) {
             /* Received ACK: send ACK */
-            setCSLine(layer, chip, GPIO_PIN_RESET);
+
             HAL_SPI_Transmit(SpiHandle, &ack, 1U, 1000U);
-            setCSLine(layer, chip, GPIO_PIN_SET);
 
             ack_received = 1U;
         }
         else if (resp == BL_NAK) {
             /* Received NACK */
-            Error_Handler();
+            ISP_ErrorHandler();
         }
         else {
+
             /* Received junk */
         }
     }
+    setCSLine(layer, chip, GPIO_PIN_SET);
+}
+
+void wait_for_ack_WithoutCS() {
+    uint8_t resp;
+    uint8_t dummy = 0x00U;
+    uint8_t ack = BL_ACK;
+    uint32_t ack_received = 0U;
+
+    while (ack_received != 1U) {
+
+        HAL_SPI_TransmitReceive(SpiHandle, &dummy, &resp, 1U, 1000U);
+
+        if (resp == BL_ACK) {
+            /* Received ACK: send ACK */
+
+            HAL_SPI_Transmit(SpiHandle, &ack, 1U, 1000U);
+
+            ack_received = 1U;
+        }
+        else if (resp == BL_NAK) {
+            /* Received NACK */
+            ISP_ErrorHandler();
+        }
+        else {
+
+            /* Received junk */
+        }
+    }
+}
+
+void sendDummy() {
+    uint8_t dummy = 0x00U;
+
+    HAL_SPI_Transmit(SpiHandle, &dummy, 1U, 1000U);
 }
 
 static uint8_t xor_checksum(const uint8_t pData[], uint8_t len) {

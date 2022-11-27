@@ -163,6 +163,7 @@ inline vec<VOICESPERCHIP> getSubSample() {
     const float &phaseLength = layerA.oscA.phaseLengthSub;
 
     oscApreviousPhase -= (layerA.oscA.phase < oscApreviousPhase);
+
     phaseDifferenceOscA = layerA.oscA.phase - oscApreviousPhase;
     oscApreviousPhase = layerA.oscA.phase;
 

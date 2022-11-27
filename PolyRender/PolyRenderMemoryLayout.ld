@@ -102,8 +102,9 @@ SECTIONS
     *stm32h7xx_it.o (.text .text*)
     *DUALBU22210.o (.text .text*)
     *moduleCallbacks.o (.text .text*)
-    /* *stm32h7xx_hal_spi.o (.text .text*) */
-    /* *stm32h7xx_hal_spi_ex.o (.text .text*) */
+    *PolyVector.o (.text .text*) 
+    *stm32h7xx_hal_spi.o (.text .text*)
+    *stm32h7xx_hal_spi_ex.o (.text .text*)
     *stm32h7xx_hal.o (.text .text*)
 
 

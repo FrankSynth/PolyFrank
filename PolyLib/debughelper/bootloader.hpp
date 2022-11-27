@@ -35,3 +35,5 @@ void BL_Send_CommandACK(uint16_t nb, uint8_t *data, uint32_t layer, uint32_t chi
 void BL_MassErase_Command_all();
 
 void wait_for_ack(uint32_t layer, uint32_t chip);
+void wait_for_ack_WithoutCS();
+void sendDummy();

@@ -165,7 +165,7 @@ void BasePatch::removePatchInOut(PatchElement &patch) {
     }
 }
 
-bool BasePatch::findPatchInOut(uint8_t output, uint8_t input) {
+bool BasePatch::findPatchInOut(uint32_t output, uint32_t input) {
     for (PatchElement *p : patchesInOut) {
         if (p == nullptr) {
             return false;

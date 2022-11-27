@@ -171,6 +171,12 @@ inline void setSwitches() {
 
 void renderCVs() {
     static uint32_t voice = 0;
+    static elapsedMillis randomTimer = 0;
+
+    if (randomTimer > 200) {
+        layerA.fillNoteImperfection();
+        randomTimer = 0;
+    }
 
     collectAllCurrentInputs();
 

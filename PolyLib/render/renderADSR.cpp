@@ -82,7 +82,7 @@ void renderADSR(ADSR &adsr) {
         const float &sustain = adsr.aSustain;
         bool &retriggered = adsr.retriggered[voice];
 
-        const float &imperfection = layerA.adsrImperfection[voice];
+        const float &imperfection = layerA.adsrImperfection[voice] + 1.0f;
 
         // extra if to reduce the input delay 0.5ms
 

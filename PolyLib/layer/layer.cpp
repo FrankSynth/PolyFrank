@@ -215,16 +215,21 @@ void Layer::initLayer() {
     }
 
     // load imperfection buffers
+    fillNoteImperfection();
+}
+
+#define IMPERFECTIONMULT 0.5f
+void Layer::fillNoteImperfection() {
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        lfoImperfection[i] = calcRandom() * LFOIMPERFECTIONWEIGHT;
+        lfoImperfection[i] += IMPERFECTIONMULT * (calcRandom() * LFOIMPERFECTIONWEIGHT);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        adsrImperfection[i] = calcRandom() * ADSRIMPERFECTIONWEIGHT + 1;
+        adsrImperfection[i] += IMPERFECTIONMULT * (calcRandom() * ADSRIMPERFECTIONWEIGHT);
 
     for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
         for (uint32_t o = 0; o < OSCPERVOICE; o++) {
             for (uint32_t x = 0; x < NOTEIMPERFECTIONBUFFERSIZE; x++) {
-                noteImperfection[o][i][x] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+                noteImperfection[o][i][x] += IMPERFECTIONMULT * (calcRandom() * NOTEIMPERFECTIONWEIGHT);
             }
         }
     }

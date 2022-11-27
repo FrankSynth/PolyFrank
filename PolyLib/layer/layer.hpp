@@ -145,6 +145,7 @@ class Layer {
     vec<VOICESPERCHIP> adsrImperfection;
 
     void initLayer();
+    void fillNoteImperfection();
 
     volatile uint8_t chipID = 0;
 

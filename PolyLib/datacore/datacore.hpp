@@ -411,11 +411,11 @@ class RenderBuffer {
     uint8_t layerId;
     uint8_t moduleId;
 
+#ifdef POLYCONTROL
     uint8_t LEDPortID = 0xff;
     uint8_t LEDPinID = 0xff;
-
+#endif
     bool sendOutViaCom;
-
     vec<VOICESPERCHIP> currentSample;
 
     operator float *() { return currentSample; }
@@ -438,6 +438,7 @@ class RenderBuffer {
 };
 
 ///////////////////SYSTEM//////////////////
+#ifdef POLYCONTROL
 
 // Error element
 class Error {
@@ -502,6 +503,7 @@ class Status {
     const char *unitName; // custom Name List for different Values
     bool displayVis = false;
 };
+#endif
 
 ///////////////////PATCHES//////////////////
 
@@ -513,35 +515,39 @@ class BasePatch {
     inline void addPatchInOut(PatchElement &patch) { patchesInOut.push_back(&patch); }
 
     void removePatchInOut(PatchElement &patch);
-    bool findPatchInOut(uint8_t output, uint8_t input);
-
-    inline const char *getName() { return name; };
-    inline const char *getShortName() { return shortName; };
-    inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
+    bool findPatchInOut(uint32_t output, uint32_t input);
 
     uint8_t id;
     uint8_t moduleId;
     uint8_t layerId;
-    uint8_t visible;
     uint8_t idGlobal;
+
+    inline std::vector<PatchElement *> &getPatchesInOut() { return patchesInOut; }
+
+#ifdef POLYCONTROL
+    inline const char *getName() { return name; };
+    inline const char *getShortName() { return shortName; };
+
     const char *name;
     const char *shortName;
-
-    typeLinLog mapping = linMap;
-
-    std::vector<PatchElement *> patchesInOut;
-
+    uint8_t visible;
     uint8_t LEDPortID = 0xFF;
     uint8_t LEDPinID = 0xFF;
 
     uint8_t LEDPortID2 = 0xFF; // for mixer double use LED
     uint8_t LEDPinID2 = 0xFF;  // for mixer double use LED
+#endif
+    std::vector<PatchElement *> patchesInOut;
 };
 
 class Input : public BasePatch {
   public:
     Input(const char *name, const char *shortName = nullptr, RenderBuffer *renderBuffer = nullptr,
-          typeLinLog mapping = linMap, uint8_t visible = 1) {
+          uint8_t visible = 1) {
+        patchesInOut.reserve(3);
+
+#ifdef POLYCONTROL
+
         this->name = name;
 
         if (shortName == nullptr) {
@@ -551,11 +557,11 @@ class Input : public BasePatch {
         else {
             this->shortName = shortName;
         }
-        this->mapping = mapping;
-        patchesInOut.reserve(3);
         this->visible = visible;
 
         this->renderBuffer = renderBuffer;
+
+#endif
     }
 
     vec<VOICESPERCHIP> sample;
@@ -575,12 +581,15 @@ class Input : public BasePatch {
 
     // calculate all inputs with their attached patchesInOut
     void collectCurrentSample();
-    typeLinLog mapping;
 };
 
 class Output : public BasePatch {
   public:
     Output(const char *name, const char *shortName = nullptr, uint8_t visible = 1) {
+
+        patchesInOut.reserve(5);
+#ifdef POLYCONTROL
+
         this->name = name;
         if (shortName == nullptr) {
             this->shortName = name;
@@ -589,8 +598,8 @@ class Output : public BasePatch {
             this->shortName = shortName;
         }
 
-        patchesInOut.reserve(5);
         this->visible = visible;
+#endif
     }
 
     vec<VOICESPERCHIP> currentSample;
@@ -612,9 +621,6 @@ class Output : public BasePatch {
     template <typename T> vec<VOICESPERCHIP> operator-(const T &other) const { return currentSample - other; }
     template <typename T> vec<VOICESPERCHIP> operator*(const T &other) const { return currentSample * other; }
     template <typename T> vec<VOICESPERCHIP> operator/(const T &other) const { return currentSample / other; }
-
-    uint8_t LEDPortID = 0xFF;
-    uint8_t LEDPinID = 0xFF;
 };
 
 class PatchElement {

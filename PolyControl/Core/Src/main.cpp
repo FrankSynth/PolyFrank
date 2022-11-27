@@ -100,7 +100,6 @@ int main(void) {
         MX_GPIO_Init();
         HAL_Delay(100);
         MX_USB_DEVICE_Init();
-        HAL_Delay(2000); // wait for reconnect
 
         flashRenderMCUSPI();
     }
@@ -243,7 +242,7 @@ void SystemClock_Config(void) {
         RCC_PERIPHCLK_USB | RCC_PERIPHCLK_FMC | RCC_PERIPHCLK_ADC;
     PeriphClkInitStruct.PLL2.PLL2M = 2;
     PeriphClkInitStruct.PLL2.PLL2N = 60;
-    PeriphClkInitStruct.PLL2.PLL2P = 8;
+    PeriphClkInitStruct.PLL2.PLL2P = 5;
     PeriphClkInitStruct.PLL2.PLL2Q = 10;
     PeriphClkInitStruct.PLL2.PLL2R = 10;
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;

@@ -52,13 +52,9 @@ void flashRenderMCUSPI() {
 
     // Init all devices
     BL_Init(&hspi1, 0, 0);
-    HAL_Delay(10);
     BL_Init(&hspi1, 0, 1);
-    HAL_Delay(10);
     BL_Init(&hspi1, 1, 0);
-    HAL_Delay(10);
     BL_Init(&hspi1, 1, 1);
-    HAL_Delay(10);
 
     response = ENTERMODE;
     CDC_Transmit_FS(&response, 1); // READY FOR ERASE
@@ -137,6 +133,15 @@ void flashRenderMCUSPI() {
     HAL_Delay(100);
 
     NVIC_SystemReset();
+}
+
+void ISP_ErrorHandler() {
+
+    uint8_t response = COMFAILURE;
+    CDC_Transmit_FS(&response, 1); // Update finished
+    HAL_Delay(500);
+
+    __NVIC_SystemReset();
 }
 
 //////////////////DFU////////////

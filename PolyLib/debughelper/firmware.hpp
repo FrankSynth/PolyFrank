@@ -9,6 +9,7 @@
 #define ERASEDONE 0x05
 #define UPDATEFINISH 0x06
 #define STARTERASE 0x07
+#define COMFAILURE 0x08
 
 // #define HELP 126 // activate DFU MODE
 
