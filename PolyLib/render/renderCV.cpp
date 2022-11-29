@@ -83,10 +83,8 @@ List of assignement
 */
 
 inline void collectAllCurrentInputs() {
-    for (BaseModule *m : layerA.modules) {
-        for (Input *i : m->inputs) {
-            i->collectCurrentSample();
-        }
+    for (Input *i : layerA.inputs) {
+        i->collectCurrentSample();
     }
 }
 

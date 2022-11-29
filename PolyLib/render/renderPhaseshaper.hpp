@@ -4,7 +4,7 @@
 
 #ifdef POLYRENDER
 
-void renderPhaseshaper(Phaseshaper &phaseshaper, RenderBuffer &effectAmt);
+void renderPhaseshaper(Phaseshaper &phaseshaper, const RenderBuffer &effectAmt);
 
 /**
  * @brief calculates vec<VOICESPERCHIP> at once
@@ -29,10 +29,10 @@ inline vec<VOICESPERCHIP> renderPhaseshaperSample(const vec<VOICESPERCHIP> &inpu
                 phaseshaper.Point3Y[voice] + phaseshaper.slope[2][voice] * (input[voice] - phaseshaper.Point3X[voice]);
         }
     }
+    sample = max(sample, 0.9999999f); // for safety agains rounding error
 
     return faster_lerp_f32(input, sample, phaseshaper.DryWet);
 }
-#endif
 
 /**
  * @brief returns single sample
@@ -41,4 +41,23 @@ inline vec<VOICESPERCHIP> renderPhaseshaperSample(const vec<VOICESPERCHIP> &inpu
  * @param layer current layer
  * @return float
  */
-float renderPhaseshaperSample(float input, const Phaseshaper &phaseshaper);
+
+inline float renderPhaseshaperSample(const float &input, const Phaseshaper &phaseshaper) {
+    float sample;
+
+    if (input < phaseshaper.Point2X[0]) {
+        sample = phaseshaper.Point1Y[0] + phaseshaper.slope[0][0] * input;
+    }
+    else if (input < phaseshaper.Point3X[0]) {
+        sample = phaseshaper.Point2Y[0] + phaseshaper.slope[1][0] * (input - phaseshaper.Point2X[0]);
+    }
+    else {
+        sample = phaseshaper.Point3Y[0] + phaseshaper.slope[2][0] * (input - phaseshaper.Point3X[0]);
+    }
+
+    sample = fminf(sample, 0.9999999f); // for safety agains rounding error
+
+    return faster_lerp_f32(input, sample, phaseshaper.DryWet[0]);
+}
+
+#endif

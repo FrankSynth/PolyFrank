@@ -152,11 +152,12 @@ class spline {
         // TODO: consider more numerically accurate algorithms, e.g.:
         //   - Clenshaw
         //   - Even-Odd method by A.C.R. Newbery
-        //   - Compensated Horner Scheme
+        //   - Compensated Horner Schemes
         // size_t n = m_x.size();
 
         size_t idx = 0;
-        while (m_x[idx] < x) {
+
+        while (m_x[idx] < x && idx < m_x.size()) {
             idx++;
         }
         idx--;

@@ -75,6 +75,15 @@ ALWAYS_INLINE inline float faster_lerp_f32(float &a, float &b, const float &f) {
     return a + (b - a) * f;
 }
 
+ALWAYS_INLINE inline float faster_CrossLerp_f32(const float &a, const float &b, const float &c, const float &d,
+                                                const float &f1, const float &f2) {
+
+    float interA = a + ((b - a) * f1);
+    interA = interA + ((c + ((d - c) * f1) - interA) * f2);
+
+    return interA;
+}
+
 /**
  * @brief returns -1 for val>0 and 1 for val<=0
  *

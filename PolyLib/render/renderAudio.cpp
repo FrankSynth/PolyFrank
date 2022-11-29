@@ -137,7 +137,7 @@ inline vec<VOICESPERCHIP> getNoiseSample() {
 
     vec<VOICESPERCHIP> randomNumber;
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+    for (int i = 0; i < VOICESPERCHIP; i++)
         randomNumber[i] = float(hrng.Instance->DR & 0x00FFFFFF);
 
     vec<VOICESPERCHIP, bool> sampleCrushNow = (++sampleCrushCount) > (layerA.noise.samplecrusher * 960.f);
@@ -199,14 +199,10 @@ inline vec<VOICESPERCHIP> getSubSample() {
 
     newSample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, shape);
 
-    // sampleA = faster_lerp_f32(sampleA, sampleAb, interSamplePos);
-    // sampleB = faster_lerp_f32(sampleB, sampleBb, interSamplePos);
-    // newSample = faster_lerp_f32(sampleA, sampleB, shape);
-
     return newSample;
 }
 
-inline void getRippleSample(vec<VOICESPERCHIP> &sampleRipple, vec<VOICESPERCHIP> &newPhase) {
+inline void getRippleSample(vec<VOICESPERCHIP> &sampleRipple, const vec<VOICESPERCHIP> &newPhase) {
     static vec<VOICESPERCHIP> ripplePhase = 0.0f;
     static vec<VOICESPERCHIP> rippleDamp = 0.0f;
     static vec<VOICESPERCHIP> oldPhase;
@@ -257,7 +253,7 @@ inline void getRippleSample(vec<VOICESPERCHIP> &sampleRipple, vec<VOICESPERCHIP>
     sampleRipple += faster_lerp_f32(sampleA, sampleAb, interSamplePos) * rippleDamp * layerA.oscA.RippleAmount;
 }
 
-inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP> &phase) {
+inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, const vec<VOICESPERCHIP> &phase) {
 
     const vec<VOICESPERCHIP, uint32_t> &subWavetable = layerA.oscA.subWavetable;
     const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionLower = layerA.oscA.waveTableSelectionLower;
@@ -295,13 +291,9 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
     }
 
     sample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, morphFract);
-
-    // sampleA = faster_lerp_f32(sampleA, sampleAb, interSamplePos);
-    // sampleB = faster_lerp_f32(sampleB, sampleBb, interSamplePos);
-    // sample = faster_lerp_f32(sampleA, sampleB, morphFract);
 }
 
-inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP> &phase) {
+inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, const vec<VOICESPERCHIP> &phase) {
 
     const vec<VOICESPERCHIP, uint32_t> &subWavetable = layerA.oscB.subWavetable;
     const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionLower = layerA.oscB.waveTableSelectionLower;
@@ -339,10 +331,6 @@ inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, vec<VOICESPERCHIP
     }
 
     sample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, morphFract);
-
-    // sampleA = faster_lerp_f32(sampleA, sampleAb, interSamplePos);
-    // sampleB = faster_lerp_f32(sampleB, sampleBb, interSamplePos);
-    // sample = faster_lerp_f32(sampleA, sampleB, morphFract);
 }
 
 inline vec<VOICESPERCHIP> getOscASample() {
@@ -455,7 +443,7 @@ vec<VOICESPERCHIP> getOscBSample() {
 // possible combinations threshold = 0.8, maxloudness = 4 n=16      careful, go check for d!
 // possible combinations threshold = 0.8, maxloudness = 3 n=11      careful, go check for d!
 // possible combinations threshold = 0.9, maxloudness = 4 (high n!) careful, go check for d!
-inline float softLimit(float &inputSample) {
+inline float softLimit(const float &inputSample) {
 
     const float threshold = 0.8f;
     const float maxVal = 3.0f;
@@ -483,6 +471,24 @@ inline float softLimit(float &inputSample) {
     return fminf(sample, 1.0f) * getSign(inputSample);
 }
 
+// inline float softLimitFast(const float &inputSample) {
+//     const float threshold = 0.8f;
+//     const float factor = 100.f / (1 - 0.8f);
+
+//     float index;
+
+//     // float sign = getSign(inputSample);
+//     float absInput = fabsf(inputSample);
+
+//     index = fmax(absInput - threshold, 0.0f) * factor;
+
+//     uint32_t indexA = index;
+//     uint32_t indexB = indexA + 1;
+//     float interpolate = (float)indexA + index;
+
+//     return sample * getSign(inputSample);
+// }
+
 /**
  * @brief render all Audio Samples
  *
@@ -492,10 +498,10 @@ void renderAudio(volatile int32_t *renderDest) {
     static vec<VOICESPERCHIP> sampleSteinerAcc;
     static vec<VOICESPERCHIP> sampleLadderAcc;
 
-    vec<VOICESPERCHIP> oscASample;
-    vec<VOICESPERCHIP> oscBSample;
-    vec<VOICESPERCHIP> noiseSample;
-    vec<VOICESPERCHIP> subSample;
+    vec<VOICESPERCHIP> oscASample = 1;
+    vec<VOICESPERCHIP> oscBSample = 1;
+    vec<VOICESPERCHIP> noiseSample = 1;
+    vec<VOICESPERCHIP> subSample = 1;
 
     vec<VOICESPERCHIP> sampleSteiner;
     vec<VOICESPERCHIP> sampleLadder;
@@ -509,16 +515,15 @@ void renderAudio(volatile int32_t *renderDest) {
         subSample = getSubSample();
 
         // sum
-        for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
-            sampleSteiner[i] = noiseSample[i] * layerA.mixer.noiseLevelSteiner[i];
-            sampleLadder[i] = noiseSample[i] * layerA.mixer.noiseLevelLadder[i];
-            sampleSteiner[i] += subSample[i] * layerA.mixer.subLevelSteiner[i];
-            sampleLadder[i] += subSample[i] * layerA.mixer.subLevelLadder[i];
-            sampleSteiner[i] += oscASample[i] * layerA.mixer.oscALevelSteiner[i];
-            sampleLadder[i] += oscASample[i] * layerA.mixer.oscALevelLadder[i];
-            sampleSteiner[i] += oscBSample[i] * layerA.mixer.oscBLevelSteiner[i];
-            sampleLadder[i] += oscBSample[i] * layerA.mixer.oscBLevelLadder[i];
-        }
+        sampleSteiner = noiseSample * layerA.mixer.noiseLevelSteiner;
+        sampleSteiner += oscASample * layerA.mixer.oscALevelSteiner;
+        sampleSteiner += oscBSample * layerA.mixer.oscBLevelSteiner;
+        sampleSteiner += subSample * layerA.mixer.subLevelSteiner;
+
+        sampleLadder = noiseSample * layerA.mixer.noiseLevelLadder;
+        sampleLadder += subSample * layerA.mixer.subLevelLadder;
+        sampleLadder += oscASample * layerA.mixer.oscALevelLadder;
+        sampleLadder += oscBSample * layerA.mixer.oscBLevelLadder;
 
         // 1pole filter
         sampleSteinerAcc += 0.06151176F * (sampleSteiner - sampleSteinerAcc);
