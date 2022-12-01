@@ -20,12 +20,12 @@ void printViaSTLink(const char *arg) {
 
 #ifdef POLYCONTROL
     appendBuffer(str);
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
 
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -42,11 +42,11 @@ void printViaSTLink(const unsigned char *arg) {
 #ifdef POLYCONTROL
     appendBuffer(str);
 
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -64,11 +64,11 @@ void printViaSTLink(char *arg) {
 #ifdef POLYCONTROL
     appendBuffer(str);
 
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -85,11 +85,11 @@ void printViaSTLink(unsigned char *arg) {
 
 #ifdef POLYCONTROL
     appendBuffer(str);
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)str.data(), str.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -104,11 +104,11 @@ void printViaSTLink(const std::string &arg) {
 
 #ifdef POLYCONTROL
     appendBuffer(arg);
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -123,11 +123,11 @@ void printViaSTLink(std::string &arg) {
 
 #ifdef POLYCONTROL
     appendBuffer(arg);
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }
@@ -142,11 +142,11 @@ void printViaSTLink(std::string &&arg) {
 
 #ifdef POLYCONTROL
     appendBuffer(arg);
-    if (FlagHandler::USB_FS_CONNECTED) {
+    if (FlagHandler::USB_FS_CONNECTED && FlagHandler::COM_PRINT_ENABLE) {
         USBHSTIMEOUT = 0;
         while (CDC_Transmit_FS((uint8_t *)arg.data(), arg.length()) == USBD_BUSY) {
             if (USBHSTIMEOUT > 5000) {
-                FlagHandler::USB_FS_CONNECTED = false;
+                FlagHandler::COM_PRINT_ENABLE = false;
                 return;
             }
         }

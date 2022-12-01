@@ -39,7 +39,7 @@ typedef struct {
 
 // Store Structure
 
-const uint32_t BLOCKBUFFERSIZE = 3072;
+const uint32_t BLOCKBUFFERSIZE = 4096;
 
 const uint32_t CONFIG_BLOCKSIZE = 1024;
 

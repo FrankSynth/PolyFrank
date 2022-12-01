@@ -7,7 +7,7 @@
 
 #include "storage/storageDataStructure.hpp"
 
-typedef enum { PRESET_FREE, PRESET_USED } USAGE_STATE;
+typedef enum : uint8_t { PRESET_FREE, PRESET_USED } USAGE_STATE;
 
 typedef enum { LAYER_A, LAYER_B, LAYER_AB } LAYER_SELECT;
 
@@ -15,9 +15,7 @@ const uint32_t PRESET_NAMELENGTH = 32;
 
 typedef struct presetStruct {
     char name[PRESET_NAMELENGTH];
-    uint8_t categoryID;
     uint8_t storageID;
-
     uint32_t saveCounterID;
     USAGE_STATE usageState;
 

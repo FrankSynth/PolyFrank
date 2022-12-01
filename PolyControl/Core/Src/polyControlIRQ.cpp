@@ -487,7 +487,7 @@ void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd) {
         FlagHandler::USB_HS_CONNECTED = true;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        FlagHandler::USB_FS_CONNECTED = true;
+        FlagHandler::COM_PRINT_ENABLE = true;
     }
 }
 
@@ -497,7 +497,7 @@ void PolyUSBDisconnectCallback(PCD_HandleTypeDef *hpcd) {
         FlagHandler::USB_HS_CONNECTED = false;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        FlagHandler::USB_FS_CONNECTED = false;
+        FlagHandler::COM_PRINT_ENABLE = false;
     }
 }
 
@@ -511,6 +511,10 @@ void printHelp() {
     println("-isp  flash all 4 render uC (COMmunicate)");
     println("-dfu  enable DFU mode (not working)");
     println("-EEPROM_CLEAR  clear EEPROM IC");
+    println("-getPresetTable");
+    println("-getPresetFromID");
+    println("-writePresetTable");
+    println("-writePresetToID");
 }
 
 void printStatus() {
@@ -524,89 +528,55 @@ void printDeviceManager() {
     println(report);
 }
 
+void printPresetTable() {
+    FlagHandler::COM_PRINT_ENABLE = false; // disable print
+    readPresetTable();
+    CDC_Transmit_FS(blockBuffer, TABLE_BLOCKSIZE);
+    FlagHandler::COM_PRINT_ENABLE = true; // enable print
+}
+
+void printPreset(uint8_t index) {
+    FlagHandler::COM_PRINT_ENABLE = false; // disable print
+    readPresetBlock(index);
+    if (checkBuffer()) {
+        CDC_Transmit_FS(blockBuffer, PRESET_BLOCKSIZE);
+    }
+    FlagHandler::COM_PRINT_ENABLE = true; // enable print
+}
+
 extern USBD_HandleTypeDef hUsbDeviceHS;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 void COMmunicateISR() {
     static std::vector<char> data;
+    static elapsedMillis timeout = 0;
+
     while (comAvailable()) {
+
         FlagHandler::COM_USB_TRAFFIC = true;
+        FlagHandler::COM_PRINT_ENABLE = true; // reactivate USB COM seems we have an open com port
 
         if (data.size() > 50) { // take care we are not flooding our memory
             data.clear();
         }
         data.push_back(comRead());
-        if (!data.empty()) {               // data not empty -> decode
+        if (!data.empty()) { // data not empty -> decode
+
             if (data.back() == (char)10) { // if we get a "ENTER" decode the data
                 data.pop_back();
                 std::string command(data.begin(), data.end());
 
                 if (command.compare("-dfu") == 0) {
 
-                    uint8_t response = ENTERMODE;
-                    CDC_Transmit_FS(&response, 1);
+                    // uint8_t response = ENTERMODE;
+                    // CDC_Transmit_FS(&response, 1);
 
-                    // HAL_Delay(10);
-                    // HAL_PCD_DevDisconnect(&hpcd_USB_OTG_HS);
-                    // HAL_Delay(10);
-                    // HAL_PCD_DevDisconnect(&hpcd_USB_OTG_FS);
-                    // HAL_Delay(10);
-                    // USBD_DeInit(&hUsbDeviceHS);
-                    // HAL_Delay(10);
-                    // USBD_DeInit(&hUsbDeviceFS);
-                    // HAL_Delay(10);
-
-                    // USB_CoreReset(hpcd_USB_OTG_FS.Instance);
-                    // __HAL_RCC_USB_OTG_HS_ULPI_CLK_SLEEP_ENABLE();
-                    // __HAL_RCC_USB_OTG_FS_ULPI_CLK_SLEEP_ENABLE();
-                    // __HAL_RCC_USB_OTG_HS_CLK_SLEEP_ENABLE();
-                    // __HAL_RCC_USB_OTG_FS_CLK_SLEEP_ENABLE();
-
-                    // hpcd_USB_OTG_FS.Instance->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
-                    // while (hpcd_USB_OTG_FS.Instance->GRSTCTL & USB_OTG_GRSTCTL_CSRST)
-                    //     ;
-                    // while (!(hpcd_USB_OTG_FS.Instance->GRSTCTL & USB_OTG_GRSTCTL_AHBIDL))
-                    //     ;
-                    // hpcd_USB_OTG_FS.Instance->GINTSTS = 0x04000020; // Reset value
-
-                    // RCC->AHB1ENR = 0x00000000;
-
-                    // HAL_Delay(10);
                     // RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
-                    // __HAL_RCC_OTGHS_FORCE_RESET();
-                    // __HAL_RCC_OTGFS_FORCE_RESET();
 
-                    // HAL_Delay(1000);
+                    // HAL_Delay(500);
 
-                    // __HAL_RCC_OTGHS_RELEASE_RESET();
-                    // __HAL_RCC_OTGFS_RELEASE_RESET();
-
-                    // hpcd_USB_OTG_FS.Instance->GOTGCTL = 0x00010000;
-                    // hpcd_USB_OTG_FS.Instance->GUSBCFG = 0x00001400;
-                    // hpcd_USB_OTG_FS.Instance->GRSTCTL = 0x00001400;
-
-                    // hpcd_USB_OTG_FS.Instance->CID = 0x00001200;
-                    // hpcd_USB_OTG_FS.Instance->GLPMCFG = 0x00;
-                    // hpcd_USB_OTG_FS.Instance->HPTXFSIZ = 0x02000600;
-
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[0] = 0x02000200;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[1] = 0x02000600;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[2] = 0x02000800;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[3] = 0x02000A00;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[4] = 0x02000C00;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[5] = 0x02000E00;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[6] = 0x02001000;
-                    // hpcd_USB_OTG_FS.Instance->DIEPTXF[7] = 0x02001200;
-
-                    // __HAL_RCC_OTGFS_FORCE_RESET();
-                    // __HAL_RCC_OTGFS_RELEASE_RESET();
-
-                    RCC->AHB1ENR &= ~(RCC_AHB1ENR_USB1OTGHSEN | RCC_AHB1ENR_USB2OTGFSEN);
-
-                    HAL_Delay(500);
-
-                    rebootToBooloader();
-                    break;
+                    // rebootToBooloader();
+                    // break;
                 }
                 else if (command.compare("-isp") == 0) { // make a restart to ISP
 
@@ -700,8 +670,98 @@ void COMmunicateISR() {
 
                     __NVIC_SystemReset();
                 }
+
+                else if (command.compare("-getPresetTable") == 0) { // Return Table over COM
+                    printPresetTable();
+                }
+
+                else if (command.compare("-getPresetFromID") == 0) { // Return Preset from ID over COM
+                    timeout = 0;
+                    while (!comAvailable())
+                        if (timeout > 500)
+                            return;
+                    ; // wait for ID
+
+                    uint8_t index = comRead(); // read index
+
+                    printPreset(index);
+                }
+
+                else if (command.compare("-writePresetTable") == 0) { // Write Table over COM
+                    // Wait for ID
+                    FlagHandler::COM_PRINT_ENABLE = false; // disable print
+                    timeout = 0;
+
+                    // Wait for TableBlock
+                    for (uint32_t i = 0; i < TABLE_BLOCKSIZE; i++) {
+                        while (!comAvailable())
+                            if (timeout > 500)
+                                return;
+                        ;
+                        blockBuffer[i] = comRead();
+                    }
+                    // Check CRC and Marker
+                    if (checkBuffer()) {
+                        println("INFO | COM | Write PresetTable..");
+                        writePresetTableBlock();
+                        updatePresetList();
+                        println("INFO | COM |  ..done");
+
+                        // Response
+                        uint8_t res = DATAVALID;
+                        CDC_Transmit_FS(&res, 1);
+                    }
+                    else {
+                        uint8_t res = DATAINVALID;
+                        CDC_Transmit_FS(&res, 1);
+                        println("INFO | COM | ChecksumError");
+                    }
+
+                    FlagHandler::COM_PRINT_ENABLE = true; // enable print
+                }
+                else if (command.compare("-writePresetToID") == 0) { // Write Preset over COM to specified ID
+                    // Wait for ID
+                    timeout = 0;
+
+                    FlagHandler::COM_PRINT_ENABLE = false; // disable print
+                    while (!comAvailable())
+                        if (timeout > 500)
+                            return;
+                    ;
+
+                    uint8_t index = comRead(); // read index
+
+                    // Wait for PresetBlock
+                    timeout = 0;
+                    for (uint32_t i = 0; i < PRESET_BLOCKSIZE; i++) {
+                        while (!comAvailable())
+                            if (timeout > 500)
+                                return;
+                        ;
+                        blockBuffer[i] = comRead();
+                    }
+
+                    // Check CRC and Marker
+                    if (checkBuffer()) {
+                        println("INFO | COM | Write PresetBlock : ", index, "  ..");
+                        writePresetBlock(index);
+                        println("INFO | COM | ..done");
+
+                        // Response
+
+                        uint8_t res = DATAVALID;
+                        CDC_Transmit_FS(&res, 1);
+                    }
+                    else {
+                        uint8_t res = DATAINVALID;
+                        CDC_Transmit_FS(&res, 1);
+                        println("INFO | COM | ChecksumError");
+                    }
+
+                    FlagHandler::COM_PRINT_ENABLE = true; // enable print
+                }
                 else {
-                    println("Invalid Command.. for help type -h");
+                    println("INFO | COM | Invalid Command.. for help type -h");
                 }
 
                 data.clear();

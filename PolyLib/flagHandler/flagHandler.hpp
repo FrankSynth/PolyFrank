@@ -52,6 +52,7 @@ extern volatile bool USB_FS_CONNECTED;
 extern volatile bool MIDI_USB_TRAFFIC;
 extern volatile bool MIDI_DIN_TRAFFIC;
 extern volatile bool COM_USB_TRAFFIC;
+extern volatile bool COM_PRINT_ENABLE;
 
 // Display
 extern volatile bool renderingDoneSwitchBuffer;

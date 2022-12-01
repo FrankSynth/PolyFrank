@@ -34,6 +34,7 @@ std::function<void()> Panel_1_Touch_ISR = nullptr;
 
 volatile bool USB_HS_CONNECTED = false;
 volatile bool USB_FS_CONNECTED = false;
+volatile bool COM_PRINT_ENABLE = false;
 
 volatile bool MIDI_USB_TRAFFIC = false;
 volatile bool MIDI_DIN_TRAFFIC = false;
