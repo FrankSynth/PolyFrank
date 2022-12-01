@@ -487,7 +487,7 @@ void PolyUSBConnectCallback(PCD_HandleTypeDef *hpcd) {
         FlagHandler::USB_HS_CONNECTED = true;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        FlagHandler::COM_PRINT_ENABLE = true;
+        FlagHandler::USB_FS_CONNECTED = true;
     }
 }
 
@@ -497,7 +497,7 @@ void PolyUSBDisconnectCallback(PCD_HandleTypeDef *hpcd) {
         FlagHandler::USB_HS_CONNECTED = false;
     }
     else if (hpcd->Instance == hpcd_USB_OTG_FS.Instance) { // FS Connected
-        FlagHandler::COM_PRINT_ENABLE = false;
+        FlagHandler::USB_FS_CONNECTED = false;
     }
 }
 

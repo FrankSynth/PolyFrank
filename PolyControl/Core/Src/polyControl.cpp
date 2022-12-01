@@ -133,7 +133,7 @@ void deviceConfig();
 void PolyControlInit() {
 
     HAL_Delay(200); // wait 200ms for system stabilisation
-
+    FlagHandler::COM_PRINT_ENABLE = true;
     // Say hello
 
     // Enable Layer Board
