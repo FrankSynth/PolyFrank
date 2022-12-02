@@ -164,7 +164,8 @@ void temperature() {
     adc_v = HAL_ADC_GetValue(&hadc3);
     globalSettings.controlStatus.temperature.value = adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30;
 
-    if (globalSettings.controlStatus.temperature.value > 70) {
+    if (globalSettings.controlStatus.temperature.value > 70.f &&
+        globalSettings.controlStatus.temperature.value < 125.f) {
         FlagHandler::SYS_OVERHEAT = true;
     }
 
