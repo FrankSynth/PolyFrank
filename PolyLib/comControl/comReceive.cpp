@@ -2,7 +2,7 @@
 
 #include "comReceive.hpp"
 #include "debughelper/debughelper.hpp"
-CircularBuffer<uint8_t, 512> receiveBuffer; // read buffer
+CircularBuffer<uint8_t, 5120> receiveBuffer; // read buffer
 
 void comReceive(uint8_t *Buf, uint32_t *Len) {
     for (uint32_t i = 0; i < *Len; i++) {

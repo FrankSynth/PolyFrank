@@ -43,7 +43,7 @@ extern IS31FL3205 ledDriverControl;
 void sendRequestAllUIData();
 void receiveFromRenderChip(uint8_t layer, uint8_t chip);
 void checkLayerRequests();
-
+void COMmunicateISR();
 // InterChip Com
 extern COMinterChip layerCom;
 extern COMdin MIDIDinRead;
@@ -91,6 +91,9 @@ void polyControlLoop() { // Here the party starts
             // startUsageTimer();
             ui.Draw();
         }
+
+        COMmunicateISR();
+
         // if (enableWFI) {
         //     __disable_irq();
         //     stopUsageTimer();
@@ -544,6 +547,15 @@ void printPreset(uint8_t index) {
     FlagHandler::COM_PRINT_ENABLE = true; // enable print
 }
 
+void sendDataACK() {
+    uint8_t res = DATAVALID;
+    CDC_Transmit_FS(&res, 1);
+}
+void sendDataNACK() {
+    uint8_t res = DATAINVALID;
+    CDC_Transmit_FS(&res, 1);
+}
+
 extern USBD_HandleTypeDef hUsbDeviceHS;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
@@ -672,10 +684,12 @@ void COMmunicateISR() {
                 }
 
                 else if (command.compare("-getPresetTable") == 0) { // Return Table over COM
+                    sendDataACK();
                     printPresetTable();
                 }
 
                 else if (command.compare("-getPresetFromID") == 0) { // Return Preset from ID over COM
+                    sendDataACK();
                     timeout = 0;
                     while (!comAvailable())
                         if (timeout > 500)
@@ -684,13 +698,21 @@ void COMmunicateISR() {
 
                     uint8_t index = comRead(); // read index
 
+                    if (index > PRESET_NUMBERBLOCKS) {
+                        sendDataNACK();
+                        return;
+                    }
+
+                    sendDataACK();
+
                     printPreset(index);
                 }
 
                 else if (command.compare("-writePresetTable") == 0) { // Write Table over COM
-                    // Wait for ID
-                    FlagHandler::COM_PRINT_ENABLE = false; // disable print
+                    FlagHandler::COM_PRINT_ENABLE = false;            // disable print
                     timeout = 0;
+
+                    sendDataACK();
 
                     // Wait for TableBlock
                     for (uint32_t i = 0; i < TABLE_BLOCKSIZE; i++) {
@@ -702,18 +724,14 @@ void COMmunicateISR() {
                     }
                     // Check CRC and Marker
                     if (checkBuffer()) {
+                        sendDataACK();
                         println("INFO | COM | Write PresetTable..");
                         writePresetTableBlock();
                         updatePresetList();
                         println("INFO | COM |  ..done");
-
-                        // Response
-                        uint8_t res = DATAVALID;
-                        CDC_Transmit_FS(&res, 1);
                     }
                     else {
-                        uint8_t res = DATAINVALID;
-                        CDC_Transmit_FS(&res, 1);
+                        sendDataNACK();
                         println("INFO | COM | ChecksumError");
                     }
 
@@ -721,21 +739,29 @@ void COMmunicateISR() {
                 }
                 else if (command.compare("-writePresetToID") == 0) { // Write Preset over COM to specified ID
                     // Wait for ID
-                    timeout = 0;
 
+                    timeout = 0;
+                    sendDataACK();
                     FlagHandler::COM_PRINT_ENABLE = false; // disable print
                     while (!comAvailable())
-                        if (timeout > 500)
+                        if (timeout > 1000)
                             return;
                     ;
 
                     uint8_t index = comRead(); // read index
 
+                    if (index > PRESET_NUMBERBLOCKS) {
+                        sendDataNACK();
+                        return;
+                    }
+
+                    sendDataACK();
+
                     // Wait for PresetBlock
                     timeout = 0;
                     for (uint32_t i = 0; i < PRESET_BLOCKSIZE; i++) {
                         while (!comAvailable())
-                            if (timeout > 500)
+                            if (timeout > 1000)
                                 return;
                         ;
                         blockBuffer[i] = comRead();
@@ -743,18 +769,13 @@ void COMmunicateISR() {
 
                     // Check CRC and Marker
                     if (checkBuffer()) {
+                        sendDataACK();
                         println("INFO | COM | Write PresetBlock : ", index, "  ..");
                         writePresetBlock(index);
                         println("INFO | COM | ..done");
-
-                        // Response
-
-                        uint8_t res = DATAVALID;
-                        CDC_Transmit_FS(&res, 1);
                     }
                     else {
-                        uint8_t res = DATAINVALID;
-                        CDC_Transmit_FS(&res, 1);
+                        sendDataNACK();
                         println("INFO | COM | ChecksumError");
                     }
 
@@ -780,8 +801,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) { // timer interrupt
         FlagHandler::readTemperature = true;
     }
     if (htim->Instance == htim16.Instance) {
-
-        COMmunicateISR();
 
         if (globalSettings.midiSource.getValue() == 0) { // if midi USB
             if (midiDeviceUSB.read()) {

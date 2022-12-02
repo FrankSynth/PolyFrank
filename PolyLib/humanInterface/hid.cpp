@@ -137,20 +137,22 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
 
                 // this filters out the switching artefact of the octave switches
                 //  check data stability
-                if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
-                    octaveSwitchCounter[layer][channel - 1]++;
-                }
-                else {
-                    octaveSwitchCounter[layer][channel - 1] = 0;
-                }
+                if (potiData > 400) {                                                        // filter interswitchstate
+                    if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
+                        octaveSwitchCounter[layer][channel - 1]++;
+                    }
+                    else {
+                        octaveSwitchCounter[layer][channel - 1] = 0;
+                    }
 
-                // value stable -> apply new octave switch value
-                if (octaveSwitchCounter[layer][channel - 1] > 10) {
-                    if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
-                        panelADCStates[layer][multiplex][channel] = potiData;
+                    // value stable -> apply new octave switch value
+                    if (octaveSwitchCounter[layer][channel - 1] > 10) {
+                        if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
+                            panelADCStates[layer][multiplex][channel] = potiData;
 
-                        potiFunctionPointer[layer][multiplex][channel].function(
-                            panelADCStates[layer][multiplex][channel]);
+                            potiFunctionPointer[layer][multiplex][channel].function(
+                                panelADCStates[layer][multiplex][channel]);
+                        }
                     }
                 }
 
@@ -193,7 +195,7 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                     if (globalSettings.presetValueHandling.value == 0) { // we need to move a poti to overwrite the
                                                                          // value
 
-                        if (difference >> 3) {  // check value change is big enough for preset overwrite
+                        if (difference >> 5) {  // check value change is big enough for preset overwrite
                             updateValue = true; // update poti to release lock
                         }
                     }
