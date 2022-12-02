@@ -62,6 +62,12 @@ std::function<void()> ledDriverB_ISR[2];
 std::function<void()> ledDriverControl_ISR;
 std::function<void()> ledDriverUpdateCurrent_ISR;
 
+volatile bool SYS_TIMEOUT = false;
+volatile bool SYS_HARDFAULT = false;
+volatile bool SYS_OVERHEAT = false;
+
+elapsedMillis SYS_TIMER = 0;
+
 #elif POLYRENDER
 
 // InterChip receive flags

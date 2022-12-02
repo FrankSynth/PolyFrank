@@ -283,6 +283,64 @@ void drawString(const std::string &text, uint32_t color, uint32_t x, uint32_t y,
     }
 }
 
+void drawStringSoftware(const std::string &text, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont) {
+    renderTask task;
+    task.mode = SOFT_M2M; // Set DMA2D To copy M2M with Blending
+
+    task.height = activeFont->size; // Set Font Height
+
+    // Curser Position
+    uint32_t posX = x;
+    uint32_t posY = y;
+
+    // For each Char
+    for (const char &c : text) {
+
+        task.x = posX;
+        task.y = posY;
+
+        task.width = activeFont->font[(uint32_t)c - 32].BytesPerLine * 2;  // Character Width
+        task.pSource = (uint32_t)activeFont->font[(uint32_t)c - 32].pData; // Pointer to Character
+
+        renderSoftware(task); // Add Task to RenderQue
+
+        posX += activeFont->font[(uint32_t)c - 32].XSize; // Distance to next character
+    }
+}
+
+void clearFrameBuffer() {
+    int color = 0x00000000;
+    memset((int32_t *)FrameBufferA, color, (LCDWIDTH * LCDHEIGHT) * 2);
+    memset((int32_t *)FrameBufferB, color, (LCDWIDTH * LCDHEIGHT) * 2);
+};
+
+void renderSoftware(renderTask &task) {
+    task.outputOffset = LCDWIDTH - task.width;
+    task.pTarget = (uint32_t)pFrameBuffer + (LCDWIDTH * task.y + task.x) * 2;
+
+    if (((task.x + task.width) <= LCDWIDTH)       //
+        && ((task.y + task.height) <= LCDHEIGHT)  //
+        && task.width                             //
+        && task.height                            //
+        && (renderQueue.size() < MAXDRAWCALLS)) { // in render region and width and height not 0
+
+        if (task.mode == SOFT_M2M) {
+            for (uint32_t y = 0; y < task.height; y++) {
+
+                for (uint32_t x = 0; x < task.width; x++) {
+                    uint32_t indexSource = y * task.width / 2 + x / 2;
+                    uint32_t indexTarget = y * LCDWIDTH + x;
+
+                    if ((((uint8_t *)task.pSource)[indexSource] & 0x0F) > 0x8 ||
+                        (((uint8_t *)task.pSource)[indexSource] & 0xF0) > 0x80) {
+                        ((uint16_t *)task.pTarget)[indexTarget] = 0xFFFF;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void copyWaveBuffer(WaveBuffer &buffer, uint32_t x, uint32_t y) {
     renderTask task;
 

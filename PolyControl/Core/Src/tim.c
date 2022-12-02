@@ -32,6 +32,7 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim16;
+TIM_HandleTypeDef htim17;
 
 /* TIM2 init function */
 void MX_TIM2_Init(void) {
@@ -82,7 +83,7 @@ void MX_TIM4_Init(void) {
     }
 }
 
-/* TIM5 init function */
+/* TIM3 init function */
 void MX_TIM3_Init(void) {
     TIM_ClockConfigTypeDef sClockSourceConfig = {0};
     TIM_MasterConfigTypeDef sMasterConfig = {0};
@@ -181,6 +182,31 @@ void MX_TIM16_Init(void) {
 
     /* USER CODE END TIM16_Init 2 */
 }
+
+/* TIM16 init function */
+void MX_TIM17_Init(void) {
+
+    /* USER CODE BEGIN TIM16_Init 0 */
+
+    /* USER CODE END TIM16_Init 0 */
+
+    /* USER CODE BEGIN TIM16_Init 1 */
+
+    /* USER CODE END TIM16_Init 1 */
+    htim17.Instance = TIM17;
+    htim17.Init.Prescaler = 240000 - 1;
+    htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim17.Init.Period = 1000 - 1;
+    htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim17.Init.RepetitionCounter = 0;
+    htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim17) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN TIM16_Init 2 */
+
+    /* USER CODE END TIM16_Init 2 */
+}
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
 
     if (tim_baseHandle->Instance == TIM2) {
@@ -245,6 +271,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         /* TIM16 interrupt Init */
         HAL_NVIC_SetPriority(TIM16_IRQn, 8, 0);
         HAL_NVIC_EnableIRQ(TIM16_IRQn);
+        /* USER CODE BEGIN TIM16_MspInit 1 */
+
+        /* USER CODE END TIM16_MspInit 1 */
+    }
+
+    else if (tim_baseHandle->Instance == TIM17) {
+        /* USER CODE BEGIN TIM16_MspInit 0 */
+
+        /* USER CODE END TIM16_MspInit 0 */
+        /* TIM16 clock enable */
+        __HAL_RCC_TIM17_CLK_ENABLE();
+
+        /* TIM16 interrupt Init */
+        HAL_NVIC_SetPriority(TIM17_IRQn, 1, 0); // TODO CHECK PRIO
+        HAL_NVIC_EnableIRQ(TIM17_IRQn);
         /* USER CODE BEGIN TIM16_MspInit 1 */
 
         /* USER CODE END TIM16_MspInit 1 */

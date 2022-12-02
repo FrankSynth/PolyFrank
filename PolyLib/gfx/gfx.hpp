@@ -23,8 +23,19 @@
 #define BLUE 0x000000FF
 
 typedef enum { LEFT, CENTER, RIGHT, TOP, BOTTOM } FONTALIGN;
-typedef enum { R2M, M2MTRANSPARENT, M2MTRANSPARENT_A4, M2MRGB565, M2MARGB4444, UNDEFINDDRAWTYPE } DRAWTYPE;
+typedef enum {
+    R2M,
+    M2MTRANSPARENT,
+    M2MTRANSPARENT_A4,
+    M2MRGB565,
+    M2MARGB4444,
+    UNDEFINDDRAWTYPE,
+    SOFT_M2M,
+    SOFT_R2M
+} DRAWTYPE;
 typedef enum { RENDER_DONE, RENDER_PROGRESS, RENDER_WAIT } RENDERSTATE;
+
+extern RENDERSTATE renderState;
 
 #define FRAMEBUFFERSIZE LCDWIDTH *LCDHEIGHT *LCDDATASIZE
 
@@ -98,6 +109,7 @@ void copyWaveBuffer(WaveBuffer &buffer, uint32_t x, uint32_t y);
 void copyBitmapToBuffer(const GUI_BITMAP &image, uint32_t color, uint32_t x, uint32_t y);
 
 ////////////Software GFX ////////////
+
 void drawFilledCircle(WaveBuffer &buffer, int x0, int y0, uint16_t color, float r);
 
 void drawLine(WaveBuffer &buffer, int x0, int y0, int x1, int y1, uint16_t color);
@@ -118,3 +130,9 @@ inline void drawPixelThick(WaveBuffer &buffer, int32_t x0, int32_t y0, uint16_t 
         }
     }
 }
+
+////////////SYSTEMMONITOR SOFTWARE DRAW////////////
+void clearFrameBuffer();
+
+void drawStringSoftware(const std::string &text, uint32_t x, uint32_t y, const GUI_FONTINFO *activeFont);
+void renderSoftware(renderTask &task);

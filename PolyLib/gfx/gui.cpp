@@ -208,4 +208,15 @@ void GUI::checkFocusChange() {
     }
 }
 
+void GUI::drawSysInfo(std::string message) {
+    renderQueue.clear();
+    renderState = RENDER_PROGRESS; // block framebuffer Switch
+
+    clearFrameBuffer();
+    drawStringSoftware("SUPERVISOR", 20, 20, fontBig);
+    drawStringSoftware("A CriticalSystem failure called the system supervisor", 20, 70, fontMedium);
+    drawStringSoftware("Message :", 20, 100, fontMedium);
+    drawStringSoftware(message, 20, 150, fontBig);
+    SwitchFrameBuffer();
+}
 #endif // ifdef POLYCONTROL

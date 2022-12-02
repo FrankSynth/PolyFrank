@@ -40,7 +40,8 @@
                 "PolyLib/render",
                 "PolyLib/humanInterface",
                 "PolyLib/hardware",
-                "PolyLib/comControl"
+                "PolyLib/comControl",
+                "PolyLib/supervisor"
             ],
             "defines": [
                 "STM32H743xx",

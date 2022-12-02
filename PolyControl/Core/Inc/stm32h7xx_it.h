@@ -48,6 +48,7 @@ extern "C" {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
+
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void MemManage_Handler(void);
@@ -90,6 +91,8 @@ void OTG_FS_IRQHandler(void);
 void TIM3_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void TIM16_IRQHandler(void);
+void TIM17_IRQHandler(void);
+
 void BDMA_Channel0_IRQHandler(void);
 void BDMA_Channel1_IRQHandler(void);
 void BDMA_Channel2_IRQHandler(void);

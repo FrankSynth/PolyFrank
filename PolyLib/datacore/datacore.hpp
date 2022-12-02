@@ -478,6 +478,7 @@ class Status {
         this->unitName = unitName;
         this->name = name;
         this->displayVis = displayVis;
+        value = 0.0f;
     }
 
     void appendValueAsString(std::string &buffer, bool withName = true, bool withUnit = true, bool withReturn = true) {
@@ -498,7 +499,7 @@ class Status {
         }
     }
 
-    float value;
+    float value = 0.0f;
     const char *name;     // custom Name List for different Values
     const char *unitName; // custom Name List for different Values
     bool displayVis = false;

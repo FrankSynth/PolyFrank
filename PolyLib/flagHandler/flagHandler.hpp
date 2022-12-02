@@ -76,6 +76,12 @@ extern std::function<void()> ledDriverUpdateCurrent_ISR;
 
 extern volatile bool ledDriverUpdateCurrent;
 
+extern volatile bool SYS_TIMEOUT;
+extern volatile bool SYS_HARDFAULT;
+extern volatile bool SYS_OVERHEAT;
+
+extern elapsedMillis SYS_TIMER;
+
 #elif POLYRENDER
 
 extern volatile bool outputCollect;

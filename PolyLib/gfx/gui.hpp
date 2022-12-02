@@ -25,7 +25,7 @@ class GUI {
     void Init();
     void Draw();
     void clear();
-
+    void drawSysInfo(std::string message);
     void checkFocusChange();
 
     GUIPanelBase *activePanel = nullptr;

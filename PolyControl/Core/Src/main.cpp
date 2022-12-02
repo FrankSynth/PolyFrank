@@ -151,15 +151,16 @@ int main(void) {
     MX_RNG_Init();
     MX_TIM2_Init();
     MX_ADC3_Init();
-
     MX_TIM16_Init();
+    MX_TIM17_Init();
     MX_CRC_Init();
     /* USER CODE BEGIN 2 */
     // 4 wait states for flash
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(FLASH_LATENCY_4));
 
-    HAL_TIM_Base_Start(&htim2);
+    HAL_TIM_Base_Start_IT(&htim17);
 
+    HAL_TIM_Base_Start(&htim2);
     HAL_TIM_Base_Start(&htim13);
     HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
     HAL_TIM_Base_Start_IT(&htim4);

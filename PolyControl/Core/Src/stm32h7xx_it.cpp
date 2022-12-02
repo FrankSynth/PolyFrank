@@ -100,16 +100,19 @@ void NMI_Handler(void) {
     /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
+extern void supervisor();
 /**
  * @brief This function handles Hard fault interrupt.
  */
 void HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
+    FlagHandler::SYS_HARDFAULT = true;
 
+    supervisor();
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
-        /* USER CODE BEGIN W1_HardFault_IRQn 0 */
-        /* USER CODE END W1_HardFault_IRQn 0 */
+
+        // should never reach this
     }
 }
 
@@ -521,6 +524,20 @@ void TIM16_IRQHandler(void) {
 
     /* USER CODE END TIM16_IRQn 1 */
 }
+
+/**
+ * @brief This function handles TIM17 global interrupt.
+ */
+void TIM17_IRQHandler(void) {
+    /* USER CODE BEGIN TIM16_IRQn 0 */
+
+    /* USER CODE END TIM16_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim17);
+    /* USER CODE BEGIN TIM16_IRQn 1 */
+
+    /* USER CODE END TIM16_IRQn 1 */
+}
+
 /**
  * @brief This function handles TIM5 global interrupt.
  */
