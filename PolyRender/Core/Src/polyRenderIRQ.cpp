@@ -32,14 +32,15 @@ uint8_t sendAudioTime(float audioTime);
 
 //////////////TEMPERATURE////////////
 float temperature() {
+    static unsigned int adc_v;
+    static float adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
 
-    const float adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
+    float temp = 0;
+    if (LL_ADC_IsActiveFlag_EOC(hadc3.Instance)) { // check for EOC
 
-    uint32_t adc_v = HAL_ADC_GetValue(&hadc3);
-
-    float temp = adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30;
-
-    HAL_ADC_Start(&hadc3);
+        adc_v = hadc3.Instance->DR;                                          // read adc
+        temp = adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30; // calc temp
+    }
     return temp;
 }
 

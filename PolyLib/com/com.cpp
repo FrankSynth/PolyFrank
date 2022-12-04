@@ -1033,9 +1033,8 @@ uint8_t COMinterChip::decodeCurrentInBuffer() {
                 float valueFloat = *(float *)&(dmaInBufferPointer[currentInBufferSelect])[++i];
 
                 globalSettings.renderStatus[receiveLayer][receiveChip].temperature.value = valueFloat;
-                if (globalSettings.renderStatus[receiveLayer][receiveChip].temperature.value > 70.f &&
-                    globalSettings.renderStatus[receiveLayer][receiveChip].temperature.value <
-                        125.f) { // check overtemperature and plausability
+                if (globalSettings.renderStatus[receiveLayer][receiveChip].temperature.value >
+                    65.f) { // check overtemperature
                     FlagHandler::SYS_OVERHEAT = true;
                 }
 

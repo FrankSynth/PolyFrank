@@ -157,19 +157,19 @@ uint8_t sendDeleteAllPatches(uint8_t layerId) {
 
 //////////////TEMPERATURE////////////
 void temperature() {
-
     static unsigned int adc_v;
     static float adcx = (110.0 - 30.0) / (*(unsigned short *)(0x1FF1E840) - *(unsigned short *)(0x1FF1E820));
 
-    adc_v = HAL_ADC_GetValue(&hadc3);
-    globalSettings.controlStatus.temperature.value = adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30;
+    if (LL_ADC_IsActiveFlag_EOC(hadc3.Instance)) { // check for EOC
 
-    if (globalSettings.controlStatus.temperature.value > 70.f &&
-        globalSettings.controlStatus.temperature.value < 125.f) {
-        FlagHandler::SYS_OVERHEAT = true;
+        adc_v = hadc3.Instance->DR; // read adc
+        globalSettings.controlStatus.temperature.value =
+            adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30; // calc temp
+
+        if (globalSettings.controlStatus.temperature.value > 65.f) { // check overheating
+            FlagHandler::SYS_OVERHEAT = true;
+        }
     }
-
-    HAL_ADC_Start(&hadc3);
 }
 
 //////////////MIDI////////////
