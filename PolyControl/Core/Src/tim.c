@@ -228,7 +228,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         /* USER CODE BEGIN TIM3_MspInit 1 */
 
         /* USER CODE END TIM3_MspInit 1 */
-        HAL_NVIC_SetPriority(TIM3_IRQn, 1, 3);
+        HAL_NVIC_SetPriority(TIM3_IRQn, 3, 4);
         HAL_NVIC_EnableIRQ(TIM3_IRQn);
     }
     else if (tim_baseHandle->Instance == TIM4) {
@@ -284,7 +284,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         __HAL_RCC_TIM17_CLK_ENABLE();
 
         /* TIM16 interrupt Init */
-        HAL_NVIC_SetPriority(TIM17_IRQn, 1, 0); // TODO CHECK PRIO
+        HAL_NVIC_SetPriority(TIM17_IRQn, 2, 0); // TODO CHECK PRIO
         HAL_NVIC_EnableIRQ(TIM17_IRQn);
         /* USER CODE BEGIN TIM16_MspInit 1 */
 

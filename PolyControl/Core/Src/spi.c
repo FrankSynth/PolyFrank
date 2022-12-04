@@ -252,7 +252,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
             __HAL_LINKDMA(spiHandle, hdmarx, hdma_spi1_rx);
         }
         /* SPI1 interrupt Init */
-        HAL_NVIC_SetPriority(SPI1_IRQn, 2, 0);
+        HAL_NVIC_SetPriority(SPI1_IRQn, 4, 0);
         HAL_NVIC_EnableIRQ(SPI1_IRQn);
         /* USER CODE BEGIN SPI1_MspInit 1 */
 
@@ -337,7 +337,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmarx, hdma_spi2_rx);
 
         /* SPI2 interrupt Init */
-        HAL_NVIC_SetPriority(SPI2_IRQn, 2, 0);
+        HAL_NVIC_SetPriority(SPI2_IRQn, 4, 0);
         HAL_NVIC_EnableIRQ(SPI2_IRQn);
         /* USER CODE BEGIN SPI2_MspInit 1 */
 
@@ -397,7 +397,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         __HAL_LINKDMA(spiHandle, hdmatx, hdma_spi6_tx);
 
         /* SPI6 interrupt Init */
-        HAL_NVIC_SetPriority(SPI6_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(SPI6_IRQn, 6, 0);
         HAL_NVIC_EnableIRQ(SPI6_IRQn);
         /* USER CODE BEGIN SPI6_MspInit 1 */
 

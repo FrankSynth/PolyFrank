@@ -211,6 +211,9 @@ void GUI::checkFocusChange() {
 void GUI::drawSysInfo(std::string message) {
     renderQueue.clear();
     renderState = RENDER_PROGRESS; // block framebuffer Switch
+                                   // setDisplayBrightness
+    __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1,
+                          5 * 1000); // 6553* 1-10 -> 65530
 
     clearFrameBuffer();
     drawStringSoftware("SUPERVISOR", 20, 20, fontBig);

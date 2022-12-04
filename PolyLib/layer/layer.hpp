@@ -122,6 +122,7 @@ class Layer {
         envA.gateOn(voice);
         envF.gateOn(voice);
         midi.gateOn(voice);
+        oscA.resetPhase(voice);
     }
 
     inline void gateOff(uint16_t voice) {

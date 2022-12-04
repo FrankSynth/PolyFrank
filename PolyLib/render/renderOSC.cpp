@@ -69,8 +69,8 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     vec<VOICESPERCHIP> note = currentNote;
 
-    layerA.oscA.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
-                                                                   (float)(SUBWAVETABLES - 1));
+    layerA.oscA.subWavetable = (vec<VOICESPERCHIP, float>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
+                                                                (float)(SUBWAVETABLES - 1));
 
     layerA.oscA.oscNote = note; // to calc subtable
 
@@ -101,8 +101,8 @@ void renderOSC_A() {
     layerA.oscA.bitcrusherInv = 1.0f / layerA.oscA.bitcrusher.currentSample;
     layerA.oscA.samplecrusher = accumulateSamplecrusher();
 
-    layerA.oscA.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscA.morph));
-    layerA.oscA.waveTableSelectionUpper = (layerA.oscA.waveTableSelectionLower + 1u) & 0b11;
+    layerA.oscA.waveTableSelectionA = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscA.morph));
+    layerA.oscA.waveTableSelectionB = (layerA.oscA.waveTableSelectionA + 1u) & 0b11;
 
     layerA.oscA.morphFract = layerA.oscA.morph - floor((vec<VOICESPERCHIP>)layerA.oscA.morph);
 
@@ -111,8 +111,7 @@ void renderOSC_A() {
     layerA.oscA.phaseLengthSub = 0.5f * !layerA.oscA.dOctaveSwitchSub + 0.25f * layerA.oscA.dOctaveSwitchSub;
 
     layerA.oscA.subWavetable =
-        clamp(round((layerA.oscA.oscNote - (layerA.oscA.dOctaveSwitchSub + 1)) * ((float)SUBWAVETABLES / 10.0f)), 0.0f,
-              (float)(SUBWAVETABLES - 1)); // TODO with round? standardrange is  10, so we divide to get the factor
+        (layerA.oscA.oscNote - (layerA.oscA.dOctaveSwitchSub + 1)) * ((float)SUBWAVETABLES / 10.0f);
 
     ////// Ripple
     layerA.oscA.RippleAmount = accumulateRippleAmount();

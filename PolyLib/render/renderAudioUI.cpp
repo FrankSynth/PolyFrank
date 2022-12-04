@@ -98,8 +98,8 @@ inline float getOscASample(float phase) {
     float &samplecrusher = layerA.oscA.samplecrusher[0];
     float &morphFract = layerA.oscA.morphFract[0];
 
-    uint32_t &waveTableSelectionLower = layerA.oscA.waveTableSelectionLower[0];
-    uint32_t &waveTableSelectionUpper = layerA.oscA.waveTableSelectionUpper[0];
+    uint32_t &waveTableSelectionA = layerA.oscA.waveTableSelectionA[0];
+    uint32_t &waveTableSelectionB = layerA.oscA.waveTableSelectionB[0];
 
     // Phaseshaper
     float shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
@@ -107,8 +107,8 @@ inline float getOscASample(float phase) {
     // sample
     uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
-    float sampleA = oscAwavetable[waveTableSelectionLower].subData[0][positionA];
-    float sampleB = oscAwavetable[waveTableSelectionUpper].subData[0][positionA];
+    float sampleA = oscAwavetable[waveTableSelectionA].subData[0][positionA];
+    float sampleB = oscAwavetable[waveTableSelectionB].subData[0][positionA];
 
     float newSample = faster_lerp_f32(sampleA, sampleB, morphFract);
 

@@ -217,6 +217,10 @@ class OSC_A : public BaseModule {
 #endif
     }
 
+#ifdef POLYRENDER
+    void resetPhase(uint8_t voice) { phaseReset[voice] = true; }
+#endif
+
     Output out = Output("OUT");
 
     Input iFM = Input("FM", "FM", &fm);
@@ -272,9 +276,10 @@ class OSC_A : public BaseModule {
     RenderBuffer RippleRatio;
     RenderBuffer RippleDamp;
 
-    vec<VOICESPERCHIP, uint32_t> subWavetable;
-    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
-    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
+    vec<VOICESPERCHIP, bool> phaseReset = false;
+    vec<VOICESPERCHIP, float> subWavetable;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionA;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionB;
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> phase;
     vec<VOICESPERCHIP> oscNote;
