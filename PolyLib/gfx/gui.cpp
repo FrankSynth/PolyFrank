@@ -217,7 +217,7 @@ void GUI::drawSysInfo(std::string message) {
 
     clearFrameBuffer();
     drawStringSoftware("SUPERVISOR", 20, 20, fontBig);
-    drawStringSoftware("A CriticalSystem failure called the system supervisor", 20, 70, fontMedium);
+    drawStringSoftware("The system was struck by a cosmic particle", 20, 70, fontMedium);
     drawStringSoftware("Message :", 20, 100, fontMedium);
     drawStringSoftware(message, 20, 150, fontBig);
     SwitchFrameBuffer();

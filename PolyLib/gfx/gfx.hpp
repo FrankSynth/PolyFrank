@@ -44,6 +44,9 @@ extern RENDERSTATE renderState;
 #define WAVEFORMHEIGHTINFO WAVEFORMHEIGHT - CUSTOMINFOHEIGHT
 #define WAVEFORMQUICKHEIGHT 180
 
+extern volatile FRAMEBUFFER_A uint8_t FrameBufferA[FRAMEBUFFERSIZE];
+extern volatile FRAMEBUFFER_B uint8_t FrameBufferB[FRAMEBUFFERSIZE];
+
 extern uint8_t *pFrameBuffer;
 // rendertask struct
 typedef struct {

@@ -166,7 +166,8 @@ void temperature() {
         globalSettings.controlStatus.temperature.value =
             adcx * (float)(adc_v - *(unsigned short *)(0x1FF1E820)) + 30; // calc temp
 
-        if (globalSettings.controlStatus.temperature.value > 65.f) { // check overheating
+        if (globalSettings.controlStatus.temperature.value > 65.f &&
+            globalSettings.controlStatus.temperature.value < 120.f) { // check overheating
             FlagHandler::SYS_OVERHEAT = true;
         }
     }

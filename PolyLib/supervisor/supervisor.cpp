@@ -24,7 +24,7 @@ extern GUI ui;
 #define CHUNKSIZE 128 // usb limit?
 
 void printHelp() {
-    println("Hello Frank here!");
+    println("\r\nHello Frank here!");
     println("Here some help for you:");
     println("-h    help");
     println("-r    system reset");
@@ -33,19 +33,25 @@ void printHelp() {
     println("-isp  flash all 4 render uC (COMmunicate)");
     println("-dfu  enable DFU mode (not working)");
     println("-EEPROM_CLEAR  clear EEPROM IC");
+    println("-enable");
+    println("------PresetManager------");
     println("-getPresetTable");
     println("-getPresetFromID");
     println("-writePresetTable");
     println("-writePresetToID");
+    println("-conPManager");
+    println("-disconPManager");
 }
 
 void printStatus() {
     std::string report;
+    println("\r\n");
     globalSettings.statusReport(report);
     println(report);
 }
 void printDeviceManager() {
     std::string report;
+    println("\r\n");
     deviceManager.report(report);
     println(report);
 }
@@ -60,6 +66,24 @@ void printPreset(uint8_t index) {
     if (checkBuffer()) {
         CDC_Transmit_FS(blockBuffer, PRESET_BLOCKSIZE);
     }
+}
+
+bool waitforACK() {
+    elapsedMillis timeout = 0;
+
+    while (!comAvailable()) {
+        if (timeout > 1000) {
+            println("wait for ack -> timeout");
+            return true;
+        }
+    }
+    uint8_t data = comRead();
+
+    if (data == DATAVALID)
+        return false;
+
+    println("wait for ack -> no ack received");
+    return true;
 }
 
 void sendDataACK() {
@@ -81,12 +105,16 @@ void COMmunicateISR() {
     while (comAvailable()) {
 
         FlagHandler::COM_USB_TRAFFIC = true;
-        FlagHandler::COM_PRINT_ENABLE = true; // reactivate USB COM seems we have an open com port
 
         if (data.size() > 50) { // take care we are not flooding our memory
             data.clear();
         }
-        data.push_back(comRead());
+        char newData = comRead();
+        if (newData == '-') // a new command start, flush rx buffer
+            data.clear();
+
+        data.push_back(newData);
+
         if (!data.empty()) { // data not empty -> decode
 
             if (data.back() == (char)10) { // if we get a "ENTER" decode the data
@@ -199,14 +227,11 @@ void COMmunicateISR() {
                 }
 
                 else if (command.compare("-getPresetTable") == 0) { // Return Table over COM
-                    FlagHandler::COM_PRINT_ENABLE = false;          // disable print
                     sendDataACK();
                     printPresetTable();
-                    FlagHandler::COM_PRINT_ENABLE = true; // disable print
                 }
 
                 else if (command.compare("-getPresetFromID") == 0) { // Return Preset from ID over COM
-                    FlagHandler::COM_PRINT_ENABLE = false;           // disable print
 
                     sendDataACK();
                     timeout = 0;
@@ -227,12 +252,9 @@ void COMmunicateISR() {
                     sendDataACK();
 
                     printPreset(index);
-
-                    FlagHandler::COM_PRINT_ENABLE = true; // disable print
                 }
 
                 else if (command.compare("-writePresetTable") == 0) { // Write Table over COM
-                    FlagHandler::COM_PRINT_ENABLE = false;            // disable print
 
                     sendDataACK();
 
@@ -254,12 +276,9 @@ void COMmunicateISR() {
                         sendDataNACK();
                         println("INFO | COM | ChecksumError");
                     }
-
-                    FlagHandler::COM_PRINT_ENABLE = true; // enable print
                 }
                 else if (command.compare("-writePresetToID") == 0) { // Write Preset over COM to specified ID
                     // Wait for ID
-                    FlagHandler::COM_PRINT_ENABLE = false; // disable print
 
                     sendDataACK();
                     timeout = 0;
@@ -297,11 +316,63 @@ void COMmunicateISR() {
                         sendDataNACK();
                         println("INFO | COM | ChecksumError");
                     }
+                }
+
+                else if (command.compare("-conPManager") == 0) { // Write Preset over COM to specified ID
+                    FlagHandler::COM_PRINT_ENABLE = false;       // enable print
+                    sendDataACK();
+                }
+
+                else if (command.compare("-disconPManager") == 0) { // Write Preset over COM to specified ID
+                    FlagHandler::COM_PRINT_ENABLE = true;           // disable print
+                    sendDataACK();
+                }
+
+                else if (command.compare("-enable") == 0) { // Write Preset over COM to specified ID
+                    FlagHandler::COM_PRINT_ENABLE = true;   // enable print
+                    println("printEnabled");
+                }
+
+                else if (command.compare("-getFramebuffer") == 0) { // Write Preset over COM to specified ID
+                    FlagHandler::COM_PRINT_ENABLE = false;          // enable print
+                    sendDataACK();
+
+                    uint8_t *framebufferPointer = (uint8_t *)FrameBufferA;
+                    if (pFrameBuffer == (uint8_t *)FrameBufferA)
+                        framebufferPointer = (uint8_t *)FrameBufferB;
+
+                    uint32_t standardChunkSize = 2048;
+                    uint32_t index = 0;
+                    uint32_t chunkSize;
+                    uint8_t buffer[2048];
+
+                    println("start frambuffer transmit");
+
+                    while (index < FRAMEBUFFERSIZE) {
+                        if ((FRAMEBUFFERSIZE - index) > standardChunkSize) {
+                            chunkSize = standardChunkSize;
+                        }
+                        else {
+                            chunkSize = (FRAMEBUFFERSIZE - index);
+                        }
+
+                        memcpy(buffer, &(framebufferPointer[index]), standardChunkSize);
+
+                        CDC_Transmit_FS(buffer, chunkSize);
+
+                        index += chunkSize;
+                        if (waitforACK()) {
+                            return;
+                        };
+                    }
+
+                    println("end frambuffer transmit");
 
                     FlagHandler::COM_PRINT_ENABLE = true; // enable print
                 }
+
                 else {
-                    println("INFO | COM | Invalid Command.. for help type -h");
+                    println("invalid .. for help type -h");
                 }
 
                 data.clear();
