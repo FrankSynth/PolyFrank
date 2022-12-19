@@ -224,10 +224,10 @@ void PolyControlInit() {
         l->resetLayer();
     }
 
-    for (Layer *l : allLayers) {
-        l->oscA.dWavetableSet.setValueWithoutMapping(0);
-        l->oscB.dWavetableSet.setValueWithoutMapping(1);
-    }
+    // for (Layer *l : allLayers) {
+    //     l->oscA.dWavetableSet.setValueWithoutMapping(0);
+    //     l->oscB.dWavetableSet.setValueWithoutMapping(2);
+    // }
 
     // Graphical User Interface
     ui.Init();

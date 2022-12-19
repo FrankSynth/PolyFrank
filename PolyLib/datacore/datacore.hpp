@@ -13,7 +13,7 @@
 
 extern float ROTARYENCODERACCELERATION;
 
-enum typeLinLog { linMap, logMap };
+enum typeLinLog { linMap, logMap, strongLogMap };
 
 class Input;
 class RenderBuffer;

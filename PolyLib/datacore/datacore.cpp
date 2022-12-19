@@ -2,6 +2,8 @@
 #include "debughelper/debughelper.hpp"
 
 LogCurve logMapping(64, 0.1);
+LogCurve strongLogMapping(64, 0.025);
+
 LogCurve antiLogMapping(64, 0.9);
 
 /////////////ANALOG////////////
@@ -26,6 +28,21 @@ void Analog::setValue(int32_t newValue) {
             valueMapped =
                 faster_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
             valueMapped = logMapping.mapValueSigned(valueMapped) * (max - min) + min;
+        }
+    }
+
+    else if (mapping == strongLogMap) {
+        if (min < 0) { // we expect an symmetrical value{
+            float valueFloat = 0;
+            valueFloat =
+                faster_lerp_f32(-1, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
+
+            valueMapped = strongLogMapping.mapValueSigned(valueFloat) * (outputRange / 2);
+        }
+        else { // we expect an symmetrical value{
+            valueMapped =
+                faster_lerp_f32(0, 1, (float)(value - minInputValue) / (float)(maxInputValue - minInputValue));
+            valueMapped = strongLogMapping.mapValueSigned(valueMapped) * (max - min) + min;
         }
     }
 

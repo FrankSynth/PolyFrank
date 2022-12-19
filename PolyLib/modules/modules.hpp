@@ -372,7 +372,7 @@ class OSC_B : public BaseModule {
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 1, false, &nlWavetableSets, nullptr, true, false);
+    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 2, false, &nlWavetableSets, nullptr, true, false);
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -758,11 +758,11 @@ class ADSR : public BaseModule {
 
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
 
-    Analog aDelay = Analog("DELAY", 0, 5, 0, true, logMap, nullptr, false);
-    Analog aAttack = Analog("ATTACK", 0.0005, 20, 0.5, true, logMap, nullptr, false);
-    Analog aDecay = Analog("DECAY", 0.0005, 30, 0.5, true, logMap, nullptr, false);
+    Analog aDelay = Analog("DELAY", 0, 5, 0, true, strongLogMap, nullptr, false);
+    Analog aAttack = Analog("ATTACK", 0.0015, 20, 0.5, true, strongLogMap, nullptr, false);
+    Analog aDecay = Analog("DECAY", 0.0015, 30, 0.5, true, strongLogMap, nullptr, false);
     Analog aSustain = Analog("SUSTAIN", 0, 1, 0.6, true, linMap, nullptr, false);
-    Analog aRelease = Analog("RELEASE", 0.0005, 30, 0.5, true, logMap, nullptr, false);
+    Analog aRelease = Analog("RELEASE", 0.0015, 30, 0.5, true, strongLogMap, nullptr, false);
     Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, true);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
