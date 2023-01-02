@@ -11,7 +11,7 @@
 #define MAXWAVETABLELENGTH 9216
 #define WAVETABLESPERVOICE 4
 #define MAXWAVETABLESPERVOICE 4
-#define WAVETABLESAMOUNT 19
+#define WAVETABLESAMOUNT 22
 #define SUBWAVETABLES 16
 
 class WaveTable;
@@ -71,3 +71,6 @@ extern const WaveTable wavetable_pm4;
 extern const WaveTable wavetable_FeltPianoLow;
 extern const WaveTable wavetable_GuitarHigh;
 extern const WaveTable wavetable_GuitarLow;
+extern const WaveTable wavetable_MiniSaw;
+extern const WaveTable wavetable_MiniSquare;
+extern const WaveTable wavetable_MiniTriangle;

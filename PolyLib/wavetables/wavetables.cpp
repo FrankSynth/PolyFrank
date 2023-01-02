@@ -14,7 +14,10 @@ const WaveTable *waveTableSets[][4] = {
     {&wavetable_fm1, &wavetable_fm2, &wavetable_fm3, &wavetable_fm4},
     {&wavetable_pm1, &wavetable_pm2, &wavetable_pm3, &wavetable_pm4},
     {&wavetable_FeltPianoLow, &wavetable_GuitarHigh, &wavetable_GuitarLow, &wavetable_Square},
-    {&wavetable_Sine, &wavetable_Triangle, &wavetable_Saw, &wavetable_Square}};
+    {&wavetable_Sine, &wavetable_Triangle, &wavetable_Saw, &wavetable_Square},
+    {&wavetable_MiniSaw, &wavetable_MiniSquare, &wavetable_MiniTriangle, &wavetable_Saw},
+
+};
 
 inline void pushWavetable(const WaveTable &wavetable) {
     wavetables.push_back(&wavetable);
@@ -47,4 +50,7 @@ void initWavetables() {
     pushWavetable(wavetable_FeltPianoLow);
     pushWavetable(wavetable_GuitarHigh);
     pushWavetable(wavetable_GuitarLow);
+    pushWavetable(wavetable_MiniSaw);
+    pushWavetable(wavetable_MiniSquare);
+    pushWavetable(wavetable_MiniTriangle);
 }
