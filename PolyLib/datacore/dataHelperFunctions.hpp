@@ -425,10 +425,10 @@ inline float calcRandom() {
     uint32_t randomNumber;
 
     randomNumber = std::rand();
-    randomNumber = randomNumber & 0x00FFFFFF;
+    randomNumber = randomNumber & 0x0001FFFE;
 
     // map to -1, 1
-    return ((float)randomNumber / 8388607.0f) - 1.0f;
+    return ((float)randomNumber / 65535.0f) - 1.0f;
 }
 
 extern elapsedMicros systemTimeElapsed;

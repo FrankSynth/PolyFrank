@@ -48,6 +48,14 @@ vec<VOICESPERCHIP, float> noteConverted;
 
 inline vec<VOICESPERCHIP> accumulateNote() {
 
+    static elapsedMillis detuneTimer[VOICESPERCHIP] = {0};
+    static uint32_t detuneTimerVal[VOICESPERCHIP] = {1500, 2500, 3500, 4500};
+    static float detuneTimerValInv[VOICESPERCHIP] = {1.0f / (float)detuneTimerVal[0], 1.0f / (float)detuneTimerVal[1],
+                                                     1.0f / (float)detuneTimerVal[2], 1.0f / (float)detuneTimerVal[3]};
+    static vec<VOICESPERCHIP> detuneRandNew;
+    static vec<VOICESPERCHIP> detuneRandOld;
+    vec<VOICESPERCHIP> detuneRand;
+
     noteConverted = (((vec<VOICESPERCHIP>)layerA.midi.rawNote) - 21.0f) / 12.0f;
 
     static vec<VOICESPERCHIP> currentNote;
@@ -55,12 +63,27 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     desiredNote = noteConverted;
 
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        if (detuneTimer[i] > detuneTimerVal[i]) {
+            detuneTimer[i] = 0;
+            detuneRandOld[i] = detuneRandNew[i];
+            detuneRandNew[i] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+        }
+    }
+
+    vec<VOICESPERCHIP> detuneRandFract;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        desiredNote[i] += layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
+        detuneRandFract[i] = (float)detuneTimer[i] * detuneTimerValInv[i];
+
+    detuneRand = faster_lerp_f32(detuneRandOld, detuneRandNew, detuneRandFract);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += (layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] + detuneRand[i]) *
+                          layerA.feel.aImperfection.valueMapped;
 
     desiredNote += accumulateOctave() + layerA.oscA.fm;
 
-    // // TODO check glide, plus glide settings, i.e. CT & CR
+    // TODO check glide, plus glide settings, i.e. CT & CR
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
         if (currentNote[i] < desiredNote[i])
             currentNote[i] = fminf(currentNote[i] + SECONDSPERCVRENDER / layerA.feel.glide[i], desiredNote[i]);
@@ -147,13 +170,36 @@ inline vec<VOICESPERCHIP> accumulatePhaseoffsetOscB() {
 
 inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
+    static elapsedMillis detuneTimer[VOICESPERCHIP] = {0};
+    static uint32_t detuneTimerVal[VOICESPERCHIP] = {1500, 2500, 3500, 4500};
+    static float detuneTimerValInv[VOICESPERCHIP] = {1.0f / (float)detuneTimerVal[0], 1.0f / (float)detuneTimerVal[1],
+                                                     1.0f / (float)detuneTimerVal[2], 1.0f / (float)detuneTimerVal[3]};
+    static vec<VOICESPERCHIP> detuneRandNew;
+    static vec<VOICESPERCHIP> detuneRandOld;
+    vec<VOICESPERCHIP> detuneRand;
+
     static vec<VOICESPERCHIP> currentNote;
     static vec<VOICESPERCHIP> desiredNote;
 
     desiredNote = noteConverted; // from oscA
 
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        if (detuneTimer[i] > detuneTimerVal[i]) {
+            detuneTimer[i] = 0;
+            detuneRandOld[i] = detuneRandNew[i];
+            detuneRandNew[i] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+        }
+    }
+
+    vec<VOICESPERCHIP> detuneRandFract;
     for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        desiredNote[i] += layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] * layerA.feel.aImperfection.valueMapped;
+        detuneRandFract[i] = (float)detuneTimer[i] * detuneTimerValInv[i];
+
+    detuneRand = faster_lerp_f32(detuneRandOld, detuneRandNew, detuneRandFract);
+
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
+        desiredNote[i] += (layerA.noteImperfection[1][i][layerA.midi.rawNote[i]] + detuneRand[i]) *
+                          layerA.feel.aImperfection.valueMapped;
 
     desiredNote += layerA.oscA.fm + layerA.oscB.fm;
     desiredNote += accumulateOctaveOscB();
