@@ -293,6 +293,7 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, const vec<VOICESP
     vec<VOICESPERCHIP, uint32_t> subWavetable_H;
     vec<VOICESPERCHIP> interSubwaveTable;
 
+    // TODO lerp
     for (int i = 0; i < VOICESPERCHIP; i++) {
         subwaveOffset[i] = phaseReset[i] * layerA.noise.out[i] * 0.5f + !phaseReset[i] * subwaveOffset[i];
     }
@@ -571,10 +572,6 @@ void renderAudio(volatile int32_t *renderDest) {
         noiseSample = getNoiseSample();
         subSample = getSubSample();
 
-        // sum
-        sampleSteiner = noiseSample * layerA.mixer.noiseLevelSteiner;
-        sampleSteiner += oscASample * layerA.mixer.oscALevelSteiner;
-
         // for (int i = 0; i < VOICESPERCHIP; i++) {
         //     if (layerA.oscA.phaseReset[i] == true) {
         //         sampleSteiner[i] = 0.0f;
@@ -584,6 +581,9 @@ void renderAudio(volatile int32_t *renderDest) {
         //     }
         // }
 
+        // sum
+        sampleSteiner = noiseSample * layerA.mixer.noiseLevelSteiner;
+        sampleSteiner += oscASample * layerA.mixer.oscALevelSteiner;
         sampleSteiner += oscBSample * layerA.mixer.oscBLevelSteiner;
         sampleSteiner += subSample * layerA.mixer.subLevelSteiner;
 
@@ -593,21 +593,23 @@ void renderAudio(volatile int32_t *renderDest) {
         sampleLadder += oscBSample * layerA.mixer.oscBLevelLadder;
 
         // 1pole filter
-        sampleSteinerAcc += 0.06151176F * (sampleSteiner - sampleSteinerAcc);
-        sampleLadderAcc += 0.06151176F * (sampleLadder - sampleLadderAcc);
+        // sampleSteinerAcc += 0.06151176F * (sampleSteiner - sampleSteinerAcc);
+        // sampleLadderAcc += 0.06151176F * (sampleLadder - sampleLadderAcc);
+        sampleSteinerAcc += 0.4 * (sampleSteiner - sampleSteinerAcc);
+        sampleLadderAcc += 0.4 * (sampleLadder - sampleLadderAcc);
 
         // calculate phase progress
 
         // limit and scale
-        renderDest[sample * AUDIOCHANNELS + 1 * 2] = softLimit(sampleLadderAcc[0]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 0 * 2] = softLimit(sampleLadderAcc[1]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 3 * 2] = softLimit(sampleLadderAcc[2]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 2 * 2] = softLimit(sampleLadderAcc[3]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 1 * 2] = -softLimit(sampleLadderAcc[0]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 0 * 2] = -softLimit(sampleLadderAcc[1]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 3 * 2] = -softLimit(sampleLadderAcc[2]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 2 * 2] = -softLimit(sampleLadderAcc[3]) * 8388607.0f;
 
-        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = softLimit(sampleSteinerAcc[0]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = softLimit(sampleSteinerAcc[1]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = softLimit(sampleSteinerAcc[2]) * 8388607.0f;
-        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = softLimit(sampleSteinerAcc[3]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 1 * 2 + 1] = -softLimit(sampleSteinerAcc[0]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 0 * 2 + 1] = -softLimit(sampleSteinerAcc[1]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 3 * 2 + 1] = -softLimit(sampleSteinerAcc[2]) * 8388607.0f;
+        renderDest[sample * AUDIOCHANNELS + 2 * 2 + 1] = -softLimit(sampleSteinerAcc[3]) * 8388607.0f;
     }
 
     layerA.noise.out = noiseSample;

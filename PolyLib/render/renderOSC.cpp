@@ -67,7 +67,7 @@ inline vec<VOICESPERCHIP> accumulateNote() {
         if (detuneTimer[i] > detuneTimerVal[i]) {
             detuneTimer[i] = 0;
             detuneRandOld[i] = detuneRandNew[i];
-            detuneRandNew[i] = calcRandom() * NOTEIMPERFECTIONWEIGHT;
+            detuneRandNew[i] = calcRandom() * 0.02f;
         }
     }
 
@@ -77,9 +77,11 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     detuneRand = faster_lerp_f32(detuneRandOld, detuneRandNew, detuneRandFract);
 
-    for (uint32_t i = 0; i < VOICESPERCHIP; i++)
-        desiredNote[i] += (layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] + detuneRand[i]) *
-                          layerA.feel.aImperfection.valueMapped;
+    for (uint32_t i = 0; i < VOICESPERCHIP; i++) {
+        desiredNote[i] += (detuneRand[i]) * layerA.feel.aImperfection.valueMapped;
+        // desiredNote[i] += (layerA.noteImperfection[0][i][layerA.midi.rawNote[i]] + detuneRand[i]) *
+        //                   layerA.feel.aImperfection.valueMapped;
+    }
 
     desiredNote += accumulateOctave() + layerA.oscA.fm;
 
@@ -92,8 +94,8 @@ inline vec<VOICESPERCHIP> accumulateNote() {
 
     vec<VOICESPERCHIP> note = currentNote;
 
-    layerA.oscA.subWavetable = (vec<VOICESPERCHIP, float>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
-                                                                (float)(SUBWAVETABLES - 1));
+    layerA.oscA.subWavetable =
+        (vec<VOICESPERCHIP, float>)clamp((note * ((float)SUBWAVETABLES / 10.0f)), 0.0f, (float)(SUBWAVETABLES - 1));
 
     layerA.oscA.oscNote = note; // to calc subtable
 
@@ -212,8 +214,8 @@ inline vec<VOICESPERCHIP> accumulateNoteOscB() {
 
     vec<VOICESPERCHIP> note = currentNote;
 
-    layerA.oscB.subWavetable = (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f) + 1.0f), 0.0f,
-                                                                   (float)(SUBWAVETABLES - 1));
+    layerA.oscB.subWavetable =
+        (vec<VOICESPERCHIP, uint32_t>)clamp((note * ((float)SUBWAVETABLES / 10.0f)), 0.0f, (float)(SUBWAVETABLES - 1));
 
     vec<VOICESPERCHIP> logNote;
 

@@ -175,13 +175,14 @@ void GUIPanelPatchMatrix::activate() {
         for (uint32_t i = 0; i < allModules.size(); i++) {
             if (allModules[i]->id == cachedFocus.modul) {
                 scrollModule.setScroll(i);
+
                 break;
             }
         }
         if (cachedFocus.type == FOCUSINPUT) {
             collectInputs();
             for (uint32_t i = 0; i < allInputs.size(); i++) {
-                if (allInputs[i]->id == cachedFocus.id) {
+                if (allInputs[i]->input->idGlobal == getCachedAnalog()[cachedFocus.id]->input->idGlobal) {
                     scrollIn.setScroll(i);
                     break;
                 }

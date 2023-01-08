@@ -63,11 +63,11 @@ void Arpeggiator::pressKey(Key &key) {
 
 void Arpeggiator::lifetime(Key &key) {
 
-    // polyrythm next step precalculation
+    // polyrhythm next step precalculation
 
     uint32_t ticksToNextStep;
 
-    if (arpPolyrythm.value == 0) {
+    if (arpPolyrhythm.value == 0) {
         ticksToNextStep = clockTicksPerStep[arpStepsA.value];
     }
     else {

@@ -334,7 +334,7 @@ void LiveData::externalSyncHandling() {
 
             // ARP Steps
             if (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value]) ||
-                (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value]) && arps[i].arpPolyrythm.value)) {
+                (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value]) && arps[i].arpPolyrhythm.value)) {
                 arps[i].nextStep();
             }
 
@@ -382,7 +382,7 @@ void LiveData::clockHandling() {
 
             // ARP Steps
             if (!(clock.counter % clockTicksPerStep[arps[i].arpStepsA.value]) ||
-                (!(clock.counter % clockTicksPerStep[arps[i].arpStepsB.value]) && arps[i].arpPolyrythm.value)) {
+                (!(clock.counter % clockTicksPerStep[arps[i].arpStepsB.value]) && arps[i].arpPolyrhythm.value)) {
                 arps[i].nextStep();
             }
 

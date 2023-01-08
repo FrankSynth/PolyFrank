@@ -133,12 +133,15 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
         if (potiFunctionPointer[layer][multiplex][channel].data != nullptr) {
 
             uint16_t potiData = ((adcData[channel] >> 1) & 0xFFF);
+            if (potiFunctionPointer[layer][multiplex][channel].inverse) {
+                potiData = 4095 - potiData;
+            }
             if (((multiplex == 0) & (channel == 1)) || ((multiplex == 0) & (channel == 2))) { // octave switches
 
                 // this filters out the switching artefact of the octave switches
                 //  check data stability
-                if (potiData > 400) {                                                        // filter interswitchstate
-                    if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 2) { // test difference
+                if (potiData > 500) {                                                         // filter interswitchstate
+                    if (std::abs(octaveSwitchLastScan[layer][channel - 1] - potiData) < 10) { // test difference
                         octaveSwitchCounter[layer][channel - 1]++;
                     }
                     else {
@@ -146,7 +149,7 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                     }
 
                     // value stable -> apply new octave switch value
-                    if (octaveSwitchCounter[layer][channel - 1] > 10) {
+                    if (octaveSwitchCounter[layer][channel - 1] > 3) {
                         if (std::abs(panelADCStates[layer][multiplex][channel] - potiData) >= 50) {
                             panelADCStates[layer][multiplex][channel] = potiData;
 
@@ -155,26 +158,31 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                         }
                     }
                 }
+                else {
+                    octaveSwitchCounter[layer][channel - 1] = 0;
+                }
 
                 octaveSwitchLastScan[layer][channel - 1] = potiData; // store new data
             }
             else {
                 // interpolation
 
-                panelADCInterpolate[layer][multiplex][channel] = faster_lerp_f32(
-                    panelADCInterpolate[layer][multiplex][channel], (float)((adcData[channel] >> 1) & 0xFFF), 0.25);
+                panelADCInterpolate[layer][multiplex][channel] =
+                    faster_lerp_f32(panelADCInterpolate[layer][multiplex][channel], (float)(potiData), 0.25);
 
                 uint16_t difference = std::abs(panelADCStates[layer][multiplex][channel] - potiData);
                 // check if value is loaded from preset
 
-                bool updateValue =
-                    false; // update value flag to check differen condition -> preset lock, grabbing, noise reduction
+                bool updateValue = false; // update value flag to check difference condition -> preset lock,
+                                          // grabbing, noise reduction
                 if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) {
                     if (globalSettings.presetValueHandling.value ==
                         1) { // we need to grab the value before we can change it
                         if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) { // we have a lock?
-                            bool compare =
-                                ((Analog *)(potiFunctionPointer[layer][multiplex][channel].data))->value < potiData;
+
+                            // for grabbing all potis even on fast moves
+                            bool compare = ((Analog *)(potiFunctionPointer[layer][multiplex][channel].data))->value <
+                                           potiData; // unlock range
                             if (panelGrab[layer][multiplex][channel] ==
                                 VALUEGRABED) { // lock and valuegrabed? -> preset value loaded
                                 if (compare) { // store grab status
@@ -186,6 +194,12 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                             }
                             else if (panelGrab[layer][multiplex][channel] !=
                                      compare) { // grab status changed? -> value grabbed
+                                panelGrab[layer][multiplex][channel] = VALUEGRABED;
+                                updateValue = true; // update poti to release lock
+                            }
+                            // for grabbing end and start values and also slow movements
+                            if (abs(((Analog *)(potiFunctionPointer[layer][multiplex][channel].data))->value -
+                                    potiData) < 5) {
                                 panelGrab[layer][multiplex][channel] = VALUEGRABED;
                                 updateValue = true; // update poti to release lock
                             }

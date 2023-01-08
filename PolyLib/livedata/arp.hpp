@@ -33,7 +33,7 @@ class Arpeggiator {
         arpOctave.storeID = 0x03;
         arpPlayedKeysParallel.storeID = 0x04;
         arpRatched.storeID = 0x05;
-        arpPolyrythm.storeID = 0x06;
+        arpPolyrhythm.storeID = 0x06;
         arpStepsA.storeID = 0x07;
         arpStepsAExt.storeID = 0x08;
         arpStepsB.storeID = 0x09;
@@ -45,7 +45,7 @@ class Arpeggiator {
         __liveSettingsArp.push_back(&arpOctave);
         __liveSettingsArp.push_back(&arpPlayedKeysParallel);
         __liveSettingsArp.push_back(&arpRatched);
-        __liveSettingsArp.push_back(&arpPolyrythm);
+        __liveSettingsArp.push_back(&arpPolyrhythm);
         __liveSettingsArp.push_back(&arpStepsA);
         __liveSettingsArp.push_back(&arpStepsAExt);
         __liveSettingsArp.push_back(&arpStepsB);
@@ -132,10 +132,10 @@ class Arpeggiator {
     Setting arpLatch = Setting("LATCH", 0, 0, 1, &offOnNameList);
     Setting arpOctave = Setting("OCTAVE", 0, -3, 3, &arpOctaveNameList);
     Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, &arpRatchedNameList);
-    Setting arpPolyrythm = Setting("POLYRYTHM", 0, 0, 1, &offOnNameList);
+    Setting arpPolyrhythm = Setting("POLYRHYTHM", 0, 0, 1, &offOnNameList);
 
-    Setting arpStepsA = Setting("STEPA", 9, 0, 22, &arpStepNameList, true, true);
-    Setting arpStepsB = Setting("STEPB", 9, 0, 22, &arpStepNameList, true, true);
+    Setting arpStepsA = Setting("STEP A", 9, 0, 22, &arpStepNameList, true, true);
+    Setting arpStepsB = Setting("STEP B", 9, 0, 22, &arpStepNameList, true, true);
 
     Setting arpStepsAExt = Setting("EXT. DIV A", 0, 0, 4, &arpEXTDivNameList, true, false);
     Setting arpStepsBExt = Setting("EXT. DIV B", 0, 0, 4, &arpEXTDivNameList, true, false);

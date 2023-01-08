@@ -46,6 +46,8 @@ typedef enum { VALUEBELOW, VALUEABOVE, VALUEGRABED } presetGrabState;
 typedef struct {
     std::function<void(uint16_t amount)> function;
     DataElement *data;
+    bool inverse = false;
+
 } potiFunctionStruct;
 
 typedef enum { TOUCH_IO_PORT_A, TOUCH_IO_PORT_B, TOUCH_IO_PORT_C, TOUCH_IO_PORT_D, TOUCH_IO_PORT_E } TOUCH_IO_PORT;

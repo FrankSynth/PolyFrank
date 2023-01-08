@@ -137,10 +137,29 @@ void Layer::updatePatchInOutById(uint8_t outputId, uint8_t inputId, float amount
 }
 
 void Layer::removePatchInOut(PatchElement &patch) {
-    patch.remove = true; // set remove flag
-    removePatchMarker = true;
-}
 
+    patch.remove = true; // set remove flag
+#ifdef POLYCONTROL       // poylrender only set marker für service routine
+    removePatchMarker = true;
+#endif
+
+#ifdef POLYRENDER
+
+    if (!patchesInOut.empty()) {
+        std::list<PatchElement>::iterator patch =
+            std::find_if(patchesInOut.begin(), patchesInOut.end(), [](PatchElement n) { return n.remove == true; });
+
+        if (patch != patchesInOut.end()) {
+
+            patch->sourceOut->removePatchInOut(*patch); // remove sourceOut entry
+            patch->targetIn->removePatchInOut(*patch);  // remove targetIn entry
+
+            patchesInOut.erase(patch);
+        }
+    }
+
+#endif
+}
 void Layer::removePatchInOutById(uint8_t outputId, uint8_t inputId) {
     for (PatchElement *p : outputs[outputId]->getPatchesInOut()) {
         if (p->targetIn == inputs[inputId]) {
@@ -409,7 +428,6 @@ void Layer::layerServiceRoutine() {
                 std::find_if(patchesInOut.begin(), patchesInOut.end(), [](PatchElement n) { return n.remove == true; });
 
             if (patch != patchesInOut.end()) {
-
                 sendDeletePatchInOut(id, patch->sourceOut->idGlobal, patch->targetIn->idGlobal);
 
                 patch->sourceOut->removePatchInOut(*patch); // remove sourceOut entry

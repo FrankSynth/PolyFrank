@@ -209,7 +209,6 @@ class Analog : public DataElement {
 #ifdef POLYCONTROL
 
     void setValue(int32_t newValue);
-    void setValueInversePoti(int32_t newValue);
     void resetValue() {
         defaultValue = reverseMapping(defaultValueMapped); // reverse mapping of the default value
         setValue(defaultValue);

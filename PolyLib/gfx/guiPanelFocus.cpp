@@ -297,7 +297,7 @@ void GUIPanelFocus::registerModuleSettings(Data_PanelElement *dataPanelElements)
             // register newFocus position for downMove
             if ((scroll->relPosition) == elementIndex) {
                 if (a->input != nullptr) {
-                    newPanelFocus.id = a->input->id;
+                    newPanelFocus.id = a->id;
                     newPanelFocus.modul = a->input->moduleId;
                     newPanelFocus.type = FOCUSINPUT;
 

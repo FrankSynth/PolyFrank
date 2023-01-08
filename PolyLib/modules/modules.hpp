@@ -249,7 +249,8 @@ class OSC_A : public BaseModule {
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 0, false, &nlWavetableSets, nullptr, true, false);
+    Digital dWavetableSet =
+        Digital("Wavetable Set", 0, WAVETABLESETAMOUNT - 1, 0, false, &nlWavetableSets, nullptr, true, false);
 
     Digital dOctave = Digital("OCTAVE", -3, 3, 0, true, nullptr, &iOctave, false);
 
@@ -372,7 +373,8 @@ class OSC_B : public BaseModule {
     Digital dSample1 = Digital("WAVE 2", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample2 = Digital("WAVE 3", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
     Digital dSample3 = Digital("WAVE 4", 0, WAVETABLESAMOUNT - 1, 0, true, &nlWavetable, nullptr, false);
-    Digital dWavetableSet = Digital("Wavetable Set", 0, 5, 2, false, &nlWavetableSets, nullptr, true, false);
+    Digital dWavetableSet =
+        Digital("Wavetable Set", 0, WAVETABLESETAMOUNT - 1, 2, false, &nlWavetableSets, nullptr, true, false);
 
     RenderBuffer note;
     RenderBuffer fm;
@@ -910,7 +912,7 @@ class Feel : public BaseModule {
     Analog aGlide = Analog("GLIDE", 0.0001, 2, 0, true, linMap, &iGlide);
     Analog aDetune = Analog("DETUNE", 0, 1, .03, true, linMap, &iDetune);
     Analog aSpread = Analog("SPREAD", 0, 1, 0, true, linMap);
-    Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.01, true, linMap);
+    Analog aImperfection = Analog("HUMANIZE", 0, 1, 0.1, true, linMap);
 
     RenderBuffer glide;
     RenderBuffer detune;

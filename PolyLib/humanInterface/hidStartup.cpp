@@ -525,8 +525,8 @@ void potiMapping() {
                 &allLayers[i]->lfoA.aFreq};
 
             potiFunctionPointer[i][0][7] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDelay), std::placeholders::_1),
-                &allLayers[i]->envF.aDelay};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aDelay), std::placeholders::_1),
+                &allLayers[i]->envF.aDelay, true};
             potiFunctionPointer[i][1][7] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->lfoB.aAmount), std::placeholders::_1),
                 &allLayers[i]->lfoB.aAmount};
@@ -538,40 +538,40 @@ void potiMapping() {
                 &allLayers[i]->lfoB.aFreq};
 
             potiFunctionPointer[i][0][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAttack), std::placeholders::_1),
-                &allLayers[i]->envF.aAttack};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aAttack), std::placeholders::_1),
+                &allLayers[i]->envF.aAttack, true};
             potiFunctionPointer[i][1][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aDecay), std::placeholders::_1),
-                &allLayers[i]->envF.aDecay};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aDecay), std::placeholders::_1),
+                &allLayers[i]->envF.aDecay, true};
             potiFunctionPointer[i][2][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aSustain), std::placeholders::_1),
-                &allLayers[i]->envF.aSustain};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aSustain), std::placeholders::_1),
+                &allLayers[i]->envF.aSustain, true};
             potiFunctionPointer[i][3][8] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aRelease), std::placeholders::_1),
-                &allLayers[i]->envF.aRelease};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aRelease), std::placeholders::_1),
+                &allLayers[i]->envF.aRelease, true};
 
             potiFunctionPointer[i][0][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aSustain), std::placeholders::_1),
-                &allLayers[i]->envA.aSustain};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aSustain), std::placeholders::_1),
+                &allLayers[i]->envA.aSustain, true};
             potiFunctionPointer[i][1][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aRelease), std::placeholders::_1),
-                &allLayers[i]->envA.aRelease};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aRelease), std::placeholders::_1),
+                &allLayers[i]->envA.aRelease, true};
             potiFunctionPointer[i][2][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAmount), std::placeholders::_1),
-                &allLayers[i]->envA.aAmount};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aAmount), std::placeholders::_1),
+                &allLayers[i]->envA.aAmount, true};
             potiFunctionPointer[i][3][9] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envF.aAmount), std::placeholders::_1),
-                &allLayers[i]->envF.aAmount};
+                std::bind(&Analog::setValue, &(allLayers[i]->envF.aAmount), std::placeholders::_1),
+                &allLayers[i]->envF.aAmount, true};
 
             potiFunctionPointer[i][0][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDelay), std::placeholders::_1),
-                &allLayers[i]->envA.aDelay};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aDelay), std::placeholders::_1),
+                &allLayers[i]->envA.aDelay, true};
             potiFunctionPointer[i][1][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aAttack), std::placeholders::_1),
-                &allLayers[i]->envA.aAttack};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aAttack), std::placeholders::_1),
+                &allLayers[i]->envA.aAttack, true};
             potiFunctionPointer[i][2][10] = {
-                std::bind(&Analog::setValueInversePoti, &(allLayers[i]->envA.aDecay), std::placeholders::_1),
-                &allLayers[i]->envA.aDecay};
+                std::bind(&Analog::setValue, &(allLayers[i]->envA.aDecay), std::placeholders::_1),
+                &allLayers[i]->envA.aDecay, true};
             potiFunctionPointer[i][3][10] = {
                 std::bind(&Analog::setValue, &(allLayers[i]->out.aMaster), std::placeholders::_1),
                 &allLayers[i]->out.aMaster};

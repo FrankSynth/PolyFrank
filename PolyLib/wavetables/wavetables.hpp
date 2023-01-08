@@ -13,6 +13,7 @@
 #define MAXWAVETABLESPERVOICE 4
 #define WAVETABLESAMOUNT 22
 #define SUBWAVETABLES 16
+#define WAVETABLESETAMOUNT 7
 
 class WaveTable;
 
@@ -28,7 +29,7 @@ typedef struct {
     const WaveTable *table3;
 } WAVETABLESET;
 
-extern const WaveTable *waveTableSets[][4];
+extern const WaveTable *waveTableSets[WAVETABLESETAMOUNT][4];
 
 class WaveTable {
   public:
