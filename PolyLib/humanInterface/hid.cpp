@@ -171,13 +171,13 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                     faster_lerp_f32(panelADCInterpolate[layer][multiplex][channel], (float)(potiData), 0.25);
 
                 uint16_t difference = std::abs(panelADCStates[layer][multiplex][channel] - potiData);
-                // check if value is loaded from preset
 
                 bool updateValue = false; // update value flag to check difference condition -> preset lock,
-                                          // grabbing, noise reduction
+
+                // check if value is loaded from preset
                 if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) {
-                    if (globalSettings.presetValueHandling.value ==
-                        1) { // we need to grab the value before we can change it
+                    if (globalSettings.presetValueHandling.value == 1) {
+                        // we need to grab the value before we can change it
                         if (potiFunctionPointer[layer][multiplex][channel].data->presetLock) { // we have a lock?
 
                             // for grabbing all potis even on fast moves
@@ -197,7 +197,7 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                                 panelGrab[layer][multiplex][channel] = VALUEGRABED;
                                 updateValue = true; // update poti to release lock
                             }
-                            // for grabbing end and start values and also slow movements
+                            // for grabbing end and start values
                             if (abs(((Analog *)(potiFunctionPointer[layer][multiplex][channel].data))->value -
                                     potiData) < 5) {
                                 panelGrab[layer][multiplex][channel] = VALUEGRABED;
@@ -206,8 +206,8 @@ void processPanelPotis(uint32_t *adcData, uint32_t layer) {
                         }
                     }
 
-                    if (globalSettings.presetValueHandling.value == 0) { // we need to move a poti to overwrite the
-                                                                         // value
+                    else if (globalSettings.presetValueHandling.value == 0) { // we need to move a poti to overwrite the
+                                                                              // value
 
                         if (difference >> 5) {  // check value change is big enough for preset overwrite
                             updateValue = true; // update poti to release lock
@@ -1058,7 +1058,6 @@ void resetSystem() {
     allLayers[1]->setResetMarker();
     allLayers[1]->clearPresetLocks();
     clearPotiState(1);
-
     liveData.resetLiveConfig();
 }
 
