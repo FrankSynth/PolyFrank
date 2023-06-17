@@ -95,6 +95,8 @@ void polyControlLoop() { // Here the party starts
             ui.Draw();
         }
 
+        actionHandler.ActionHandlerServiceRoutine();
+
         COMmunicateISR();
 
         // if (enableWFI) {

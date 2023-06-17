@@ -11,6 +11,8 @@
 typedef struct {
     std::function<void()> functionPointer = nullptr;
     std::string name = "";
+    uint32_t pendingCalls = 0;
+
 } actionHandle;
 
 typedef enum { RELEASED, PRESSED } BUTTONSTATE;
@@ -19,40 +21,44 @@ typedef struct {
     actionHandle handle;
     BUTTONSTATE state = RELEASED;
     int32_t *data = nullptr;
-    uint8_t unlock = 0;
+    uint32_t unlock = 0;
 
 } ButtonActionHandle; // for buttons with press state
 typedef struct {
     actionHandle handle_CW;
     actionHandle handle_CCW;
     actionHandle handle_PUSH;
+
 } EncoderActionHandle; // for buttons with press state
 
 class actionMapping {
   public:
     // Register Touch
-    void registerActionHeader(uint8_t index, actionHandle handle = {nullptr, ""});
+    void registerActionHeader(uint32_t index, actionHandle handle = {nullptr, ""});
 
-    void registerActionFooter(uint8_t index, actionHandle handle = {nullptr, ""});
+    void registerActionFooter(uint32_t index, actionHandle handle = {nullptr, ""});
 
-    void registerActionEncoder(uint8_t index, actionHandle handleCW = {nullptr, ""},
+    void registerActionEncoder(uint32_t index, actionHandle handleCW = {nullptr, ""},
                                actionHandle handleCCW = {nullptr, ""}, actionHandle handlePUSH = {nullptr, ""});
 
-    void registerActionLeftData(uint8_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
-                                uint8_t lock = 0);
-    void registerActionRightData(uint8_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
-                                 uint8_t lock = 0);
+    void registerActionLeftData(uint32_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
+                                uint32_t lock = 0);
+    void registerActionRightData(uint32_t index, actionHandle handle = {nullptr, ""}, int32_t *data = nullptr,
+                                 uint32_t lock = 0);
 
-    void registerActionLeft(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 0);
-    void registerActionRight(uint8_t index, actionHandle handle = {nullptr, ""}, uint8_t lock = 0);
+    void registerActionLeft(uint32_t index, actionHandle handle = {nullptr, ""}, uint32_t lock = 0);
+    void registerActionRight(uint32_t index, actionHandle handle = {nullptr, ""}, uint32_t lock = 0);
 
-    void callActionHeader(uint8_t index);
-    void callActionLeft(uint8_t index);
-    void callActionRight(uint8_t index);
+    void callActionFooter(uint32_t index);
+    void callActionHeader(uint32_t index);
+    void callActionLeft(uint32_t index);
+    void callActionRight(uint32_t index);
 
-    void callActionEncoder_CW(uint8_t index);
-    void callActionEncoder_CCW(uint8_t index);
-    void callActionEncoder_Push(uint8_t index);
+    void callActionEncoder_CW(uint32_t index);
+    void callActionEncoder_CCW(uint32_t index);
+    void callActionEncoder_Push(uint32_t index);
+
+    void ActionHandlerServiceRoutine();
 
     void clear();
 

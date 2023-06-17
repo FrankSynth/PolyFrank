@@ -23,7 +23,7 @@ TARGET = PolyRender
 DEBUG = 0
 DISASSEMBLY = 0
 # optimization
-OPT = -Ofast   -fno-signed-zeros -fno-trapping-math -frename-registers  #test optinmization problems!
+OPT = -Ofast   -fno-signed-zeros -fno-trapping-math -frename-registers  #test optimization problems!
 
 #######################################
 # paths

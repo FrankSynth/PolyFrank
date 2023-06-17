@@ -142,6 +142,10 @@ void renderOSC_A() {
     layerA.oscA.RippleAmount = accumulateRippleAmount();
     layerA.oscA.RippleRatio = accumulateRippleRatio();
     layerA.oscA.RippleDamp = accumulateRippleDamp();
+
+    layerA.oscA.subWavetable_L = layerA.oscA.subWavetable;
+    layerA.oscA.subWavetable_H = ceil(layerA.oscA.subWavetable);
+    layerA.oscA.interSubwaveTable = layerA.oscA.subWavetable - floor(layerA.oscA.subWavetable);
 }
 
 ///////////////////////////// OSC B /////////////////////////////////
@@ -237,9 +241,13 @@ void renderOSC_B() {
     layerA.oscB.samplecrusher = accumulateSamplecrusherOscB();
     layerA.oscB.phaseoffset = accumulatePhaseoffsetOscB();
     layerA.oscB.note = accumulateNoteOscB();
-    layerA.oscB.waveTableSelectionLower = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscB.morph));
-    layerA.oscB.waveTableSelectionUpper = (layerA.oscB.waveTableSelectionLower + 1u) & 0b11;
+    layerA.oscB.waveTableSelectionA = ((vec<VOICESPERCHIP, uint32_t>)((vec<VOICESPERCHIP>)layerA.oscB.morph));
+    layerA.oscB.waveTableSelectionB = (layerA.oscB.waveTableSelectionA + 1u) & 0b11;
     layerA.oscB.morphFract = layerA.oscB.morph - floor((vec<VOICESPERCHIP>)layerA.oscB.morph);
+
+    layerA.oscB.subWavetable_L = layerA.oscB.subWavetable;
+    layerA.oscB.subWavetable_H = ceil(layerA.oscB.subWavetable);
+    layerA.oscB.interSubwaveTable = layerA.oscB.subWavetable - floor(layerA.oscB.subWavetable);
 }
 
 #endif

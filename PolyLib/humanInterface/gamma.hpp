@@ -1,3 +1,3 @@
 #include <stdint.h>
 
-extern const uint16_t gamma_lut[256];
+extern const uint16_t gamma_lut[4097];

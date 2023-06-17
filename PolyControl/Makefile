@@ -23,7 +23,7 @@ TARGET = PolyControl
 DEBUG = 0
 DISASSEMBLY = 0
 # optimization
-OPT = -O2
+OPT = -Ofast
 
 #######################################
 # paths

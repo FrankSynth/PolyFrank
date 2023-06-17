@@ -256,12 +256,16 @@ inline void getRippleSample(vec<VOICESPERCHIP> &sampleRipple, const vec<VOICESPE
 inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, const vec<VOICESPERCHIP> &phase,
                                    const vec<VOICESPERCHIP> &phaseReset) {
 
-    const vec<VOICESPERCHIP, float> &subWavetable = layerA.oscA.subWavetable;
+    // const vec<VOICESPERCHIP, float> &subWavetable = layerA.oscA.subWavetable;
     const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionA = layerA.oscA.waveTableSelectionA;
     const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionB = layerA.oscA.waveTableSelectionB;
     const vec<VOICESPERCHIP> &morphFract = layerA.oscA.morphFract;
 
     static vec<VOICESPERCHIP, float> subwaveOffset; // store random subwave offset
+
+    const vec<VOICESPERCHIP, uint32_t> &subWavetable_L = layerA.oscB.subWavetable_L;
+    const vec<VOICESPERCHIP, uint32_t> &subWavetable_H = layerA.oscB.subWavetable_H;
+    const vec<VOICESPERCHIP, float> &interSubwaveTable = layerA.oscB.interSubwaveTable;
 
     vec<VOICESPERCHIP> stepWavetable_L;
     vec<VOICESPERCHIP> stepWavetable_H;
@@ -288,23 +292,6 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, const vec<VOICESP
     vec<VOICESPERCHIP> sampleB;
 
     vec<VOICESPERCHIP, float> subWavetableWithOffset;
-
-    vec<VOICESPERCHIP, uint32_t> subWavetable_L;
-    vec<VOICESPERCHIP, uint32_t> subWavetable_H;
-    vec<VOICESPERCHIP> interSubwaveTable;
-
-    // TODO lerp
-    for (int i = 0; i < VOICESPERCHIP; i++) {
-        subwaveOffset[i] = phaseReset[i] * layerA.noise.out[i] * 0.5f + !phaseReset[i] * subwaveOffset[i];
-    }
-
-    subWavetableWithOffset = subWavetable + subwaveOffset;
-
-    subWavetableWithOffset = clamp(subWavetableWithOffset, 0, (float)(SUBWAVETABLES - 1));
-
-    subWavetable_L = subWavetableWithOffset;
-    subWavetable_H = ceil(subWavetableWithOffset);
-    interSubwaveTable = subWavetableWithOffset - floor(subWavetableWithOffset);
 
     for (int i = 0; i < VOICESPERCHIP; i++) {
         stepWavetable_L[i] = phase[i] * WaveTable::subSize[subWavetable_L[i]];
@@ -345,44 +332,100 @@ inline void getWavetableSampleOSCA(vec<VOICESPERCHIP> &sample, const vec<VOICESP
     sample = faster_lerp_f32(sampleA, sampleB, interSubwaveTable);
 }
 
-inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, const vec<VOICESPERCHIP> &phase) {
+inline void getWavetableSampleOSCB(vec<VOICESPERCHIP> &sample, const vec<VOICESPERCHIP> &phase,
+                                   const vec<VOICESPERCHIP> &phaseReset) {
 
-    const vec<VOICESPERCHIP, uint32_t> &subWavetable = layerA.oscB.subWavetable;
-    const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionLower = layerA.oscB.waveTableSelectionLower;
-    const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionUpper = layerA.oscB.waveTableSelectionUpper;
+    const vec<VOICESPERCHIP, float> &subWavetable = layerA.oscB.subWavetable;
+    const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionA = layerA.oscB.waveTableSelectionA;
+    const vec<VOICESPERCHIP, uint32_t> &waveTableSelectionB = layerA.oscB.waveTableSelectionB;
     const vec<VOICESPERCHIP> &morphFract = layerA.oscB.morphFract;
 
-    vec<VOICESPERCHIP> stepWavetableLower;
+    static vec<VOICESPERCHIP, float> subwaveOffset; // store random subwave offset
 
-    vec<VOICESPERCHIP, uint32_t> positionA;
-    vec<VOICESPERCHIP, uint32_t> positionAb;
+    const vec<VOICESPERCHIP, uint32_t> &subWavetable_L = layerA.oscB.subWavetable_L;
+    const vec<VOICESPERCHIP, uint32_t> &subWavetable_H = layerA.oscB.subWavetable_H;
+    const vec<VOICESPERCHIP, float> &interSubwaveTable = layerA.oscB.interSubwaveTable;
+
+    vec<VOICESPERCHIP> stepWavetable_L;
+    vec<VOICESPERCHIP> stepWavetable_H;
+
+    vec<VOICESPERCHIP, uint32_t> tableIndex_L_A;
+    vec<VOICESPERCHIP, uint32_t> tableIndex_L_B;
+    vec<VOICESPERCHIP, uint32_t> tableIndex_H_A;
+    vec<VOICESPERCHIP, uint32_t> tableIndex_H_B;
+
+    vec<VOICESPERCHIP> interSamplePos_L;
+    vec<VOICESPERCHIP> interSamplePos_H;
+
+    vec<VOICESPERCHIP> sample_L_Aa;
+    vec<VOICESPERCHIP> sample_L_Ab;
+    vec<VOICESPERCHIP> sample_L_Ba;
+    vec<VOICESPERCHIP> sample_L_Bb;
+
+    vec<VOICESPERCHIP> sample_H_Aa;
+    vec<VOICESPERCHIP> sample_H_Ab;
+    vec<VOICESPERCHIP> sample_H_Ba;
+    vec<VOICESPERCHIP> sample_H_Bb;
+
     vec<VOICESPERCHIP> sampleA;
-    vec<VOICESPERCHIP> sampleAb;
-    vec<VOICESPERCHIP> interSamplePos;
     vec<VOICESPERCHIP> sampleB;
-    vec<VOICESPERCHIP> sampleBb;
 
-    for (int i = 0; i < VOICESPERCHIP; i++)
-        stepWavetableLower[i] = phase[i] * WaveTable::subSize[subWavetable[i]];
+    vec<VOICESPERCHIP, float> subWavetableWithOffset;
 
-    positionA = stepWavetableLower;
-    positionAb = positionA + 1U;
+    // vec<VOICESPERCHIP, uint32_t> subWavetable_L;
+    // vec<VOICESPERCHIP, uint32_t> subWavetable_H;
+    // vec<VOICESPERCHIP> interSubwaveTable;
 
-    interSamplePos = stepWavetableLower - positionA;
+    // // TODO lerp
+    // for (int i = 0; i < VOICESPERCHIP; i++) {
+    //     subwaveOffset[i] = phaseReset[i] * layerA.noise.out[i] * 0.5f + !phaseReset[i] * subwaveOffset[i];
+    // }
+
+    // subWavetableWithOffset = subWavetable + subwaveOffset;
+
+    // subWavetableWithOffset = clamp(subWavetableWithOffset, 0, (float)(SUBWAVETABLES - 1));
+
+    // subWavetable_L = subWavetable;
+    // subWavetable_H = ceil(subWavetable);
+    // interSubwaveTable = subWavetable - floor(subWavetable);
 
     for (int i = 0; i < VOICESPERCHIP; i++) {
-        uint32_t subWavetableIndex = subWavetable[i];
-
-        positionAb[i] = positionAb[i] * (positionAb[i] != WaveTable::subSize[subWavetableIndex]);
-
-        sampleA[i] = oscBwavetable[waveTableSelectionLower[i]].subData[subWavetableIndex][positionA[i]];
-        sampleAb[i] = oscBwavetable[waveTableSelectionLower[i]].subData[subWavetableIndex][positionAb[i]];
-
-        sampleB[i] = oscBwavetable[waveTableSelectionUpper[i]].subData[subWavetableIndex][positionA[i]];
-        sampleBb[i] = oscBwavetable[waveTableSelectionUpper[i]].subData[subWavetableIndex][positionAb[i]];
+        stepWavetable_L[i] = phase[i] * WaveTable::subSize[subWavetable_L[i]];
+        stepWavetable_H[i] = phase[i] * WaveTable::subSize[subWavetable_H[i]];
     }
 
-    sample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, morphFract);
+    tableIndex_L_A = stepWavetable_L;
+    tableIndex_L_B = tableIndex_L_A + 1U;
+    interSamplePos_L = stepWavetable_L - tableIndex_L_A;
+
+    tableIndex_H_A = stepWavetable_H;
+    tableIndex_H_B = tableIndex_H_A + 1U;
+    interSamplePos_H = stepWavetable_H - tableIndex_H_A;
+
+    for (int i = 0; i < VOICESPERCHIP; i++) {
+        uint32_t subWavetableIndex_L = subWavetable_L[i];
+        uint32_t subWavetableIndex_H = subWavetable_H[i];
+
+        tableIndex_L_B[i] = tableIndex_L_B[i] * (tableIndex_L_B[i] != WaveTable::subSize[subWavetableIndex_L]); // clamp
+        tableIndex_H_B[i] = tableIndex_H_B[i] * (tableIndex_H_B[i] != WaveTable::subSize[subWavetableIndex_H]); // clamp
+
+        sample_L_Aa[i] = oscBwavetable[waveTableSelectionA[i]].subData[subWavetableIndex_L][tableIndex_L_A[i]];
+        sample_L_Ab[i] = oscBwavetable[waveTableSelectionA[i]].subData[subWavetableIndex_L][tableIndex_L_B[i]];
+
+        sample_L_Ba[i] = oscBwavetable[waveTableSelectionB[i]].subData[subWavetableIndex_L][tableIndex_L_A[i]];
+        sample_L_Bb[i] = oscBwavetable[waveTableSelectionB[i]].subData[subWavetableIndex_L][tableIndex_L_B[i]];
+
+        sample_H_Aa[i] = oscBwavetable[waveTableSelectionA[i]].subData[subWavetableIndex_H][tableIndex_H_A[i]];
+        sample_H_Ab[i] = oscBwavetable[waveTableSelectionA[i]].subData[subWavetableIndex_H][tableIndex_H_B[i]];
+
+        sample_H_Ba[i] = oscBwavetable[waveTableSelectionB[i]].subData[subWavetableIndex_H][tableIndex_H_A[i]];
+        sample_H_Bb[i] = oscBwavetable[waveTableSelectionB[i]].subData[subWavetableIndex_H][tableIndex_H_B[i]];
+    }
+
+    sampleA = faster_CrossLerp_f32(sample_L_Aa, sample_L_Ab, sample_L_Ba, sample_L_Bb, interSamplePos_L, morphFract);
+    sampleB = faster_CrossLerp_f32(sample_H_Aa, sample_H_Ab, sample_H_Ba, sample_H_Bb, interSamplePos_H, morphFract);
+
+    sample = faster_lerp_f32(sampleA, sampleB, interSubwaveTable);
 }
 
 inline vec<VOICESPERCHIP> getOscASample() {
@@ -402,17 +445,11 @@ inline vec<VOICESPERCHIP> getOscASample() {
     vec<VOICESPERCHIP, bool> phaseReset = floor(phase);
     phase -= floor(phase);
 
-    // for (int i = 0; i < VOICESPERCHIP; i++) {
-    //     if (phaseReset[i]) {
-    //         layerA.oscA.phaseReset[i] = false;
-    //     }
-    // }
-
     // Phaseshaper Effect
     shapedPhase = renderPhaseshaperSample(phase, layerA.phaseshaperA);
 
     // get OSCA Sample
-    getWavetableSampleOSCA(newSample, phase, phaseReset);
+    getWavetableSampleOSCA(newSample, shapedPhase, phaseReset);
 
     // // Waveshaper Effect
     renderWaveshaperSample(newSample, layerA.waveshaperA); //  WAVETABLES: <1 not allowed!!
@@ -459,6 +496,8 @@ vec<VOICESPERCHIP> getOscBSample() {
     cacheOscAPhase = oscAphase;
 
     phase += noteStep * PHASEPROGRESSPERRENDER;
+    vec<VOICESPERCHIP, bool> phaseReset = floor(phase);
+
     phase -= floor(phase);
 
     vec<VOICESPERCHIP> phaseOffsetted = phase + phaseoffset + 1.0f;
@@ -468,7 +507,7 @@ vec<VOICESPERCHIP> getOscBSample() {
     shapedPhase = renderPhaseshaperSample(phaseOffsetted, layerA.phaseshaperB);
 
     // get oscB Sample
-    getWavetableSampleOSCB(newSample, shapedPhase);
+    getWavetableSampleOSCB(newSample, shapedPhase, phaseReset);
 
     // Waveshaper Effect
     renderWaveshaperSample(newSample, layerA.waveshaperB); //  WAVETABLES: <1 not allowed!!

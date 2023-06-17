@@ -981,8 +981,8 @@ void PanelTouch::evaluateModul(BaseModule *pModule, uint8_t event) {
 void PanelTouch::evaluateActionButton(ButtonActionHandle *pButton, uint8_t event) {
     if (event) { // push Event
         pButton->state = PRESSED;
-        if ((pButton->handle.functionPointer != nullptr) && (globalSettings.shift || pButton->unlock))
-            pButton->handle.functionPointer();
+        if ((globalSettings.shift || pButton->unlock))
+            pButton->handle.pendingCalls++;
     }
     else {
         pButton->state = RELEASED;
@@ -991,11 +991,10 @@ void PanelTouch::evaluateActionButton(ButtonActionHandle *pButton, uint8_t event
 
 void PanelTouch::evaluateActionHandle(actionHandle *pAction, uint8_t event) {
     if (event) { // push Event
-        if (pAction->functionPointer != nullptr)
-            pAction->functionPointer();
+
+        pAction->pendingCalls++;
     }
 }
-
 void PanelTouch::evaluateSetting(Digital *pSwitch, uint8_t event) {
     if (event) {
         pSwitch->nextValueLoop();

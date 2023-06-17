@@ -284,6 +284,10 @@ class OSC_A : public BaseModule {
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> phase;
     vec<VOICESPERCHIP> oscNote;
+
+    vec<VOICESPERCHIP, uint32_t> subWavetable_L;
+    vec<VOICESPERCHIP, uint32_t> subWavetable_H;
+    vec<VOICESPERCHIP> interSubwaveTable;
 };
 
 class OSC_B : public BaseModule {
@@ -388,9 +392,14 @@ class OSC_B : public BaseModule {
     RenderBuffer phaseoffset;
 
     vec<VOICESPERCHIP, uint32_t> subWavetable;
-    vec<VOICESPERCHIP, uint32_t> waveTableSelectionLower;
-    vec<VOICESPERCHIP, uint32_t> waveTableSelectionUpper;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionA;
+    vec<VOICESPERCHIP, uint32_t> waveTableSelectionB;
     bool newPhase[VOICESPERCHIP] = {false};
+    vec<VOICESPERCHIP, bool> phaseReset = false;
+
+    vec<VOICESPERCHIP, uint32_t> subWavetable_L;
+    vec<VOICESPERCHIP, uint32_t> subWavetable_H;
+    vec<VOICESPERCHIP> interSubwaveTable;
 };
 
 class Noise : public BaseModule {

@@ -145,8 +145,8 @@ float getOscBSample(float phase) {
     float &phaseoffset = layerA.oscB.phaseoffset[0];
     float &morphFract = layerA.oscB.morphFract[0];
 
-    uint32_t &waveTableSelectionLower = layerA.oscB.waveTableSelectionLower[0];
-    uint32_t &waveTableSelectionUpper = layerA.oscB.waveTableSelectionUpper[0];
+    uint32_t &waveTableSelectionA = layerA.oscB.waveTableSelectionA[0];
+    uint32_t &waveTableSelectionB = layerA.oscB.waveTableSelectionB[0];
 
     // static float prevPhase = -UIAUDIOPHASESTEP;
 
@@ -161,8 +161,8 @@ float getOscBSample(float phase) {
     // sample
     uint32_t positionA = shapedPhase * WaveTable::subSize[0];
 
-    float sampleA = oscBwavetable[waveTableSelectionLower].subData[0][positionA];
-    float sampleB = oscBwavetable[waveTableSelectionUpper].subData[0][positionA];
+    float sampleA = oscBwavetable[waveTableSelectionA].subData[0][positionA];
+    float sampleB = oscBwavetable[waveTableSelectionB].subData[0][positionA];
 
     float newSample = faster_lerp_f32(sampleA, sampleB, morphFract);
 
