@@ -197,7 +197,8 @@ inline vec<VOICESPERCHIP> getSubSample() {
         sampleBb[i] = subOscWavetable[1].subData[subWavetableIndex][positionAb[i]];
     }
 
-    newSample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, shape);
+    // newSample = faster_CrossLerp_f32(sampleA, sampleAb, sampleB, sampleBb, interSamplePos, shape);
+    newSample = faster_CrossLerp_f32(sampleB, sampleBb, sampleA, sampleAb, interSamplePos, shape);
 
     return newSample;
 }

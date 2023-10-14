@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "STM32",
+            "name": "PolyControl",
             "includePath": [
                 "PolyControl/Core/Inc",
                 "PolyControl/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
@@ -49,6 +49,61 @@
                 "__ARM_FEATURE_DSP = 1",
                 "POLYCONTROL"
                 // "POLYRENDER"
+            ],
+            "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN\\ARM-NONE-EABI-G++.EXE",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        },
+        {
+            "name": "PolyRender",
+            "includePath": [
+                // "PolyControl/Core/Inc",
+                // "PolyControl/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                // "PolyControl/Drivers/CMSIS/Include",
+                // "PolyControl/Drivers/CMSIS/DSP/Include",
+                // "PolyControl/Drivers/STM32H7xx_HAL_Driver/Inc",
+                // "PolyControl/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                // "PolyControl/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc",
+                // "PolyControl/Middlewares/ST/STM32_USB_Device_Library/Class/MIDI/Inc",
+                // "PolyControl/Middlewares/ST/STM32_USB_Device_Library/Core/Inc",
+                // "PolyControl/USB_DEVICE/App",
+                // "PolyControl/USB_DEVICE/Target",
+                "PolyRender/Core/Inc",
+                "PolyRender/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                "PolyRender/Drivers/CMSIS/Include",
+                "PolyRender/Drivers/CMSIS/DSP/Include",
+                "PolyRender/Drivers/STM32H7xx_HAL_Driver/Inc",
+                "PolyRender/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                "PolyLib",
+                "PolyLib/circularbuffer",
+                "PolyLib/com",
+                "PolyLib/datacore",
+                "PolyLib/gfx",
+                "PolyLib/gfx/fonts",
+                "PolyLib/layer",
+                "PolyLib/midiInterface",
+                "PolyLib/livedata",
+                "PolyLib/globalsettings",
+                "PolyLib/flagHandler",
+                "PolyLib/modules",
+                "PolyLib/math",
+                "PolyLib/debughelper",
+                "PolyLib/storage",
+                "PolyLib/wavetables",
+                "PolyLib/livedata",
+                "PolyLib/render",
+                "PolyLib/humanInterface",
+                "PolyLib/hardware",
+                "PolyLib/comControl",
+                "PolyLib/supervisor"
+            ],
+            "defines": [
+                "STM32H743xx",
+                "USE_HAL_DRIVER",
+                "__ARM_FEATURE_DSP = 1",
+                // "POLYCONTROL"
+                "POLYRENDER"
             ],
             "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN\\ARM-NONE-EABI-G++.EXE",
             "cStandard": "c17",

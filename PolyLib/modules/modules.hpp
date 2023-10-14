@@ -610,10 +610,12 @@ class LFO : public BaseModule {
         inputs.push_back(&iFreq);
         inputs.push_back(&iShape);
         inputs.push_back(&iAmount);
+        inputs.push_back(&iFade);
 
         knobs.push_back(&aShape);
         knobs.push_back(&aAmount);
         knobs.push_back(&aFreq);
+        knobs.push_back(&aFade);
 
         switches.push_back(&dFreq);
         switches.push_back(&dFreqSnap);
@@ -630,6 +632,7 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&shapeRAW);
         renderBuffer.push_back(&amount);
         renderBuffer.push_back(&currentSampleRAW);
+        renderBuffer.push_back(&fade);
 
         moduleType = MODULE_LFO;
 #ifdef POLYCONTROL
@@ -639,6 +642,7 @@ class LFO : public BaseModule {
         aShape.storeID = 0x00;
         aAmount.storeID = 0x01;
         aFreq.storeID = 0x02;
+        aFade.storeID = 0x03;
 
         dFreq.storeID = 0x00;
         dFreqSnap.storeID = 0x01;
@@ -655,10 +659,12 @@ class LFO : public BaseModule {
     Input iFreq = Input("FM", "FM", &speedRAW);
     Input iShape = Input("SHAPE", "SHAPE", &shapeRAW);
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
+    Input iFade = Input("AMOUNT", "AMOUNT", &fade);
 
     Analog aFreq = Analog("FREQ", 0, 1, 0.6, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", -1, 1, 0, true, linMap, &iAmount);
+    Analog aFade = Analog("AMOUNT", -1, 1, 0, true, linMap, &iFade);
 
     // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv, nullptr, false);
@@ -677,6 +683,7 @@ class LFO : public BaseModule {
     RenderBuffer shape;
     RenderBuffer shapeRAW;
     RenderBuffer amount;
+    RenderBuffer fade;
 
     RenderBuffer currentSampleRAW;
 
@@ -684,6 +691,9 @@ class LFO : public BaseModule {
     bool newPhase[VOICESPERCHIP] = {false};
     vec<VOICESPERCHIP> currentRandom;
     vec<VOICESPERCHIP> prevRandom;
+
+    vec<VOICESPERCHIP> fadeTime;
+    vec<VOICESPERCHIP> fadeVal;
 
     bool alignedRandom = false;
 
@@ -710,6 +720,7 @@ class LFO : public BaseModule {
             else
                 resetAllPhases();
         }
+        fadeTime = 0;
     }
 };
 
@@ -777,7 +788,7 @@ class ADSR : public BaseModule {
     Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, true);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, 0, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0.5, true, linMap);
 
     // TODO Hide controls on front

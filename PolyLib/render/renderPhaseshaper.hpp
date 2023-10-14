@@ -29,7 +29,7 @@ inline vec<VOICESPERCHIP> renderPhaseshaperSample(const vec<VOICESPERCHIP> &inpu
                 phaseshaper.Point3Y[voice] + phaseshaper.slope[2][voice] * (input[voice] - phaseshaper.Point3X[voice]);
         }
     }
-    sample = max(sample, 0.9999999f); // for safety agains rounding error
+    sample = min(sample, 0.9999999f); // for safety agains rounding error
 
     return faster_lerp_f32(input, sample, phaseshaper.DryWet);
 }
