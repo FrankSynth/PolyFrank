@@ -202,7 +202,24 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
         }
     }
 
-    // no free voice found, take the oldest played one
+    // find oldest SUSTAIN Voice
+    if (oldestVoiceID == 0xFF) {
+        for (uint8_t i = 0; i < NUMBERVOICES; i++) {
+            // found oldest NOTE
+            if (voiceLayer[i].status == SUSTAIN) {
+                if (oldestVoiceID != 0xFF) { // compare
+                    if (voiceLayer[i].playID < voiceLayer[oldestVoiceID].playID) {
+                        oldestVoiceID = voiceLayer[i].voiceID;
+                    }
+                }
+                else { // first found
+                    oldestVoiceID = voiceLayer[i].voiceID;
+                }
+            }
+        }
+    }
+
+    // no free voice found, take the oldest played one with sustained
     if (oldestVoiceID == 0xFF) {
         for (uint8_t i = 0; i < NUMBERVOICES; i++) {
             // found oldest NOTE
@@ -218,6 +235,7 @@ void VoiceHandler::searchNextVoice(voiceStateStruct *voiceLayer) {
             }
         }
     }
+
     if (oldestVoiceID == 0xFF) {
         PolyError_Handler("ERROR | LOGIC | VoiceHandler -> call for too many voices?");
         return;
@@ -251,6 +269,27 @@ void VoiceHandler::searchNextVoiceAB() {
         }
     }
 
+    // find oldest SUSTAIN Voice
+    if (nextVoice == nullptr) {
+
+        for (uint8_t i = 0; i < 2; i++) {
+            if (allLayers[i]->layerState == true) { // check layerState
+                for (uint8_t x = 0; x < NUMBERVOICES; x++) {
+                    if (voices[i][x].status == SUSTAIN) {
+                        if (nextVoice != nullptr) {
+                            if (voices[i][x].playID < nextVoice->playID) {
+                                nextVoice = &voices[i][x];
+                            }
+                        }
+                        else {
+                            nextVoice = &voices[i][x];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // no voice free voice found, take the oldest played one
     if (nextVoice == nullptr) {
 
@@ -272,6 +311,7 @@ void VoiceHandler::searchNextVoiceAB() {
             }
         }
     }
+
     if (nextVoice == nullptr) {
         PolyError_Handler("ERROR | LOGIC | VoiceHandler AB -> call for too many voices?");
         return;

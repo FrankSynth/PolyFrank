@@ -84,6 +84,9 @@ inline vec<VOICESPERCHIP> accumulateShape(const LFO &lfo) {
 inline vec<VOICESPERCHIP> accumulateAmount(const LFO &lfo) {
     return clamp(lfo.iAmount + lfo.aAmount, lfo.aAmount.min, lfo.aAmount.max);
 }
+// inline vec<VOICESPERCHIP> accumulateFade(const LFO &lfo) {
+//     return clamp(lfo.iFade + lfo.aFade, lfo.aFade.min, lfo.aFade.max);
+// }
 
 void renderLFO(LFO &lfo) {
     int32_t &alignLFOs = lfo.dAlignLFOs.valueMapped;
@@ -96,6 +99,8 @@ void renderLFO(LFO &lfo) {
     vec<VOICESPERCHIP> &shapeRAW = lfo.shapeRAW;
     vec<VOICESPERCHIP> &speed = lfo.speed;
     vec<VOICESPERCHIP> &speedRAW = lfo.speedRAW;
+    vec<VOICESPERCHIP> &fadeVal = lfo.fadeVal;
+    vec<VOICESPERCHIP> &fadeTime = lfo.fadeTime;
 
     vec<VOICESPERCHIP> &amount = lfo.amount;
     vec<VOICESPERCHIP> fract;
@@ -105,6 +110,7 @@ void renderLFO(LFO &lfo) {
     shapeRAW = accumulateShape(lfo);
     speedRAW = accumulateSpeed(lfo);
     amount = accumulateAmount(lfo);
+    // fade = accumulateFade(lfo);
 
     if (lfo.dFreqSnap == 0) {
         speed =
@@ -191,9 +197,24 @@ void renderLFO(LFO &lfo) {
         lfo.newPhase[otherVoice] = newPhase[0] * alignLFOs + newPhase[otherVoice] * !alignLFOs;
     }
 
+    fadeTime += SECONDSPERCVRENDER;
+
+    for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
+        if (lfo.aFade == 0.0f) {
+            fadeVal[voice] = 1.0f;
+        }
+        else if (lfo.aFade < 0.0f) {
+            fadeVal[voice] = 1.0f - fadeTime[voice] * lfo.aFade * lfo.aFade * lfo.aFade * lfo.aFade * 10.0f;
+        }
+        else {
+            fadeVal[voice] = fadeTime[voice] / (lfo.aFade * lfo.aFade * lfo.aFade * lfo.aFade * 10.0f);
+        }
+    }
+    fadeVal = clamp(fadeVal, 0.0f, 1.0f);
+
     for (int32_t voice = 0; voice < VOICESPERCHIP; voice++) {
         sampleRAW[voice] = sample[voice];
-        sample[voice] = sample[voice] * amount[voice];
+        sample[voice] = sample[voice] * amount[voice] * fadeVal[voice];
     }
 
     lfo.out = sample;

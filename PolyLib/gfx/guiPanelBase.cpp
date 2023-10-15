@@ -984,12 +984,12 @@ void drawWaveFromModule(WaveBuffer &buffer, BaseModule *module, uint32_t x, uint
                  c4444wavecolor);
     }
     else if (module->moduleType == MODULE_LFO) {
-        int8_t wave[100];
-        calculateLFOWave((LFO *)module, wave, 100);
+        int8_t wave[200];
+        calculateLFOWave((LFO *)module, wave, 200);
         if (&buffer == &waveBuffer) { // temp custom smaller size for info bar
             buffer.height = WAVEFORMHEIGHTINFO;
         }
-        drawWave(buffer, wave, 100, 2, c4444wavecolor);
+        drawWave(buffer, wave, 200, 1, c4444wavecolor);
         drawFrame(buffer, c4444framecolor);
 
         if (&buffer == &waveBuffer) {
@@ -1053,11 +1053,13 @@ void drawWave(WaveBuffer &buffer, int8_t *renderedWave, uint16_t samples, uint32
     int16_t x2;
     int16_t y2;
 
-    for (uint16_t i = 0; i < 100 * repeats - 1; i++) {
-        x1 = ((float)buffer.width / (100.f * repeats - 1)) * i;
-        x2 = ((float)buffer.width / (100.f * repeats - 1)) * (i + 1);
-        y1 = -renderedWave[i % 100];
-        y2 = -renderedWave[(i + 1) % 100];
+    uint16_t steps = samples * repeats - 1;
+
+    for (uint16_t i = 0; i < steps; i++) {
+        x1 = ((float)buffer.width / (float)steps) * i;
+        x2 = ((float)buffer.width / (float)steps) * (i + 1);
+        y1 = -renderedWave[i % samples];
+        y2 = -renderedWave[(i + 1) % samples];
 
         y1 = (float)(y1 + 128) * (height / 255.f);
         y2 = (float)(y2 + 128) * (height / 255.f);
@@ -1105,6 +1107,7 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
     const float random[10] = {-.8, 0.6, 0, 1, -0.3, 0.2, 0, -0.9, 0.5};
 
     float phase = 0;
+    float fullPhase = 0;
 
     float shape = testFloat(module->shapeRAW[0], module->aShape.min, module->aShape.max - 0.001);
 
@@ -1113,7 +1116,8 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
     float index;
 
     for (uint16_t i = 0; i < samples; i++) {
-        phase = (1.f / samples) * i;
+        fullPhase = (1.f / samples) * i;
+        phase = fullPhase * 2.f;
 
         phase = phase - floor(phase);
 
@@ -1164,6 +1168,17 @@ void calculateLFOWave(LFO *module, int8_t *renderedWave, uint16_t samples) {
 
         else {
             index = calcSquare(phase, shape);
+        }
+
+        float fade = module->aFade;
+
+        if (fade > 0.0f) {
+            float fadeVal = std::min(fullPhase / fade, 1.0f);
+            index = index * fadeVal;
+        }
+        else if (fade < 0.0f) {
+            float fadeVal = std::min((1.0f - fullPhase) / -fade, 1.0f);
+            index = index * fadeVal;
         }
 
         renderedWave[i] = index * 127;

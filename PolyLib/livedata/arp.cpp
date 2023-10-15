@@ -42,8 +42,8 @@ void Arpeggiator::keyReleased(Key &key) {
     }
     for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         if (it->note == key.note) {
-            if (arpLatch.value) { // latch on?
-                it->released = 1; // mark key as released
+            if (arpLatch.value || arpSustain) { // latch on?
+                it->released = 1;               // mark key as released
             }
             else {
 
@@ -126,9 +126,14 @@ void Arpeggiator::release() {
         return;
 
     for (auto it = pressedKeys.begin(); it != pressedKeys.end();) {
+
+        uint32_t age = micros() - it->born;
+        bool halfLifespan = age > (it->lifespan / 2);
+        bool lifespan = age > it->lifespan;
+
         // find keys to be released , check sustain-> half lifespan
-        if (((micros() - it->born) > it->lifespan && arpSustain) ||
-            (((micros() - it->born) > (it->lifespan / 2)) && !arpSustain)) {
+        if ((lifespan && arpSustain && arpLatch.value) || (halfLifespan && !arpSustain && arpLatch.value) ||
+            (halfLifespan && !arpLatch.value)) {
 
             voiceHandler->freeNote(*it); // free Note
 
@@ -160,7 +165,7 @@ void Arpeggiator::setSustain(uint8_t sustain) {
 }
 
 void Arpeggiator::checkLatch() {
-    if (arpLatch.value == 0) {
+    if (!arpLatch.value && !arpSustain) {
         if (inputKeys.empty())
             return;
         for (auto it = inputKeys.begin(); it != inputKeys.end();) {

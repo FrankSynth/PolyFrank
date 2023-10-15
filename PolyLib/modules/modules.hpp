@@ -610,7 +610,7 @@ class LFO : public BaseModule {
         inputs.push_back(&iFreq);
         inputs.push_back(&iShape);
         inputs.push_back(&iAmount);
-        inputs.push_back(&iFade);
+        // inputs.push_back(&iFade);
 
         knobs.push_back(&aShape);
         knobs.push_back(&aAmount);
@@ -624,7 +624,7 @@ class LFO : public BaseModule {
         switches.push_back(&dClockStep);
         switches.push_back(&dEXTDiv);
         switches.push_back(&dAlignLFOs);
-        switches.push_back(&dRange);
+        // switches.push_back(&dRange);
 
         renderBuffer.push_back(&speed);
         renderBuffer.push_back(&speedRAW);
@@ -632,7 +632,7 @@ class LFO : public BaseModule {
         renderBuffer.push_back(&shapeRAW);
         renderBuffer.push_back(&amount);
         renderBuffer.push_back(&currentSampleRAW);
-        renderBuffer.push_back(&fade);
+        // renderBuffer.push_back(&fade);
 
         moduleType = MODULE_LFO;
 #ifdef POLYCONTROL
@@ -651,7 +651,7 @@ class LFO : public BaseModule {
         dClockStep.storeID = 0x04;
         dEXTDiv.storeID = 0x05;
         dAlignLFOs.storeID = 0x06;
-        dRange.storeID = 0x07;
+        // dRange.storeID = 0x07;
 #endif
     }
     Output out = Output("OUT");
@@ -659,12 +659,12 @@ class LFO : public BaseModule {
     Input iFreq = Input("FM", "FM", &speedRAW);
     Input iShape = Input("SHAPE", "SHAPE", &shapeRAW);
     Input iAmount = Input("AMOUNT", "AMOUNT", &amount);
-    Input iFade = Input("AMOUNT", "AMOUNT", &fade);
+    // Input iFade = Input("FADE", "FADE", &fade);
 
     Analog aFreq = Analog("FREQ", 0, 1, 0.6, true, linMap, &iFreq);
     Analog aShape = Analog("SHAPE", 0, 1, 0, true, linMap, &iShape);
     Analog aAmount = Analog("AMOUNT", -1, 1, 0, true, linMap, &iAmount);
-    Analog aFade = Analog("AMOUNT", -1, 1, 0, true, linMap, &iFade);
+    Analog aFade = Analog("FADE", -1, 1, 0, true, linMap);
 
     // TODO Switch  zwischen den beiden freq einstellungen, wie im UI?
     Digital dFreq = Digital("FREQ", 0, 22, 10, false, &nlClockStepsInv, nullptr, false);
@@ -676,14 +676,14 @@ class LFO : public BaseModule {
 
     Digital dAlignLFOs = Digital("ALIGN", 0, 1, 1, true, &nlOnOff, nullptr, false);
 
-    Digital dRange = Digital("RANGE", 0, 1, 1, false, &nlRange, nullptr);
+    // Digital dRange = Digital("RANGE", 0, 1, 1, false, &nlRange, nullptr);
 
     RenderBuffer speed;
     RenderBuffer speedRAW;
     RenderBuffer shape;
     RenderBuffer shapeRAW;
     RenderBuffer amount;
-    RenderBuffer fade;
+    // RenderBuffer fade;
 
     RenderBuffer currentSampleRAW;
 
@@ -720,7 +720,10 @@ class LFO : public BaseModule {
             else
                 resetAllPhases();
         }
-        fadeTime = 0;
+        if (dAlignLFOs.valueMapped == 0)
+            fadeTime[voice] = 0;
+        else
+            fadeTime = 0;
     }
 };
 
@@ -788,7 +791,7 @@ class ADSR : public BaseModule {
     Analog aAmount = Analog("AMOUNT", -1, 1, 0.5, true, linMap, &iAmount, true);
 
     Analog aKeytrack = Analog("KEYTRACK", 0, 1, 0, true, linMap);
-    Analog aVelocity = Analog("VELOCITY", 0, 1, 1, true, linMap);
+    Analog aVelocity = Analog("VELOCITY", 0, 1, 0.7, true, linMap);
     Analog aShape = Analog("SHAPE", 0, 1, 0.5, true, linMap);
 
     // TODO Hide controls on front
