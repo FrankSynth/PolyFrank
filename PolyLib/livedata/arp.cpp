@@ -5,54 +5,68 @@ extern Clock clock;
 
 // functions
 void Arpeggiator::keyPressed(Key &key) {
+
     allKeysReleased = 1;
     midiUpdateDelayTimer = 0;
+    uint32_t keyExisting = 0;
+
     if (!inputKeys.empty()) {                                            // inputKey list empty?
         for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // all Keys released ?
             if (!it->released) {
                 allKeysReleased = 0;
-            }
-        }
-
-        if (allKeysReleased) { // clear list
-
-            inputKeys.clear();
-            allKeysReleased = 0;
-        }
-        else { // check already existing Keys
-
-            for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
-                if (it->note == key.note) {
-                    it->velocity = key.velocity;
-                    reorder = 1;
-                    return;
-                }
+                break;
             }
         }
     }
 
-    inputKeys.push_back(key);
+    if (allKeysReleased && (arpLatch.value || (!arpLatch.value && !arpSustain)))
+        inputKeys.clear();
+
+    if (inputKeys.empty() && (arpLatch.value || (!arpLatch.value && !arpSustain))) {
+        sequencerKeys.clear();
+    }
+
+    if (!inputKeys.empty()) {                                            // check already existing Keys
+        for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) { // Key already exist?
+            if (it->note == key.note) {
+                // it->velocity = key.velocity;
+                keyExisting = 1;
+                break;
+            }
+        }
+    }
+
+    if (!keyExisting) {
+        inputKeys.push_back(key);
+    }
+
+    if (sequencerKeys.size() < 127) {
+        sequencerKeys.push_back(key);
+    }
+
     reorder = 1;
+    resetSequenceNextKey = 0;
 }
+
 void Arpeggiator::keyReleased(Key &key) {
     midiUpdateDelayTimer = 0;
 
     if (inputKeys.empty()) {
         return;
     }
+
     for (auto it = inputKeys.begin(); it != inputKeys.end(); it++) {
         if (it->note == key.note) {
             if (arpLatch.value || arpSustain) { // latch on?
                 it->released = 1;               // mark key as released
             }
             else {
-
                 inputKeys.erase(it); // delete key
+                reorder = 1;
             }
-            return;
+            break;
         }
     }
-    reorder = 1;
 }
 
 void Arpeggiator::pressKey(Key &key) {
@@ -84,15 +98,15 @@ void Arpeggiator::lifetime(Key &key) {
 
     key.born = micros();
 
-    // uint32_t lifespan = (60000000 / (clock.bpm * 24)) * ticksToNextStep * arpPlayedKeysParallel.value; // in micros
     key.lifespan = (float)((60000000 / (clock.bpm * 24)) * ticksToNextStep) *
-                   (1.0f / ((float)arpRatched.value + 1.0f)); // in micros
+                   (1.0f / ((float)arpRatched.value + 1.0f)) * 0.98f; // in micros
 
     key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
     key.ratchedAmounts = arpRatched.value;
 }
 
 void Arpeggiator::serviceRoutine() {
+
     checkLatch();
     release();
     ratched();
@@ -161,10 +175,14 @@ void Arpeggiator::setSustain(uint8_t sustain) {
     }
     if (sustain < 64) {
         arpSustain = 0;
+        if (inputKeys.empty() && arpMode.value == ARP_SEQ && arpLatch.value == 0) {
+            reset();
+        }
     }
 }
 
 void Arpeggiator::checkLatch() {
+
     if (!arpLatch.value && !arpSustain) {
         if (inputKeys.empty())
             return;
@@ -210,6 +228,7 @@ void Arpeggiator::continueRestart() {
 
 void Arpeggiator::reset() {
     inputKeys.clear();
+    sequencerKeys.clear();
     restart();
 }
 
@@ -231,6 +250,7 @@ void Arpeggiator::nextStep() {
     if (!arpEnable.value)
         return;
 
+    // delay next step if midi is updated
     if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
         arpStepDelayed = 1;
         // println(micros(), " - step delayed");
@@ -244,7 +264,7 @@ void Arpeggiator::nextStep() {
     if (reorder)
         orderKeys();
 
-    if (orderedKeys.empty())
+    if ((orderedKeys.empty() && arpMode.value != ARP_SEQ) || (sequencerKeys.empty() && arpMode.value == ARP_SEQ))
         return;
 
     switch (arpMode.value) {
@@ -257,7 +277,9 @@ void Arpeggiator::nextStep() {
         case ARP_DN3: // down3
             mode_down3();
             break;
-        case ARP_UP:   // up
+        case ARP_UP: // up
+            mode_up();
+            break;
         case ARP_ORDR: // order
             mode_ordr();
             break;
@@ -282,12 +304,23 @@ void Arpeggiator::nextStep() {
         case ARP_DRUR: // downRupR
             mode_downrupr();
             break;
+        case ARP_SEQ: // downRupR
+            mode_seq();
+            break;
         default:;
     }
 
     Key key;
 
-    key = orderedKeys[stepArp];
+    if (arpMode.value == ARP_ORDR) {
+        key = inputKeys[stepArp];
+    }
+    else if (arpMode.value == ARP_SEQ) {
+        key = sequencerKeys[stepArp];
+    }
+    else {
+        key = orderedKeys[stepArp];
+    }
 
     // lower octaves
     if (currentOctave < 0) {
@@ -508,6 +541,22 @@ void Arpeggiator::mode_ordr() {
         do {
             stepArp = changeIntLoop(stepArp, 1, 0, (int32_t)(orderedKeys.size()) - 1);
         } while (orderedKeys[stepArp].note == arpKey.note && (int32_t)(orderedKeys.size()) > 1);
+    }
+}
+void Arpeggiator::mode_up() {
+    if (stepArp == (int32_t)(inputKeys.size()) - 1) {
+        increaseArpOct();
+    }
+    if (restarted) {
+        increaseArpOct();
+        stepArp = 0;
+        restarted = 0;
+    }
+    else {
+        // if arp size increased by one, a note would be repeated, so instead, we increase further
+        do {
+            stepArp = changeIntLoop(stepArp, 1, 0, (int32_t)(inputKeys.size()) - 1);
+        } while (inputKeys[stepArp].note == arpKey.note && (int32_t)(inputKeys.size()) > 1);
     }
 }
 void Arpeggiator::mode_up2() {
@@ -773,6 +822,21 @@ void Arpeggiator::mode_downrupr() {
                 }
             }
         } while (orderedKeys[stepArp].note == arpKey.note && (int32_t)(orderedKeys.size()) > 1 && !stepRepeat);
+    }
+}
+
+void Arpeggiator::mode_seq() {
+    if (stepArp == (int32_t)(sequencerKeys.size()) - 1) {
+        increaseArpOct();
+    }
+
+    if (restarted) {
+        increaseArpOct();
+        stepArp = 0;
+        restarted = 0;
+    }
+    else {
+        stepArp = changeIntLoop(stepArp, 1, 0, (int32_t)(sequencerKeys.size()) - 1);
     }
 }
 #endif

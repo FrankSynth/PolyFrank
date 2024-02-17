@@ -17,6 +17,7 @@
 #define ARP_DN3 9
 #define ARP_ORDR 10
 #define ARP_RND 11
+#define ARP_SEQ 12
 
 #define RATCHEDMAX 3
 
@@ -53,6 +54,7 @@ class Arpeggiator {
 
         orderedKeys.reserve(30);
         retriggerKeys.reserve(10);
+        sequencerKeys.reserve(128);
     }
 
     // functions
@@ -75,6 +77,7 @@ class Arpeggiator {
     void mode_down2();
     void mode_down3();
     void mode_ordr();
+    void mode_up();
     void mode_up2();
     void mode_up3();
     void mode_rnd();
@@ -83,6 +86,8 @@ class Arpeggiator {
 
     void mode_updown();
     void mode_downrupr();
+
+    void mode_seq();
 
     void orderKeys();
     void nextStep();
@@ -114,21 +119,24 @@ class Arpeggiator {
 
     std::vector<Key> orderedKeys;
 
+    std::vector<Key> sequencerKeys;
+    uint32_t resetSequenceNextKey = 0;
+
     uint16_t keyListPosition;
 
-    uint8_t allKeysReleased = 0;
-    uint8_t arpSustain = 0;
+    uint32_t allKeysReleased = 0;
+    uint32_t arpSustain = 0;
 
     elapsedMicros midiUpdateDelayTimer = 0;
-    uint8_t arpStepDelayed = 0;
+    uint32_t arpStepDelayed = 0;
 
     VoiceHandler *voiceHandler;
     uint32_t layerID = 0;
-    int32_t wasArpEnabled = 0;
+    uint32_t wasArpEnabled = 0;
 
     std::vector<Setting *> __liveSettingsArp;
     Setting arpEnable = Setting("ARPEGGIATOR", 0, 0, 1, &offOnNameList);
-    Setting arpMode = Setting("MODE", 0, 0, 11, &arpModeNameList);
+    Setting arpMode = Setting("MODE", 0, 0, 12, &arpModeNameList);
     Setting arpLatch = Setting("LATCH", 0, 0, 1, &offOnNameList);
     Setting arpOctave = Setting("OCTAVE", 0, -3, 3, &arpOctaveNameList);
     Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, &arpRatchedNameList);
@@ -153,7 +161,7 @@ class Arpeggiator {
 
     const std::vector<const char *> arpEXTDivNameList = {"/1", "/2", "4", "/8", "/16"};
 
-    const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",        "UP/DOWN", "DOWN/UP",
-                                                       "UP R/DOWN R", "DOWN R/UP R", "UP 2",    "DOWN 2",
-                                                       "UP 3",        "DOWN 3",      "ORDER",   "RANDOM"};
+    const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",   "UP/DOWN", "DOWN/UP", "UP R/DOWN R",
+                                                       "DOWN R/UP R", "UP 2",   "DOWN 2",  "UP 3",    "DOWN 3",
+                                                       "ORDER",       "RANDOM", "SEQ"};
 };

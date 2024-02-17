@@ -127,7 +127,7 @@ void layer0PhaseShaperX3(Phaseshaper *phaseshaper) {
 }
 
 void resetVoiceHandler(Arpeggiator *arp) {
-    if (arp->wasArpEnabled != arp->arpEnable.value)
+    if (arp->wasArpEnabled != (uint32_t)arp->arpEnable.value)
         arp->voiceHandler->reset(arp->layerID);
 
     arp->wasArpEnabled = arp->arpEnable.value;
