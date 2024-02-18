@@ -333,9 +333,35 @@ void LiveData::externalSyncHandling() {
         if (allLayers[i]->layerState == true) { // check layer state
 
             // ARP Steps
-            if (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value]) ||
-                (!(extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value]) && arps[i].arpPolyrhythm.value)) {
-                arps[i].nextStep();
+
+            uint32_t clockAtriggered = 0;
+            uint32_t clockBtriggered = 0;
+
+            if (extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value] == 0) {
+
+                uint32_t randomPercentile = 1 + std::rand() % 100;
+
+                if (randomPercentile <= (uint32_t)arps[i].arpPorbabilityA.value) {
+                    clockAtriggered = 1;
+                }
+            }
+
+            if (extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value] == 0 && arps[i].arpPolyrhythm.value == 1) {
+                if (arps[i].arpPolyTrigger.value == 1 || (arps[i].arpPolyTrigger.value == 0 && clockAtriggered == 0)) {
+
+                    uint32_t randomPercentile = 1 + std::rand() % 100;
+
+                    if (randomPercentile <= (uint32_t)arps[i].arpPorbabilityB.value) {
+                        clockBtriggered = 1;
+                    }
+                }
+            }
+
+            if (clockAtriggered && clockBtriggered) {
+                arps[i].nextStep(1);
+            }
+            else if (clockAtriggered || clockBtriggered) {
+                arps[i].nextStep(0);
             }
 
             // LFO Sync
@@ -380,10 +406,11 @@ void LiveData::clockHandling() {
     for (uint8_t i = 0; i < 2; i++) {
         if (allLayers[i]->layerState == true) { // check layer state
 
+            // ARP Steps
+
             uint32_t clockAtriggered = 0;
             uint32_t clockBtriggered = 0;
 
-            // ARP Steps
             if (clock.counter % clockTicksPerStep[arps[i].arpStepsA.value] == 0) {
 
                 uint32_t randomPercentile = 1 + std::rand() % 100;

@@ -53,9 +53,9 @@ class Arpeggiator {
         __liveSettingsArp.push_back(&arpPolyTrigger);
         __liveSettingsArp.push_back(&arpStepsA);
         __liveSettingsArp.push_back(&arpStepsAExt);
+        __liveSettingsArp.push_back(&arpPorbabilityA);
         __liveSettingsArp.push_back(&arpStepsB);
         __liveSettingsArp.push_back(&arpStepsBExt);
-        __liveSettingsArp.push_back(&arpPorbabilityA);
         __liveSettingsArp.push_back(&arpPorbabilityB);
 
         orderedKeys.reserve(30);
