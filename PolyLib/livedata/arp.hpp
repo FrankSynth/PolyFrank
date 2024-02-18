@@ -38,7 +38,10 @@ class Arpeggiator {
         arpStepsA.storeID = 0x07;
         arpStepsAExt.storeID = 0x08;
         arpStepsB.storeID = 0x09;
-        arpStepsBExt.storeID = 0xA;
+        arpStepsBExt.storeID = 0x0A;
+        arpPolyTrigger.storeID = 0x0B;
+        arpPorbabilityA.storeID = 0x0C;
+        arpPorbabilityB.storeID = 0x0D;
 
         __liveSettingsArp.push_back(&arpEnable);
         __liveSettingsArp.push_back(&arpLatch);
@@ -47,10 +50,13 @@ class Arpeggiator {
         __liveSettingsArp.push_back(&arpPlayedKeysParallel);
         __liveSettingsArp.push_back(&arpRatched);
         __liveSettingsArp.push_back(&arpPolyrhythm);
+        __liveSettingsArp.push_back(&arpPolyTrigger);
         __liveSettingsArp.push_back(&arpStepsA);
         __liveSettingsArp.push_back(&arpStepsAExt);
         __liveSettingsArp.push_back(&arpStepsB);
         __liveSettingsArp.push_back(&arpStepsBExt);
+        __liveSettingsArp.push_back(&arpPorbabilityA);
+        __liveSettingsArp.push_back(&arpPorbabilityB);
 
         orderedKeys.reserve(30);
         retriggerKeys.reserve(10);
@@ -90,7 +96,7 @@ class Arpeggiator {
     void mode_seq();
 
     void orderKeys();
-    void nextStep();
+    void nextStep(uint32_t dualTrigger = 0);
 
     void decreaseArpOct();
     void increaseArpOct();
@@ -129,6 +135,7 @@ class Arpeggiator {
 
     elapsedMicros midiUpdateDelayTimer = 0;
     uint32_t arpStepDelayed = 0;
+    uint32_t arpStepDelayedDual = 0;
 
     VoiceHandler *voiceHandler;
     uint32_t layerID = 0;
@@ -141,6 +148,10 @@ class Arpeggiator {
     Setting arpOctave = Setting("OCTAVE", 0, -3, 3, &arpOctaveNameList);
     Setting arpRatched = Setting("RATCHED", 0, 0, RATCHEDMAX, &arpRatchedNameList);
     Setting arpPolyrhythm = Setting("POLYRHYTHM", 0, 0, 1, &offOnNameList);
+
+    Setting arpPolyTrigger = Setting("POLYTRIGGER", 1, 0, 1, &offOnNameList);
+    Setting arpPorbabilityA = Setting("PROBABILITY A", 100, 0, 100);
+    Setting arpPorbabilityB = Setting("PROBABILITY B", 100, 0, 100);
 
     Setting arpStepsA = Setting("STEP A", 9, 0, 22, &arpStepNameList, true, true);
     Setting arpStepsB = Setting("STEP B", 9, 0, 22, &arpStepNameList, true, true);

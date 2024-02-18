@@ -113,8 +113,11 @@ void Arpeggiator::serviceRoutine() {
 
     if (!arpEnable.value)
         return;
+
     if (arpStepDelayed)
         nextStep();
+    else if (arpStepDelayedDual)
+        nextStep(1);
 }
 
 void Arpeggiator::ratched() {
@@ -246,19 +249,23 @@ void Arpeggiator::orderKeys() {
     reorder = 0;
 }
 
-void Arpeggiator::nextStep() {
+void Arpeggiator::nextStep(uint32_t dualTrigger) {
     if (!arpEnable.value)
         return;
 
     // delay next step if midi is updated
     if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
-        arpStepDelayed = 1;
-        // println(micros(), " - step delayed");
+        if (dualTrigger) {
+            arpStepDelayedDual = 1;
+        }
+        else {
+            arpStepDelayed = 1;
+        }
         return;
     }
     else {
-        // println(micros(), " - step not delayed");
         arpStepDelayed = 0;
+        arpStepDelayedDual = 0;
     }
 
     if (reorder)
@@ -267,92 +274,95 @@ void Arpeggiator::nextStep() {
     if ((orderedKeys.empty() && arpMode.value != ARP_SEQ) || (sequencerKeys.empty() && arpMode.value == ARP_SEQ))
         return;
 
-    switch (arpMode.value) {
-        case ARP_DN: // down
-            mode_down();
-            break;
-        case ARP_DN2:
-            mode_down2(); // down2
-            break;
-        case ARP_DN3: // down3
-            mode_down3();
-            break;
-        case ARP_UP: // up
-            mode_up();
-            break;
-        case ARP_ORDR: // order
-            mode_ordr();
-            break;
-        case ARP_UP2: // arpup2
-            mode_up2();
-            break;
-        case ARP_UP3: // arpup3
-            mode_up3();
-            break;
-        case ARP_RND: // arprnd
-            mode_rnd();
-            break;
-        case ARP_UD: // updown
-            mode_updown();
-            break;
-        case ARP_URDR: // upRdownR
-            mode_uprdownr();
-            break;
-        case ARP_DU: // downup
-            mode_downup();
-            break;
-        case ARP_DRUR: // downRupR
-            mode_downrupr();
-            break;
-        case ARP_SEQ: // downRupR
-            mode_seq();
-            break;
-        default:;
-    }
+    for (uint32_t i = 0; i <= dualTrigger; i++) {
 
-    Key key;
-
-    if (arpMode.value == ARP_ORDR) {
-        key = inputKeys[stepArp];
-    }
-    else if (arpMode.value == ARP_SEQ) {
-        key = sequencerKeys[stepArp];
-    }
-    else {
-        key = orderedKeys[stepArp];
-    }
-
-    // lower octaves
-    if (currentOctave < 0) {
-        for (int x = currentOctave; x < 0; x++) {
-            key.note = changeInt(key.note, -12, 0, NOTERANGE - 1, 0);
+        switch (arpMode.value) {
+            case ARP_DN: // down
+                mode_down();
+                break;
+            case ARP_DN2:
+                mode_down2(); // down2
+                break;
+            case ARP_DN3: // down3
+                mode_down3();
+                break;
+            case ARP_UP: // up
+                mode_up();
+                break;
+            case ARP_ORDR: // order
+                mode_ordr();
+                break;
+            case ARP_UP2: // arpup2
+                mode_up2();
+                break;
+            case ARP_UP3: // arpup3
+                mode_up3();
+                break;
+            case ARP_RND: // arprnd
+                mode_rnd();
+                break;
+            case ARP_UD: // updown
+                mode_updown();
+                break;
+            case ARP_URDR: // upRdownR
+                mode_uprdownr();
+                break;
+            case ARP_DU: // downup
+                mode_downup();
+                break;
+            case ARP_DRUR: // downRupR
+                mode_downrupr();
+                break;
+            case ARP_SEQ: // downRupR
+                mode_seq();
+                break;
+            default:;
         }
-    }
-    // raise octaves
-    else if (currentOctave > 0) {
-        for (int x = currentOctave; x > 0; x--) {
-            key.note = changeInt(key.note, 12, 0, NOTERANGE - 1, 0);
+
+        Key key;
+
+        if (arpMode.value == ARP_ORDR) {
+            key = inputKeys[stepArp];
         }
-    }
-
-    lifetime(key); // calculate lifespan
-
-    // println(micros(), " - new key: ", key.note);
-
-    // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
-    if (!retriggerKeys.empty()) {
-        // repress all retrigger Notes
-        for (Key retKey : retriggerKeys) {
-            retKey.lifespan = key.lifespan;
-            retKey.born = key.born;
-            retKey.ratchedAmounts = key.ratchedAmounts;
-            pressKey(retKey);
+        else if (arpMode.value == ARP_SEQ) {
+            key = sequencerKeys[stepArp];
         }
-        retriggerKeys.clear();
-    }
+        else {
+            key = orderedKeys[stepArp];
+        }
 
-    // press new key
-    pressKey(key);
+        // lower octaves
+        if (currentOctave < 0) {
+            for (int x = currentOctave; x < 0; x++) {
+                key.note = changeInt(key.note, -12, 0, NOTERANGE - 1, 0);
+            }
+        }
+        // raise octaves
+        else if (currentOctave > 0) {
+            for (int x = currentOctave; x > 0; x--) {
+                key.note = changeInt(key.note, 12, 0, NOTERANGE - 1, 0);
+            }
+        }
+
+        lifetime(key); // calculate lifespan
+
+        // println(micros(), " - new key: ", key.note);
+
+        // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
+        if (!retriggerKeys.empty()) {
+            // repress all retrigger Notes
+            for (Key retKey : retriggerKeys) {
+                retKey.lifespan = key.lifespan;
+                retKey.born = key.born;
+                retKey.ratchedAmounts = key.ratchedAmounts;
+                pressKey(retKey);
+            }
+            retriggerKeys.clear();
+        }
+
+        // press new key
+        pressKey(key);
+    }
 }
 
 void Arpeggiator::increaseArpOct() {
