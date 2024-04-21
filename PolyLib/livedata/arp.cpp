@@ -19,8 +19,11 @@ void Arpeggiator::keyPressed(Key &key) {
         }
     }
 
-    if (allKeysReleased && (arpLatch.value || (!arpLatch.value && !arpSustain)))
+    if (allKeysReleased && (arpLatch.value || (!arpLatch.value && !arpSustain))) {
         inputKeys.clear();
+        retriggerKeysA.clear();
+        // retriggerKeysB.clear();
+    }
 
     if (inputKeys.empty() && (arpLatch.value || (!arpLatch.value && !arpSustain))) {
         sequencerKeys.clear();
@@ -69,10 +72,22 @@ void Arpeggiator::keyReleased(Key &key) {
     }
 }
 
-void Arpeggiator::pressKey(Key &key) {
+void Arpeggiator::pressKey(Key &key, uint32_t retriggeredKey) {
 
+    // uint32_t percentile = (1 + std::rand() % 100) * (1 - retriggeredKey);
+    uint32_t percentile = (1 + std::rand() % 100);
+
+    uint32_t probabilityValue =
+        arpProbabilityA.value * (1 - key.probabilitySource) + arpProbabilityB.value * key.probabilitySource;
+
+    key.silent = percentile > probabilityValue;
+
+    pressedKeys.push_back(key); // add to pressed List
+
+    if (key.silent == 1) {
+        return;
+    }
     voiceHandler->playNote(key); // play new note
-    pressedKeys.push_back(key);  // add to pressed List
 }
 
 void Arpeggiator::lifetime(Key &key) {
@@ -88,11 +103,21 @@ void Arpeggiator::lifetime(Key &key) {
         uint32_t moduloA = clock.counter % clockTicksPerStep[arpStepsA.value];
         uint32_t moduloB = clock.counter % clockTicksPerStep[arpStepsB.value];
 
-        if ((clockTicksPerStep[arpStepsA.value] - moduloA) > (clockTicksPerStep[arpStepsB.value] - moduloB)) {
-            ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
+        if (arpPolyTrigger.value == 0) {
+            if ((clockTicksPerStep[arpStepsA.value] - moduloA) > (clockTicksPerStep[arpStepsB.value] - moduloB)) {
+                ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
+            }
+            else {
+                ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
+            }
         }
         else {
-            ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
+            if (key.probabilitySource == 0) {
+                ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
+            }
+            else {
+                ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
+            }
         }
     }
 
@@ -101,7 +126,7 @@ void Arpeggiator::lifetime(Key &key) {
     key.lifespan = (float)((60000000 / (clock.bpm * 24)) * ticksToNextStep) *
                    (1.0f / ((float)arpRatched.value + 1.0f)) * 0.98f; // in micros
 
-    key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
+    // key.retriggerAmounts = arpPlayedKeysParallel.value - 1;
     key.ratchedAmounts = arpRatched.value;
 }
 
@@ -115,9 +140,7 @@ void Arpeggiator::serviceRoutine() {
         return;
 
     if (arpStepDelayed)
-        nextStep();
-    else if (arpStepDelayedDual)
-        nextStep(1);
+        nextStep(arpATriggered, arpBTriggered);
 }
 
 void Arpeggiator::ratched() {
@@ -129,6 +152,28 @@ void Arpeggiator::ratched() {
         if ((micros() - it->born) > it->lifespan) {
             it->born = micros();
             pressKey(*it);
+
+            if (it->silent == 0) {
+                // repress all retrigger Notes
+                for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+                    Key retKey = retriggerKeysA[i];
+                    retKey.lifespan = it->lifespan;
+                    retKey.born = it->born;
+                    retKey.ratchedAmounts = 0;
+                    pressKey(retKey, 1);
+                }
+            }
+            // else if (it->probabilitySource == 1 && it->silent == 0) {
+            //     // repress all retrigger Notes
+            //     for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+            //         Key retKey = retriggerKeysB[i];
+            //         retKey.lifespan = it->lifespan;
+            //         retKey.born = it->born;
+            //         retKey.ratchedAmounts = 0;
+            //         pressKey(retKey, 1);
+            //     }
+            // }
+
             it = ratchedKeys.erase(it); // delete key
         }
         else {
@@ -152,17 +197,21 @@ void Arpeggiator::release() {
         if ((lifespan && arpSustain && arpLatch.value) || (halfLifespan && !arpSustain && arpLatch.value) ||
             (halfLifespan && !arpLatch.value)) {
 
-            voiceHandler->freeNote(*it); // free Note
+            if (it->silent == 0)
+                voiceHandler->freeNote(*it); // free Note
 
             if (it->ratchedAmounts) {
                 it->ratchedAmounts--;
                 ratchedKeys.push_back(*it);
             }
 
-            else if (it->retriggerAmounts) {
-                it->retriggerAmounts--;
-                retriggerKeys.push_back(*it);
-            }
+            // else if (it->retriggerAmounts) {
+            //     it->retriggerAmounts--;
+            //     if (it->probabilitySource == 0)
+            //         retriggerKeysA.push_back(*it);
+            //     else
+            //         retriggerKeysB.push_back(*it);
+            // }
 
             it = pressedKeys.erase(it); // delete key
         }
@@ -208,7 +257,8 @@ void Arpeggiator::restart() {
     midiUpdateDelayTimer = 0;
 
     pressedKeys.clear();
-    retriggerKeys.clear();
+    retriggerKeysA.clear();
+    // retriggerKeysB.clear();
     ratchedKeys.clear();
     reorder = 1;
 
@@ -221,7 +271,8 @@ void Arpeggiator::continueRestart() {
     midiUpdateDelayTimer = 0;
 
     pressedKeys.clear();
-    retriggerKeys.clear();
+    retriggerKeysA.clear();
+    // retriggerKeysB.clear();
     ratchedKeys.clear();
     reorder = 1;
 
@@ -249,23 +300,19 @@ void Arpeggiator::orderKeys() {
     reorder = 0;
 }
 
-void Arpeggiator::nextStep(uint32_t dualTrigger) {
+void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
     if (!arpEnable.value)
         return;
 
     // delay next step if midi is updated
     if (midiUpdateDelayTimer < MIDIARPUPDATEDELAY) {
-        if (dualTrigger) {
-            arpStepDelayedDual = 1;
-        }
-        else {
-            arpStepDelayed = 1;
-        }
+        arpATriggered = triggerA;
+        arpBTriggered = triggerB;
+        arpStepDelayed = 1;
         return;
     }
     else {
         arpStepDelayed = 0;
-        arpStepDelayedDual = 0;
     }
 
     if (reorder)
@@ -274,7 +321,9 @@ void Arpeggiator::nextStep(uint32_t dualTrigger) {
     if ((orderedKeys.empty() && arpMode.value != ARP_SEQ) || (sequencerKeys.empty() && arpMode.value == ARP_SEQ))
         return;
 
-    for (uint32_t i = 0; i <= dualTrigger; i++) {
+    uint32_t loopAmount = triggerA & triggerB;
+
+    for (uint32_t i = 0; i <= loopAmount; i++) {
 
         switch (arpMode.value) {
             case ARP_DN: // down
@@ -348,20 +397,44 @@ void Arpeggiator::nextStep(uint32_t dualTrigger) {
 
         // println(micros(), " - new key: ", key.note);
 
-        // TODO not right when new notes are pressed, must be cleared and instead pull "X" complete new ARP notes
-        if (!retriggerKeys.empty()) {
-            // repress all retrigger Notes
-            for (Key retKey : retriggerKeys) {
-                retKey.lifespan = key.lifespan;
-                retKey.born = key.born;
-                retKey.ratchedAmounts = key.ratchedAmounts;
-                pressKey(retKey);
-            }
-            retriggerKeys.clear();
+        if (triggerA == 1) {
+            key.probabilitySource = 0;
+            triggerA = 0;
+        }
+        else {
+            key.probabilitySource = 1;
         }
 
         // press new key
         pressKey(key);
+
+        if (key.silent == 0) {
+            // repress all retrigger Notes
+            for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+                Key retKey = retriggerKeysA[i - 1];
+                retKey.lifespan = key.lifespan;
+                retKey.born = key.born;
+                retKey.ratchedAmounts = 0;
+                pressKey(retKey, 1);
+            }
+        }
+        // else if (key.probabilitySource == 1 && key.silent == 0) {
+        //     // repress all retrigger Notes
+        //     for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+        //         Key retKey = retriggerKeysB[i - 1];
+        //         retKey.lifespan = key.lifespan;
+        //         retKey.born = key.born;
+        //         retKey.ratchedAmounts = 0;
+        //         pressKey(retKey, 1);
+        //     }
+        // }
+
+        // if (key.probabilitySource == 0) {
+        retriggerKeysA.push_front(key);
+        // }
+        // else {
+        //     retriggerKeysB.push_front(key);
+        // }
     }
 }
 

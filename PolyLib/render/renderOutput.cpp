@@ -36,8 +36,8 @@ void renderOut(Out &out) {
     out.vca = accumulateVCA(out);
     out.pan = accumulatePan(out);
 
-    panRight = (out.pan + 1.0f) * 0.5f;
-    panLeft = (out.pan * -1.0f + 1.0f) * 0.5f;
+    panLeft = (out.pan + 1.0f) * 0.5f;
+    panRight = (out.pan * -1.0f + 1.0f) * 0.5f;
 
     volume = 1 - volumeAntiLog.mapValue(out.vca * out.aMaster);
 

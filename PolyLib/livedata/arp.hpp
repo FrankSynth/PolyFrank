@@ -1,5 +1,6 @@
 #pragma once
 
+#include "circularbuffer/circularbuffer.hpp"
 #include "clock.hpp"
 #include "liveDataBase.hpp"
 #include "voiceHandler.hpp"
@@ -40,8 +41,8 @@ class Arpeggiator {
         arpStepsB.storeID = 0x09;
         arpStepsBExt.storeID = 0x0A;
         arpPolyTrigger.storeID = 0x0B;
-        arpPorbabilityA.storeID = 0x0C;
-        arpPorbabilityB.storeID = 0x0D;
+        arpProbabilityA.storeID = 0x0C;
+        arpProbabilityB.storeID = 0x0D;
 
         __liveSettingsArp.push_back(&arpEnable);
         __liveSettingsArp.push_back(&arpLatch);
@@ -53,13 +54,12 @@ class Arpeggiator {
         __liveSettingsArp.push_back(&arpPolyTrigger);
         __liveSettingsArp.push_back(&arpStepsA);
         __liveSettingsArp.push_back(&arpStepsAExt);
-        __liveSettingsArp.push_back(&arpPorbabilityA);
+        __liveSettingsArp.push_back(&arpProbabilityA);
         __liveSettingsArp.push_back(&arpStepsB);
         __liveSettingsArp.push_back(&arpStepsBExt);
-        __liveSettingsArp.push_back(&arpPorbabilityB);
+        __liveSettingsArp.push_back(&arpProbabilityB);
 
         orderedKeys.reserve(30);
-        retriggerKeys.reserve(10);
         sequencerKeys.reserve(128);
     }
 
@@ -67,7 +67,7 @@ class Arpeggiator {
     void keyPressed(Key &key);
     void keyReleased(Key &key);
 
-    void pressKey(Key &key);
+    void pressKey(Key &key, uint32_t retriggeredKey = 0);
     void lifetime(Key &key);
 
     void setSustain(uint8_t sustain);
@@ -96,7 +96,7 @@ class Arpeggiator {
     void mode_seq();
 
     void orderKeys();
-    void nextStep(uint32_t dualTrigger = 0);
+    void nextStep(uint32_t triggerA, uint32_t triggerB);
 
     void decreaseArpOct();
     void increaseArpOct();
@@ -119,7 +119,8 @@ class Arpeggiator {
     uint16_t randomCounter;
 
     std::vector<Key> pressedKeys;
-    std::vector<Key> retriggerKeys;
+    CircularBuffer<Key, 8> retriggerKeysA;
+    // CircularBuffer<Key, 8> retriggerKeysB;
     std::vector<Key> ratchedKeys;
     std::vector<Key> inputKeys;
 
@@ -135,7 +136,8 @@ class Arpeggiator {
 
     elapsedMicros midiUpdateDelayTimer = 0;
     uint32_t arpStepDelayed = 0;
-    uint32_t arpStepDelayedDual = 0;
+    uint32_t arpATriggered = 0;
+    uint32_t arpBTriggered = 0;
 
     VoiceHandler *voiceHandler;
     uint32_t layerID = 0;
@@ -150,8 +152,8 @@ class Arpeggiator {
     Setting arpPolyrhythm = Setting("POLYRHYTHM", 0, 0, 1, &offOnNameList);
 
     Setting arpPolyTrigger = Setting("POLYTRIGGER", 1, 0, 1, &offOnNameList);
-    Setting arpPorbabilityA = Setting("PROBABILITY A", 100, 0, 100);
-    Setting arpPorbabilityB = Setting("PROBABILITY B", 100, 0, 100);
+    Setting arpProbabilityA = Setting("PROBABILITY A", 100, 0, 100);
+    Setting arpProbabilityB = Setting("PROBABILITY B", 100, 0, 100);
 
     Setting arpStepsA = Setting("STEP A", 9, 0, 22, &arpStepNameList, true, true);
     Setting arpStepsB = Setting("STEP B", 9, 0, 22, &arpStepNameList, true, true);
