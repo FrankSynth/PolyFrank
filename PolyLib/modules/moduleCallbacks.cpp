@@ -133,6 +133,11 @@ void resetVoiceHandler(Arpeggiator *arp) {
     arp->wasArpEnabled = arp->arpEnable.value;
 }
 
+void switchPolyrhythmCallback(Arpeggiator *arp) {
+
+    arp->switchPolyrhythmCallback();
+}
+
 void tuneLadderCutoff(float *min, float *max) {
     allLayers[0]->ladder.aCutoff.setNewRange(*min, *max);
     allLayers[1]->ladder.aCutoff.setNewRange(*min, *max);
@@ -248,6 +253,8 @@ void setModuleCallbacks() {
 
     liveData.arps[0].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[0]));
     liveData.arps[1].arpEnable.setValueChangedCallback(std::bind(resetVoiceHandler, &liveData.arps[1]));
+    // liveData.arps[0].arpPolyrhythm.setValueChangedCallback(std::bind(switchPolyrhythmCallback, &liveData.arps[0]));
+    // liveData.arps[1].arpPolyrhythm.setValueChangedCallback(std::bind(switchPolyrhythmCallback, &liveData.arps[1]));
 
     globalSettings.midiSource.setValueChangedCallback(clearComBufferForMidi);
 

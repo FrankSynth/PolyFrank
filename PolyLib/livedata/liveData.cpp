@@ -338,13 +338,11 @@ void LiveData::externalSyncHandling() {
             uint32_t clockBtriggered = 0;
 
             if (extSyncCounter % extSyncPerStep[arps[i].arpStepsAExt.value] == 0) {
-
                 clockAtriggered = 1;
             }
 
             if (extSyncCounter % extSyncPerStep[arps[i].arpStepsBExt.value] == 0 && arps[i].arpPolyrhythm.value == 1) {
                 if (arps[i].arpPolyTrigger.value == 1 || (arps[i].arpPolyTrigger.value == 0 && clockAtriggered == 0)) {
-
                     clockBtriggered = 1;
                 }
             }

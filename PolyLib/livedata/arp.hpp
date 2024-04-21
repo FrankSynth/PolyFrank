@@ -101,6 +101,8 @@ class Arpeggiator {
     void decreaseArpOct();
     void increaseArpOct();
 
+    void switchPolyrhythmCallback();
+
     int32_t direction = 1;        // arp direction for updown etc, 1 = up
     int32_t octaveDirection = 1;  // arp octave direction for updown etc, 1 = up
     int32_t retrigger = 0;        // clears Arp Array on next iteration
@@ -120,6 +122,7 @@ class Arpeggiator {
 
     std::vector<Key> pressedKeys;
     CircularBuffer<Key, 8> retriggerKeysA;
+    uint32_t resetRetriggerKeys = 0;
     // CircularBuffer<Key, 8> retriggerKeysB;
     std::vector<Key> ratchedKeys;
     std::vector<Key> inputKeys;
