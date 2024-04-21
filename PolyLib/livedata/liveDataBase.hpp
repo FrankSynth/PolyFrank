@@ -24,7 +24,7 @@ typedef struct {
     uint8_t released = 0;
     uint32_t born = 0; // in micros?
     uint32_t lifespan = 0;
-    uint8_t probabilitySource = 0;
+    uint8_t triggerSource = 0;
     uint8_t silent = 0;
     uint8_t retriggerAmounts = 0;
     uint8_t ratchedAmounts = 0;
@@ -43,4 +43,5 @@ typedef struct {
 bool compareByNote(const Key &a, const Key &b);
 
 extern const uint32_t clockTicksPerStep[23];
+extern const uint32_t clockTicksPerStepArp[7];
 extern const uint32_t extSyncPerStep[5];

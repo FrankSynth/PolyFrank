@@ -75,18 +75,12 @@ void Arpeggiator::keyReleased(Key &key) {
 void Arpeggiator::pressKey(Key &key, uint32_t retriggeredKey) {
 
     // uint32_t percentile = (1 + std::rand() % 100) * (1 - retriggeredKey);
-    uint32_t percentile = (1 + std::rand() % 100);
-
-    uint32_t probabilityValue =
-        arpProbabilityA.value * (1 - key.probabilitySource) + arpProbabilityB.value * key.probabilitySource;
-
-    key.silent = percentile > probabilityValue;
-
-    pressedKeys.push_back(key); // add to pressed List
 
     if (key.silent == 1) {
         return;
     }
+    retriggerKeysA.push_front(key);
+    pressedKeys.push_back(key);  // add to pressed List
     voiceHandler->playNote(key); // play new note
 }
 
@@ -103,22 +97,22 @@ void Arpeggiator::lifetime(Key &key) {
         uint32_t moduloA = clock.counter % clockTicksPerStep[arpStepsA.value];
         uint32_t moduloB = clock.counter % clockTicksPerStep[arpStepsB.value];
 
-        if (arpPolyTrigger.value == 0) {
-            if ((clockTicksPerStep[arpStepsA.value] - moduloA) > (clockTicksPerStep[arpStepsB.value] - moduloB)) {
-                ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
-            }
-            else {
-                ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
-            }
+        // if (arpPolyTrigger.value == 0) {
+        //     if ((clockTicksPerStep[arpStepsA.value] - moduloA) > (clockTicksPerStep[arpStepsB.value] - moduloB)) {
+        //         ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
+        //     }
+        //     else {
+        //         ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
+        //     }
+        // }
+        // else {
+        if (key.triggerSource == 0) {
+            ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
         }
         else {
-            if (key.probabilitySource == 0) {
-                ticksToNextStep = clockTicksPerStep[arpStepsA.value] - moduloA;
-            }
-            else {
-                ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
-            }
+            ticksToNextStep = clockTicksPerStep[arpStepsB.value] - moduloB;
         }
+        // }
     }
 
     key.born = micros();
@@ -163,7 +157,7 @@ void Arpeggiator::ratched() {
                     pressKey(retKey, 1);
                 }
             }
-            // else if (it->probabilitySource == 1 && it->silent == 0) {
+            // else if (it->triggerSource == 1 && it->silent == 0) {
             //     // repress all retrigger Notes
             //     for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
             //         Key retKey = retriggerKeysB[i];
@@ -207,7 +201,7 @@ void Arpeggiator::release() {
 
             // else if (it->retriggerAmounts) {
             //     it->retriggerAmounts--;
-            //     if (it->probabilitySource == 0)
+            //     if (it->triggerSource == 0)
             //         retriggerKeysA.push_back(*it);
             //     else
             //         retriggerKeysB.push_back(*it);
@@ -321,9 +315,9 @@ void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
     if ((orderedKeys.empty() && arpMode.value != ARP_SEQ) || (sequencerKeys.empty() && arpMode.value == ARP_SEQ))
         return;
 
-    uint32_t loopAmount = triggerA & triggerB;
+    // uint32_t loopAmount = triggerA & triggerB; // 1 if both triggers are active, so it'll loop twice
 
-    for (uint32_t i = 0; i <= loopAmount; i++) {
+    for (; triggerA + triggerB != 0;) {
 
         switch (arpMode.value) {
             case ARP_DN: // down
@@ -362,7 +356,7 @@ void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
             case ARP_DRUR: // downRupR
                 mode_downrupr();
                 break;
-            case ARP_SEQ: // downRupR
+            case ARP_SEQ: // seq
                 mode_seq();
                 break;
             default:;
@@ -398,19 +392,27 @@ void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
         // println(micros(), " - new key: ", key.note);
 
         if (triggerA == 1) {
-            key.probabilitySource = 0;
+            key.triggerSource = 0; // A
             triggerA = 0;
         }
         else {
-            key.probabilitySource = 1;
+            key.triggerSource = 1; // B
+            triggerB = 0;
         }
+
+        // this can also be done in the pressKey function to have per key probability for ratched etc
+        uint32_t percentile = (1 + std::rand() % 100);
+        uint32_t probabilityValue =
+            arpProbabilityA.value * (1 - key.triggerSource) + arpProbabilityB.value * key.triggerSource;
+        key.silent = percentile > probabilityValue;
 
         // press new key
         pressKey(key);
 
-        if (key.silent == 0) {
-            // repress all retrigger Notes
-            for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+        // if (key.silent == 0) {
+        // repress all retrigger Notes
+        for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
+            if (i <= retriggerKeysA.size()) {
                 Key retKey = retriggerKeysA[i - 1];
                 retKey.lifespan = key.lifespan;
                 retKey.born = key.born;
@@ -418,7 +420,8 @@ void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
                 pressKey(retKey, 1);
             }
         }
-        // else if (key.probabilitySource == 1 && key.silent == 0) {
+        // }
+        // else if (key.triggerSource == 1 && key.silent == 0) {
         //     // repress all retrigger Notes
         //     for (uint32_t i = 1; i < (uint32_t)arpPlayedKeysParallel.value; i++) {
         //         Key retKey = retriggerKeysB[i - 1];
@@ -429,8 +432,7 @@ void Arpeggiator::nextStep(uint32_t triggerA, uint32_t triggerB) {
         //     }
         // }
 
-        // if (key.probabilitySource == 0) {
-        retriggerKeysA.push_front(key);
+        // if (key.triggerSource == 0) {
         // }
         // else {
         //     retriggerKeysB.push_front(key);

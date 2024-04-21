@@ -172,6 +172,8 @@ class Arpeggiator {
         "1/64T", "1/32T", "1/32", "1/16T", "1/16", "1/8T", "1/16.", "1/8", "1/4T", "1/8.", "1/4", "1/2T",
         "1/4.",  "1/2",   "1/1T", "1/2.",  "1/1",  "2/1T", "1/1.",  "2/1", "4/1T", "2/1.", "4/1"};
 
+    // const std::vector<const char *> arpStepNameList = {"1/16", "1/8", "1/4", "1/2", "1/1", "2/1", "4/1"};
+
     const std::vector<const char *> arpEXTDivNameList = {"/1", "/2", "4", "/8", "/16"};
 
     const std::vector<const char *> arpModeNameList = {"UP",          "DOWN",   "UP/DOWN", "DOWN/UP", "UP R/DOWN R",
