@@ -124,8 +124,8 @@ AS_DEFS =
 C_DEFS =  \
 -DSTM32H743xx \
 -DUSE_HAL_DRIVER \
--DPOLYRENDER
-
+-DPOLYRENDER\
+-D__REVISION_3__
 
 # AS includes
 AS_INCLUDES = \
@@ -162,9 +162,8 @@ endif
 
 # Generate dependency information
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
-
 CXXFLAGS?=
-CXXFLAGS += -feliminate-unused-debug-types -std=c++2a -Wno-volatile
+CXXFLAGS += -feliminate-unused-debug-types -std=c++2a -Wno-volatile	
 
 #######################################
 # LDFLAGS

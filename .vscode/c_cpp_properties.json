@@ -46,10 +46,11 @@
                 "STM32H743xx",
                 "USE_HAL_DRIVER",
                 "__ARM_FEATURE_DSP = 1",
-                "POLYCONTROL"
-                // "POLYRENDER"
+                "POLYCONTROL",
+                "__REVISION_3__",
+                "POLYRENDER"
             ],
-            "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN\\ARM-NONE-EABI-G++.EXE",
+            "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2021.10\\BIN\\ARM-NONE-EABI-G++.EXE",
             "cStandard": "c17",
             "cppStandard": "c++20",
             "configurationProvider": "ms-vscode.makefile-tools"

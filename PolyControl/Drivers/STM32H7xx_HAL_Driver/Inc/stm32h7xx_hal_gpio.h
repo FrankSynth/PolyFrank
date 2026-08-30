@@ -139,7 +139,27 @@ typedef enum
   * @brief GPIO Output Maximum frequency
   * @{
   */
-#define  GPIO_SPEED_FREQ_LOW         (0x00000000U)  /*!< Low speed     */
+#define  /* USER CODE BEGIN SPI2_MspDeInit 0 */
+
+  /* USER CODE END SPI2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_SPI2_CLK_DISABLE();
+
+    /**SPI2 GPIO Configuration
+    PB10     ------> SPI2_SCK
+    PB12     ------> SPI2_NSS
+    PB15     ------> SPI2_MOSI
+    */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_15);
+
+    /* SPI2 DMA DeInit */
+    HAL_DMA_DeInit(spiHandle->hdmatx);
+
+    /* SPI2 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(SPI2_IRQn);
+  /* USER CODE BEGIN SPI2_MspDeInit 1 */
+
+  /* USER CODE END SPI2_MspDeInit 1 */GPIO_SPEED_FREQ_LOW         (0x00000000U)  /*!< Low speed     */
 #define  GPIO_SPEED_FREQ_MEDIUM      (0x00000001U)  /*!< Medium speed  */
 #define  GPIO_SPEED_FREQ_HIGH        (0x00000002U)  /*!< Fast speed    */
 #define  GPIO_SPEED_FREQ_VERY_HIGH   (0x00000003U)  /*!< High speed    */
