@@ -50,7 +50,6 @@
                 "POLYCONTROL"
                 // "POLYRENDER"
             ],
-            "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN\\ARM-NONE-EABI-G++.EXE",
             "cStandard": "c17",
             "cppStandard": "c++20",
             "configurationProvider": "ms-vscode.makefile-tools"
@@ -105,7 +104,6 @@
                 // "POLYCONTROL"
                 "POLYRENDER"
             ],
-            "compilerPath": "C:\\PROGRAM FILES (X86)\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN\\ARM-NONE-EABI-G++.EXE",
             "cStandard": "c17",
             "cppStandard": "c++20",
             "configurationProvider": "ms-vscode.makefile-tools"

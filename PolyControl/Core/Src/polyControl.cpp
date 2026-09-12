@@ -216,6 +216,9 @@ void PolyControlInit() {
     else if (layerB.layerState == true) {
         newFocus = {1, 0, 0, FOCUSMODULE};
     }
+    else{
+        newFocus = {0, 0, 0, FOCUSMODULE};
+    }
 
     // Init Hardware User Interface
     HIDConfig();

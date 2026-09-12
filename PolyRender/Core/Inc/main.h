@@ -65,31 +65,62 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define SPI_READY_Pin GPIO_PIN_5
-#define SPI_READY_GPIO_Port GPIOF
-#define SPI_CS_SOFT_Pin GPIO_PIN_10
-#define SPI_CS_SOFT_GPIO_Port GPIOF
-#define SPI_CS_SOFT_EXTI_IRQn EXTI15_10_IRQn
-#define CHIP_ID_A_Pin GPIO_PIN_0
-#define CHIP_ID_A_GPIO_Port GPIOA
-#define CHIP_ID_B_Pin GPIO_PIN_1
-#define CHIP_ID_B_GPIO_Port GPIOA
-#define STATUS_LED_Pin GPIO_PIN_2
-#define STATUS_LED_GPIO_Port GPIOA
-#define AUDIO_RST_Pin GPIO_PIN_11
-#define AUDIO_RST_GPIO_Port GPIOH
-#define SWITCH_1_A_Pin GPIO_PIN_10
-#define SWITCH_1_A_GPIO_Port GPIOD
-#define SWITCH_1_B_Pin GPIO_PIN_11
-#define SWITCH_1_B_GPIO_Port GPIOD
-#define SWITCH_2_A_Pin GPIO_PIN_12
-#define SWITCH_2_A_GPIO_Port GPIOD
-#define SWITCH_2_B_Pin GPIO_PIN_13
-#define SWITCH_2_B_GPIO_Port GPIOD
-#define INTERCHIP_SCL_Pin GPIO_PIN_6
-#define INTERCHIP_SCL_GPIO_Port GPIOB
-#define INTERCHIP_SDA_Pin GPIO_PIN_7
-#define INTERCHIP_SDA_GPIO_Port GPIOB
+   #ifdef __REVISION_3__
+        #define SPI_READY_Pin GPIO_PIN_9
+        #define SPI_READY_GPIO_Port GPIOE
+
+        #define SPI_CS_SOFT_Pin GPIO_PIN_10
+        #define SPI_CS_SOFT_GPIO_Port GPIOE
+        #define SPI_CS_SOFT_EXTI_IRQn EXTI15_10_IRQn
+
+        #define CHIP_ID_A_Pin GPIO_PIN_0
+        #define CHIP_ID_A_GPIO_Port GPIOA
+        #define CHIP_ID_B_Pin GPIO_PIN_1
+        #define CHIP_ID_B_GPIO_Port GPIOA
+
+        #define STATUS_LED_Pin GPIO_PIN_2
+        #define STATUS_LED_GPIO_Port GPIOA
+
+        #define AUDIO_RST_Pin GPIO_PIN_3
+        #define AUDIO_RST_GPIO_Port GPIOC
+
+        #define SWITCH_1_A_Pin GPIO_PIN_10
+        #define SWITCH_1_A_GPIO_Port GPIOD
+        #define SWITCH_1_B_Pin GPIO_PIN_11
+        #define SWITCH_1_B_GPIO_Port GPIOD
+        #define SWITCH_2_A_Pin GPIO_PIN_12
+        #define SWITCH_2_A_GPIO_Port GPIOD
+        #define SWITCH_2_B_Pin GPIO_PIN_13
+        #define SWITCH_2_B_GPIO_Port GPIOD
+
+    #else 
+
+        #define SPI_READY_Pin GPIO_PIN_5
+        #define SPI_READY_GPIO_Port GPIOF
+        #define SPI_CS_SOFT_Pin GPIO_PIN_10
+        #define SPI_CS_SOFT_GPIO_Port GPIOF
+        #define SPI_CS_SOFT_EXTI_IRQn EXTI15_10_IRQn
+        #define CHIP_ID_A_Pin GPIO_PIN_0
+        #define CHIP_ID_A_GPIO_Port GPIOA
+        #define CHIP_ID_B_Pin GPIO_PIN_1
+        #define CHIP_ID_B_GPIO_Port GPIOA
+        #define STATUS_LED_Pin GPIO_PIN_2
+        #define STATUS_LED_GPIO_Port GPIOA
+        #define AUDIO_RST_Pin GPIO_PIN_11
+        #define AUDIO_RST_GPIO_Port GPIOH
+        #define SWITCH_1_A_Pin GPIO_PIN_10
+        #define SWITCH_1_A_GPIO_Port GPIOD
+        #define SWITCH_1_B_Pin GPIO_PIN_11
+        #define SWITCH_1_B_GPIO_Port GPIOD
+        #define SWITCH_2_A_Pin GPIO_PIN_12
+        #define SWITCH_2_A_GPIO_Port GPIOD
+        #define SWITCH_2_B_Pin GPIO_PIN_13
+        #define SWITCH_2_B_GPIO_Port GPIOD
+        #define INTERCHIP_SCL_Pin GPIO_PIN_6
+        #define INTERCHIP_SCL_GPIO_Port GPIOB
+        #define INTERCHIP_SDA_Pin GPIO_PIN_7
+        #define INTERCHIP_SDA_GPIO_Port GPIOB
+    #endif     
 
 /* USER CODE BEGIN Private defines */
 

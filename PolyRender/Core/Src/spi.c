@@ -150,6 +150,39 @@ void MX_SPI4_Init(void) {
 
     /* USER CODE END SPI4_Init 2 */
 }
+
+#ifdef __REVISION_3__
+/* SPI6 init function */
+void MX_SPI6_Init(void) {
+
+    hspi6.Instance = SPI3;
+    hspi6.Init.Mode = SPI_MODE_MASTER;
+    hspi6.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
+    hspi6.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi6.Init.NSS = SPI_NSS_HARD_OUTPUT;
+    hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi6.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi6.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi6.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi6.Init.CRCPolynomial = 0x0;
+    hspi6.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+    hspi6.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+    hspi6.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+    hspi6.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    hspi6.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    hspi6.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+    hspi6.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    hspi6.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+    hspi6.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_ENABLE;
+    hspi6.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+    if (HAL_SPI_Init(&hspi6) != HAL_OK) {
+        Error_Handler();
+    }
+}
+#else 
+
 /* SPI6 init function */
 void MX_SPI6_Init(void) {
 
@@ -179,6 +212,8 @@ void MX_SPI6_Init(void) {
         Error_Handler();
     }
 }
+
+#endif
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
@@ -261,13 +296,24 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
         PI1     ------> SPI2_SCK
         PI3     ------> SPI2_MOSI
         */
+
+        #ifdef __REVISION_3__
+        GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_15;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+        #else
+
         GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_3;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
         GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
         HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
-
+        #endif
         /* SPI2 DMA Init */
         /* SPI2_TX Init */
         hdma_spi2_tx.Instance = DMA2_Stream2;
@@ -369,6 +415,43 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI4_MspInit 1 */
     }
+
+    #ifdef __REVISION_3__
+
+
+    else if (spiHandle->Instance == SPI3) {
+        /* SPI3 clock enable */
+        __HAL_RCC_SPI3_CLK_ENABLE();
+
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+        /**SPI3 GPIO Configuration
+        PA15 (JTDI)     ------> SPI3_NSS
+        PC10     ------> SPI3_SCK
+        PC12     ------> SPI3_MOSI
+        */
+        GPIO_InitStruct.Pin = GPIO_PIN_15;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+        /* USER CODE BEGIN SPI6_MspInit 1 */
+
+        /* USER CODE END SPI6_MspInit 1 */
+    }
+
+    #else
+
+
     else if (spiHandle->Instance == SPI6) {
         /* USER CODE BEGIN SPI6_MspInit 0 */
 
@@ -401,6 +484,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI6_MspInit 1 */
     }
+
+    #endif
 }
 
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
@@ -432,6 +517,33 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
         /* USER CODE END SPI1_MspDeInit 1 */
     }
     else if (spiHandle->Instance == SPI2) {
+
+         #ifdef __REVISION_3__
+
+    /* USER CODE BEGIN SPI2_MspDeInit 0 */
+
+    /* USER CODE END SPI2_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_SPI2_CLK_DISABLE();
+
+        /**SPI2 GPIO Configuration
+        PB10     ------> SPI2_SCK
+        PB12     ------> SPI2_NSS
+        PB15     ------> SPI2_MOSI
+        */
+        HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_15);
+
+        /* SPI2 DMA DeInit */
+        HAL_DMA_DeInit(spiHandle->hdmatx);
+
+        /* SPI2 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(SPI2_IRQn);
+    /* USER CODE BEGIN SPI2_MspDeInit 1 */
+
+    /* USER CODE END SPI2_MspDeInit 1 */
+        #else
+    /* USER CODE BEGIN SPI2_MspDeInit 0 */
+
         /* USER CODE BEGIN SPI2_MspDeInit 0 */
 
         /* USER CODE END SPI2_MspDeInit 0 */
@@ -453,6 +565,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
         /* USER CODE BEGIN SPI2_MspDeInit 1 */
 
         /* USER CODE END SPI2_MspDeInit 1 */
+
+        #endif
     }
     else if (spiHandle->Instance == SPI4) {
         /* USER CODE BEGIN SPI4_MspDeInit 0 */
@@ -479,6 +593,29 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI4_MspDeInit 1 */
     }
+    #ifdef __REVISION_3__
+    else if (spiHandle->Instance == SPI3) {
+    /* USER CODE BEGIN SPI3_MspDeInit 0 */
+
+    /* USER CODE END SPI3_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_SPI3_CLK_DISABLE();
+
+        /**SPI3 GPIO Configuration
+        PA15 (JTDI)     ------> SPI3_NSS
+        PC10     ------> SPI3_SCK
+        PC12     ------> SPI3_MOSI
+        */
+        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_15);
+
+        HAL_GPIO_DeInit(GPIOC, GPIO_PIN_10|GPIO_PIN_12);
+
+    /* USER CODE BEGIN SPI3_MspDeInit 1 */
+
+    /* USER CODE END SPI3_MspDeInit 1 */
+    }
+
+    #else
     else if (spiHandle->Instance == SPI6) {
         /* USER CODE BEGIN SPI6_MspDeInit 0 */
 
@@ -499,6 +636,7 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *spiHandle) {
 
         /* USER CODE END SPI6_MspDeInit 1 */
     }
+    #endif
 }
 
 /* USER CODE BEGIN 1 */

@@ -195,10 +195,19 @@ void SystemClock_Config(void) {
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
         Error_Handler();
     }
+
+    #ifdef __REVISION_3__
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
+                                               RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_SPI3 |
+                                               RCC_PERIPHCLK_USART1;
+    #else
+
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RNG | RCC_PERIPHCLK_SPI2 | RCC_PERIPHCLK_SPI1 |
                                                RCC_PERIPHCLK_SPI4 | RCC_PERIPHCLK_SAI1 | RCC_PERIPHCLK_SPI6 |
                                                RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_ADC;
-    PeriphClkInitStruct.PLL2.PLL2M = 10;
+    
+    #endif
+                                               PeriphClkInitStruct.PLL2.PLL2M = 10;
     PeriphClkInitStruct.PLL2.PLL2N = 384;
     PeriphClkInitStruct.PLL2.PLL2P = 25;
     PeriphClkInitStruct.PLL2.PLL2Q = 75;
