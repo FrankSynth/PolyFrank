@@ -169,7 +169,7 @@ void SystemClock_Config(void) {
     RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 8;
+    RCC_OscInitStruct.PLL.PLLM = 4;
     RCC_OscInitStruct.PLL.PLLN = 480;
     RCC_OscInitStruct.PLL.PLLP = 2;
     RCC_OscInitStruct.PLL.PLLQ = 24;
@@ -207,7 +207,7 @@ void SystemClock_Config(void) {
                                                RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_ADC;
     
     #endif
-                                               PeriphClkInitStruct.PLL2.PLL2M = 10;
+                                               PeriphClkInitStruct.PLL2.PLL2M = 5;
     PeriphClkInitStruct.PLL2.PLL2N = 384;
     PeriphClkInitStruct.PLL2.PLL2P = 25;
     PeriphClkInitStruct.PLL2.PLL2Q = 75;
@@ -215,7 +215,7 @@ void SystemClock_Config(void) {
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_0;
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
     PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
-    PeriphClkInitStruct.PLL3.PLL3M = 2;
+    PeriphClkInitStruct.PLL3.PLL3M = 1;
     PeriphClkInitStruct.PLL3.PLL3N = 60;
     PeriphClkInitStruct.PLL3.PLL3P = 8;
     PeriphClkInitStruct.PLL3.PLL3Q = 5;
